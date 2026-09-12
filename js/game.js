@@ -45,37 +45,23 @@ function selectAnchor(dx, dy) {
     });
     return best;
 }
-// Finishing is a special transfer: free a fixed hand when both feet can support.
-function goalPose(p) {
-    const goal = holds.find(h => h.type === 'goal');
-    if (!goal || !limbReachable(p, goal, 0) || !limbReachable(p, goal, 1)) return null;
-    const feet = [2, 3].map(i => holds.filter(h => h !== goal && h.y >= goal.y && limbReachable(p, h, i))
-        .sort((a, b) => (a === startGrips[i] ? -1 : b === startGrips[i] ? 1 : distance(a, limbRoot(p, i)) - distance(b, limbRoot(p, i)))));
-    for (const left of feet[0])
-        for (const right of feet[1])
-            if (left !== right && (left === startGrips[2] || right === startGrips[3]))
-                return [goal, goal, left, right];
-    return null;
+function canShareGoal(hold, a, b) {
+    return hold.type === 'goal' && a < 2 && b < 2 && a !== b;
 }
 function attachMoving(p, anchor) {
-    const finish = goalPose(p);
-    if (finish) return finish;
     const result = Array(4).fill(null);
     result[anchor] = startGrips[anchor];
     const moving = [0, 1, 2, 3].filter(i => i !== anchor);
     const candidates = moving.map(i => {
         const target = { x: p.x + limbs[i].x, y: p.y + limbs[i].y };
-        return holds.filter(h => (h !== result[anchor] || (h.type === 'goal' && i < 2 && anchor < 2)) && limbReachable(p, h, i))
+        return holds.filter(h => (h !== result[anchor] || canShareGoal(h, i, anchor)) && limbReachable(p, h, i))
             .map(h => ({ h, cost: distance(h, target) ** 2 - (h.type === 'goal' ? 4 * R * R : 0) }))
             .sort((a, b) => a.cost - b.cost || a.h.id - b.h.id);
     });
-    // Only the two hands may share a goal hold.
+    // Only the two hands can share the goal; the selected anchor never changes.
     let best = [...result], bestCount = -1, bestCost = Infinity;
     function assign(slot, count, cost) {
         if (slot === moving.length) {
-            const doubleGoal = result[0]?.type === 'goal' && result[0] === result[1];
-            if (doubleGoal && startGrips[0] !== result[0] && startGrips[1] !== result[0]
-                && result[2] !== startGrips[2] && result[3] !== startGrips[3]) return;
             const hands = result.slice(0, 2).filter(Boolean), feet = result.slice(2).filter(Boolean);
             if (feet.some(foot => hands.some(hand => foot.y < hand.y))) return;
             if (count > bestCount || (count === bestCount && cost < bestCost)) {
@@ -85,7 +71,7 @@ function attachMoving(p, anchor) {
         }
         const i = moving[slot];
         for (const candidate of candidates[slot]) {
-            if (result.some((h, j) => h === candidate.h && !(h.type === 'goal' && i < 2 && j < 2))) continue;
+            if (result.some((h, j) => j !== i && h === candidate.h && !canShareGoal(h, i, j))) continue;
             result[i] = candidate.h;
             assign(slot + 1, count + 1, cost + candidate.cost);
         }
@@ -127,7 +113,7 @@ function updateUI() {
     if (warning > 0) {
         ui.hint.innerHTML = '固定した1点の可動域の端です<br>3本がホールドに届く位置で離し、次のスワイプへ';
     } else if (drag && drag.anchor !== null) {
-        ui.hint.innerHTML = `${bothHandsOnGoal() ? limbs[displayedAnchor()].name + 'を固定してゴールへ持ち替え' : limbs[drag.anchor].name + 'を支点に固定 · 他の3本は移動可能'}<br>${bothHandsOnGoal() ? '両手でゴール！ 離すとクリア' : sameContacts(grips, startGrips) ? '接触点は同じ · 離すと元の姿勢へ（消費なし）' : grips.every(Boolean) ? '離すと姿勢を確定 · スタミナ −1' : '未吸着で離すと元の姿勢に戻ります'}`;
+        ui.hint.innerHTML = `${limbs[drag.anchor].name}を支点に固定 · 他の3本は移動可能<br>${sameContacts(grips, startGrips) ? '接触点は同じ · 離すと元の姿勢へ（消費なし）' : grips.every(Boolean) ? '離すと姿勢を確定 · スタミナ −1' : '未吸着で離すと元の姿勢に戻ります'}`;
     } else {
         ui.hint.innerHTML = 'フィールドのどこからでもスワイプ<br>1本を支点に固定し、他の3本が追従します';
     }
@@ -163,16 +149,6 @@ function move(e) {
             return;
         drag.anchor = selectAnchor(raw.x - committed.x, raw.y - committed.y);
     }
-    const finish = goalPose(target);
-    const footAnchor = finish && [2, 3].find(i => finish[i] === startGrips[i]);
-    if (finish && footAnchor !== undefined) {
-        body = target;
-        grips = finish;
-        // Keep the gesture's original support selection stable for subsequent input.
-        warning = 0;
-        updateUI();
-        return;
-    }
     const anchor = startGrips[drag.anchor];
     const reachable = q => limbReachable(q, anchor, drag.anchor);
     // Keep the selected support throughout this gesture.
@@ -198,16 +174,8 @@ function move(e) {
     warning = blocked ? 1 : 0;
     updateUI();
 }
-function displayedAnchor() {
-    if (!drag) return null;
-    if (bothHandsOnGoal()) {
-        const foot = [2, 3].find(i => grips[i] && grips[i] === startGrips[i]);
-        if (foot !== undefined) return foot;
-    }
-    return drag.anchor;
-}
-function bothHandsOnGoal() {
-    return grips[0]?.type === 'goal' && grips[0] === grips[1];
+function bothHandsOnGoal(stance = grips) {
+    return stance[0]?.type === 'goal' && stance[0] === stance[1];
 }
 // Compare contact positions as a multiset, independent of limb assignment.
 function sameContacts(a, b) {
@@ -219,7 +187,7 @@ function sameContacts(a, b) {
 function release(cancel = false) {
     if (!drag)
         return;
-    const invalid = grips.some(h => h === null) && !bothHandsOnGoal();
+    const invalid = grips.some(h => h === null);
     drag = null;
     if (cancel || invalid || sameContacts(grips, startGrips)) {
         body = { ...committed };

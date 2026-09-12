@@ -32,17 +32,19 @@ check(!sameContacts([originalGrips[0], originalGrips[0], originalGrips[2], origi
 committed = { ...body }; startGrips = [...originalGrips]; grips = changed; drag = { anchor: 1 };
 release();
 check(stamina === originalStamina - 1 && moveCount === 1, 'Real transfer was free');
-const goalBody = { x: 200, y: 300 };
-const testGoal = { id: 9000, x: 200, y: 220, type: 'goal' };
-const leftFoot = { id: 9001, x: 170, y: 390 };
-const rightFoot = { id: 9002, x: 230, y: 390 };
-holds = [testGoal, leftFoot, rightFoot];
-startGrips = [{ x: 160, y: 230 }, { x: 240, y: 230 }, leftFoot, { x: 230, y: 600 }];
-check(goalPose(goalBody)[2] === leftFoot, 'Left foot not preserved');
-startGrips[2] = { x: 170, y: 600 };
-check(goalPose(goalBody) === null, 'Goal allowed all limbs to move');
-startGrips[3] = rightFoot;
-check(goalPose(goalBody)[3] === rightFoot, 'Right foot not preserved');
+const goal = { id: 9000, x: 200, y: 220, type: 'goal' };
+const lowLeft = { id: 9001, x: 170, y: 380 }, lowRight = { id: 9002, x: 230, y: 380 };
+const otherHand = { id: 9003, x: 245, y: 235 };
+holds = [goal, lowLeft, lowRight, otherHand];
+for (const anchor of [0, 1]) {
+    startGrips = anchor === 0 ? [goal, otherHand, lowLeft, lowRight] : [otherHand, goal, lowLeft, lowRight];
+    const pose = attachMoving({ x:200, y:300 }, anchor);
+    check(pose[anchor] === startGrips[anchor], 'Goal anchor moved');
+    check(bothHandsOnGoal(pose), 'Other hand cannot share fixed goal');
+}
+check(!bothHandsOnGoal([goal, otherHand, lowLeft, lowRight]), 'Single hand wins');
+check(!canShareGoal(goal, 0, 2), 'Foot can share goal');
+check(!canShareGoal({type:'normal'}, 0, 1), 'Normal hold shared');
 const report = [];
 for (let n = 1; n <= 20; n++) {
     reset(n);
@@ -64,9 +66,10 @@ for (let n = 1; n <= 20; n++) {
         down(event(body));
         for (let step = 1; step <= 10; step++) {
             move(event({ x: start.x + (target.x - start.x) * step / 10, y: start.y + (target.y - start.y) * step / 10 }));
-            check(grips[displayedAnchor()] === startGrips[displayedAnchor()], 'Support moved');
-            if (bothHandsOnGoal() && startGrips[0] !== grips[0] && startGrips[1] !== grips[1])
-                check(grips[2] === startGrips[2] || grips[3] === startGrips[3], 'Both feet moved on goal transfer');
+            check(grips[drag.anchor] === startGrips[drag.anchor], 'Support moved');
+            const attached = grips.filter(Boolean);
+            check(new Set(attached).size === attached.length - (bothHandsOnGoal() ? 1 : 0), 'Invalid shared hold');
+
         }
         release();
         check(distance(body, target) < .001, 'Waypoint missed: ' + n);
