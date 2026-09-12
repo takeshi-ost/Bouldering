@@ -20,21 +20,30 @@ function line(a, b, color, width) {
     ctx.lineWidth = width;
     ctx.stroke();
 }
-// Of the two possible bends, choose the joint farther toward this body's side.
+// Knees prefer the upper bend; elbows retain the outward bend.
 function limbJoint(root, tip, index) {
     const dx = tip.x - root.x, dy = tip.y - root.y;
     const d = Math.hypot(dx, dy), half = LIMB_LENGTHS[index] / 2;
     const bend = Math.sqrt(Math.max(0, half * half - d * d / 4));
     const outward = index % 2 ? 1 : -1;
     if (d < 1e-7)
-        return { x: root.x + outward * half, y: root.y };
+        return index < 2 ? { x: root.x + outward * half, y: root.y }
+            : { x: root.x + outward * half / Math.SQRT2, y: root.y - half / Math.SQRT2 };
     // The perpendicular's X component must point left for left limbs and
     // right for right limbs, regardless of whether the hold is above or below.
-    const sign = dy === 0 ? (dx >= 0 ? 1 : -1) : -outward * Math.sign(dy);
+    const outwardSign = dy === 0 ? (dx >= 0 ? 1 : -1) : -outward * Math.sign(dy);
+    const sign = index >= 2 && Math.abs(dx) > 1e-7 ? -Math.sign(dx) : outwardSign;
     return {
         x: (root.x + tip.x) / 2 - dy / d * bend * sign,
         y: (root.y + tip.y) / 2 + dx / d * bend * sign
     };
+}
+// Free limbs hang under gravity; animation affects only drawing, not grip selection.
+function danglingTip(p, index, time) {
+    const root = limbRoot(p, index);
+    const angle = Math.sin(time * 2.4 + index * 1.7) * 0.045;
+    const length = LIMB_LENGTHS[index] * 0.98;
+    return { x: root.x + Math.sin(angle) * length, y: root.y + Math.cos(angle) * length };
 }
 function drawPath() {
     if (!ui.showPath.checked)
@@ -109,13 +118,7 @@ function draw() {
         const i = drag.anchor;
         const root = limbRoot({ x: 0, y: 0 }, i);
         const center = { x: startGrips[i].x - root.x, y: startGrips[i].y - root.y };
-        const fixed = [startGrips[drag.anchor]];
         ctx.save();
-        for (const h of fixed) {
-            ctx.beginPath();
-            ctx.arc(h.x, h.y, R, 0, Math.PI * 2);
-            ctx.clip();
-        }
         ctx.beginPath();
         ctx.arc(center.x, center.y, LIMB_LENGTHS[i], 0, Math.PI * 2);
         ctx.clip();
@@ -144,8 +147,9 @@ function draw() {
         }
     }
     ctx.lineCap = 'round';
+    const animationTime = performance.now() / 1000;
     grips.forEach((grip, i) => {
-        const moving = drag && drag.anchor !== null && drag.anchor !== i, h = grip || { x: body.x + limbs[i].x, y: body.y + limbs[i].y };
+        const moving = drag && drag.anchor !== null && drag.anchor !== i, h = grip || danglingTip(body, i, animationTime);
         const root = limbRoot(body, i);
         // Two equal rigid segments: flex the elbow/knee instead of stretching.
         const joint = limbJoint(root, h, i);

@@ -13,16 +13,16 @@ const limbs = [
 ];
 const LIMB_LENGTHS = [100, 100, 110, 110];
 const limbArrows = ["↖", "↗", "↙", "↘"];
-// ステージ生成。ステージ1の配列は最短5手の配置に対応します。
+// 初期配置の生成。実際の想定手数は現行ルールで探索して決定します。
 const STAGE_CONFIG = {
     introMoves: 5,
     baseMoves: 20,
     movesPerLevel: 2,
     growthLevels: 3,
-    spareMoves: 3,
+    spareMoves: 1,
     stationSpacing: 40,
     supportSpan: 5,
-    introStations: [6.5, 7.5, 8.5, 11.5, 13],
+    introStations: [6.5, 7.5, 8.5, 11.5, 14.5],
     horizontalAmplitude: 160,
     curveSampleStep: 0.01,
     pitchBase: 145,

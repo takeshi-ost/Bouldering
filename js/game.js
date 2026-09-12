@@ -27,14 +27,13 @@ function generate(n) {
 }
 // Anatomical reach is measured from the shoulder/hip, not the torso center.
 function limbReachable(p, h, i) {
-    return distance(limbRoot(p, i), h) <= LIMB_LENGTHS[i] + 1e-7
-        && distance(p, h) <= R + 1e-7;
+    return distance(limbRoot(p, i), h) <= LIMB_LENGTHS[i] + 1e-7;
 }
 function selectAnchor(dx, dy) {
     const length = Math.hypot(dx, dy), ux = dx / length, uy = dy / length;
     let best = 0, reach = -1;
     startGrips.forEach((h, i) => {
-        let low = 0, high = R * 2;
+        let low = 0, high = LIMB_LENGTHS[i] * 2;
         for (let step = 0; step < INPUT_CONFIG.reachSearchSteps; step++) {
             const t = (low + high) / 2;
             const p = { x: committed.x + ux * t, y: committed.y + uy * t };
@@ -51,16 +50,16 @@ function attachMoving(p, anchor) {
     const moving = [0, 1, 2, 3].filter(i => i !== anchor);
     const candidates = moving.map(i => {
         const target = { x: p.x + limbs[i].x, y: p.y + limbs[i].y };
-        return holds.filter(h => h !== result[anchor] && limbReachable(p, h, i))
+        return holds.filter(h => (h !== result[anchor] || (h.type === 'goal' && i < 2 && anchor < 2)) && limbReachable(p, h, i))
             .map(h => ({ h, cost: distance(h, target) ** 2 - (h.type === 'goal' ? 4 * R * R : 0) }))
             .sort((a, b) => a.cost - b.cost || a.h.id - b.h.id);
     });
-    // Joint assignment avoids two limbs claiming the same hold.
+    // Only the two hands may share a goal hold.
     let best = [...result], bestCount = -1, bestCost = Infinity;
     function assign(slot, count, cost) {
         if (slot === moving.length) {
-            const endpoints = result.map((h, i) => h || { x: p.x + limbs[i].x, y: p.y + limbs[i].y });
-            if (Math.min(endpoints[2].y, endpoints[3].y) < Math.max(endpoints[0].y, endpoints[1].y)) return;
+            const hands = result.slice(0, 2).filter(Boolean), feet = result.slice(2).filter(Boolean);
+            if (feet.some(foot => hands.some(hand => foot.y < hand.y))) return;
             if (count > bestCount || (count === bestCount && cost < bestCost)) {
                 best = [...result]; bestCount = count; bestCost = cost;
             }
@@ -68,7 +67,7 @@ function attachMoving(p, anchor) {
         }
         const i = moving[slot];
         for (const candidate of candidates[slot]) {
-            if (result.includes(candidate.h)) continue;
+            if (result.some((h, j) => h === candidate.h && !(h.type === 'goal' && i < 2 && j < 2))) continue;
             result[i] = candidate.h;
             assign(slot + 1, count + 1, cost + candidate.cost);
         }
@@ -81,6 +80,7 @@ function attachMoving(p, anchor) {
 function reset(n) {
     level = n;
     generate(level);
+    preparePlayableStage();
     body = { ...route[0] };
     committed = { ...body };
     grips = [...initialGrips];
@@ -103,14 +103,14 @@ function updateUI() {
     ui.stamina.textContent = stamina;
     ui.stamina.style.color = stamina <= 4 ? '#bc5144' : '#25372f';
     ui.progress.textContent = `${moveCount} 手 / 想定 ${route.length - 1} 手`;
-    ui.density.textContent = `密度：最大 ${densityStats.peak} 個／画面 · 基準 ${densityStats.target} 個 · 全体 ${densityStats.total} 個 · ${densityStats.iterations} 回調整${densityStats.converged ? '' : '（制約により調整停止）'}`;
+    ui.density.textContent = `密度：最大 ${densityStats.peak} 個／画面 · 基準 ${densityStats.target} 個 · 全体 ${densityStats.total} 個 · ${densityStats.iterations} 回調整${densityStats.converged ? '' : '（制約により調整停止）'} · ルート検証で ${densityStats.routeRemoved} 個削減`;
     ui.hint.classList.toggle('warning', warning > 0);
     if (warning > 0) {
         ui.hint.innerHTML = '固定した1点の可動域の端です<br>3本がホールドに届く位置で離し、次のスワイプへ';
     } else if (drag && drag.anchor !== null) {
-        ui.hint.innerHTML = `${limbs[drag.anchor].name}を支点に固定 · 他の3本は移動可能<br>${grips.every(Boolean) ? '離すと姿勢を確定 · スタミナ −1' : '未吸着で離すと元の姿勢に戻ります'}`;
+        ui.hint.innerHTML = `${limbs[drag.anchor].name}を支点に固定 · 他の3本は移動可能<br>${bothHandsOnGoal() ? '両手でゴール！ 離すとクリア' : grips.every(Boolean) ? '離すと姿勢を確定 · スタミナ −1' : '未吸着で離すと元の姿勢に戻ります'}`;
     } else {
-        ui.hint.innerHTML = '胴体を進みたい方向へドラッグ<br>1本を支点に固定し、他の3本が追従します';
+        ui.hint.innerHTML = 'フィールドのどこからでもスワイプ<br>1本を支点に固定し、他の3本が追従します';
     }
 }
 function point(e) {
@@ -120,14 +120,11 @@ function point(e) {
 function limbRoot(p, index) {
     return { x: p.x + (index % 2 ? 1 : -1) * TORSO.width / 2, y: p.y + (index < 2 ? -1 : 1) * TORSO.height / 2 };
 }
-function hitTorso(p) {
-    return Math.abs(p.x - body.x) <= TORSO.width / 2 + TORSO.hitPadding && Math.abs(p.y - body.y) <= TORSO.height / 2 + TORSO.hitPadding;
-}
 function down(e) {
     if (state !== 'playing' || drag)
         return;
     const p = point(e);
-    if (!hitTorso(p))
+    if (p.x < 0 || p.x > W || p.y < camera || p.y > camera + H)
         return;
     drag = { dx: body.x - p.x, dy: body.y - p.y, anchor: null };
     committed = { ...body };
@@ -170,10 +167,13 @@ function move(e) {
     warning = blocked ? 1 : 0;
     updateUI();
 }
+function bothHandsOnGoal() {
+    return grips[0]?.type === 'goal' && grips[0] === grips[1];
+}
 function release(cancel = false) {
     if (!drag)
         return;
-    const invalid = grips.some(h => h === null);
+    const invalid = grips.some(h => h === null) && !bothHandsOnGoal();
     drag = null;
     if (cancel || invalid) {
         body = { ...committed };
@@ -183,7 +183,7 @@ function release(cancel = false) {
         stamina--;
         moveCount++;
         committed = { ...body };
-        if (grips.some(h => h.type === 'goal'))
+        if (bothHandsOnGoal())
             finish(true);
         else if (stamina === 0)
             finish(false);

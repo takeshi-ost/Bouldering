@@ -53,8 +53,8 @@ function createStageGenerator() {
             rows.push(next);
             support.push(next);
         }
-        // Raising the intro goal keeps its five-move lower bound even with extra
-        // holds: after the first transfer, the new support is still >2R from GOAL.
+        // Intro geometry is tuned for a verified five-move route.
+        // Actual playability is checked later by route.js, not this station model.
         if (n === 1)
             rows.splice(4, STAGE_CONFIG.introMoves, ...STAGE_CONFIG.introStations);
         const lastStation = rows[rows.length - 1] * STAGE_CONFIG.stationSpacing;
@@ -142,7 +142,7 @@ function createStageGenerator() {
             let chosen = null, best = -Infinity;
             for (const h of holds) {
                 if (h.row !== null)
-                    continue; // Preserve every hold in the playable solution.
+                    continue; // Preserve guide holds here; route.js validates later removals.
                 if (measured.coverage.some(p => p.owner === h && p.second > gapLimit))
                     continue;
                 let improvement = 0;
