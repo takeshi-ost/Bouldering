@@ -114,8 +114,9 @@ function draw() {
     for (let y = 210 + Math.max(0, Math.floor((camera - 210) / 200)) * 200; y < Math.min(HEIGHT, camera + H + 200); y += 200)
         ctx.fillText(`${((HEIGHT - y) / 100).toFixed(0)} M`, 12, y - 8);
     drawPath();
-    if (drag && drag.anchor !== null && !bothHandsOnGoal()) {
-        const i = drag.anchor;
+    const visualAnchor = displayedAnchor();
+    if (drag && visualAnchor !== null) {
+        const i = visualAnchor;
         const root = limbRoot({ x: 0, y: 0 }, i);
         const center = { x: startGrips[i].x - root.x, y: startGrips[i].y - root.y };
         ctx.save();
@@ -149,7 +150,7 @@ function draw() {
     ctx.lineCap = 'round';
     const animationTime = performance.now() / 1000;
     grips.forEach((grip, i) => {
-        const moving = drag && drag.anchor !== null && drag.anchor !== i, h = grip || danglingTip(body, i, animationTime);
+        const moving = drag && drag.anchor !== null && visualAnchor !== i, h = grip || danglingTip(body, i, animationTime);
         const root = limbRoot(body, i);
         // Two equal rigid segments: flex the elbow/knee instead of stretching.
         const joint = limbJoint(root, h, i);
@@ -177,7 +178,7 @@ function draw() {
     ctx.strokeRect(left, top, TORSO.width, TORSO.height);
     for (let i = 0; i < 4; i++) {
         const root = limbRoot(body, i);
-        circle(root.x, root.y, 2.5, drag && drag.anchor !== null && drag.anchor !== i ? '#c39037' : '#d9e9db');
+        circle(root.x, root.y, 2.5, drag && drag.anchor !== null && visualAnchor !== i ? '#c39037' : '#d9e9db');
     }
     for (const x of [-4, 4])
         for (const y of [-6, 0, 6])

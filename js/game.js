@@ -53,7 +53,8 @@ function goalPose(p) {
         .sort((a, b) => (a === startGrips[i] ? -1 : b === startGrips[i] ? 1 : distance(a, limbRoot(p, i)) - distance(b, limbRoot(p, i)))));
     for (const left of feet[0])
         for (const right of feet[1])
-            if (left !== right) return [goal, goal, left, right];
+            if (left !== right && (left === startGrips[2] || right === startGrips[3]))
+                return [goal, goal, left, right];
     return null;
 }
 function attachMoving(p, anchor) {
@@ -72,6 +73,9 @@ function attachMoving(p, anchor) {
     let best = [...result], bestCount = -1, bestCost = Infinity;
     function assign(slot, count, cost) {
         if (slot === moving.length) {
+            const doubleGoal = result[0]?.type === 'goal' && result[0] === result[1];
+            if (doubleGoal && startGrips[0] !== result[0] && startGrips[1] !== result[0]
+                && result[2] !== startGrips[2] && result[3] !== startGrips[3]) return;
             const hands = result.slice(0, 2).filter(Boolean), feet = result.slice(2).filter(Boolean);
             if (feet.some(foot => hands.some(hand => foot.y < hand.y))) return;
             if (count > bestCount || (count === bestCount && cost < bestCost)) {
@@ -123,7 +127,7 @@ function updateUI() {
     if (warning > 0) {
         ui.hint.innerHTML = '固定した1点の可動域の端です<br>3本がホールドに届く位置で離し、次のスワイプへ';
     } else if (drag && drag.anchor !== null) {
-        ui.hint.innerHTML = `${bothHandsOnGoal() ? '両手でゴールへ持ち替え' : limbs[drag.anchor].name + 'を支点に固定 · 他の3本は移動可能'}<br>${bothHandsOnGoal() ? '両手でゴール！ 離すとクリア' : sameContacts(grips, startGrips) ? '接触点は同じ · 離すと元の姿勢へ（消費なし）' : grips.every(Boolean) ? '離すと姿勢を確定 · スタミナ −1' : '未吸着で離すと元の姿勢に戻ります'}`;
+        ui.hint.innerHTML = `${bothHandsOnGoal() ? limbs[displayedAnchor()].name + 'を固定してゴールへ持ち替え' : limbs[drag.anchor].name + 'を支点に固定 · 他の3本は移動可能'}<br>${bothHandsOnGoal() ? '両手でゴール！ 離すとクリア' : sameContacts(grips, startGrips) ? '接触点は同じ · 離すと元の姿勢へ（消費なし）' : grips.every(Boolean) ? '離すと姿勢を確定 · スタミナ −1' : '未吸着で離すと元の姿勢に戻ります'}`;
     } else {
         ui.hint.innerHTML = 'フィールドのどこからでもスワイプ<br>1本を支点に固定し、他の3本が追従します';
     }
@@ -160,7 +164,7 @@ function move(e) {
         drag.anchor = selectAnchor(raw.x - committed.x, raw.y - committed.y);
     }
     const finish = goalPose(target);
-    const footAnchor = [2, 3].find(i => limbReachable(target, startGrips[i], i));
+    const footAnchor = finish && [2, 3].find(i => finish[i] === startGrips[i]);
     if (finish && footAnchor !== undefined) {
         body = target;
         grips = finish;
@@ -193,6 +197,14 @@ function move(e) {
     else body = previousBody;
     warning = blocked ? 1 : 0;
     updateUI();
+}
+function displayedAnchor() {
+    if (!drag) return null;
+    if (bothHandsOnGoal()) {
+        const foot = [2, 3].find(i => grips[i] && grips[i] === startGrips[i]);
+        if (foot !== undefined) return foot;
+    }
+    return drag.anchor;
 }
 function bothHandsOnGoal() {
     return grips[0]?.type === 'goal' && grips[0] === grips[1];
