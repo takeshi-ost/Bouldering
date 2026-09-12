@@ -271,3 +271,7 @@ footer button {
 .brand-dot {
     color: #80a28a;
 }
+
+.title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.path-toggle { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; white-space: nowrap; cursor: pointer; }
+.path-toggle input { width: 18px; height: 18px; accent-color: #39785b; }

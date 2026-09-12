@@ -18,6 +18,7 @@ let startGrips = [];
 let stamina = STAGE_CONFIG.introMoves + STAGE_CONFIG.spareMoves;
 let moveCount = 0;
 let camera = 0;
+let inspecting = false;
 let drag = null;
 let state = "playing";
 let warning = 0;
@@ -44,7 +45,20 @@ function selectAnchor(dx, dy) {
     });
     return best;
 }
+// Finishing is a special transfer: free a fixed hand when both feet can support.
+function goalPose(p) {
+    const goal = holds.find(h => h.type === 'goal');
+    if (!goal || !limbReachable(p, goal, 0) || !limbReachable(p, goal, 1)) return null;
+    const feet = [2, 3].map(i => holds.filter(h => h !== goal && h.y >= goal.y && limbReachable(p, h, i))
+        .sort((a, b) => (a === startGrips[i] ? -1 : b === startGrips[i] ? 1 : distance(a, limbRoot(p, i)) - distance(b, limbRoot(p, i)))));
+    for (const left of feet[0])
+        for (const right of feet[1])
+            if (left !== right) return [goal, goal, left, right];
+    return null;
+}
 function attachMoving(p, anchor) {
+    const finish = goalPose(p);
+    if (finish) return finish;
     const result = Array(4).fill(null);
     result[anchor] = startGrips[anchor];
     const moving = [0, 1, 2, 3].filter(i => i !== anchor);
@@ -92,6 +106,7 @@ function reset(n) {
     stamina = route.length - 1 + STAGE_CONFIG.spareMoves;
     moveCount = 0;
     camera = HEIGHT - H;
+    inspecting = false;
     drag = null;
     state = 'playing';
     warning = 0;
@@ -108,7 +123,7 @@ function updateUI() {
     if (warning > 0) {
         ui.hint.innerHTML = '固定した1点の可動域の端です<br>3本がホールドに届く位置で離し、次のスワイプへ';
     } else if (drag && drag.anchor !== null) {
-        ui.hint.innerHTML = `${limbs[drag.anchor].name}を支点に固定 · 他の3本は移動可能<br>${bothHandsOnGoal() ? '両手でゴール！ 離すとクリア' : grips.every(Boolean) ? '離すと姿勢を確定 · スタミナ −1' : '未吸着で離すと元の姿勢に戻ります'}`;
+        ui.hint.innerHTML = `${bothHandsOnGoal() ? '両手でゴールへ持ち替え' : limbs[drag.anchor].name + 'を支点に固定 · 他の3本は移動可能'}<br>${bothHandsOnGoal() ? '両手でゴール！ 離すとクリア' : sameContacts(grips, startGrips) ? '接触点は同じ · 離すと元の姿勢へ（消費なし）' : grips.every(Boolean) ? '離すと姿勢を確定 · スタミナ −1' : '未吸着で離すと元の姿勢に戻ります'}`;
     } else {
         ui.hint.innerHTML = 'フィールドのどこからでもスワイプ<br>1本を支点に固定し、他の3本が追従します';
     }
@@ -123,6 +138,8 @@ function limbRoot(p, index) {
 function down(e) {
     if (state !== 'playing' || drag)
         return;
+    inspecting = false;
+    camera = clamp(body.y - H * CAMERA_CONFIG.bodyScreenRatio, 0, HEIGHT - H);
     const p = point(e);
     if (p.x < 0 || p.x > W || p.y < camera || p.y > camera + H)
         return;
@@ -142,6 +159,16 @@ function move(e) {
             return;
         drag.anchor = selectAnchor(raw.x - committed.x, raw.y - committed.y);
     }
+    const finish = goalPose(target);
+    const footAnchor = [2, 3].find(i => limbReachable(target, startGrips[i], i));
+    if (finish && footAnchor !== undefined) {
+        body = target;
+        grips = finish;
+        // Keep the gesture's original support selection stable for subsequent input.
+        warning = 0;
+        updateUI();
+        return;
+    }
     const anchor = startGrips[drag.anchor];
     const reachable = q => limbReachable(q, anchor, drag.anchor);
     // Keep the selected support throughout this gesture.
@@ -149,7 +176,7 @@ function move(e) {
     const blocked = !reachable(target);
     if (blocked) {
         let low = 0, high = 1;
-        const origin = { ...body };
+        const origin = { ...(reachable(body) ? body : committed) };
         for (let i = 0; i < INPUT_CONFIG.reachSearchSteps; i++) {
             const t = (low + high) / 2, q = { x: origin.x + (target.x - origin.x) * t, y: origin.y + (target.y - origin.y) * t };
             if (reachable(q))
@@ -170,12 +197,19 @@ function move(e) {
 function bothHandsOnGoal() {
     return grips[0]?.type === 'goal' && grips[0] === grips[1];
 }
+// Compare contact positions as a multiset, independent of limb assignment.
+function sameContacts(a, b) {
+    if (a.length !== 4 || b.length !== 4 || !a.every(Boolean) || !b.every(Boolean)) return false;
+    const positions = list => list.map(h => h.x + ',' + h.y).sort();
+    const left = positions(a), right = positions(b);
+    return left.every((position, i) => position === right[i]);
+}
 function release(cancel = false) {
     if (!drag)
         return;
     const invalid = grips.some(h => h === null) && !bothHandsOnGoal();
     drag = null;
-    if (cancel || invalid) {
+    if (cancel || invalid || sameContacts(grips, startGrips)) {
         body = { ...committed };
         grips = [...startGrips];
     }

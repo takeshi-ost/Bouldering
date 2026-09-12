@@ -43,7 +43,7 @@ function solveRoute(guide, maxMoves = 40) {
                     const stance = attachMoving(p, anchor);
                     if (!stance) continue;
                     const won = stance[0]?.type === 'goal' && stance[0] === stance[1];
-                    if (!won && !stance.every(Boolean)) continue;
+                    if (!won && (!stance.every(Boolean) || sameContacts(stance, node.stance))) continue;
                     const key = Math.round(p.x / 8) + ',' + Math.round(p.y / 8) + ':' + stance.map(h => h?.id).join(',');
                     if (visited.has(key)) continue;
                     visited.add(key);
@@ -121,7 +121,7 @@ function replayRoute(path) {
             stance = attachMoving(p, anchor);
             if (!stance) return null;
             const won = stance[0]?.type === 'goal' && stance[0] === stance[1];
-            if (!won && !stance.every(Boolean)) return null;
+            if (!won && (!stance.every(Boolean) || sameContacts(stance, startGrips))) return null;
             result.push({ ...p, anchor, grips: stance.map(h => h?.id ?? null) });
             if (won) return result;
         }

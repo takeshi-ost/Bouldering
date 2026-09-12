@@ -82,7 +82,7 @@ function drawPath() {
 function draw() {
     const desired = clamp(body.y - H * CAMERA_CONFIG.bodyScreenRatio, 0, HEIGHT - H);
     // Freeze camera while holding to keep the body directly under the pointer.
-    if (!drag)
+    if (!drag && !inspecting)
         camera += (desired - camera) * CAMERA_CONFIG.followRate;
     const ratio = Math.min(window.devicePixelRatio || 1, RENDER_CONFIG.maxPixelRatio);
     if (canvas.width !== W * ratio) {
@@ -114,7 +114,7 @@ function draw() {
     for (let y = 210 + Math.max(0, Math.floor((camera - 210) / 200)) * 200; y < Math.min(HEIGHT, camera + H + 200); y += 200)
         ctx.fillText(`${((HEIGHT - y) / 100).toFixed(0)} M`, 12, y - 8);
     drawPath();
-    if (drag && drag.anchor !== null) {
+    if (drag && drag.anchor !== null && !bothHandsOnGoal()) {
         const i = drag.anchor;
         const root = limbRoot({ x: 0, y: 0 }, i);
         const center = { x: startGrips[i].x - root.x, y: startGrips[i].y - root.y };
@@ -158,7 +158,7 @@ function draw() {
         line(joint, h, color, 5);
         circle(joint.x, joint.y, 3.5, '#f3f0e7');
         circle(h.x, h.y, 4, moving ? '#c39037' : '#2f5d46');
-        if (drag && drag.anchor !== null && !moving) {
+        if (drag && drag.anchor !== null && !moving && grip === startGrips[i]) {
             ctx.fillStyle = '#526659';
             ctx.font = '9px system-ui';
             ctx.textAlign = 'center';

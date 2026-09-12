@@ -19,7 +19,7 @@
     <main>
         <header>
             <div>
-                <div class="brand">ASCENT<span class="brand-dot">.</span></div>
+                <div class="title-row"><div class="brand">ASCENT<span class="brand-dot">.</span></div><label class="path-toggle"><input id="showPath" type="checkbox"> パス表示</label></div>
                 <div class="tag">ONE MOVE CLOSER.</div>
             </div>
             <div class="level" id="level">Level 1<span>BOULDERING PUZZLE</span></div>
@@ -27,8 +27,8 @@
         <section class="wall" aria-label="クライミングゲーム">
             <canvas id="game" width="400" height="700" aria-label="フィールドのどこからでもスワイプして黄色のゴールを目指してください"></canvas>
             <div class="hud">
-                <div class="pill">STAMINA <strong id="stamina">6</strong></div>
-                <div class="progress" id="progress">0 手 / 想定 5 手</div>
+                <div class="pill">STAMINA <strong id="stamina">5</strong></div>
+                <div class="progress" id="progress">0 手 / 想定 4 手</div>
             </div>
             <div class="hint" id="hint" role="status">フィールドのどこからでもスワイプ<br>1本を支点に固定し、他の3本が追従します</div>
             <div class="overlay" id="overlay" hidden>
@@ -49,7 +49,7 @@
             <button id="restart" aria-label="現在のステージを最初からやり直す">↻ RESTART</button>
         </footer>
         <div class="debug">
-            <label><input id="showPath" type="checkbox"> 想定パスを表示</label>
+            <small>コース閲覧：二本指スワイプ（PCはトラックパッド）</small>
             <small>青点線：検証済みルート / 数字：手順</small>
         </div>
         <div class="density" id="density" aria-live="polite"></div>
