@@ -49,6 +49,16 @@ function drawPath() {
     if (!ui.showPath.checked)
         return;
     ctx.save();
+    if (falseBranch) {
+        const a=route[falseBranch.step], b=falseBranch.end;
+        ctx.setLineDash([4,4]);
+        line(a,b,'#bb7847',2);
+        ctx.setLineDash([]);
+        line({x:b.x-5,y:b.y-5},{x:b.x+5,y:b.y+5},'#bb7847',2);
+        line({x:b.x+5,y:b.y-5},{x:b.x-5,y:b.y+5},'#bb7847',2);
+        ctx.font='bold 10px system-ui'; ctx.fillStyle='#bb7847';
+        ctx.fillText('分岐',b.x+9,b.y);
+    }
     ctx.setLineDash([6, 5]);
     for (let i = 1; i < route.length; i++) {
         const a = route[i - 1], b = route[i];

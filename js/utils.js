@@ -14,3 +14,8 @@ function gripAim(p, origin) {
     const d = distance(p, origin);
     return d < INPUT_CONFIG.dragThreshold ? p : { x: p.x + (p.x - origin.x) * INPUT_CONFIG.aimDistance / d, y: p.y + (p.y - origin.y) * INPUT_CONFIG.aimDistance / d };
 }
+
+// World Y increases downward. An ascending diagonal is not a traverse.
+function isTraverse(a, b, minimum = 30) {
+    return Math.abs(b.x-a.x)>=minimum && b.y>=a.y-1e-7;
+}

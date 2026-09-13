@@ -7,13 +7,19 @@ function createStageGenerator() {
     let initialGrips = [];
     let densityReference = null;
     let densityStats = null;
-    function makeCourse(length, mirror, pitch) {
-        // Sample a full-width serpentine by ARC LENGTH. Using vertical rows here
-        // would stretch neighboring supports apart during a horizontal traverse.
+    function makeCourse(length, mirror, climbHeight) {
+        // Piecewise-linear centerline; sample by arc length without smoothing
+        // the corners. Traverses are horizontal or slightly descending.
         const samples = [{ x: W / 2 + mirror * STAGE_CONFIG.horizontalAmplitude, y: 0, s: 0 }];
-        for (let t = STAGE_CONFIG.curveSampleStep; samples[samples.length - 1].s < length; t += STAGE_CONFIG.curveSampleStep) {
-            const previous = samples[samples.length - 1], p = { x: W / 2 + mirror * STAGE_CONFIG.horizontalAmplitude * Math.cos(t), y: -pitch * t };
-            samples.push({ ...p, s: previous.s + distance(previous, p) });
+        let side=mirror, segment=0;
+        while(samples[samples.length-1].s<length) {
+            const previous=samples[samples.length-1];
+            const p=segment%2===0
+                ? {x:previous.x,y:previous.y-climbHeight}
+                : {x:W/2-side*STAGE_CONFIG.horizontalAmplitude,y:previous.y+STAGE_CONFIG.traverseDrop};
+            samples.push({...p,s:previous.s+distance(previous,p)});
+            if(segment%2===1)side=-side;
+            segment++;
         }
         return s => {
             let low = 0, high = samples.length - 1;
@@ -58,7 +64,7 @@ function createStageGenerator() {
         if (n === 1)
             rows.splice(4, STAGE_CONFIG.introMoves, ...STAGE_CONFIG.introStations);
         const lastStation = rows[rows.length - 1] * STAGE_CONFIG.stationSpacing;
-        const rawCourse = n === 1 ? s => ({ x: W / 2, y: -s, nx: 1, ny: 0 }) : makeCourse(lastStation, random() < .5 ? -1 : 1, STAGE_CONFIG.pitchBase + random() * STAGE_CONFIG.pitchVariation);
+        const rawCourse = n === 1 ? s => ({ x: W / 2, y: -s, nx: 1, ny: 0 }) : makeCourse(lastStation, random() < .5 ? -1 : 1, STAGE_CONFIG.climbHeight + random() * STAGE_CONFIG.climbVariation);
         const rise = -rawCourse(lastStation).y;
         HEIGHT = n === 1 ? H : Math.min(MAX_HEIGHT, Math.max(H, Math.ceil(rise) + STAGE_CONFIG.verticalPadding));
         const scaleY = n === 1 ? 1 : Math.min(1, (HEIGHT - STAGE_CONFIG.verticalPadding) / rise);
@@ -175,3 +181,14 @@ function createStageGenerator() {
     return { generate };
 }
 const stageGenerator = createStageGenerator();
+
+// Candidates only; adoption is decided with the current movement rules.
+function goalTrapCandidates(goal) {
+    const candidates=[];
+    for (const dy of [45,75,105,135]) for (const dx of [0,-30,30,-60,60]) {
+        const p={x:goal.x+dx,y:goal.y+dy};
+        if (p.x>=24 && p.x<=W-24 && p.y<HEIGHT-40 && holds.every(h=>distance(h,p)>=30))
+            candidates.push(p);
+    }
+    return candidates;
+}

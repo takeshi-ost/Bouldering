@@ -1,4 +1,62 @@
 "use strict";
+// A straight swipe, including the fixed-limb clamp and release/rollback result.
+// Pure with respect to gameplay state; does not focus buttons or update the UI.
+function inspectSwipe(from, target) {
+    const saved={committed,startGrips};
+    try {
+        committed=from;
+        startGrips=from.grips.map(id=>holds.find(h=>h.id===id));
+        if (!startGrips.every(Boolean) || distance(from,target)<INPUT_CONFIG.dragThreshold) return null;
+        const anchor=selectAnchor(target.x-from.x,target.y-from.y);
+        let p={x:clamp(target.x,25,W-25),y:clamp(target.y,80,HEIGHT-40)};
+        if (!limbReachable(p,startGrips[anchor],anchor)) {
+            let low=0,high=1;
+            for(let k=0;k<INPUT_CONFIG.reachSearchSteps;k++) {
+                const t=(low+high)/2, q={x:from.x+(p.x-from.x)*t,y:from.y+(p.y-from.y)*t};
+                if(limbReachable(q,startGrips[anchor],anchor))low=t;else high=t;
+            }
+            p={x:from.x+(p.x-from.x)*low,y:from.y+(p.y-from.y)*low};
+        }
+        const pose=attachMoving(p,anchor);
+        const cancelled=!pose || pose.some(h=>!h) || sameContacts(pose,startGrips);
+        return {position:p,pose,anchor,cancelled,cost:cancelled?0:1,
+            result:cancelled?from:{...p,anchor,grips:pose.map(h=>h.id)},
+            won:!cancelled && bothHandsOnGoal(pose)};
+    } finally {committed=saved.committed;startGrips=saved.startGrips;}
+}
+
+// Conservative reachability certificate. Each cell over-approximates all torso
+// positions in its rectangle. Ignore assignment costs, ordering and exclusivity;
+// unioning contacts loses correlations and permits MORE moves than the game.
+// Therefore false proves impossibility; true means unknown, not a solution.
+function relaxedGoalPossible(from, budget) {
+    const goal=holds.find(h=>h.type==='goal');
+    if(from.grips[0]===goal.id && from.grips[1]===goal.id)return true;
+    let reachable=from.grips.map(id=>new Set([id]));
+    const cells=[];
+    for(let x=25;x<W-25;x+=20) for(let y=80;y<HEIGHT-40;y+=20) {
+        const lists=[0,1,2,3].map(i=>holds.filter(h=>{
+            const root=limbRoot({x,y},i), xmax=Math.min(x+20,W-25)-x, ymax=Math.min(y+20,HEIGHT-40)-y;
+            return Math.hypot(h.x-clamp(h.x,root.x,root.x+xmax),h.y-clamp(h.y,root.y,root.y+ymax))<=LIMB_LENGTHS[i]+1e-7;
+        }).map(h=>h.id));
+        if(lists.every(a=>a.length))cells.push(lists);
+    }
+    for(let depth=0;depth<budget;depth++) {
+        const next=reachable.map(s=>new Set(s));
+        for(const lists of cells) {
+            if(!lists.some((ids,i)=>ids.some(id=>reachable[i].has(id))))continue;
+            if(lists[0].includes(goal.id)&&lists[1].includes(goal.id)) {
+                const feet=[2,3].map(i=>lists[i].filter(id=>id!==goal.id && holds.find(h=>h.id===id).y>=goal.y));
+                const handFixed=reachable[0].has(goal.id)||reachable[1].has(goal.id);
+                if(feet[0].some(a=>feet[1].some(b=>a!==b &&
+                    (handFixed || reachable[2].has(a) || reachable[3].has(b)))))return true;
+            }
+            lists.forEach((ids,i)=>ids.forEach(id=>next[i].add(id)));
+        }
+        reachable=next;
+    }
+    return false;
+}
 // Search with the same support selection and grip assignment used during play.
 // Temporary state is restored before returning to the caller.
 function solveRoute(guide, maxMoves = 40) {
@@ -19,7 +77,7 @@ function solveRoute(guide, maxMoves = 40) {
         });
         return index * 100 - best;
     };
-    let beam = [{ p: start, stance: first, path: [start], score: progress(start) }];
+    let beam = [{ p: start, stance: first, path: [start], traversed: level===1, score: progress(start) }];
     const visited = new Set();
     try {
         for (let depth = 0; depth < maxMoves; depth++) {
@@ -34,7 +92,7 @@ function solveRoute(guide, maxMoves = 40) {
                         candidates.push({ x: node.p.x + (q.x - node.p.x) * t, y: node.p.y + (q.y - node.p.y) * t });
                 }
                 for (const dx of [-60, -30, 0, 30, 60])
-                    for (const dy of [-90, -45, 0])
+                    for (const dy of (level===1 ? [-90,-45,0] : [-90,-45,0,20,40]))
                         candidates.push({ x: node.p.x + dx, y: node.p.y + dy });
                 for (const p of candidates) {
                     if (p.x < 25 || p.x > W - 25 || p.y < 80 || p.y > HEIGHT - 40 || distance(p, node.p) < 5) continue;
@@ -44,12 +102,13 @@ function solveRoute(guide, maxMoves = 40) {
                     if (!stance) continue;
                     const won = bothHandsOnGoal(stance) && stance.every(Boolean);
                     if (!won && (!stance.every(Boolean) || sameContacts(stance, node.stance))) continue;
-                    const key = Math.round(p.x / 8) + ',' + Math.round(p.y / 8) + ':' + stance.map(h => h?.id).join(',');
+                    const key = node.traversed + ':' + Math.round(p.x / 8) + ',' + Math.round(p.y / 8) + ':' + stance.map(h => h?.id).join(',');
                     if (visited.has(key)) continue;
                     visited.add(key);
                     const path = [...node.path, { ...p, anchor, grips: stance.map(h => h?.id ?? null) }];
-                    if (won) return path;
-                    next.push({ p, stance, path, score: progress(p) });
+                    const traversed=node.traversed || isTraverse(node.p,p);
+                    if (won) {if(traversed)return path;else continue;}
+                    next.push({ p, stance, path, traversed, score: progress(p) });
                 }
             }
             next.sort((a, b) => b.score - a.score);
@@ -123,7 +182,7 @@ function replayRoute(path) {
             const won = bothHandsOnGoal(stance) && stance.every(Boolean);
             if (!won && (!stance.every(Boolean) || sameContacts(stance, startGrips))) return null;
             result.push({ ...p, anchor, grips: stance.map(h => h?.id ?? null) });
-            if (won) return result;
+            if (won) return level===1 || result.slice(1).some((q,j)=>isTraverse(result[j],q)) ? result : null;
         }
         return null;
     } finally { committed = saved.committed; startGrips = saved.startGrips; }

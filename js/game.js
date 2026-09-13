@@ -10,6 +10,7 @@ let courseMode = "classic";
 let level = 1;
 let holds = [];
 let route = [];
+let falseBranch = null;
 let HEIGHT = H;
 let initialGrips = [];
 let body;
@@ -84,9 +85,10 @@ function attachMoving(p, anchor) {
 }
 function reset(n) {
     level = n;
+    falseBranch = null;
     generate(level);
     preparePlayableStage();
-    if (courseMode === "challenge") prepareChallengeStage();
+    if (courseMode === "challenge") { prepareChallengeStage(); preparePuzzlePatterns(); if (!falseBranch) prepareFalseBranch(); prepareGoalTrap(); refreshPuzzleDensity(); }
     body = { ...route[0] };
     committed = { ...body };
     grips = [...initialGrips];
