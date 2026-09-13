@@ -51,7 +51,7 @@ for (let n = 1; n <= 20; n++) {
     reset(n);
     if (courseMode === 'challenge' && densityStats.challenge) {
         const q = challengeQuality(route,densityStats.challenge.step);
-        check(q && q.stable >= 6 && q.shrink >= 12, 'Invalid challenge');
+        check(q && q.stable >= 6 && q.key.goalDistanceGap >= 8 && q.key.exitStable >= 6, 'Invalid challenge');
     }
     if (courseMode === 'challenge' && [2,4].includes(n)) check(densityStats.challenge, 'Missing reference-level challenge');
     check(replayRoute(route), 'Route replay failed: ' + n);
