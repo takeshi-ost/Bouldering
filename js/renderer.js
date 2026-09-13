@@ -84,6 +84,11 @@ function draw() {
     // Freeze camera while holding to keep the body directly under the pointer.
     if (!drag && !inspecting)
         camera += (desired - camera) * CAMERA_CONFIG.followRate;
+    ui.scrollThumb.style.height = (H / HEIGHT * 100) + '%';
+    ui.scrollThumb.style.top = (camera / HEIGHT * 100) + '%';
+    ui.scrollRail.setAttribute('aria-valuemax', String(HEIGHT - H));
+    ui.scrollRail.setAttribute('aria-valuenow', String(Math.round(camera)));
+    ui.scrollRail.setAttribute('aria-disabled', String(HEIGHT <= H));
     const ratio = Math.min(window.devicePixelRatio || 1, RENDER_CONFIG.maxPixelRatio);
     if (canvas.width !== W * ratio) {
         canvas.width = W * ratio;

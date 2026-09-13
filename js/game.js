@@ -3,9 +3,10 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
-    "level", "stamina", "progress", "hint", "overlay", "resultTag",
+    "level", "stamina", "progress", "scrollRail", "scrollThumb", "overlay", "resultTag",
     "resultTitle", "resultText", "next", "retry", "restart", "showPath", "density"
 ].map(id => [id, document.getElementById(id)]));
+let courseMode = "classic";
 let level = 1;
 let holds = [];
 let route = [];
@@ -85,6 +86,7 @@ function reset(n) {
     level = n;
     generate(level);
     preparePlayableStage();
+    if (courseMode === "challenge") prepareChallengeStage();
     body = { ...route[0] };
     committed = { ...body };
     grips = [...initialGrips];
@@ -101,7 +103,8 @@ function reset(n) {
     state = 'playing';
     warning = 0;
     ui.overlay.hidden = true;
-    ui.level.innerHTML = `Level ${level}<span>BOULDERING PUZZLE</span>`;
+    ui.restart.disabled = false;
+    ui.level.innerHTML = `Level ${level}<span>${courseMode === "challenge" ? "難関コース" : "従来コース"}</span>`;
     updateUI();
 }
 function updateUI() {
@@ -109,14 +112,7 @@ function updateUI() {
     ui.stamina.style.color = stamina <= 4 ? '#bc5144' : '#25372f';
     ui.progress.textContent = `${moveCount} 手 / 想定 ${route.length - 1} 手`;
     ui.density.textContent = `密度：最大 ${densityStats.peak} 個／画面 · 基準 ${densityStats.target} 個 · 全体 ${densityStats.total} 個 · ${densityStats.iterations} 回調整${densityStats.converged ? '' : '（制約により調整停止）'} · ルート検証で ${densityStats.routeRemoved} 個削減`;
-    ui.hint.classList.toggle('warning', warning > 0);
-    if (warning > 0) {
-        ui.hint.innerHTML = '固定した1点の可動域の端です<br>3本がホールドに届く位置で離し、次のスワイプへ';
-    } else if (drag && drag.anchor !== null) {
-        ui.hint.innerHTML = `${limbs[drag.anchor].name}を支点に固定 · 他の3本は移動可能<br>${sameContacts(grips, startGrips) ? '接触点は同じ · 離すと元の姿勢へ（消費なし）' : grips.every(Boolean) ? '離すと姿勢を確定 · スタミナ −1' : '未吸着で離すと元の姿勢に戻ります'}`;
-    } else {
-        ui.hint.innerHTML = 'フィールドのどこからでもスワイプ<br>1本を支点に固定し、他の3本が追従します';
-    }
+
 }
 function point(e) {
     const r = canvas.getBoundingClientRect();

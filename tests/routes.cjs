@@ -10,6 +10,7 @@ vm.runInContext('const elements={}; const document={getElementById(id){return el
 for (const match of fs.readFileSync(path.join(root, 'index.html'), 'utf8').matchAll(/<script src="([^"]+)" defer><\/script>/g)) {
     vm.runInContext(fs.readFileSync(path.join(root, match[1]), 'utf8'), context, { filename: match[1] });
 }
+vm.runInContext("courseMode=" + JSON.stringify(process.argv.includes("--challenge") ? "challenge" : "classic"), context);
 console.log(vm.runInContext(`
 function check(value, message) { if (!value) throw Error(message); }
 // Release without changing the four contact positions must be a no-op.
@@ -48,6 +49,11 @@ check(!canShareGoal({type:'normal'}, 0, 1), 'Normal hold shared');
 const report = [];
 for (let n = 1; n <= 20; n++) {
     reset(n);
+    if (courseMode === 'challenge' && densityStats.challenge) {
+        const q = challengeQuality(route,densityStats.challenge.step);
+        check(q && q.stable >= 6 && q.shrink >= 12, 'Invalid challenge');
+    }
+    if (courseMode === 'challenge' && [2,4].includes(n)) check(densityStats.challenge, 'Missing reference-level challenge');
     check(replayRoute(route), 'Route replay failed: ' + n);
     const coreIds = new Set([...initialGrips.map(h => h.id), ...route.flatMap(p => p.grips || [])]);
     const branches = holds.filter(h => !coreIds.has(h.id));
@@ -76,7 +82,7 @@ for (let n = 1; n <= 20; n++) {
     }
     check(state === 'won' && bothHandsOnGoal(), 'Goal failed: ' + n);
     check(moveCount === expected && stamina === STAGE_CONFIG.spareMoves, 'Move budget');
-    report.push({ level: n, moves: expected, holds: holds.length });
+    report.push({ level: n, moves: expected, holds: holds.length, challenge: densityStats.challenge || null });
 }
 JSON.stringify(report)
 `, context));
