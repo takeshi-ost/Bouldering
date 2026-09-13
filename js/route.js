@@ -165,7 +165,7 @@ function preparePlayableStage() {
     densityStats = { ...densityStats, total: holds.length, peak: Math.max(...windows.map(y => holds.filter(h => h.y >= y && h.y <= y + H).length)), routeRemoved: removed, branchCount: branchHolds.length, coreCount: core.length };
 }
 function replayRoute(path) {
-    const saved = { committed, startGrips };
+    const saved = { committed, startGrips, moveCount };
     try {
         let stance = [...initialGrips];
         for (const pair of [[0, 1], [2, 3]]) {
@@ -185,5 +185,70 @@ function replayRoute(path) {
             if (won) return level===1 || result.slice(1).some((q,j)=>isTraverse(result[j],q)) ? result : null;
         }
         return null;
-    } finally { committed = saved.committed; startGrips = saved.startGrips; }
+    } finally { committed = saved.committed; startGrips = saved.startGrips; moveCount=saved.moveCount; }
+}
+
+// Conservative contact graph: every legal committed pose and transition is
+// included. Reach/selection correlations are relaxed, never used to exclude a
+// possible solution. A unique shortest support word here also holds in play
+// when an actual swipe replay attains that lower bound.
+function certifySupportSequence(points, initial, height) {
+    const count=points.length, poses=[], groups=Array.from({length:count*4},()=>[]);
+    const disks=limbs.map((_,i)=>points.map(h=>{const root=limbRoot({x:0,y:0},i);
+        return {x:h.x-root.x,y:h.y-root.y,r:LIMB_LENGTHS[i]+1e-5};}));
+    function possible(ids) {
+        let left=25,right=W-25,top=80,bottom=height-40;
+        for(let i=0;i<ids.length;i++) {
+            const a=disks[i][ids[i]];
+            left=Math.max(left,a.x-a.r);right=Math.min(right,a.x+a.r);
+            top=Math.max(top,a.y-a.r);bottom=Math.min(bottom,a.y+a.r);
+            for(let j=0;j<i;j++) {const b=disks[j][ids[j]];if(distance(a,b)>a.r+b.r)return false;}
+        }
+        return left<=right && top<=bottom;
+    }
+    function enumerate(ids) {
+        const i=ids.length;
+        if(i===4) {const index=poses.length;poses.push(ids);ids.forEach((id,k)=>groups[id*4+k].push(index));return;}
+        for(let id=0;id<count;id++) {
+            if(ids.some((other,j)=>other===id && !(i===1 && j===0 && points[id].type==='goal')))continue;
+            if(i>=2 && ids.slice(0,2).some(h=>points[id].y<points[h].y))continue;
+            const next=[...ids,id];if(possible(next))enumerate(next);
+        }
+    }
+    enumerate([]);
+    const start=poses.findIndex(ids=>ids.every((id,i)=>id===initial[i]));
+    const goals=poses.flatMap((ids,i)=>points[ids[0]].type==='goal' && ids[0]===ids[1]?[i]:[]);
+    if(start<0 || !goals.length)return {certified:false,reason:'no-pose',states:poses.length};
+    function distances(seeds) {
+        const d=Array(poses.length).fill(Infinity), used=new Set(), queue=[...seeds];
+        seeds.forEach(i=>d[i]=0);
+        for(let q=0;q<queue.length;q++) {const at=queue[q];
+            poses[at].forEach((id,i)=>{const key=id*4+i;if(used.has(key))return;used.add(key);
+                for(const next of groups[key])if(d[next]===Infinity){d[next]=d[at]+1;queue.push(next);}
+            });
+        }
+        return d;
+    }
+    const from=distances([start]), to=distances(goals), minimum=to[start];
+    if(!Number.isFinite(minimum))return {certified:false,reason:'disconnected',states:poses.length};
+    const choices=Array.from({length:minimum},()=>new Set());
+    groups.forEach((members,key)=>{
+        let a=Infinity,b=Infinity;for(const i of members){a=Math.min(a,from[i]);b=Math.min(b,to[i]);}
+        if(a+1+b===minimum)choices[a].add(Math.floor(key/4));
+    });
+    return {certified:minimum>0 && choices.every(s=>s.size===1),minimum,
+        supports:choices.map(s=>[...s]),states:poses.length,method:'conservative-contact-graph'};
+}
+
+// A lower bound alone is insufficient: require a normal-input witness with
+// exactly that many moves and the certified support word. Never impose it on
+// attachment or release; wrong moves remain legal and consume normal stamina.
+function prepareVerificationStage() {
+    const proof=certifySupportSequence(holds,route[0].grips,HEIGHT);
+    const played=replayRoute(route);
+    if(!proof.certified || !played || played.length-1!==proof.minimum ||
+        !played.slice(1).every((p,i)=>played[i].grips[p.anchor]===proof.supports[i][0]))
+        throw new Error('Verification course failed its support certificate or normal-rule replay');
+    route=played;
+    densityStats.supportCertificate=proof;
 }

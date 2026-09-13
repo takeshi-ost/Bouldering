@@ -44,7 +44,11 @@ function preparePuzzlePatterns() {
             const entry=inspectSwipe(source,mid);
             if(!entry || entry.cancelled || inspectSwipe(entry.result,old)?.cancelled!==false)continue;
             const candidate=[...base.route.slice(0,i),mid,...base.route.slice(i)];
-            const replay=replayRoute(candidate);
+            let replay=replayRoute(candidate);
+            if(!replay||replay.length!==candidate.length)continue;
+            const used=new Set([...initialGrips.map(h=>h.id),...replay.flatMap(p=>p.grips||[])]);
+            holds=holds.filter(h=>used.has(h.id));
+            replay=replayRoute(replay);
             if(!replay||replay.length!==candidate.length)continue;
             if(challengeTransfer(replay[i-1],replay[i+1]))continue;
             let quality=null;
@@ -53,9 +57,9 @@ function preparePuzzlePatterns() {
                 quality=challengeQuality(replay,step);
                 if(!quality)continue;
             }
-            route=replay;densityStats={...base.stats,challenge:quality};falseBranch=null;
+            route=replay;densityStats={...base.stats,challenge:quality,branchCount:0,routeRemoved:base.stats.routeRemoved+base.holds.length-holds.length};falseBranch=null;
             prepareFalseBranch([i]);
-            if(!falseBranch)continue;
+            if(!falseBranch || challengeTransfer(route[i-1],route[i+1]))continue;
             selected={step:i+1,branchStep:i,dy};
             break search;
         }
@@ -138,6 +142,7 @@ function prepareGoalTrap() {
         if(extras.length>4 || extras.some(p=>extras.filter(q=>q!==p&&distance(p,q)<=span).length>1))continue;
         const replay=replayRoute(route);
         if(!replay || replay.length!==route.length || replay.some((p,i)=>JSON.stringify(p.grips)!==JSON.stringify(route[i].grips)))continue;
+        if(patterns.traverse && challengeTransfer(route[patterns.traverse.step-2],route[patterns.traverse.step]))continue;
         const checkedBranch=falseBranch?{...falseBranch,end:{...falseBranch.end}}:null;
         if(checkedBranch && !validateFalseBranch(checkedBranch))continue;
         if(densityStats.challenge && !challengeQuality(route,densityStats.challenge.step))continue;

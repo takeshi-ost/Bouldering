@@ -13,6 +13,55 @@ for (const match of fs.readFileSync(path.join(root, 'index.html'), 'utf8').match
 vm.runInContext("courseMode=" + JSON.stringify(process.argv.includes("--challenge") ? "challenge" : "classic"), context);
 console.log(vm.runInContext(`
 function check(value, message) { if (!value) throw Error(message); }
+// Verification uses ordinary physics. The optimistic graph proves the lower
+// bound/support word; normal input supplies the matching constructive solution.
+{
+    const selectedMode=courseMode;
+    courseMode='verification';
+    for(let n=1;n<=6;n++) {
+        const generated=generateBackwardStage(n);
+        check(JSON.stringify(generated)===JSON.stringify(generateBackwardStage(n)),'Nondeterministic verification layout');
+        ({holds,route,HEIGHT,initialGrips,densityStats}=generated);
+        level=1;prepareVerificationStage();
+        const proof=densityStats.supportCertificate;
+        check(proof.certified && proof.minimum===n && proof.supports.every(s=>s.length===1),'Support uniqueness not certified');
+        check(HEIGHT<=MAX_HEIGHT,'Verification wall exceeds two screens');
+        body={...route[0]};committed={...body};grips=[...initialGrips];startGrips=[...grips];
+        stamina=n;moveCount=0;state='playing';drag=null;camera=HEIGHT-H;falseBranch=null;
+        check(grips.every((h,i)=>limbReachable(body,h,i)),'Unreachable initial contact');
+        for(let i=0;i<n;i++) {
+            camera=clamp(body.y-H*.6,0,HEIGHT-H);
+            const origin={...body}, target=route[i+1];
+            const event=p=>({clientX:p.x,clientY:p.y-camera});
+            down(event(body));
+            for(let t=1;t<=10;t++)move(event({x:origin.x+(target.x-origin.x)*t/10,y:origin.y+(target.y-origin.y)*t/10}));
+            check(startGrips[drag.anchor].id===proof.supports[i][0],'Actual support differs from certificate');
+            release();
+            check(moveCount===i+1 && grips.every((h,k)=>h.id===target.grips[k]),'Normal input replay failed');
+        }
+        check(state==='won' && stamina===0,'Exact-budget goal failed');
+        // Symmetric final feet introduce another possible last support. The
+        // certifier must not call this unique just because one replay succeeds.
+        const ambiguous=holds.map(h=>({...h}));ambiguous[1].y=ambiguous[2].y=295;
+        if(n>1)check(!certifySupportSequence(ambiguous,route[0].grips,HEIGHT).certified,'Ambiguous support certified');
+    }
+    reset(12);
+    check(level===1 && route.length===7 && stamina===6,'Verification mode must repeat its single stage');
+    // A different legal contact arrangement is accepted, not rolled back by a
+    // hidden sequence restriction. Search just supplies a regression witness.
+    const source={...route[0]}, expected=route[1].grips;
+    let alternate=null;
+    for(let dy=-140;dy<=40 && !alternate;dy+=10)for(let dx=-60;dx<=60;dx+=10){
+        const r=inspectSwipe(source,{x:source.x+dx,y:source.y+dy});
+        if(r && !r.cancelled && r.result.grips.some((id,i)=>id!==expected[i])){alternate=r;break;}
+    }
+    check(alternate,'No alternate legal pose regression witness');
+    committed={...source};startGrips=[...initialGrips];body={...alternate.position};grips=alternate.pose;
+    drag={anchor:alternate.anchor};release();
+    check(moveCount===1 && stamina===5,'Ordinary off-sequence move was forbidden');
+    courseMode=selectedMode;reset(1);
+}
+
 // Release without changing the four contact positions must be a no-op.
 reset(1);
 const originalBody = { ...body }, originalGrips = [...grips], originalStamina = stamina;

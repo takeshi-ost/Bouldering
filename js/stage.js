@@ -182,6 +182,34 @@ function createStageGenerator() {
 }
 const stageGenerator = createStageGenerator();
 
+// A sparse reverse template; ordinary attachment decides the actual contacts.
+// The support certificate is computed separately, before this stage is played.
+function generateBackwardStage(steps = 6) {
+    if(!Number.isInteger(steps) || steps<1 || steps>6)throw new RangeError('Verification steps must be 1–6');
+    const points=[], path=Array(steps+1), gap=170, footY=135, footX=40;
+    const add=(x,y,type='normal')=>{const h={id:points.length,x,y,type,row:null};points.push(h);return h;};
+    const goal=add(200,80,'goal');
+    // The final free foot is higher: it cannot serve as an alternative last
+    // support from the preceding region. Only the lower foot bridges the gap.
+    let stance=[goal,goal,add(200-footX,160+(steps%2?78:footY)),
+        add(200+footX,160+(steps%2?footY:78))];
+    path[steps]={x:200,y:160,grips:stance.map(h=>h.id)};
+    for(let k=steps;k>=1;k--) {
+        const anchor=2+(k%2), p={x:200,y:160+(steps-k+1)*gap};
+        path[k].anchor=anchor;
+        stance=stance.map((h,i)=>i===anchor?h:add(p.x+(i%2?1:-1)*(i<2?110:footX),
+            p.y+(i<2?-60:footY)));
+        path[k-1]={...p,grips:stance.map(h=>h.id)};
+    }
+    const initial=path[0].grips.map(id=>points[id]);
+    initial.forEach(h=>h.type='start');
+    const height=Math.max(H,path[0].y+footY+30);
+    const peak=Math.max(...points.map(p=>points.filter(h=>h.y>=p.y && h.y<=p.y+H).length));
+    return {holds:points,route:path,HEIGHT:height,initialGrips:initial,
+        densityStats:{target:peak,total:points.length,peak,iterations:0,converged:true,
+            routeRemoved:0,branchCount:0,coreCount:points.length,backwardSteps:steps}};
+}
+
 // Candidates only; adoption is decided with the current movement rules.
 function goalTrapCandidates(goal) {
     const candidates=[];

@@ -45,6 +45,9 @@ function prepareFalseBranch(preferredSteps = null) {
                     x:end.x+limbs[hand].x+offset,y:end.y+limbs[hand].y,type:'normal',row:null};
                 if (h.x<24 || h.x>W-24 || h.y<28 || original.some(p=>distance(p,h)<35)) continue;
                 holds=[...original,h];
+                const extras=holds.filter(p=>!used.has(p.id));
+                const span=2*Math.max(...LIMB_LENGTHS)+Math.hypot(TORSO.width,TORSO.height);
+                if(extras.some(p=>extras.filter(q=>q!==p&&distance(p,q)<=span).length>1))continue;
                 const replay=replayRoute(route);
                 if (!replay || replay.length!==route.length || replay.some((p,k)=>JSON.stringify(p.grips)!==JSON.stringify(route[k].grips))) continue;
                 const branch={step,end,holdIds:[h.id]};

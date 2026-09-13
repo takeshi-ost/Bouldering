@@ -56,7 +56,8 @@ function attachMoving(p, anchor) {
     const moving = [0, 1, 2, 3].filter(i => i !== anchor);
     const candidates = moving.map(i => {
         const target = { x: p.x + limbs[i].x, y: p.y + limbs[i].y };
-        return holds.filter(h => (h !== result[anchor] || canShareGoal(h, i, anchor)) && limbReachable(p, h, i))
+        const available = holds;
+        return available.filter(h => (h !== result[anchor] || canShareGoal(h, i, anchor)) && limbReachable(p, h, i))
             .map(h => ({ h, cost: distance(h, target) ** 2 - (h.type === 'goal' ? 4 * R * R : 0) }))
             .sort((a, b) => a.cost - b.cost || a.h.id - b.h.id);
     });
@@ -84,11 +85,16 @@ function attachMoving(p, anchor) {
     return bestCount < 0 ? null : best;
 }
 function reset(n) {
-    level = n;
+    level = courseMode==='verification'?1:n;
     falseBranch = null;
-    generate(level);
-    preparePlayableStage();
-    if (courseMode === "challenge") { prepareChallengeStage(); preparePuzzlePatterns(); if (!falseBranch) prepareFalseBranch(); prepareGoalTrap(); refreshPuzzleDensity(); }
+    if(courseMode==='verification') {
+        ({holds,route,HEIGHT,initialGrips,densityStats}=generateBackwardStage());
+        prepareVerificationStage();
+    } else {
+        generate(level);
+        preparePlayableStage();
+        if (courseMode === "challenge") { prepareChallengeStage(); preparePuzzlePatterns(); if (!falseBranch) prepareFalseBranch(); prepareGoalTrap(); refreshPuzzleDensity(); }
+    }
     body = { ...route[0] };
     committed = { ...body };
     grips = [...initialGrips];
@@ -97,7 +103,7 @@ function reset(n) {
         pair.forEach((i, j) => grips[i] = sorted[j]);
     }
     startGrips = [...grips];
-    stamina = route.length - 1 + STAGE_CONFIG.spareMoves;
+    stamina = route.length - 1 + (courseMode==='verification'?0:STAGE_CONFIG.spareMoves);
     moveCount = 0;
     camera = HEIGHT - H;
     inspecting = false;
@@ -106,7 +112,8 @@ function reset(n) {
     warning = 0;
     ui.overlay.hidden = true;
     ui.restart.disabled = false;
-    ui.level.innerHTML = `Level ${level}<span>${courseMode === "challenge" ? "難関コース" : "従来コース"}</span>`;
+    ui.level.innerHTML = `Level ${level}<span>${courseMode === 'verification' ? 'コース検証' : courseMode === "challenge" ? "難関コース" : "従来コース"}</span>`;
+    ui.next.textContent=courseMode==='verification'?'同じコースを再開':'NEXT STAGE →';
     updateUI();
 }
 function updateUI() {

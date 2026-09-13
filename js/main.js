@@ -10,6 +10,7 @@ function chooseCourse(mode) {
 }
 document.getElementById('classicCourse').onclick = () => chooseCourse('classic');
 document.getElementById('challengeCourse').onclick = () => chooseCourse('challenge');
+document.getElementById('verificationCourse').onclick = () => chooseCourse('verification');
 document.getElementById('chooseCourse').onclick = () => {
     release(true); endPan();
     state = 'choosing';
