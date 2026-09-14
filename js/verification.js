@@ -50,6 +50,25 @@ function refreshVerificationDensity() {
     densityStats = {...densityStats, total: holds.length, peak, converged: peak <= densityStats.target};
 }
 
+function removeVerificationNoise(n) {
+    const routeIds = new Set([...initialGrips.map(h => h.id), ...route.flatMap(p => p.grips || [])]);
+    const intentional = new Set();
+    if (n === 3) intentional.add(holds.find(h => h.y === 172).id);
+    if (n === 4) intentional.add(densityStats.poison.id);
+    if (n === 5) {
+        falseBranch.holdIds.forEach(id => intentional.add(id));
+        [falseBranch.end, falseBranch.second].forEach(p => p.grips.forEach(id => intentional.add(id)));
+    }
+    const before = holds.length;
+    holds = holds.filter(h => routeIds.has(h.id) || intentional.has(h.id));
+    const played = replayRoute(route);
+    if (!played || played.length !== route.length ||
+        played.some((p,i) => JSON.stringify(p.grips) !== JSON.stringify(route[i].grips)))
+        throw new Error('Noise removal changed the verified route');
+    densityStats = {...densityStats,routeRemoved:densityStats.routeRemoved + before - holds.length,
+        branchCount:holds.filter(h => !routeIds.has(h.id)).length,coreCount:routeIds.size};
+}
+
 function preparePatternVerificationStage(n) {
     const definition = VERIFICATION_STAGES[n - 1];
     if (!definition) throw new RangeError('Verification stages are 1–6');
@@ -131,6 +150,7 @@ function preparePatternVerificationStage(n) {
     } finally {
         level = displayLevel;
     }
+    removeVerificationNoise(n);
     refreshVerificationDensity();
     const step = n === 5 ? falseBranch.step : definition.step;
     const points = n === 5 ? [route[step], falseBranch.end, falseBranch.second]

@@ -18,6 +18,16 @@ for (let n = 1; n <= 6; n++) {
     verify(verificationZone.width > 0 && verificationZone.height > 0, 'Missing rectangle: '+n);
     const replay = replayRoute(route);
     verify(replay && replay.length === route.length, 'Normal-rule solution failed: '+n);
+    const routeIds = new Set([...initialGrips.map(h => h.id), ...route.flatMap(p => p.grips || [])]);
+    const specialIds = new Set();
+    if (n === 3) specialIds.add(holds.find(h => h.y === 172).id);
+    if (n === 4) specialIds.add(densityStats.poison.id);
+    if (n === 5) {
+        falseBranch.holdIds.forEach(id => specialIds.add(id));
+        [falseBranch.end, falseBranch.second].forEach(p => p.grips.forEach(id => specialIds.add(id)));
+    }
+    verify(holds.every(h => routeIds.has(h.id) || specialIds.has(h.id)),
+        'Unrelated hold remains: '+n);
     let framed = 0;
     ctx.strokeRect = () => { framed++; };
     ui.showPath.checked = true;
@@ -63,11 +73,6 @@ for (let n = 1; n <= 6; n++) {
         const goal = holds.find(h => h.type === 'goal');
         verify(route[1].y >= route[0].y && distance(route[1],goal) > distance(route[0],goal) &&
             route[1].grips.includes(11), 'Isolated retreat missing');
-        const saved = initialGrips;
-        initialGrips = route[1].grips.map(id => holds.find(h => h.id === id));
-        const suffix = solveRoute(route.slice(1), 5);
-        initialGrips = saved;
-        report.push({suffix: suffix?.length || null});
     }
     verify(state === 'playing' && moveCount === 0 && stamina === route.length,
         'Invalid initial play state: '+n);
