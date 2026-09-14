@@ -49,15 +49,29 @@ function drawPath() {
     if (!ui.showPath.checked)
         return;
     ctx.save();
+    if (courseMode === 'verification' && verificationZone) {
+        const z = verificationZone;
+        ctx.setLineDash([8, 4]);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#bd7042';
+        ctx.strokeRect(z.x, z.y, z.width, z.height);
+        ctx.setLineDash([]);
+        ctx.font = 'bold 11px system-ui';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#9d552e';
+        ctx.fillText(z.name, z.x + 5, z.y + 15);
+    }
     if (falseBranch) {
         const a=route[falseBranch.step], b=falseBranch.end;
         ctx.setLineDash([4,4]);
         line(a,b,'#bb7847',2);
+        if (falseBranch.second) line(b,falseBranch.second,'#bb7847',2);
         ctx.setLineDash([]);
-        line({x:b.x-5,y:b.y-5},{x:b.x+5,y:b.y+5},'#bb7847',2);
-        line({x:b.x+5,y:b.y-5},{x:b.x-5,y:b.y+5},'#bb7847',2);
+        const end = falseBranch.second || b;
+        line({x:end.x-5,y:end.y-5},{x:end.x+5,y:end.y+5},'#bb7847',2);
+        line({x:end.x+5,y:end.y-5},{x:end.x-5,y:end.y+5},'#bb7847',2);
         ctx.font='bold 10px system-ui'; ctx.fillStyle='#bb7847';
-        ctx.fillText('分岐',b.x+9,b.y);
+        ctx.fillText('分岐',end.x+9,end.y);
     }
     ctx.setLineDash([6, 5]);
     for (let i = 1; i < route.length; i++) {

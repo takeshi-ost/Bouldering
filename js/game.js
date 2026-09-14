@@ -25,6 +25,7 @@ let drag = null;
 let state = "playing";
 let warning = 0;
 let densityStats = null;
+let verificationZone = null;
 function generate(n) {
     ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n));
 }
@@ -85,11 +86,11 @@ function attachMoving(p, anchor) {
     return bestCount < 0 ? null : best;
 }
 function reset(n) {
-    level = courseMode==='verification'?1:n;
+    level = courseMode==='verification'?Math.min(6,Math.max(1,n)):n;
     falseBranch = null;
+    verificationZone = null;
     if(courseMode==='verification') {
-        ({holds,route,HEIGHT,initialGrips,densityStats}=generateBackwardStage());
-        prepareVerificationStage();
+        verificationZone = preparePatternVerificationStage(level);
     } else {
         generate(level);
         preparePlayableStage();
@@ -103,7 +104,7 @@ function reset(n) {
         pair.forEach((i, j) => grips[i] = sorted[j]);
     }
     startGrips = [...grips];
-    stamina = route.length - 1 + (courseMode==='verification'?0:STAGE_CONFIG.spareMoves);
+    stamina = route.length - 1 + STAGE_CONFIG.spareMoves;
     moveCount = 0;
     camera = HEIGHT - H;
     inspecting = false;
@@ -112,8 +113,8 @@ function reset(n) {
     warning = 0;
     ui.overlay.hidden = true;
     ui.restart.disabled = false;
-    ui.level.innerHTML = `Level ${level}<span>${courseMode === 'verification' ? 'コース検証' : courseMode === "challenge" ? "難関コース" : "従来コース"}</span>`;
-    ui.next.textContent=courseMode==='verification'?'同じコースを再開':'NEXT STAGE →';
+    ui.level.innerHTML = `Level ${level}<span>${courseMode === 'verification' ? VERIFICATION_STAGES[level-1].name : courseMode === "challenge" ? "難関コース" : "従来コース"}</span>`;
+    ui.next.textContent=courseMode==='verification' && level===6?'ステージ1から再開':'NEXT STAGE →';
     updateUI();
 }
 function updateUI() {

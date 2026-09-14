@@ -8,6 +8,17 @@
 
 ファイルを編集・保存した後、ブラウザを再読み込みすると変更が反映されます。デバッグパスと画面下の密度評価を使って配置を確認できます。
 
+## 自動検証
+
+Windows の PowerShell から、リポジトリのルートで次を実行します。
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-routes.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-routes.ps1 -Challenge
+```
+
+スクリプトは `node` があればそれを使い、なければインストール済み VS Code の Electron を Node モードで実行します。実行環境がどちらもなければ理由を表示して終了します。検証が通るとレベルごとの結果が出力され、失敗時は終了コードを返します。
+
 ## ファイル構成
 
 | ファイル | 役割 |
