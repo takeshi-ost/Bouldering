@@ -266,3 +266,10 @@ footer button {
     font-size: 20px;
 }
 .scroll-rail[aria-disabled="true"] { cursor: default; opacity: .45; }
+
+/* Leave the wall visible and scrollable while comparing the two paths. */
+.overlay.reviewing { background: transparent; backdrop-filter: none; pointer-events: none; align-items: end; padding: 8px; }
+.overlay.reviewing .card { pointer-events: auto; padding: 10px; }
+.overlay.reviewing .eyebrow, .overlay.reviewing h1 { display: none; }
+.overlay.reviewing .card p { margin: 0 0 6px; font-size: 12px; }
+.overlay.reviewing button { padding: 8px; margin-top: 4px; }

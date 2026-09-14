@@ -78,7 +78,7 @@ function drawPath() {
         const a = route[i - 1], b = route[i];
         if (Math.max(a.y, b.y) < camera - 24 || Math.min(a.y, b.y) > camera + H + 24)
             continue;
-        line(a, b, '#527faa9c', 2);
+        line(a, b, '#527faa9c', state==='won'?5:2);
         // Arrowheads indicate the direction of travel, including lateral turns.
         const angle = Math.atan2(b.y - a.y, b.x - a.x), mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
         ctx.setLineDash([]);
@@ -101,12 +101,37 @@ function drawPath() {
         ctx.fillText(String(i), labelX, p.y);
 
     });
+    if(state==='won' && playerPath.length>1) {
+        ctx.setLineDash([6,5]);
+        for(let i=1;i<playerPath.length;i++) {
+            const a=playerPath[i-1],b=playerPath[i];
+            line(a,b,'#d14479',2);
+            const angle=Math.atan2(b.y-a.y,b.x-a.x),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+            ctx.setLineDash([]);
+            for(const offset of [-.55,.55])line(mid,{x:mid.x-7*Math.cos(angle+offset),y:mid.y-7*Math.sin(angle+offset)},'#d14479',1.5);
+            ctx.setLineDash([6,5]);
+        }
+        ctx.setLineDash([]);
+        playerPath.forEach((p,i)=>{
+            circle(p.x,p.y,3,'#f3f0e7','#d14479');
+            // Put actual move numbers opposite the planned move numbers.
+            const x=p.x>W-65?p.x+20:p.x-20;
+            circle(x,p.y,11,'#fff0f5ee');
+            ctx.fillStyle='#d14479';ctx.textAlign='center';
+            ctx.fillText(String(i),x,p.y);
+        });
+        const end=playerPath[playerPath.length-1];
+        ctx.fillStyle='#d14479';ctx.textAlign='left';
+        ctx.fillText('実際のルート',clamp(end.x+30,10,W-90),end.y-16);
+    }
     ctx.restore();
 }
-function draw() {
+function draw(now = 0) {
+    advanceCameraIntro(now);
+    ui.overlay.classList.toggle('reviewing',state==='won' && ui.showPath.checked);
     const desired = clamp(body.y - H * CAMERA_CONFIG.bodyScreenRatio, 0, HEIGHT - H);
     // Freeze camera while holding to keep the body directly under the pointer.
-    if (!drag && !inspecting)
+    if (!cameraIntro && !drag && !inspecting && state==='playing')
         camera += (desired - camera) * CAMERA_CONFIG.followRate;
     ui.scrollThumb.style.height = (H / HEIGHT * 100) + '%';
     ui.scrollThumb.style.top = (camera / HEIGHT * 100) + '%';
@@ -144,20 +169,17 @@ function draw() {
         ctx.fillText(`${((HEIGHT - y) / 100).toFixed(0)} M`, 12, y - 8);
     drawPath();
     const visualAnchor = (drag ? drag.anchor : null);
+    const visualFixed=visualAnchor===null?[]:fixedLimbs(visualAnchor);
     if (drag && visualAnchor !== null) {
-        const i = visualAnchor;
-        const root = limbRoot({ x: 0, y: 0 }, i);
-        const support = startGrips[drag.anchor];
-        const center = { x: support.x - root.x, y: support.y - root.y };
+        const areas=visualFixed.map(i=>{
+            const root=limbRoot({x:0,y:0},i),support=startGrips[i];
+            return {x:support.x-root.x,y:support.y-root.y,r:LIMB_LENGTHS[i]};
+        });
         ctx.save();
-        ctx.beginPath();
-        ctx.arc(center.x, center.y, LIMB_LENGTHS[i], 0, Math.PI * 2);
-        ctx.clip();
-        ctx.fillStyle = '#709d7d19';
-        ctx.fillRect(0, 0, W, HEIGHT);
-        ctx.setLineDash([4, 5]);
-        ctx.lineWidth = 2;
-        circle(center.x, center.y, LIMB_LENGTHS[i], null, '#7c9c7d90');
+        for(const p of areas){ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.clip();}
+        ctx.fillStyle='#709d7d19';ctx.fillRect(0,0,W,HEIGHT);
+        ctx.setLineDash([4,5]);ctx.lineWidth=2;
+        for(const p of areas)circle(p.x,p.y,p.r,null,'#7c9c7d90');
         ctx.restore();
     }
     for (const h of holds) {
@@ -180,7 +202,7 @@ function draw() {
     ctx.lineCap = 'round';
     const animationTime = performance.now() / 1000;
     grips.forEach((grip, i) => {
-        const moving = drag && drag.anchor !== null && visualAnchor !== i, h = grip || danglingTip(body, i, animationTime);
+        const moving = drag && drag.anchor !== null && !visualFixed.includes(i), h = grip || danglingTip(body, i, animationTime);
         const root = limbRoot(body, i);
         // Two equal rigid segments: flex the elbow/knee instead of stretching.
         const joint = limbJoint(root, h, i);
@@ -189,7 +211,7 @@ function draw() {
         line(joint, h, color, 5);
         circle(joint.x, joint.y, 3.5, '#f3f0e7');
         circle(h.x, h.y, 4, moving ? '#c39037' : '#2f5d46');
-        if (drag && drag.anchor !== null && !moving && grip === startGrips[drag.anchor]) {
+        if (drag && drag.anchor !== null && !moving && grip === startGrips[i]) {
             ctx.fillStyle = '#526659';
             ctx.font = '9px system-ui';
             ctx.textAlign = 'center';
@@ -208,7 +230,7 @@ function draw() {
     ctx.strokeRect(left, top, TORSO.width, TORSO.height);
     for (let i = 0; i < 4; i++) {
         const root = limbRoot(body, i);
-        circle(root.x, root.y, 2.5, drag && drag.anchor !== null && visualAnchor !== i ? '#c39037' : '#d9e9db');
+        circle(root.x, root.y, 2.5, drag && drag.anchor !== null && !visualFixed.includes(i) ? '#c39037' : '#d9e9db');
     }
     for (const x of [-4, 4])
         for (const y of [-6, 0, 6])

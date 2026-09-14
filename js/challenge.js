@@ -124,3 +124,10 @@ function prepareChallengeStage() {
     const windows=[0,HEIGHT-H,...holds.map(h=>clamp(h.y-H,0,HEIGHT-H))];
     densityStats.peak=Math.max(...windows.map(y=>holds.filter(h=>h.y>=y&&h.y<=y+H).length));
 }
+
+// Separate pipeline: the old single-support difficulty mutations are not used.
+function preparePairChallengeStage() {
+    generate(level);
+    preparePlayableStage();
+    densityStats.fixedSupports=2;
+}

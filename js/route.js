@@ -9,11 +9,11 @@ function inspectSwipe(from, target) {
         if (!startGrips.every(Boolean) || distance(from,target)<INPUT_CONFIG.dragThreshold) return null;
         const anchor=selectAnchor(target.x-from.x,target.y-from.y);
         let p={x:clamp(target.x,25,W-25),y:clamp(target.y,80,HEIGHT-40)};
-        if (!limbReachable(p,startGrips[anchor],anchor)) {
+        if (!supportsReachable(p,anchor)) {
             let low=0,high=1;
             for(let k=0;k<INPUT_CONFIG.reachSearchSteps;k++) {
                 const t=(low+high)/2, q={x:from.x+(p.x-from.x)*t,y:from.y+(p.y-from.y)*t};
-                if(limbReachable(q,startGrips[anchor],anchor))low=t;else high=t;
+                if(supportsReachable(q,anchor))low=t;else high=t;
             }
             p={x:from.x+(p.x-from.x)*low,y:from.y+(p.y-from.y)*low};
         }
@@ -98,7 +98,7 @@ function solveRoute(guide, maxMoves = 40) {
                 for (const p of candidates) {
                     if (p.x < 25 || p.x > W - 25 || p.y < 80 || p.y > HEIGHT - 40 || distance(p, node.p) < 5) continue;
                     const anchor = selectAnchor(p.x - node.p.x, p.y - node.p.y);
-                    if (!limbReachable(p, node.stance[anchor], anchor)) continue;
+                    if (!supportsReachable(p,anchor)) continue;
                     const stance = attachMoving(p, anchor);
                     if (!stance) continue;
                     const won = bothHandsOnGoal(stance) && stance.every(Boolean);
@@ -177,7 +177,7 @@ function replayRoute(path) {
         for (let i = 1; i < path.length; i++) {
             committed = path[i - 1]; startGrips = stance;
             const p = path[i], anchor = selectAnchor(p.x - committed.x, p.y - committed.y);
-            if (!limbReachable(p, stance[anchor], anchor)) return null;
+            if (!supportsReachable(p,anchor)) return null;
             stance = attachMoving(p, anchor);
             if (!stance) return null;
             const won = bothHandsOnGoal(stance) && stance.every(Boolean);

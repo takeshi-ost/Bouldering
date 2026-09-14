@@ -20,6 +20,8 @@ let startGrips = [];
 let stamina = STAGE_CONFIG.introMoves + STAGE_CONFIG.spareMoves;
 let moveCount = 0;
 let camera = 0;
+let cameraIntro = null;
+let playerPath = [];
 let inspecting = false;
 let drag = null;
 let state = "playing";
@@ -36,6 +38,7 @@ function limbReachable(p, h, i) {
 function selectAnchor(dx, dy) {
     const length = Math.hypot(dx, dy), ux = dx / length, uy = dy / length;
     let best = 0, reach = -1;
+    const ranked=[];
     startGrips.forEach((h, i) => {
         let low = 0, high = LIMB_LENGTHS[i] * 2;
         for (let step = 0; step < INPUT_CONFIG.reachSearchSteps; step++) {
@@ -44,8 +47,10 @@ function selectAnchor(dx, dy) {
             if (limbReachable(p, h, i)) low = t;
             else high = t;
         }
+        ranked.push({i,reach:low});
         if (low > reach) { reach = low; best = i; }
     });
+    if(courseMode==='challenge')return ranked.sort((a,b)=>b.reach-a.reach || a.i-b.i).slice(0,2).map(p=>p.i);
     return best;
 }
 function canShareGoal(hold, a, b) {
@@ -53,8 +58,10 @@ function canShareGoal(hold, a, b) {
 }
 function attachMoving(p, anchor) {
     const result = Array(4).fill(null);
-    result[anchor] = startGrips[anchor];
-    const moving = [0, 1, 2, 3].filter(i => i !== anchor);
+    const fixed=fixedLimbs(anchor);
+    if(courseMode==='challenge' && (fixed.length!==2 || !supportsReachable(p,anchor)))return null;
+    fixed.forEach(i=>result[i]=startGrips[i]);
+    const moving = [0, 1, 2, 3].filter(i => !fixed.includes(i));
     const candidates = moving.map(i => {
         const target = { x: p.x + limbs[i].x, y: p.y + limbs[i].y };
         const available = holds;
@@ -91,10 +98,11 @@ function reset(n) {
     verificationZone = null;
     if(courseMode==='verification') {
         verificationZone = preparePatternVerificationStage(level);
+    } else if(courseMode==='challenge') {
+        preparePairChallengeStage();
     } else {
         generate(level);
         preparePlayableStage();
-        if (courseMode === "challenge") { prepareChallengeStage(); preparePuzzlePatterns(); if (!falseBranch) prepareFalseBranch(); prepareGoalTrap(); refreshPuzzleDensity(); }
     }
     body = { ...route[0] };
     committed = { ...body };
@@ -106,7 +114,9 @@ function reset(n) {
     startGrips = [...grips];
     stamina = route.length - 1 + (courseMode === 'verification' ? 0 : STAGE_CONFIG.spareMoves);
     moveCount = 0;
-    camera = HEIGHT - H;
+    playerPath = [{x:body.x,y:body.y}];
+    camera = clamp(holds.find(h=>h.type==='goal').y-H*.2,0,HEIGHT-H);
+    cameraIntro = {from:camera,to:clamp(body.y-H*CAMERA_CONFIG.bodyScreenRatio,0,HEIGHT-H),start:null};
     inspecting = false;
     drag = null;
     state = 'playing';
@@ -132,7 +142,7 @@ function limbRoot(p, index) {
     return { x: p.x + (index % 2 ? 1 : -1) * TORSO.width / 2, y: p.y + (index < 2 ? -1 : 1) * TORSO.height / 2 };
 }
 function down(e) {
-    if (state !== 'playing' || drag)
+    if (state !== 'playing' || cameraIntro || drag)
         return;
     inspecting = false;
     camera = clamp(body.y - H * CAMERA_CONFIG.bodyScreenRatio, 0, HEIGHT - H);
@@ -155,8 +165,7 @@ function move(e) {
             return;
         drag.anchor = selectAnchor(raw.x - committed.x, raw.y - committed.y);
     }
-    const anchor = startGrips[drag.anchor];
-    const reachable = q => limbReachable(q, anchor, drag.anchor);
+    const reachable = q => supportsReachable(q,drag.anchor);
     // Keep the selected support throughout this gesture.
     const previousBody = { ...body };
     const blocked = !reachable(target);
@@ -193,13 +202,16 @@ function sameContacts(a, b) {
 function release(cancel = false) {
     if (!drag)
         return;
-    const invalid = grips.some(h => h === null);
+    const invalid = grips.some(h => h === null) || (courseMode==='challenge' &&
+        (!Array.isArray(drag.anchor) || new Set(drag.anchor).size!==2 ||
+        !drag.anchor.every(i=>grips[i]===startGrips[i] && limbReachable(body,grips[i],i))));
     drag = null;
     if (cancel || invalid || sameContacts(grips, startGrips)) {
         body = { ...committed };
         grips = [...startGrips];
     }
     else {
+        playerPath.push({x:body.x,y:body.y});
         stamina--;
         moveCount++;
         committed = { ...body };
@@ -219,4 +231,18 @@ function finish(won) {
     ui.resultTitle.textContent = won ? '登頂成功！' : 'あと、もう少し。';
     ui.resultText.textContent = won ? `Level ${level} を ${moveCount} 手でクリア。残り ${stamina} 手。` : 'スタミナがなくなりました。同じ壁でルートを見直してみよう。';
     (won ? ui.next : ui.retry).focus();
+}
+
+// RAF time is injected so tests can advance the opening without real waits.
+function advanceCameraIntro(now) {
+    if(!cameraIntro || state!=='playing')return;
+    if(cameraIntro.start===null)cameraIntro.start=now;
+    const t=clamp((now-cameraIntro.start-450)/1200,0,1);
+    camera=cameraIntro.from+(cameraIntro.to-cameraIntro.from)*t*t*(3-2*t);
+    if(t===1)cameraIntro=null;
+}
+
+function fixedLimbs(anchor) { return Array.isArray(anchor)?anchor:[anchor]; }
+function supportsReachable(p,anchor) {
+    return fixedLimbs(anchor).every(i=>startGrips[i] && limbReachable(p,startGrips[i],i));
 }

@@ -9,7 +9,7 @@ function endPan() {
         ui.scrollRail.releasePointerCapture(previous.id);
 }
 ui.scrollRail.addEventListener('pointerdown', e => {
-    if (e.button !== 0 || pan || HEIGHT <= H) return;
+    if (cameraIntro || e.button !== 0 || pan || HEIGHT <= H) return;
     e.preventDefault();
     release(true);
     touchId = null;
@@ -29,6 +29,7 @@ for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
     });
 }
 ui.scrollRail.addEventListener('keydown', e => {
+    if(cameraIntro)return;
     const max = HEIGHT - H;
     const positions = {
         ArrowUp: camera - 40, ArrowDown: camera + 40,

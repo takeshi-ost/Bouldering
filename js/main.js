@@ -1,6 +1,7 @@
 "use strict";
 reset(1);
 state = 'choosing';
+cameraIntro=null;
 ui.restart.disabled = true;
 const coursePicker = document.getElementById('coursePicker');
 function chooseCourse(mode) {
@@ -14,6 +15,7 @@ document.getElementById('verificationCourse').onclick = () => chooseCourse('veri
 document.getElementById('chooseCourse').onclick = () => {
     release(true); endPan();
     state = 'choosing';
+cameraIntro=null;
     ui.overlay.hidden = true;
     ui.restart.disabled = true;
     coursePicker.hidden = false;

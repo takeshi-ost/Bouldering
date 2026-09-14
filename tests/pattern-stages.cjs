@@ -8,6 +8,24 @@ vm.runInContext(`const elements={};const document={getElementById(id){return ele
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 for (const match of html.matchAll(/<script src="([^"]+)" defer><\/script>/g))
     vm.runInContext(fs.readFileSync(path.join(root, match[1]), 'utf8'), context, {filename: match[1]});
+vm.runInContext(`
+courseMode='verification';reset(2);
+if(!cameraIntro || camera!==0)throw Error('Opening must start at goal');
+down({clientX:200,clientY:400});if(drag)throw Error('Input accepted during opening');
+advanceCameraIntro(100);advanceCameraIntro(550);
+if(camera!==0)throw Error('Goal hold duration missing');
+advanceCameraIntro(1150);
+if(!(camera>0 && camera<cameraIntro.to))throw Error('Opening did not scroll');
+advanceCameraIntro(1750);
+if(cameraIntro || camera!==clamp(body.y-H*.6,0,HEIGHT-H))throw Error('Opening did not finish');
+const oldPath=JSON.stringify(playerPath);
+down({clientX:body.x,clientY:body.y-camera});
+move({clientX:body.x+10,clientY:body.y-camera-10});release(true);
+if(JSON.stringify(playerPath)!==oldPath)throw Error('Cancelled trace retained');
+playerPath.push({x:1,y:1});reset(1);
+if(playerPath.length!==1)throw Error('Previous stage trail leaked');
+`,context);
+vm.runInContext('const resetWithIntro=reset;reset=function(n){resetWithIntro(n);advanceCameraIntro(0);advanceCameraIntro(1650);};',context);
 console.log(vm.runInContext(`
 function verify(condition, message) { if (!condition) throw Error(message); }
 courseMode='verification';
@@ -107,6 +125,8 @@ for(let n=1;n<=5;n++){
         verify(moveCount===i,'Input replay stopped: '+n+'/'+i);
     }
     verify(state==='won'&&stamina===0,'Goal or M+0 budget failed: '+n);
+    verify(playerPath.length===moveCount+1,'Path must contain only committed positions');
+    verify(playerPath.every((p,i)=>distance(p,route[i])<0.01),'Committed path differs from played endpoints');
     report.push({stage:n,pattern:expected[n-1],moves:route.length-1,holds:holds.length});
 }
 reset(5);ui.next.onclick();verify(level===1,'Stage five must cycle to stage one');

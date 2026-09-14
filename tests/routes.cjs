@@ -1,3 +1,4 @@
+if (process.argv.includes('--challenge')) { require('./two-support.cjs'); return; }
 // Run with: node tests/routes.cjs
 const fs = require('node:fs');
 const path = require('node:path');
@@ -11,6 +12,7 @@ for (const match of fs.readFileSync(path.join(root, 'index.html'), 'utf8').match
     vm.runInContext(fs.readFileSync(path.join(root, match[1]), 'utf8'), context, { filename: match[1] });
 }
 vm.runInContext("courseMode=" + JSON.stringify(process.argv.includes("--challenge") ? "challenge" : "classic"), context);
+vm.runInContext('const resetWithIntro=reset;reset=function(n){resetWithIntro(n);advanceCameraIntro(0);advanceCameraIntro(1650);};',context);
 console.log(vm.runInContext(`
 function check(value, message) { if (!value) throw Error(message); }
 // The six verification patterns have their own normal-input regression suite
