@@ -4,90 +4,111 @@ const path = require('node:path');
 const vm = require('node:vm');
 const root = path.join(__dirname, '..');
 const context = vm.createContext({});
-vm.runInContext(`const elements={}; const document={getElementById(id){return elements[id]||(elements[id]={style:{},classList:{toggle(){}},focus(){},addEventListener(){},getContext(){return new Proxy({}, {get(o,k){return o[k]||function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}});}}; const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};`, context);
+vm.runInContext(`const elements={};const document={getElementById(id){return elements[id]||(elements[id]={style:{},classList:{toggle(){}},focus(){},addEventListener(){},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}});}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};`, context);
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 for (const match of html.matchAll(/<script src="([^"]+)" defer><\/script>/g))
     vm.runInContext(fs.readFileSync(path.join(root, match[1]), 'utf8'), context, {filename: match[1]});
 console.log(vm.runInContext(`
 function verify(condition, message) { if (!condition) throw Error(message); }
-courseMode = 'verification';
-const report = [];
-for (let n = 1; n <= 6; n++) {
+courseMode='verification';
+const expected=['ストレッチ','近接経由','最下部足場の強制選択','ぎりぎり届かない偽コース','逆方向への移動'];
+const report=[];
+verify(VERIFICATION_STAGES.length===5,'Verification mode must contain exactly five stages');
+for(let n=1;n<=5;n++){
     reset(n);
-    verify(level === n && verificationZone?.name === VERIFICATION_STAGES[n-1].name, 'Wrong stage or label: '+n);
-    verify(verificationZone.width > 0 && verificationZone.height > 0, 'Missing rectangle: '+n);
-    const replay = replayRoute(route);
-    verify(replay && replay.length === route.length, 'Normal-rule solution failed: '+n);
-    const routeIds = new Set([...initialGrips.map(h => h.id), ...route.flatMap(p => p.grips || [])]);
-    const specialIds = new Set();
-    if (n === 3) specialIds.add(holds.find(h => h.y === 172).id);
-    if (n === 4) specialIds.add(densityStats.poison.id);
-    if (n === 5) {
-        falseBranch.holdIds.forEach(id => specialIds.add(id));
-        [falseBranch.end, falseBranch.second].forEach(p => p.grips.forEach(id => specialIds.add(id)));
-    }
-    verify(holds.every(h => routeIds.has(h.id) || specialIds.has(h.id)),
+    verify(level===n&&verificationZone.name===expected[n-1], 'Wrong stage: '+n);
+    verify(stamina===route.length-1&&route.length-1===VERIFICATION_STAGES[n-1].steps,
+        'Stamina must be M+0: '+n);
+    const proof=densityStats.supportCertificate;
+    verify(proof.minimum===route.length-1&&(n===5||proof.certified),
+        'Shortest-move certificate failed: '+n);
+    const played=replayRoute(route);
+    verify(played&&played.length===route.length&&
+        played.every((p,i)=>JSON.stringify(p.grips)===JSON.stringify(route[i].grips)),
+        'Normal-rule route replay failed: '+n);
+    const used=new Set([...initialGrips.map(h=>h.id),...route.flatMap(p=>p.grips)]);
+    verify(holds.every(h=>used.has(h.id)||n===4&&h.type==='decoy'),
         'Unrelated hold remains: '+n);
-    let framed = 0;
-    ctx.strokeRect = () => { framed++; };
-    ui.showPath.checked = true;
-    drawPath();
-    verify(framed === 1, 'Challenge rectangle not drawn: '+n);
-    ui.showPath.checked = false;
-    if (n === 1) {
-        const from = route[5], to = route[6], support = holds.find(h => h.id === from.grips[to.anchor]);
-        const hand = holds.find(h => h.id === to.grips[0]);
-        verify(to.anchor === 2 && distance(support, hand) > 250 &&
-            !limbReachable(from, hand, 0) && limbReachable(to, hand, 0), 'Remote foot axis missing');
+    let frames=0;ctx.strokeRect=()=>{frames++;};ui.showPath.checked=true;drawPath();
+    verify(frames===1&&verificationZone.width>0&&verificationZone.height>0,
+        'Challenge rectangle missing: '+n);
+    ui.showPath.checked=false;
+    if(n===1){
+        const pivot=holds.find(h=>h.id===route[0].grips[route[1].anchor]);
+        const target=holds.find(h=>h.id===route[1].grips[0]);
+        verify(route[1].anchor>=2&&distance(pivot,target)>200&&
+            !limbReachable(route[0],target,0)&&limbReachable(route[1],target,0),
+            'Stretch geometry missing');
     }
-    if (n === 2) {
-        const low = holds.find(h => h.id === 36), other = holds.find(h => h.id === 68);
-        verify(route[10].y - route[9].y >= 20 && low.y > other.y &&
-            route[10].grips.includes(low.id) && !inspectSwipe(route[9],route[11])?.won,
-            'Crouch or low foothold missing');
+    if(n===2){
+        const foot=holds.find(h=>h.x===160&&h.y===465);
+        const hand=holds.find(h=>h.x===90&&h.y===440);
+        verify(foot&&hand&&distance(foot,hand)<80&&route[1].grips.includes(foot.id)&&
+            proof.supports[1][0]===foot.id&&!inspectSwipe(route[0],route[2])?.won,
+            'Compact intermediate foothold missing');
     }
-    if (n === 3) {
-        const byId = id => holds.find(h => h.id === id), decoy = holds.find(h => h.y === 172);
-        verify(byId(26).y < byId(30).y && byId(27).y < byId(30).y &&
-            decoy.y > byId(30).y && route[9].grips.includes(26) &&
-            route[9].grips.includes(27) && route[9].grips.includes(30),
-            'Height boundary missing');
-        const low = inspectSwipe(route[8],{x:route[9].x-50,y:route[9].y+40});
-        verify(low?.pose[0]?.id === decoy.id && !low.pose.some(h => h?.id === 30),
-            'Low hand does not exclude nearby foot');
+    if(n===3){
+        const low=holds.find(h=>h.x===160&&h.y===462);
+        const neighbors=holds.filter(h=>h.y===440);
+        verify(low&&neighbors.length===2&&neighbors.every(h=>h.y<low.y)&&
+            route[1].grips.includes(low.id)&&proof.supports[1][0]===low.id,
+            'Lowest foothold is not mandatory');
     }
-    if (n === 4) {
-        const poison = holds.find(h => h.id === densityStats.poison.id);
-        const entry = densityStats.poison.entry;
-        verify(entry.grips[3] === poison.id && inspectSwipe(entry,route[10])?.cancelled &&
-            !inspectSwipe(entry,route[11])?.won, 'Poison foot is harmless');
+    if(n===4){
+        const connector=holds.find(h=>h.id===falseBranch?.nearMiss);
+        const excess=distance(limbRoot(falseBranch.end,1),connector)-LIMB_LENGTHS[1];
+        const entered=inspectSwipe(route[0],falseBranch.end);
+        verify(entered&&!entered.cancelled&&entered.pose.some(h=>falseBranch.holdIds.includes(h.id))&&
+            Math.abs(excess-3)<0.01&&!relaxedGoalPossible(falseBranch.end,route.length-2),
+            'Three-pixel false-course trap failed');
     }
-    if (n === 5) {
-        verify(falseBranch?.second && falseBranch.second.y < falseBranch.end.y &&
-            falseBranch.end.y < route[falseBranch.step].y, 'Two-step upper dead end missing');
-        const second = inspectSwipe(falseBranch.end,falseBranch.second);
-        verify(second && !second.cancelled && second.pose.some(h => h.id === falseBranch.holdIds[1]),
-            'Dead-end second step cannot be played');
+    if(n===5){
+        const goal=holds.find(h=>h.type==='goal');
+        verify(route[1].x<route[0].x&&route[1].y>route[0].y&&
+            distance(route[1],goal)>distance(route[0],goal)&&
+            !solveRoute(route,route.length-2), 'Reverse opening or lower bound failed');
+        const found=solveRoute(route,route.length-1);
+        verify(found&&distance(found[1],goal)>distance(found[0],goal),
+            'Automatic solver bypassed the retreat');
+        const seenForward=new Set();
+        for(let x=25;x<=375;x+=5)for(let y=450;y<=660;y+=5){
+            const first=inspectSwipe(route[0],{x,y});
+            if(!first||first.cancelled||!first.pose.every(Boolean)||
+                distance(first.result,goal)>=distance(route[0],goal))continue;
+            const key=first.result.grips.join(',')+':'+
+                Math.round(first.result.x/10)+','+Math.round(first.result.y/10);
+            if(seenForward.has(key))continue;
+            seenForward.add(key);
+            const savedInitial=initialGrips;
+            initialGrips=first.pose;
+            let forwardSolution;
+            try {forwardSolution=solveRoute([first.result,...route.slice(2)],route.length-2);}
+            finally {initialGrips=savedInitial;}
+            verify(!forwardSolution,'Forward first move has a winning continuation: '+x+','+y);
+            let at=first.result,valid=true;
+            for(const target of route.slice(2)){
+                const move=inspectSwipe(at,target);
+                if(!move||move.cancelled||!move.pose.every(Boolean)){valid=false;break;}
+                at=move.result;
+            }
+            verify(!valid||at.grips[0]!==goal.id||at.grips[1]!==goal.id,
+                'Forward first move reaches the goal: '+x+','+y);
+        }
+        verify(seenForward.size>0,'Forward-opening audit did not sample a valid move');
     }
-    if (n === 6) {
-        const goal = holds.find(h => h.type === 'goal');
-        verify(route[1].y >= route[0].y && distance(route[1],goal) > distance(route[0],goal) &&
-            route[1].grips.includes(11), 'Isolated retreat missing');
-    }
-    verify(state === 'playing' && moveCount === 0 && stamina === route.length,
-        'Invalid initial play state: '+n);
-    for (let i = 1; i < route.length; i++) {
-        camera = clamp(body.y - H*.6,0,HEIGHT-H);
-        const origin = {...body}, destination = route[i];
-        const event = p => ({clientX:p.x,clientY:p.y-camera});
+    for(let i=1;i<route.length;i++){
+        camera=clamp(body.y-H*.6,0,HEIGHT-H);
+        const origin={...body},destination=route[i];
+        const event=p=>({clientX:p.x,clientY:p.y-camera});
         down(event(body));
-        for (let t = 1; t <= 10; t++) move(event({x:origin.x+(destination.x-origin.x)*t/10,y:origin.y+(destination.y-origin.y)*t/10}));
+        for(let t=1;t<=10;t++)move(event({x:origin.x+(destination.x-origin.x)*t/10,
+            y:origin.y+(destination.y-origin.y)*t/10}));
         release();
-        verify(moveCount === i, 'Input replay stopped: '+n+'/'+i);
+        verify(moveCount===i,'Input replay stopped: '+n+'/'+i);
     }
-    verify(state === 'won' && stamina === 1, 'Goal or budget failed: '+n);
-    report.push({stage:n,pattern:verificationZone.name,moves:route.length-1,holds:holds.length});
+    verify(state==='won'&&stamina===0,'Goal or M+0 budget failed: '+n);
+    report.push({stage:n,pattern:expected[n-1],moves:route.length-1,holds:holds.length});
 }
-reset(6); ui.next.onclick(); verify(level === 1, 'Stage 6 does not cycle to stage 1');
+reset(5);ui.next.onclick();verify(level===1,'Stage five must cycle to stage one');
 JSON.stringify(report)
 `, context));

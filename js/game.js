@@ -86,7 +86,7 @@ function attachMoving(p, anchor) {
     return bestCount < 0 ? null : best;
 }
 function reset(n) {
-    level = courseMode==='verification'?Math.min(6,Math.max(1,n)):n;
+    level = courseMode==='verification'?Math.min(VERIFICATION_STAGES.length,Math.max(1,n)):n;
     falseBranch = null;
     verificationZone = null;
     if(courseMode==='verification') {
@@ -104,7 +104,7 @@ function reset(n) {
         pair.forEach((i, j) => grips[i] = sorted[j]);
     }
     startGrips = [...grips];
-    stamina = route.length - 1 + STAGE_CONFIG.spareMoves;
+    stamina = route.length - 1 + (courseMode === 'verification' ? 0 : STAGE_CONFIG.spareMoves);
     moveCount = 0;
     camera = HEIGHT - H;
     inspecting = false;
@@ -114,7 +114,7 @@ function reset(n) {
     ui.overlay.hidden = true;
     ui.restart.disabled = false;
     ui.level.innerHTML = `Level ${level}<span>${courseMode === 'verification' ? VERIFICATION_STAGES[level-1].name : courseMode === "challenge" ? "難関コース" : "従来コース"}</span>`;
-    ui.next.textContent=courseMode==='verification' && level===6?'ステージ1から再開':'NEXT STAGE →';
+    ui.next.textContent=courseMode==='verification' && level===VERIFICATION_STAGES.length?'ステージ1から再開':'NEXT STAGE →';
     updateUI();
 }
 function updateUI() {

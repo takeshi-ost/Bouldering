@@ -61,6 +61,7 @@ function relaxedGoalPossible(from, budget) {
 // Temporary state is restored before returning to the caller.
 function solveRoute(guide, maxMoves = 40) {
     const saved = { committed, startGrips };
+    const needsTraverse = level !== 1 && courseMode !== 'verification';
     const start = { ...guide[0] };
     const first = [...initialGrips];
     for (const pair of [[0, 1], [2, 3]]) {
@@ -77,7 +78,7 @@ function solveRoute(guide, maxMoves = 40) {
         });
         return index * 100 - best;
     };
-    let beam = [{ p: start, stance: first, path: [start], traversed: level===1, score: progress(start) }];
+    let beam = [{ p: start, stance: first, path: [start], traversed: !needsTraverse, score: progress(start) }];
     const visited = new Set();
     try {
         for (let depth = 0; depth < maxMoves; depth++) {
@@ -92,7 +93,7 @@ function solveRoute(guide, maxMoves = 40) {
                         candidates.push({ x: node.p.x + (q.x - node.p.x) * t, y: node.p.y + (q.y - node.p.y) * t });
                 }
                 for (const dx of [-60, -30, 0, 30, 60])
-                    for (const dy of (level===1 ? [-90,-45,0] : [-90,-45,0,20,40]))
+                    for (const dy of (needsTraverse ? [-90,-45,0,20,40] : [-90,-45,0]))
                         candidates.push({ x: node.p.x + dx, y: node.p.y + dy });
                 for (const p of candidates) {
                     if (p.x < 25 || p.x > W - 25 || p.y < 80 || p.y > HEIGHT - 40 || distance(p, node.p) < 5) continue;
@@ -182,7 +183,8 @@ function replayRoute(path) {
             const won = bothHandsOnGoal(stance) && stance.every(Boolean);
             if (!won && (!stance.every(Boolean) || sameContacts(stance, startGrips))) return null;
             result.push({ ...p, anchor, grips: stance.map(h => h?.id ?? null) });
-            if (won) return level===1 || result.slice(1).some((q,j)=>isTraverse(result[j],q)) ? result : null;
+            if (won) return level===1 || courseMode==='verification' ||
+                result.slice(1).some((q,j)=>isTraverse(result[j],q)) ? result : null;
         }
         return null;
     } finally { committed = saved.committed; startGrips = saved.startGrips; moveCount=saved.moveCount; }

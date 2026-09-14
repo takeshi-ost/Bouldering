@@ -79,5 +79,5 @@ canvas.addEventListener('touchcancel', e => touchEnd(e, true));
 function restartInput(n) {
     endPan(); touchId = null; ignoreTouches = false; reset(n);
 }
-ui.next.onclick = () => restartInput(courseMode==='verification' && level===6 ? 1 : level + 1);
+ui.next.onclick = () => restartInput(courseMode==='verification' && level===VERIFICATION_STAGES.length ? 1 : level + 1);
 ui.retry.onclick = ui.restart.onclick = () => restartInput(level);
