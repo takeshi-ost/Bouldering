@@ -15,7 +15,7 @@ const LIMB_LENGTHS = [100, 100, 110, 110];
 const limbArrows = ["↖", "↗", "↙", "↘"];
 // 初期配置の生成。実際の想定手数は現行ルールで探索して決定します。
 const STAGE_CONFIG = {
-    introMoves: 5,
+    introGuideSteps: 5,
     baseMoves: 20,
     movesPerLevel: 2,
     growthLevels: 3,

@@ -1,5 +1,6 @@
 # 2肢可動システムの検討経緯
 
+> 過去の検討記録です。現行の2肢固定ゲームは [GAME_SPEC.md](../GAME_SPEC.md) と [course-generation.md](course-generation.md) を参照してください。
 ## 1. 背景
 
 本ゲームでは、Bodyをドラッグすると手足が周囲のホールドへ吸着する操作方式を採用している。

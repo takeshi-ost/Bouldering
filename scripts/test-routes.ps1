@@ -1,7 +1,3 @@
-param(
-    [switch]$Challenge
-)
-
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $node = Get-Command node -ErrorAction SilentlyContinue
@@ -17,11 +13,9 @@ if ($node) {
 }
 
 try {
-    $tests = @((Join-Path $root 'tests/routes.cjs'))
-    if (-not $Challenge) { $tests += (Join-Path $root 'tests/pattern-stages.cjs') }
+    $tests = @((Join-Path $root 'tests/routes.cjs'), (Join-Path $root 'tests/animations.cjs'))
     foreach ($test in $tests) {
         $arguments = @($test)
-        if ($Challenge) { $arguments += '--challenge' }
         if ($node) {
             & $runtime @arguments
             $exitCode = $LASTEXITCODE

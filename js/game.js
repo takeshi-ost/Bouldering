@@ -7,18 +7,16 @@ const ui = Object.fromEntries([
     "resultTitle", "resultText", "next", "retry", "restart", "showPath", "density"
 ].map(id => [id, document.getElementById(id)]));
 
-let courseMode = "classic";
 let level = 1;
 let holds = [];
 let route = [];
-let falseBranch = null;
 let HEIGHT = H;
 let initialGrips = [];
 let body;
 let committed;
 let grips = [];
 let startGrips = [];
-let stamina = STAGE_CONFIG.introMoves + STAGE_CONFIG.spareMoves;
+let stamina = 0;
 let moveCount = 0;
 let camera = 0;
 let cameraIntro = null;
@@ -28,7 +26,6 @@ let drag = null;
 let state = "playing";
 let warning = 0;
 let densityStats = null;
-let verificationZone = null;
 
 function generate(n) {
     ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n));
@@ -121,78 +118,47 @@ function selectAnchor(dx, dy) {
     const ux = dx / length;
     const uy = dy / length;
 
-    if (courseMode === 'challenge') {
-        const supportPairs = [
-            [0, 1],
-            [0, 2],
-            [0, 3],
-            [1, 2],
-            [1, 3],
-            [2, 3]
-        ];
+    const supportPairs = [
+        [0, 1],
+        [0, 2],
+        [0, 3],
+        [1, 2],
+        [1, 3],
+        [2, 3]
+    ];
 
-        let bestPair = supportPairs[0];
-        let bestMovingCount = -1;
-        let bestReach = -1;
+    let bestPair = supportPairs[0];
+    let bestMovingCount = -1;
+    let bestReach = -1;
 
-        for (const pair of supportPairs) {
-            const reach = supportPairReach(pair, ux, uy);
-            const moving = [0, 1, 2, 3].filter(i => !pair.includes(i));
+    for (const pair of supportPairs) {
+        const reach = supportPairReach(pair, ux, uy);
+        const moving = [0, 1, 2, 3].filter(i => !pair.includes(i));
 
-            let movingCount = 0;
+        let movingCount = 0;
 
-            for (const i of moving) {
-                if (movingLimbHasForwardHold(i, pair, ux, uy, reach))
-                    movingCount++;
-            }
-
-            // First prefer the support pair that gives more moving limbs
-            // a useful forward destination.
-            //
-            // If the number of useful moving limbs is the same, preserve
-            // the original philosophy and prefer the pair that lets Body
-            // travel farther in the requested direction.
-            if (
-                movingCount > bestMovingCount ||
-                (movingCount === bestMovingCount && reach > bestReach)
-            ) {
-                bestPair = pair;
-                bestMovingCount = movingCount;
-                bestReach = reach;
-            }
+        for (const i of moving) {
+            if (movingLimbHasForwardHold(i, pair, ux, uy, reach))
+                movingCount++;
         }
 
-        return [...bestPair];
+        // First prefer the support pair that gives more moving limbs
+        // a useful forward destination.
+        //
+        // If the number of useful moving limbs is the same, preserve
+        // the original philosophy and prefer the pair that lets Body
+        // travel farther in the requested direction.
+        if (
+            movingCount > bestMovingCount ||
+            (movingCount === bestMovingCount && reach > bestReach)
+        ) {
+            bestPair = pair;
+            bestMovingCount = movingCount;
+            bestReach = reach;
+        }
     }
 
-    // Classic mode keeps the original one-limb support behaviour.
-    let best = 0;
-    let reach = -1;
-
-    startGrips.forEach((h, i) => {
-        let low = 0;
-        let high = LIMB_LENGTHS[i] * 2;
-
-        for (let step = 0; step < INPUT_CONFIG.reachSearchSteps; step++) {
-            const t = (low + high) / 2;
-            const p = {
-                x: committed.x + ux * t,
-                y: committed.y + uy * t
-            };
-
-            if (limbReachable(p, h, i))
-                low = t;
-            else
-                high = t;
-        }
-
-        if (low > reach) {
-            reach = low;
-            best = i;
-        }
-    });
-
-    return best;
+    return [...bestPair];
 }
 
 function canShareGoal(hold, a, b) {
@@ -201,13 +167,9 @@ function canShareGoal(hold, a, b) {
 
 function attachMoving(p, anchor) {
     const result = Array(4).fill(null);
-    const fixed = fixedLimbs(anchor);
+    const fixed = anchor;
 
-    if (
-        courseMode === 'challenge' &&
-        (fixed.length !== 2 || !supportsReachable(p, anchor))
-    )
-        return null;
+    if (!supportsReachable(p, anchor))return null;
 
     fixed.forEach(i => result[i] = startGrips[i]);
 
@@ -223,7 +185,7 @@ function attachMoving(p, anchor) {
 
         return available
             .filter(h =>
-                (h !== result[anchor] || canShareGoal(h, i, anchor)) &&
+                fixed.every(j => h !== result[j] || canShareGoal(h, i, j)) &&
                 limbReachable(p, h, i)
             )
             .map(h => ({
@@ -289,21 +251,9 @@ function attachMoving(p, anchor) {
 }
 
 function reset(n) {
-    level = courseMode === 'verification'
-        ? Math.min(VERIFICATION_STAGES.length, Math.max(1, n))
-        : n;
-
-    falseBranch = null;
-    verificationZone = null;
-
-    if (courseMode === 'verification') {
-        verificationZone = preparePatternVerificationStage(level);
-    } else if (courseMode === 'challenge') {
-        preparePairChallengeStage();
-    } else {
-        generate(level);
-        preparePlayableStage();
-    }
+    resetCharacterAnimation();
+    level = n;
+    prepareStage();
 
     body = { ...route[0] };
     committed = { ...body };
@@ -319,11 +269,7 @@ function reset(n) {
 
     startGrips = [...grips];
 
-    stamina =
-        route.length - 1 +
-        (courseMode === 'verification'
-            ? 0
-            : STAGE_CONFIG.spareMoves);
+    stamina = route.length - 1 + STAGE_CONFIG.spareMoves;
 
     moveCount = 0;
 
@@ -356,20 +302,8 @@ function reset(n) {
     ui.overlay.hidden = true;
     ui.restart.disabled = false;
 
-    ui.level.innerHTML =
-        `Level ${level}<span>${
-            courseMode === 'verification'
-                ? VERIFICATION_STAGES[level - 1].name
-                : courseMode === "challenge"
-                    ? "難関コース"
-                    : "従来コース"
-        }</span>`;
-
-    ui.next.textContent =
-        courseMode === 'verification' &&
-        level === VERIFICATION_STAGES.length
-            ? 'ステージ1から再開'
-            : 'NEXT STAGE →';
+    ui.level.innerHTML = `Level ${level}<span>2点固定</span>`;
+    ui.next.textContent = 'NEXT STAGE →';
 
     updateUI();
 }
@@ -442,6 +376,7 @@ function down(e) {
     )
         return;
 
+    resetCharacterAnimation();
     drag = {
         dx: body.x - p.x,
         dy: body.y - p.y,
@@ -586,10 +521,8 @@ function release(cancel = false) {
     const invalid =
         grips.some(h => h === null) ||
         (
-            courseMode === 'challenge' &&
-            (
-                !Array.isArray(drag.anchor) ||
-                new Set(drag.anchor).size !== 2 ||
+                (
+                !isSupportPair(drag.anchor) ||
                 !drag.anchor.every(i =>
                     grips[i] === startGrips[i] &&
                     limbReachable(
@@ -620,6 +553,7 @@ function release(cancel = false) {
         moveCount++;
 
         committed = { ...body };
+        startPoseSettle();
 
         if (bothHandsOnGoal())
             finish(true);
@@ -634,6 +568,7 @@ function release(cancel = false) {
 
 function finish(won) {
     state = won ? 'won' : 'lost';
+    if(won)startGoalHang();
     ui.overlay.hidden = false;
     ui.next.hidden = !won;
 
@@ -678,14 +613,12 @@ function advanceCameraIntro(now) {
         cameraIntro = null;
 }
 
-function fixedLimbs(anchor) {
-    return Array.isArray(anchor)
-        ? anchor
-        : [anchor];
+function isSupportPair(pair) {
+    return Array.isArray(pair) && pair.length===2 && pair[0]!==pair[1] &&
+        pair.every(i=>Number.isInteger(i) && i>=0 && i<4);
 }
-
 function supportsReachable(p, anchor) {
-    return fixedLimbs(anchor).every(i =>
+    return isSupportPair(anchor) && anchor.every(i =>
         startGrips[i] &&
         limbReachable(
             p,

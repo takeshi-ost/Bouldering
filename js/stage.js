@@ -49,20 +49,20 @@ function createStageGenerator() {
         };
         // A finite wall cannot accumulate an unlimited number of distinct holds.
         // Add traverses within the two-screen budget, then vary the seeded layout.
-        const solutionMoves = n === 1 ? STAGE_CONFIG.introMoves : STAGE_CONFIG.baseMoves + Math.min(n - 2, STAGE_CONFIG.growthLevels) * STAGE_CONFIG.movesPerLevel, rows = [0, 1, 2, 3], support = [...rows];
+        const guideSteps = n === 1 ? STAGE_CONFIG.introGuideSteps : STAGE_CONFIG.baseMoves + Math.min(n - 2, STAGE_CONFIG.growthLevels) * STAGE_CONFIG.movesPerLevel, rows = [0, 1, 2, 3], support = [...rows];
         // "row" is a station every 40px ALONG the course, not a vertical grid row.
         // Four supports span at most 200px of arc. The torso at its midpoint is
         // within 100px + the 8px hold offset of all four supports (R = 112px).
-        for (let i = 0; i < solutionMoves; i++) {
+        for (let i = 0; i < guideSteps; i++) {
             support.shift();
             const next = support[0] + STAGE_CONFIG.supportSpan;
             rows.push(next);
             support.push(next);
         }
-        // Intro geometry is tuned for a verified five-move route.
+        // Keep the intro guide compact; its actual move count is solved with two supports.
         // Actual playability is checked later by route.js, not this station model.
         if (n === 1)
-            rows.splice(4, STAGE_CONFIG.introMoves, ...STAGE_CONFIG.introStations);
+            rows.splice(4, STAGE_CONFIG.introGuideSteps, ...STAGE_CONFIG.introStations);
         const lastStation = rows[rows.length - 1] * STAGE_CONFIG.stationSpacing;
         const rawCourse = n === 1 ? s => ({ x: W / 2, y: -s, nx: 1, ny: 0 }) : makeCourse(lastStation, random() < .5 ? -1 : 1, STAGE_CONFIG.climbHeight + random() * STAGE_CONFIG.climbVariation);
         const rise = -rawCourse(lastStation).y;
@@ -181,42 +181,3 @@ function createStageGenerator() {
     return { generate };
 }
 const stageGenerator = createStageGenerator();
-
-// A sparse reverse template; ordinary attachment decides the actual contacts.
-// The support certificate is computed separately, before this stage is played.
-function generateBackwardStage(steps = 6) {
-    if(!Number.isInteger(steps) || steps<1 || steps>6)throw new RangeError('Verification steps must be 1–6');
-    const points=[], path=Array(steps+1), gap=170, footY=135, footX=40;
-    const add=(x,y,type='normal')=>{const h={id:points.length,x,y,type,row:null};points.push(h);return h;};
-    const goal=add(200,80,'goal');
-    // The final free foot is higher: it cannot serve as an alternative last
-    // support from the preceding region. Only the lower foot bridges the gap.
-    let stance=[goal,goal,add(200-footX,160+(steps%2?78:footY)),
-        add(200+footX,160+(steps%2?footY:78))];
-    path[steps]={x:200,y:160,grips:stance.map(h=>h.id)};
-    for(let k=steps;k>=1;k--) {
-        const anchor=2+(k%2), p={x:200,y:160+(steps-k+1)*gap};
-        path[k].anchor=anchor;
-        stance=stance.map((h,i)=>i===anchor?h:add(p.x+(i%2?1:-1)*(i<2?110:footX),
-            p.y+(i<2?-60:footY)));
-        path[k-1]={...p,grips:stance.map(h=>h.id)};
-    }
-    const initial=path[0].grips.map(id=>points[id]);
-    initial.forEach(h=>h.type='start');
-    const height=Math.max(H,path[0].y+footY+30);
-    const peak=Math.max(...points.map(p=>points.filter(h=>h.y>=p.y && h.y<=p.y+H).length));
-    return {holds:points,route:path,HEIGHT:height,initialGrips:initial,
-        densityStats:{target:peak,total:points.length,peak,iterations:0,converged:true,
-            routeRemoved:0,branchCount:0,coreCount:points.length,backwardSteps:steps}};
-}
-
-// Candidates only; adoption is decided with the current movement rules.
-function goalTrapCandidates(goal) {
-    const candidates=[];
-    for (const dy of [45,75,105,135]) for (const dx of [0,-30,30,-60,60]) {
-        const p={x:goal.x+dx,y:goal.y+dy};
-        if (p.x>=24 && p.x<=W-24 && p.y<HEIGHT-40 && holds.every(h=>distance(h,p)>=30))
-            candidates.push(p);
-    }
-    return candidates;
-}

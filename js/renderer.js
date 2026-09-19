@@ -120,52 +120,6 @@ function drawPath() {
 
     ctx.save();
 
-    if (courseMode === 'verification' && verificationZone) {
-        const z = verificationZone;
-        ctx.setLineDash([8, 4]);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#bd7042';
-        ctx.strokeRect(z.x, z.y, z.width, z.height);
-        ctx.setLineDash([]);
-        ctx.font = 'bold 11px system-ui';
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#9d552e';
-        ctx.fillText(z.name, z.x + 5, z.y + 15);
-    }
-
-    if (falseBranch) {
-        const a = route[falseBranch.step];
-        const b = falseBranch.end;
-
-        ctx.setLineDash([4, 4]);
-        line(a, b, '#bb7847', 2);
-
-        if (falseBranch.second)
-            line(b, falseBranch.second, '#bb7847', 2);
-
-        ctx.setLineDash([]);
-
-        const end = falseBranch.second || b;
-
-        line(
-            { x: end.x - 5, y: end.y - 5 },
-            { x: end.x + 5, y: end.y + 5 },
-            '#bb7847',
-            2
-        );
-
-        line(
-            { x: end.x + 5, y: end.y - 5 },
-            { x: end.x - 5, y: end.y + 5 },
-            '#bb7847',
-            2
-        );
-
-        ctx.font = 'bold 10px system-ui';
-        ctx.fillStyle = '#bb7847';
-        ctx.fillText('分岐', end.x + 9, end.y);
-    }
-
     ctx.setLineDash([6, 5]);
 
     for (let i = 1; i < route.length; i++) {
@@ -357,13 +311,49 @@ function drawPath() {
     ctx.restore();
 }
 
+// Presentation state only: never writes body, grips, committed or playerPath.
+let characterAnimation = null;
+function resetCharacterAnimation() { characterAnimation=null; }
+function startPoseSettle() {
+    let low=0,high=8;
+    for(let i=0;i<24;i++) {
+        const mid=(low+high)/2;
+        if(grips.every((h,k)=>h && limbReachable({x:body.x,y:body.y+mid},h,k)))low=mid;
+        else high=mid;
+    }
+    characterAnimation={kind:'settle',start:performance.now(),drop:low};
+}
+function startGoalHang() {
+    characterAnimation={kind:'hang',start:performance.now(),origin:{x:body.x,y:body.y},
+        contacts:grips.map(h=>({x:h.x,y:h.y})),goal:{x:grips[0].x,y:grips[0].y}};
+}
+function characterPose(now) {
+    const pose={body:{x:body.x,y:body.y},contacts:grips,angle:0,pivot:null};
+    const a=characterAnimation;
+    if(!a)return pose;
+    const elapsed=Math.max(0,now-a.start);
+    if(a.kind==='settle') {
+        const t=clamp(elapsed/240,0,1);
+        pose.body.y+=a.drop*(1-Math.pow(1-t,3));
+    } else {
+        const t=clamp(elapsed/650,0,1),ease=t*t*(3-2*t);
+        const target={x:a.goal.x,y:a.goal.y+TORSO.height/2+Math.sqrt(LIMB_LENGTHS[0]**2-(TORSO.width/2)**2)-2};
+        pose.body={x:a.origin.x+(target.x-a.origin.x)*ease,y:a.origin.y+(target.y-a.origin.y)*ease};
+        pose.contacts=a.contacts.map((p,i)=>i<2?a.goal:{
+            x:p.x+(target.x+(i===2?-1:1)*(TORSO.width/2+3)-p.x)*ease,
+            y:p.y+(target.y+TORSO.height/2+LIMB_LENGTHS[i]*.98-p.y)*ease});
+        pose.pivot=a.goal;
+        pose.angle=Math.sin(elapsed/520)*.055*ease;
+    }
+    return pose;
+}
+
 function draw(now = 0) {
     advanceCameraIntro(now);
 
     ui.overlay.classList.toggle(
         'reviewing',
-        state === 'won' &&
-        ui.showPath.checked
+        state === 'won'
     );
 
     const desired = clamp(
@@ -511,9 +501,7 @@ function draw(now = 0) {
     const visualFixed =
         visualAnchor === null
             ? []
-            : fixedLimbs(
-                visualAnchor
-            );
+            : visualAnchor;
 
     if (
         drag &&
@@ -660,12 +648,19 @@ function draw(now = 0) {
         }
     }
 
+    const visual=characterPose(performance.now());
+    ctx.save();
+    if(visual.pivot) {
+        ctx.translate(visual.pivot.x,visual.pivot.y);
+        ctx.rotate(visual.angle);
+        ctx.translate(-visual.pivot.x,-visual.pivot.y);
+    }
     ctx.lineCap = 'round';
 
     const animationTime =
         performance.now() / 1000;
 
-    grips.forEach((grip, i) => {
+    visual.contacts.forEach((grip, i) => {
         const moving =
             drag &&
             drag.anchor !== null &&
@@ -674,14 +669,14 @@ function draw(now = 0) {
         const h =
             grip ||
             danglingTip(
-                body,
+                visual.body,
                 i,
                 animationTime
             );
 
         const root =
             limbRoot(
-                body,
+                visual.body,
                 i
             );
 
@@ -753,20 +748,20 @@ function draw(now = 0) {
     });
 
     const left =
-        body.x -
+        visual.body.x -
         TORSO.width / 2;
 
     const top =
-        body.y -
+        visual.body.y -
         TORSO.height / 2;
 
     line(
         {
-            x: body.x,
+            x: visual.body.x,
             y: top
         },
         {
-            x: body.x,
+            x: visual.body.x,
             y: top - 9
         },
         '#435c50',
@@ -774,7 +769,7 @@ function draw(now = 0) {
     );
 
     circle(
-        body.x,
+        visual.body.x,
         top - 13,
         10,
         '#e0b99b'
@@ -820,7 +815,7 @@ function draw(now = 0) {
     ) {
         const root =
             limbRoot(
-                body,
+                visual.body,
                 i
             );
 
@@ -839,14 +834,15 @@ function draw(now = 0) {
     for (const x of [-4, 4]) {
         for (const y of [-6, 0, 6]) {
             circle(
-                body.x + x,
-                body.y + y,
+                visual.body.x + x,
+                visual.body.y + y,
                 1.3,
                 '#d9e9db'
             );
         }
     }
 
+    ctx.restore();
     ctx.restore();
 
     requestAnimationFrame(draw);

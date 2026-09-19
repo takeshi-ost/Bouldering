@@ -1,67 +1,8 @@
 "use strict";
-// A straight swipe, including the fixed-limb clamp and release/rollback result.
-// Pure with respect to gameplay state; does not focus buttons or update the UI.
-function inspectSwipe(from, target) {
-    const saved={committed,startGrips};
-    try {
-        committed=from;
-        startGrips=from.grips.map(id=>holds.find(h=>h.id===id));
-        if (!startGrips.every(Boolean) || distance(from,target)<INPUT_CONFIG.dragThreshold) return null;
-        const anchor=selectAnchor(target.x-from.x,target.y-from.y);
-        let p={x:clamp(target.x,25,W-25),y:clamp(target.y,80,HEIGHT-40)};
-        if (!supportsReachable(p,anchor)) {
-            let low=0,high=1;
-            for(let k=0;k<INPUT_CONFIG.reachSearchSteps;k++) {
-                const t=(low+high)/2, q={x:from.x+(p.x-from.x)*t,y:from.y+(p.y-from.y)*t};
-                if(supportsReachable(q,anchor))low=t;else high=t;
-            }
-            p={x:from.x+(p.x-from.x)*low,y:from.y+(p.y-from.y)*low};
-        }
-        const pose=attachMoving(p,anchor);
-        const cancelled=!pose || pose.some(h=>!h) || sameContacts(pose,startGrips);
-        return {position:p,pose,anchor,cancelled,cost:cancelled?0:1,
-            result:cancelled?from:{...p,anchor,grips:pose.map(h=>h.id)},
-            won:!cancelled && bothHandsOnGoal(pose)};
-    } finally {committed=saved.committed;startGrips=saved.startGrips;}
-}
-
-// Conservative reachability certificate. Each cell over-approximates all torso
-// positions in its rectangle. Ignore assignment costs, ordering and exclusivity;
-// unioning contacts loses correlations and permits MORE moves than the game.
-// Therefore false proves impossibility; true means unknown, not a solution.
-function relaxedGoalPossible(from, budget) {
-    const goal=holds.find(h=>h.type==='goal');
-    if(from.grips[0]===goal.id && from.grips[1]===goal.id)return true;
-    let reachable=from.grips.map(id=>new Set([id]));
-    const cells=[];
-    for(let x=25;x<W-25;x+=20) for(let y=80;y<HEIGHT-40;y+=20) {
-        const lists=[0,1,2,3].map(i=>holds.filter(h=>{
-            const root=limbRoot({x,y},i), xmax=Math.min(x+20,W-25)-x, ymax=Math.min(y+20,HEIGHT-40)-y;
-            return Math.hypot(h.x-clamp(h.x,root.x,root.x+xmax),h.y-clamp(h.y,root.y,root.y+ymax))<=LIMB_LENGTHS[i]+1e-7;
-        }).map(h=>h.id));
-        if(lists.every(a=>a.length))cells.push(lists);
-    }
-    for(let depth=0;depth<budget;depth++) {
-        const next=reachable.map(s=>new Set(s));
-        for(const lists of cells) {
-            if(!lists.some((ids,i)=>ids.some(id=>reachable[i].has(id))))continue;
-            if(lists[0].includes(goal.id)&&lists[1].includes(goal.id)) {
-                const feet=[2,3].map(i=>lists[i].filter(id=>id!==goal.id && holds.find(h=>h.id===id).y>=goal.y));
-                const handFixed=reachable[0].has(goal.id)||reachable[1].has(goal.id);
-                if(feet[0].some(a=>feet[1].some(b=>a!==b &&
-                    (handFixed || reachable[2].has(a) || reachable[3].has(b)))))return true;
-            }
-            lists.forEach((ids,i)=>ids.forEach(id=>next[i].add(id)));
-        }
-        reachable=next;
-    }
-    return false;
-}
-// Search with the same support selection and grip assignment used during play.
-// Temporary state is restored before returning to the caller.
+// Two-support route search and replay use the same physics as live play.
 function solveRoute(guide, maxMoves = 40) {
     const saved = { committed, startGrips };
-    const needsTraverse = level !== 1 && courseMode !== 'verification';
+    const needsTraverse = level !== 1;
     const start = { ...guide[0] };
     const first = [...initialGrips];
     for (const pair of [[0, 1], [2, 3]]) {
@@ -122,49 +63,6 @@ function solveRoute(guide, maxMoves = 40) {
         startGrips = saved.startGrips;
     }
 }
-function preparePlayableStage() {
-    const guide = route;
-    let verified = solveRoute(guide);
-    if (!verified) throw new Error('Playable route could not be generated for level ' + level);
-    const original = [...holds];
-    const protectedIds = new Set([...initialGrips.map(h => h.id), ...verified.flatMap(p => p.grips || [])]);
-    // Remove unused holds across the whole wall, not just beside the path.
-    holds = holds.filter(h => h.type !== 'normal' || protectedIds.has(h.id));
-    verified = replayRoute(verified);
-    if (!verified) throw new Error('Core route replay failed');
-    const core = [...holds];
-    const branchHolds = [];
-    // Any two holds used in the same pose must lie within this conservative
-    // distance (two limb lengths plus the separation between torso corners).
-    const transferSpan = 2 * Math.max(...LIMB_LENGTHS) + Math.hypot(TORSO.width, TORSO.height);
-    const candidates = original.filter(h => !holds.includes(h)).map(h => {
-        const nearby = verified.map((p, i) => ({ i, d: distance(p, h) })).sort((a, b) => a.d - b.d);
-        return { h, station: nearby[0].i, d: nearby[0].d };
-    }).filter(c => c.station > 0 && c.station < verified.length - 1 && c.d < 125);
-    candidates.sort((a, b) => a.station - b.station || a.d - b.d || a.h.id - b.h.id);
-    for (const candidate of candidates) {
-        if (branchHolds.length >= 4) break;
-        const touching = branchHolds.filter(b => distance(b.h, candidate.h) <= transferSpan);
-        // One pocket has at most two off-route holds, associated with at most
-        // two consecutive route steps. Different pockets cannot link directly.
-        if (touching.length > 1 || touching.some(b => Math.abs(b.station - candidate.station) > 1)) continue;
-        if (touching.some(b => branchHolds.some(other => other !== b && distance(b.h, other.h) <= transferSpan))) continue;
-        const before = holds;
-        holds = [...holds, candidate.h];
-        const replay = replayRoute(verified);
-        // An added branch must not change the core solution's grip assignment.
-        if (!replay || replay.some((p, i) => JSON.stringify(p.grips) !== JSON.stringify(verified[i].grips))) {
-            holds = before;
-            continue;
-        }
-        verified = replay;
-        branchHolds.push(candidate);
-    }
-    const removed = original.length - holds.length;
-    route = verified;
-    const windows = [0, HEIGHT - H, ...holds.map(h => clamp(h.y - H, 0, HEIGHT - H))];
-    densityStats = { ...densityStats, total: holds.length, peak: Math.max(...windows.map(y => holds.filter(h => h.y >= y && h.y <= y + H).length)), routeRemoved: removed, branchCount: branchHolds.length, coreCount: core.length };
-}
 function replayRoute(path) {
     const saved = { committed, startGrips, moveCount };
     try {
@@ -183,74 +81,58 @@ function replayRoute(path) {
             const won = bothHandsOnGoal(stance) && stance.every(Boolean);
             if (!won && (!stance.every(Boolean) || sameContacts(stance, startGrips))) return null;
             result.push({ ...p, anchor, grips: stance.map(h => h?.id ?? null) });
-            if (won) return level===1 || courseMode==='verification' ||
+            if (won) return level===1 ||
                 result.slice(1).some((q,j)=>isTraverse(result[j],q)) ? result : null;
         }
         return null;
     } finally { committed = saved.committed; startGrips = saved.startGrips; moveCount=saved.moveCount; }
 }
 
-// Conservative contact graph: every legal committed pose and transition is
-// included. Reach/selection correlations are relaxed, never used to exclude a
-// possible solution. A unique shortest support word here also holds in play
-// when an actual swipe replay attains that lower bound.
-function certifySupportSequence(points, initial, height) {
-    const count=points.length, poses=[], groups=Array.from({length:count*4},()=>[]);
-    const disks=limbs.map((_,i)=>points.map(h=>{const root=limbRoot({x:0,y:0},i);
-        return {x:h.x-root.x,y:h.y-root.y,r:LIMB_LENGTHS[i]+1e-5};}));
-    function possible(ids) {
-        let left=25,right=W-25,top=80,bottom=height-40;
-        for(let i=0;i<ids.length;i++) {
-            const a=disks[i][ids[i]];
-            left=Math.max(left,a.x-a.r);right=Math.min(right,a.x+a.r);
-            top=Math.max(top,a.y-a.r);bottom=Math.min(bottom,a.y+a.r);
-            for(let j=0;j<i;j++) {const b=disks[j][ids[j]];if(distance(a,b)>a.r+b.r)return false;}
-        }
-        return left<=right && top<=bottom;
-    }
-    function enumerate(ids) {
-        const i=ids.length;
-        if(i===4) {const index=poses.length;poses.push(ids);ids.forEach((id,k)=>groups[id*4+k].push(index));return;}
-        for(let id=0;id<count;id++) {
-            if(ids.some((other,j)=>other===id && !(i===1 && j===0 && points[id].type==='goal')))continue;
-            if(i>=2 && ids.slice(0,2).some(h=>points[id].y<points[h].y))continue;
-            const next=[...ids,id];if(possible(next))enumerate(next);
-        }
-    }
-    enumerate([]);
-    const start=poses.findIndex(ids=>ids.every((id,i)=>id===initial[i]));
-    const goals=poses.flatMap((ids,i)=>points[ids[0]].type==='goal' && ids[0]===ids[1]?[i]:[]);
-    if(start<0 || !goals.length)return {certified:false,reason:'no-pose',states:poses.length};
-    function distances(seeds) {
-        const d=Array(poses.length).fill(Infinity), used=new Set(), queue=[...seeds];
-        seeds.forEach(i=>d[i]=0);
-        for(let q=0;q<queue.length;q++) {const at=queue[q];
-            poses[at].forEach((id,i)=>{const key=id*4+i;if(used.has(key))return;used.add(key);
-                for(const next of groups[key])if(d[next]===Infinity){d[next]=d[at]+1;queue.push(next);}
-            });
-        }
-        return d;
-    }
-    const from=distances([start]), to=distances(goals), minimum=to[start];
-    if(!Number.isFinite(minimum))return {certified:false,reason:'disconnected',states:poses.length};
-    const choices=Array.from({length:minimum},()=>new Set());
-    groups.forEach((members,key)=>{
-        let a=Infinity,b=Infinity;for(const i of members){a=Math.min(a,from[i]);b=Math.min(b,to[i]);}
-        if(a+1+b===minimum)choices[a].add(Math.floor(key/4));
-    });
-    return {certified:minimum>0 && choices.every(s=>s.size===1),minimum,
-        supports:choices.map(s=>[...s]),states:poses.length,method:'conservative-contact-graph'};
+
+function prepareStage() {
+    generate(level);
+    const solved=solveRoute(route);
+    if(!solved)throw new Error('Two-support route search failed for level '+level);
+    route=solved;
+    pruneUnusedHolds();
+    densityStats.fixedSupports=2;
 }
 
-// A lower bound alone is insufficient: require a normal-input witness with
-// exactly that many moves and the certified support word. Never impose it on
-// attachment or release; wrong moves remain legal and consume normal stamina.
-function prepareVerificationStage() {
-    const proof=certifySupportSequence(holds,route[0].grips,HEIGHT);
-    const played=replayRoute(route);
-    if(!proof.certified || !played || played.length-1!==proof.minimum ||
-        !played.slice(1).every((p,i)=>played[i].grips[p.anchor]===proof.supports[i][0]))
-        throw new Error('Verification course failed its support certificate or normal-rule replay');
-    route=played;
-    densityStats.supportCertificate=proof;
+// Unused contacts can still affect the six-pair selector's look-ahead.
+// Remove a hold only if both the support pairs and all contacts replay exactly.
+function samePairRoute(expected, actual) {
+    return !!actual && actual.length===expected.length && actual.every((p,i)=>
+        JSON.stringify(p.grips)===JSON.stringify(expected[i].grips) &&
+        JSON.stringify(p.anchor)===JSON.stringify(expected[i].anchor));
+}
+function pruneUnusedHolds() {
+    const before=holds.length;
+    const used=new Set([...initialGrips.map(h=>h.id),...route.flatMap(p=>p.grips||[])]);
+    let removed;
+    do {
+        removed=false;
+        for(const h of [...holds]) {
+            if(h.type!=='normal' || used.has(h.id))continue;
+            const previous=holds;
+            holds=holds.filter(p=>p!==h);
+            const played=replayRoute(route);
+            if(samePairRoute(route,played)) {route=played;removed=true;}
+            else holds=previous;
+        }
+        // A later removal can make a formerly necessary selector hold removable.
+        // Every successful iteration strictly reduces the finite hold set.
+    } while(removed);
+    if(!samePairRoute(route,replayRoute(route)))throw new Error('Two-support final replay failed');
+    densityStats.routeRemoved=before-holds.length;
+    densityStats.selectionHoldIds=holds.filter(h=>!used.has(h.id)).map(h=>h.id);
+    updateStageDensity();
+}
+
+function updateStageDensity() {
+    const used=new Set([...initialGrips.map(h=>h.id),...route.flatMap(p=>p.grips||[])]);
+    const windows=[0,HEIGHT-H,...holds.map(h=>clamp(h.y-H,0,HEIGHT-H))];
+    densityStats.total=holds.length;
+    densityStats.coreCount=holds.filter(h=>used.has(h.id)).length;
+    densityStats.branchCount=holds.length-densityStats.coreCount;
+    densityStats.peak=Math.max(...windows.map(y=>holds.filter(h=>h.y>=y&&h.y<=y+H).length));
 }
