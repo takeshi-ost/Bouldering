@@ -22,49 +22,66 @@ function line(a, b, color, width) {
     ctx.stroke();
 }
 
-// The forearm/shin is a fixed-radius circle around the contact point.
-// Only the upper arm/thigh may shorten, inside its original maximum-length disk.
+// Shortening is shared 8:1 between the proximal and distal segments.
+// Search both bend directions while keeping the root and contact unchanged.
 function limbJoint(root, tip, index) {
     const half = LIMB_LENGTHS[index] / 2;
     const d = distance(root, tip);
-    if (d >= half * 2) return {
-        x: tip.x + (root.x - tip.x) * half / d,
-        y: tip.y + (root.y - tip.y) * half / d
-    };
-    const mid = { x: (root.x + tip.x) / 2, y: (root.y + tip.y) / 2 };
     const outward = index % 2 ? 1 : -1;
-    const bend = Math.sqrt(Math.max(0, half * half - d * d / 4));
-    const nx = d > 1e-7 ? -(tip.y - root.y) / d : 1;
-    const ny = d > 1e-7 ? (tip.x - root.x) / d : 0;
-    const corners = [
-        { x: mid.x + nx * bend, y: mid.y + ny * bend },
-        { x: mid.x - nx * bend, y: mid.y - ny * bend }
-    ];
-    const valid = p => distance(root, p) <= half + 1e-6 &&
-        Math.abs(distance(tip, p) - half) <= 1e-6;
-    const tops = [...corners, { x: tip.x, y: tip.y - half }].filter(valid);
-    // Prefer a knee above the foot; otherwise use the highest feasible point
-    // on the fixed-shin arc without extending the thigh.
-    const ceiling = index < 2 ? Infinity :
-        Math.max(tip.y - 6, Math.min(...tops.map(p => p.y)));
+    if (d >= half * 2) return { x: (root.x + tip.x) / 2, y: (root.y + tip.y) / 2 };
+    if (d === 0) {
+        return { x: root.x, y: root.y + (index < 2 ? half : -half) };
+    }
+    const ux = (tip.x - root.x) / d, uy = (tip.y - root.y) / d;
+    const left = root.x - (index % 2 ? TORSO.width : 0);
+    const top = root.y - (index < 2 ? 0 : TORSO.height);
+    const padding = Math.min(7, d * .45); // Reduce the margin at almost coincident contacts.
     const desired = {
         x: root.x + outward * half * .65 * Math.min(1, d / half),
-        y: index < 2 ? root.y + half * .55 : Math.min(root.y + half * .25, ceiling)
+        y: index < 2 ? root.y + half * .55 : Math.min(root.y + half * .25, tip.y - 6)
     };
-    const candidates = [...corners, ...tops];
-    const length = distance(tip, desired);
-    if (length > 1e-7) candidates.push({
-        x: tip.x + (desired.x - tip.x) * half / length,
-        y: tip.y + (desired.y - tip.y) * half / length
-    });
-    if (Number.isFinite(ceiling) && Math.abs(ceiling - tip.y) <= half + 1e-6) {
-        const width = Math.sqrt(Math.max(0, half * half - (ceiling - tip.y) ** 2));
-        candidates.push({ x: tip.x - width, y: ceiling }, { x: tip.x + width, y: ceiling });
+    // a = half - 8*s, b = half - s. Triangle inequalities bound s.
+    const maximum = Math.max(0, Math.min(half / 8, (2 * half - d) / 9, d / 7));
+    function candidate(s, side) {
+        const a = half - 8 * s;
+        // Stable form of (a*a - b*b + d*d)/(2*d), also for almost coincident tips.
+        const along = d / 2 - 7 * s * (2 * half - 9 * s) / (2 * d);
+        const bend = Math.sqrt(Math.max(0, a * a - along * along));
+        const p = { x: root.x + ux * along - uy * bend * side,
+            y: root.y + uy * along + ux * bend * side };
+        const overlap = Math.max(0, Math.min(
+            p.x - (left - padding), left + TORSO.width + padding - p.x,
+            p.y - (top - padding), top + TORSO.height + padding - p.y
+        ));
+        const lowKnee = index < 2 ? 0 : Math.max(0, p.y - tip.y + 6);
+        const score = (p.x - desired.x) ** 2 + (p.y - desired.y) ** 2 +
+            400 * overlap ** 2 + 64 * lowKnee ** 2;
+        return { p, score };
     }
-    // Arc endpoints, radial projection, and knee-limit intersections cover
-    // the nearest feasible point. Every candidate preserves the distal length.
-    return candidates.filter(p => valid(p) && p.y <= ceiling + 1e-6)
-        .sort((a, b) => distance(a, desired) - distance(b, desired))[0] || corners[0];
+    let best = null;
+    const samples = 32;
+    for (const side of [-1, 1]) {
+        let selected = 0, branchBest = null;
+        for (let step = 0; step <= samples; step++) {
+            const current = candidate(maximum * step / samples, side);
+            if (!branchBest || current.score < branchBest.score) {
+                branchBest = current;
+                selected = step;
+            }
+        }
+        // Refine the best sampled interval so changes in pose do not snap to a grid.
+        let low = maximum * Math.max(0, selected - 1) / samples;
+        let high = maximum * Math.min(samples, selected + 1) / samples;
+        for (let step = 0; step < 20; step++) {
+            const a = low + (high - low) / 3, b = high - (high - low) / 3;
+            if (candidate(a, side).score < candidate(b, side).score) high = b;
+            else low = a;
+        }
+        const refined = candidate((low + high) / 2, side);
+        if (refined.score < branchBest.score) branchBest = refined;
+        if (!best || branchBest.score < best.score) best = branchBest;
+    }
+    return best.p;
 }
 
 // Free limbs hang under gravity; animation affects only drawing, not grip selection.
@@ -657,7 +674,7 @@ function draw(now = 0) {
                 i
             );
 
-        // Only the upper arm/thigh may shorten; forearm/shin length is fixed.
+        // Proximal/distal shortening is 8:1; keep joints clear of the torso.
         const joint =
             limbJoint(
                 root,

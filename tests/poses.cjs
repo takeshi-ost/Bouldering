@@ -39,11 +39,21 @@ for(let i=0;i<4;i++) {
         const before=JSON.stringify({origin,tip}), joint=limbJoint(origin,tip,i);
         assert(Number.isFinite(joint.x)&&Number.isFinite(joint.y),'Nonfinite joint');
         assert(distance(origin,joint)<=LIMB_LENGTHS[i]/2+1e-5,'Upper segment stretches');
-        assert(Math.abs(distance(tip,joint)-LIMB_LENGTHS[i]/2)<1e-5,'Forearm/shin length changed');
+        const upperShort=LIMB_LENGTHS[i]/2-distance(origin,joint);
+        const lowerShort=LIMB_LENGTHS[i]/2-distance(tip,joint);
+        assert(lowerShort>=-1e-5,'Distal segment stretches');
+        assert(Math.abs(upperShort-8*lowerShort)<1e-5,'Shortening ratio differs from 8:1');
         assert.equal(JSON.stringify({origin,tip}),before,'Joint rendering moves contacts');
         const mirror=limbJoint(origin,{x:-tip.x,y:tip.y},i^1);
         assert(Math.abs(joint.x+mirror.x)<1e-5 && Math.abs(joint.y-mirror.y)<1e-5,'Asymmetric limb pose');
     }
 }
-console.log('PASS shoulder boundary, fixed/moving feet, unchanged arm reach, close elbows, raised knees, fixed forearms/shins, upper-segment limits and symmetry');
+// These poses previously placed the elbow/knee inside the torso.
+const torso={x:200,y:300};
+const hiddenCases=[{x:135,y:289},{x:135,y:249},{x:130,y:306},{x:130,y:326}];
+hiddenCases.forEach((tip,i)=>{
+    const joint=limbJoint(limbRoot(torso,i),tip,i);
+    assert(!(joint.x>180 && joint.x<220 && joint.y>264 && joint.y<336), 'Joint hidden by torso: '+i);
+});
+console.log('PASS shoulder boundary, fixed/moving feet, unchanged arm reach, close elbows, raised knees, 8:1 shortening, segment limits, symmetry and torso avoidance');
 `)(assert);
