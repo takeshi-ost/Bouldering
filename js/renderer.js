@@ -22,13 +22,16 @@ function line(a, b, color, width) {
     ctx.stroke();
 }
 
-// Project a preferred elbow/knee into the intersection of two segment disks.
-// Shorter screen-space segments represent foreshortening; contacts never move.
+// The forearm/shin is a fixed-radius circle around the contact point.
+// Only the upper arm/thigh may shorten, inside its original maximum-length disk.
 function limbJoint(root, tip, index) {
     const half = LIMB_LENGTHS[index] / 2;
     const d = distance(root, tip);
+    if (d >= half * 2) return {
+        x: tip.x + (root.x - tip.x) * half / d,
+        y: tip.y + (root.y - tip.y) * half / d
+    };
     const mid = { x: (root.x + tip.x) / 2, y: (root.y + tip.y) / 2 };
-    if (d >= half * 2 - 1e-7) return mid;
     const outward = index % 2 ? 1 : -1;
     const bend = Math.sqrt(Math.max(0, half * half - d * d / 4));
     const nx = d > 1e-7 ? -(tip.y - root.y) / d : 1;
@@ -37,43 +40,31 @@ function limbJoint(root, tip, index) {
         { x: mid.x + nx * bend, y: mid.y + ny * bend },
         { x: mid.x - nx * bend, y: mid.y - ny * bend }
     ];
-    const inside = p => distance(root, p) <= half + 1e-6 &&
-        distance(tip, p) <= half + 1e-6;
-    const tops = [ ...corners,
-        { x: root.x, y: root.y - half },
-        { x: tip.x, y: tip.y - half }
-    ].filter(inside);
-    // For very high feet, even foreshortening cannot place a fixed-length thigh
-    // above the foot. Use the highest feasible knee instead of stretching it.
+    const valid = p => distance(root, p) <= half + 1e-6 &&
+        Math.abs(distance(tip, p) - half) <= 1e-6;
+    const tops = [...corners, { x: tip.x, y: tip.y - half }].filter(valid);
+    // Prefer a knee above the foot; otherwise use the highest feasible point
+    // on the fixed-shin arc without extending the thigh.
     const ceiling = index < 2 ? Infinity :
         Math.max(tip.y - 6, Math.min(...tops.map(p => p.y)));
     const desired = {
-        x: root.x + outward * half * .65,
+        x: root.x + outward * half * .65 * Math.min(1, d / half),
         y: index < 2 ? root.y + half * .55 : Math.min(root.y + half * .25, ceiling)
     };
-    const candidates = [desired, mid, ...corners, ...tops];
-    for (const center of [root, tip]) {
-        const length = distance(center, desired);
-        if (length > 1e-7) candidates.push({
-            x: center.x + (desired.x - center.x) * half / length,
-            y: center.y + (desired.y - center.y) * half / length
-        });
+    const candidates = [...corners, ...tops];
+    const length = distance(tip, desired);
+    if (length > 1e-7) candidates.push({
+        x: tip.x + (desired.x - tip.x) * half / length,
+        y: tip.y + (desired.y - tip.y) * half / length
+    });
+    if (Number.isFinite(ceiling) && Math.abs(ceiling - tip.y) <= half + 1e-6) {
+        const width = Math.sqrt(Math.max(0, half * half - (ceiling - tip.y) ** 2));
+        candidates.push({ x: tip.x - width, y: ceiling }, { x: tip.x + width, y: ceiling });
     }
-    if (Number.isFinite(ceiling)) {
-        // The horizontal knee limit cuts a single interval out of the disk lens.
-        const spans = [root, tip].map(center => {
-            const width = Math.sqrt(Math.max(0, half * half - (ceiling - center.y) ** 2));
-            return [center.x - width, center.x + width];
-        });
-        const left = Math.max(...spans.map(p => p[0]));
-        const right = Math.min(...spans.map(p => p[1]));
-        if (left <= right + 1e-6)
-            candidates.push({ x: clamp(desired.x, left, right), y: ceiling });
-    }
-    // Projection onto a convex set gives a continuous bend through close holds,
-    // unlike switching between the two rigid 2D IK solutions.
-    return candidates.filter(p => inside(p) && p.y <= ceiling + 1e-6)
-        .sort((a, b) => distance(a, desired) - distance(b, desired))[0] || mid;
+    // Arc endpoints, radial projection, and knee-limit intersections cover
+    // the nearest feasible point. Every candidate preserves the distal length.
+    return candidates.filter(p => valid(p) && p.y <= ceiling + 1e-6)
+        .sort((a, b) => distance(a, desired) - distance(b, desired))[0] || corners[0];
 }
 
 // Free limbs hang under gravity; animation affects only drawing, not grip selection.
@@ -666,7 +657,7 @@ function draw(now = 0) {
                 i
             );
 
-        // Projected segments may shorten in depth, but never stretch.
+        // Only the upper arm/thigh may shorten; forearm/shin length is fixed.
         const joint =
             limbJoint(
                 root,

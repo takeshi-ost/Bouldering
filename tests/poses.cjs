@@ -29,6 +29,8 @@ for(const i of [0,1]) {
         previous=joint;
     }
 }
+const closeJoint=limbJoint(origin,{x:30,y:0},1);
+assert(distance(origin,closeJoint)<LIMB_LENGTHS[1]/2-.1,'Upper arm cannot shorten');
 const knee=limbJoint(origin,{x:-76,y:-48},2);
 assert(knee.y<=-48,'Raised foot knee still points downward');
 for(let i=0;i<4;i++) {
@@ -37,11 +39,11 @@ for(let i=0;i<4;i++) {
         const before=JSON.stringify({origin,tip}), joint=limbJoint(origin,tip,i);
         assert(Number.isFinite(joint.x)&&Number.isFinite(joint.y),'Nonfinite joint');
         assert(distance(origin,joint)<=LIMB_LENGTHS[i]/2+1e-5,'Upper segment stretches');
-        assert(distance(tip,joint)<=LIMB_LENGTHS[i]/2+1e-5,'Lower segment stretches');
+        assert(Math.abs(distance(tip,joint)-LIMB_LENGTHS[i]/2)<1e-5,'Forearm/shin length changed');
         assert.equal(JSON.stringify({origin,tip}),before,'Joint rendering moves contacts');
         const mirror=limbJoint(origin,{x:-tip.x,y:tip.y},i^1);
         assert(Math.abs(joint.x+mirror.x)<1e-5 && Math.abs(joint.y-mirror.y)<1e-5,'Asymmetric limb pose');
     }
 }
-console.log('PASS shoulder boundary, fixed/moving feet, unchanged arm reach, close elbows, raised knees, projection lengths and symmetry');
+console.log('PASS shoulder boundary, fixed/moving feet, unchanged arm reach, close elbows, raised knees, fixed forearms/shins, upper-segment limits and symmetry');
 `)(assert);

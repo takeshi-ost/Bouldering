@@ -13,6 +13,7 @@ for(const ms of [0,60,120,240,800]){
  assert(v.body.y>=body.y && v.body.y<=body.y+8,'Settle outside allowed offset');
  assert(grips.every((h,i)=>limbReachable(v.body,h,i)),'Settle exceeds a limb reach');
  assert(v.contacts===grips,'Settle moved a contact');
+ v.contacts.forEach((h,i)=>assert(Math.abs(distance(limbJoint(limbRoot(v.body,i),h,i),h)-LIMB_LENGTHS[i]/2)<1e-5,'Settle changes distal length'));
 }
 assert(characterPose(start+240).body.y>body.y+7,'Slack pose did not settle');
 assert(JSON.stringify({body,committed,grips,playerPath})===before,'Animation modified game state');
@@ -24,6 +25,7 @@ for(const ms of [0,160,325,650,1000,2000]){
  assert(v.contacts[0].x===goal.x && v.contacts[0].y===goal.y && v.contacts[1].y===goal.y,'Hands left goal');
  assert(v.contacts.every((h,i)=>limbReachable(v.body,h,i)),'Hang stretches limb beyond reach');
  assert(v.pivot.x===goal.x && v.pivot.y===goal.y,'Wrong pendulum pivot');
+ v.contacts.forEach((h,i)=>assert(Math.abs(distance(limbJoint(limbRoot(v.body,i),h,i),h)-LIMB_LENGTHS[i]/2)<1e-5,'Hang changes distal length'));
 }
 const hanging=characterPose(began+1000);
 assert(hanging.contacts[2].y>hanging.body.y+100,'Legs did not extend');
