@@ -3,17 +3,34 @@
 function preparePrototypeStage() {
     ({ holds, route, HEIGHT, initialGrips } = stageGenerator.generate(level, true));
     const guide = route.map(p => ({ x: p.x, y: p.y }));
-    // Supply natural hand/foot contacts along the guide, including between turns.
+    // A separate seeded stream keeps retries identical and leaves the shared guide alone.
+    const random = mulberry32(level ^ 0x51A7C0DE);
+    const jitter = (value, radius, low, high) => {
+        const center = clamp(value, low, high);
+        const from = Math.max(low, center - radius);
+        const to = Math.min(high, center + radius);
+        // Sample inside the bounds instead of clamping afterwards: no rows at the edge.
+        return from + random() * (to - from);
+    };
+    // The original guide contacts also form straight columns; vary only normal holds.
+    // The four starting contacts and the goal keep their original coordinates.
+    for (const hold of holds) {
+        if (hold.type !== 'normal') continue;
+        hold.x = jitter(hold.x, 14, 24, W - 24);
+        hold.y = jitter(hold.y, 16, 28, HEIGHT - 28);
+    }
     let nextId = holds.length;
     for (let step = 1; step < guide.length; step++) {
         const a = guide[step - 1], b = guide[step];
-        const count = Math.max(1, Math.ceil(distance(a, b) / 40));
-        for (let sample = 1; sample <= count; sample++) {
-            const p = { x: a.x + (b.x - a.x) * sample / count,
-                y: a.y + (b.y - a.y) * sample / count };
+        const length = distance(a, b);
+        let travelled = 0;
+        while (travelled < length) {
+            travelled = Math.min(length, travelled + 28 + random() * 28);
+            const t = travelled / length;
+            const p = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
             for (const limb of limbs) {
-                const h = { x: clamp(p.x + limb.x, 24, W - 24),
-                    y: clamp(p.y + limb.y, 28, HEIGHT - 28) };
+                const h = { x: jitter(p.x + limb.x, 16, 24, W - 24),
+                    y: jitter(p.y + limb.y, 18, 28, HEIGHT - 28) };
                 if (holds.every(other => distance(other, h) >= 24))
                     holds.push({ ...h, id: nextId++, type: 'normal', row: null });
             }
