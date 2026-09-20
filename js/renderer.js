@@ -349,6 +349,10 @@ function characterPose(now) {
 }
 
 function draw(now = 0) {
+    if (state === 'choosing') {
+        requestAnimationFrame(draw);
+        return;
+    }
     advanceCameraIntro(now);
 
     ui.overlay.classList.toggle(

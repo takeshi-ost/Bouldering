@@ -4,9 +4,11 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "level", "stamina", "progress", "scrollRail", "scrollThumb", "overlay", "resultTag",
-    "resultTitle", "resultText", "next", "retry", "restart", "showPath", "density"
+    "resultTitle", "resultText", "next", "retry", "restart", "showPath", "density",
+    "courseMenu", "existingCourse", "prototypeCourse", "changeCourse", "courseError"
 ].map(id => [id, document.getElementById(id)]));
 
+let courseMode = 'existing';
 let level = 1;
 let holds = [];
 let route = [];
@@ -23,7 +25,7 @@ let cameraIntro = null;
 let playerPath = [];
 let inspecting = false;
 let drag = null;
-let state = "playing";
+let state = "choosing";
 let warning = 0;
 let densityStats = null;
 
@@ -253,7 +255,8 @@ function attachMoving(p, anchor) {
 function reset(n) {
     resetCharacterAnimation();
     level = n;
-    prepareStage();
+    if (courseMode === 'prototype') preparePrototypeStage();
+    else prepareStage();
 
     body = { ...route[0] };
     committed = { ...body };
@@ -302,7 +305,7 @@ function reset(n) {
     ui.overlay.hidden = true;
     ui.restart.disabled = false;
 
-    ui.level.innerHTML = `Level ${level}<span>2点固定</span>`;
+    ui.level.innerHTML = `Level ${level}<span>${courseMode === 'prototype' ? '試作コース' : '既存コース'} · 2点固定</span>`;
     ui.next.textContent = 'NEXT STAGE →';
 
     updateUI();
@@ -318,6 +321,10 @@ function updateUI() {
     ui.progress.textContent =
         `${moveCount} 手 / 想定 ${route.length - 1} 手`;
 
+    if (densityStats.prototype) {
+        ui.density.textContent = `試作：必要ホールド ${densityStats.total} 個 · 想定 ${route.length - 1} 手`;
+        return;
+    }
     ui.density.textContent =
         `密度：最大 ${densityStats.peak} 個／画面 · ` +
         `基準 ${densityStats.target} 個 · ` +

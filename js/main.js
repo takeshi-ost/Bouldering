@@ -1,3 +1,3 @@
 "use strict";
-reset(1);
+showCourseMenu();
 requestAnimationFrame(draw);

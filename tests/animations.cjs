@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.join(__dirname,'..'),context=vm.createContext({performance});
-vm.runInContext(`const document={getElementById(){return {style:{},classList:{toggle(){}},focus(){},addEventListener(){},getContext(){return {}},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}};}};const window={addEventListener(){}};function requestAnimationFrame(){}`,context);
+vm.runInContext(`const document={getElementById(){return {style:{},classList:{toggle(){}},focus(){},setAttribute(){},addEventListener(){},getContext(){return {}},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}};}};const window={addEventListener(){}};function requestAnimationFrame(){}`,context);
 for(const m of fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)" defer><\/script>/g))vm.runInContext(fs.readFileSync(path.join(root,m[1]),'utf8'),context);
 vm.runInContext(`
 function assert(v,m){if(!v)throw Error(m);}

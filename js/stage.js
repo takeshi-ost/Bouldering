@@ -34,10 +34,10 @@ function createStageGenerator() {
             return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, nx: -(b.y - a.y) / d, ny: (b.x - a.x) / d };
         };
     }
-    function generate(n) {
+    function generate(n, guideOnly = false) {
         // Calibrate from Level 1 even when a debug tool opens another level first.
         // This uses its unchanged seeded layout, rather than a hard-coded count.
-        if (n !== 1 && !densityReference)
+        if (!guideOnly && n !== 1 && !densityReference)
             generate(1);
         const random = mulberry32(n);
         holds = [];
@@ -90,6 +90,8 @@ function createStageGenerator() {
             stance[moving] = holds[i];
             route.push({ ...pose(stance), hold: holds[i], limb: moving });
         }
+        if (guideOnly)
+            return { holds, route, HEIGHT, initialGrips };
         fillWall(random, add);
         if (n === 1)
             densityReference = measureDensity(holds, HEIGHT);

@@ -9,7 +9,7 @@ function endPan() {
         ui.scrollRail.releasePointerCapture(previous.id);
 }
 ui.scrollRail.addEventListener('pointerdown', e => {
-    if (cameraIntro || e.button !== 0 || pan || HEIGHT <= H) return;
+    if (state === 'choosing' || cameraIntro || e.button !== 0 || pan || HEIGHT <= H) return;
     e.preventDefault();
     release(true);
     touchId = null;
@@ -29,7 +29,7 @@ for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
     });
 }
 ui.scrollRail.addEventListener('keydown', e => {
-    if(cameraIntro)return;
+    if(state === 'choosing' || cameraIntro)return;
     const max = HEIGHT - H;
     const positions = {
         ArrowUp: camera - 40, ArrowDown: camera + 40,
@@ -82,3 +82,43 @@ function restartInput(n) {
 }
 ui.next.onclick = () => restartInput(level + 1);
 ui.retry.onclick = ui.restart.onclick = () => restartInput(level);
+
+function showCourseMenu() {
+    release(true);
+    endPan();
+    touchId = null;
+    ignoreTouches = false;
+    drag = null;
+    cameraIntro = null;
+    state = 'choosing';
+    ui.overlay.hidden = true;
+    ui.courseMenu.hidden = false;
+    ui.courseError.hidden = true;
+    ui.restart.disabled = true;
+    ui.changeCourse.disabled = true;
+    ui.showPath.disabled = true;
+    ui.scrollRail.setAttribute('tabindex', '-1');
+    ui.level.textContent = 'コース選択';
+    ui.existingCourse.focus();
+}
+function startCourse(mode) {
+    if (mode !== 'existing' && mode !== 'prototype') return;
+    courseMode = mode;
+    ui.showPath.checked = false;
+    try {
+        restartInput(1);
+        ui.courseMenu.hidden = true;
+        ui.changeCourse.disabled = false;
+        ui.showPath.disabled = false;
+        ui.scrollRail.setAttribute('tabindex', '0');
+        ui.restart.focus();
+    } catch (error) {
+        showCourseMenu();
+        ui.courseError.textContent = 'コースを生成できませんでした。もう一度選択してください。';
+        ui.courseError.hidden = false;
+        console.error(error);
+    }
+}
+ui.existingCourse.onclick = () => startCourse('existing');
+ui.prototypeCourse.onclick = () => startCourse('prototype');
+ui.changeCourse.onclick = showCourseMenu;

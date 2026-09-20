@@ -1,14 +1,16 @@
-// End-to-end regression for the sole two-support game.
+// End-to-end regression for the existing two-support course.
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.join(__dirname,'..'),context=vm.createContext({performance});
 vm.runInContext(`const elements={};const document={getElementById(id){return elements[id]||(elements[id]={style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}});}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};`,context);
 for(const match of fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)" defer><\/script>/g))
     vm.runInContext(fs.readFileSync(path.join(root,match[1]),'utf8'),context,{filename:match[1]});
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-if(/coursePicker|chooseCourse|classicCourse|verificationCourse|challengeCourse/.test(html))throw Error('Removed mode UI remains');
+if(!html.includes('id="existingCourse"') || !html.includes('id="prototypeCourse"'))throw Error('Course choice missing');
 console.log(vm.runInContext(`
 function check(v,m){if(!v)throw Error(m);}
-check(state==='playing' && cameraIntro && level===1,'Direct startup failed');
+check(state==='choosing' && !cameraIntro && !ui.courseMenu.hidden,'Course menu startup failed');
+ui.existingCourse.onclick();
+check(state==='playing' && cameraIntro && level===1 && courseMode==='existing','Existing course startup failed');
 advanceCameraIntro(0);advanceCameraIntro(450);
 check(camera===cameraIntro.from,'Goal preview skipped');
 down({clientX:200,clientY:400});check(!drag,'Input during introduction');

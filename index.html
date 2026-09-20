@@ -11,6 +11,7 @@
     <script src="js/stage.js" defer></script>
     <script src="js/game.js" defer></script>
     <script src="js/route.js" defer></script>
+    <script src="js/prototype.js" defer></script>
     <script src="js/input.js" defer></script>
     <script src="js/renderer.js" defer></script>
     <script src="js/main.js" defer></script>
@@ -34,6 +35,16 @@
                 <div class="progress" id="progress">0 手 / 準備中</div>
             </div>
 
+            <div class="overlay course-picker" id="courseMenu">
+                <div class="card">
+                    <div class="eyebrow">ASCENT</div>
+                    <h1>コースを選択</h1>
+                    <p>どちらの壁に挑戦しますか？</p>
+                    <button id="existingCourse">既存コース</button>
+                    <button class="secondary" id="prototypeCourse">試作コース</button>
+                    <p id="courseError" role="alert" hidden></p>
+                </div>
+            </div>
             <div class="overlay" id="overlay" hidden>
                 <div class="card">
                     <div class="eyebrow" id="resultTag"></div>
@@ -49,6 +60,7 @@
                 <span><i class="dot"></i>START</span>
                 <span><i class="dot gold"></i>GOAL</span>
             </div>
+            <button id="changeCourse">コース選択</button>
             <button id="restart" aria-label="現在のステージを最初からやり直す">↻ RESTART</button>
         </footer>
         <div class="density" id="density" aria-live="polite"></div>

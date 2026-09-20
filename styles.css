@@ -273,3 +273,6 @@ footer button {
 .overlay.reviewing .eyebrow, .overlay.reviewing h1 { display: none; }
 .overlay.reviewing .card p { margin: 0 0 6px; font-size: 12px; }
 .overlay.reviewing button { padding: 8px; margin-top: 4px; }
+
+.course-picker { z-index: 2; }
+button:disabled { opacity: .45; cursor: default; }
