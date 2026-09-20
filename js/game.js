@@ -35,7 +35,9 @@ function generate(n) {
 
 // Anatomical reach is measured from the shoulder/hip, not the torso center.
 function limbReachable(p, h, i) {
-    return distance(limbRoot(p, i), h) <= LIMB_LENGTHS[i] + 1e-7;
+    // Feet may rise to shoulder height, including when they are fixed supports.
+    return (i < 2 || h.y >= p.y - TORSO.height / 2 - 1e-7) &&
+        distance(limbRoot(p, i), h) <= LIMB_LENGTHS[i] + 1e-7;
 }
 
 // Return how far Body can move in the initial drag direction while

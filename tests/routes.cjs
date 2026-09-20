@@ -45,6 +45,7 @@ for(let n=1;n<=20;n++){
             check(grips.filter(Boolean).every((h,k,list)=>list.every((other,j)=>j===k || h!==other || h.type==='goal')),'Duplicate normal contact');
             check(drag.anchor.every(k=>grips[k]===before[k]&&limbReachable(body,grips[k],k)),'Fixed support moved');
         }
+        check(grips.every((h,k)=>h && limbReachable(body,h,k)),'Unreachable contact or foot above shoulders');
         check(selected,'Gesture never selected supports');
         check(selected===JSON.stringify(target.anchor),'Live pair differs from generated pair');
         // Rendering must handle both fixed limbs and their intersecting disks.

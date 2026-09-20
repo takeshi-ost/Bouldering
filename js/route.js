@@ -1,5 +1,5 @@
 "use strict";
-// Two-support route search and replay use the same physics as live play.
+// Search, replay and pruning share live reach checks, including the shoulder-height foot limit.
 function solveRoute(guide, maxMoves = 40) {
     const saved = { committed, startGrips };
     const needsTraverse = level !== 1;
@@ -9,6 +9,7 @@ function solveRoute(guide, maxMoves = 40) {
         const sorted = pair.map(i => first[i]).sort((a, b) => a.x - b.x);
         pair.forEach((i, j) => first[i] = sorted[j]);
     }
+    if (!first.every((h, i) => h && limbReachable(start, h, i))) return null;
     const goal = holds.find(h => h.type === 'goal');
     const targets = [...guide.slice(1), { x: goal.x, y: goal.y + 70 }];
     const progress = p => {
@@ -71,6 +72,7 @@ function replayRoute(path) {
             const sorted = pair.map(i => stance[i]).sort((a, b) => a.x - b.x);
             pair.forEach((i, j) => stance[i] = sorted[j]);
         }
+        if (!stance.every((h, i) => h && limbReachable(path[0], h, i))) return null;
         const result = [path[0]];
         for (let i = 1; i < path.length; i++) {
             committed = path[i - 1]; startGrips = stance;

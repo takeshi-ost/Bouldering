@@ -45,6 +45,7 @@ for (let n=1;n<=20;n++) {
             move(event({x:origin.x+(target.x-origin.x)*t/10,y:origin.y+(target.y-origin.y)*t/10}));
             if(drag.anchor) assert(drag.anchor.every(k=>grips[k]===before[k] && limbReachable(body,grips[k],k)));
         }
+        assert(grips.every((h,k)=>h && limbReachable(body,h,k)), 'Foot above shoulders or unreachable contact');
         assert.deepEqual(drag.anchor,target.anchor);
         draw(2000);release();
         assert.equal(moveCount,i,'Failed move '+n+'/'+i);

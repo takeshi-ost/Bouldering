@@ -22,84 +22,58 @@ function line(a, b, color, width) {
     ctx.stroke();
 }
 
-// Elbows prefer the outward bend.
-// Knees prefer a position above the foot while still bending outward.
+// Project a preferred elbow/knee into the intersection of two segment disks.
+// Shorter screen-space segments represent foreshortening; contacts never move.
 function limbJoint(root, tip, index) {
-    const dx = tip.x - root.x;
-    const dy = tip.y - root.y;
-    const d = Math.hypot(dx, dy);
     const half = LIMB_LENGTHS[index] / 2;
-
-    const bend = Math.sqrt(
-        Math.max(0, half * half - d * d / 4)
-    );
-
-    // Left limbs: -1, right limbs: +1.
+    const d = distance(root, tip);
+    const mid = { x: (root.x + tip.x) / 2, y: (root.y + tip.y) / 2 };
+    if (d >= half * 2 - 1e-7) return mid;
     const outward = index % 2 ? 1 : -1;
-
-    if (d < 1e-7) {
-        return index < 2
-            ? {
-                x: root.x + outward * half,
-                y: root.y
-            }
-            : {
-                x: root.x + outward * half / Math.SQRT2,
-                y: root.y - half / Math.SQRT2
-            };
-    }
-
-    // There are two geometrically valid joint positions.
-    const midX = (root.x + tip.x) / 2;
-    const midY = (root.y + tip.y) / 2;
-
-    const offsetX = -dy / d * bend;
-    const offsetY = dx / d * bend;
-
-    const jointA = {
-        x: midX + offsetX,
-        y: midY + offsetY
+    const bend = Math.sqrt(Math.max(0, half * half - d * d / 4));
+    const nx = d > 1e-7 ? -(tip.y - root.y) / d : 1;
+    const ny = d > 1e-7 ? (tip.x - root.x) / d : 0;
+    const corners = [
+        { x: mid.x + nx * bend, y: mid.y + ny * bend },
+        { x: mid.x - nx * bend, y: mid.y - ny * bend }
+    ];
+    const inside = p => distance(root, p) <= half + 1e-6 &&
+        distance(tip, p) <= half + 1e-6;
+    const tops = [ ...corners,
+        { x: root.x, y: root.y - half },
+        { x: tip.x, y: tip.y - half }
+    ].filter(inside);
+    // For very high feet, even foreshortening cannot place a fixed-length thigh
+    // above the foot. Use the highest feasible knee instead of stretching it.
+    const ceiling = index < 2 ? Infinity :
+        Math.max(tip.y - 6, Math.min(...tops.map(p => p.y)));
+    const desired = {
+        x: root.x + outward * half * .65,
+        y: index < 2 ? root.y + half * .55 : Math.min(root.y + half * .25, ceiling)
     };
-
-    const jointB = {
-        x: midX - offsetX,
-        y: midY - offsetY
-    };
-
-    function moreOutward(a, b) {
-        return outward < 0
-            ? (a.x < b.x ? a : b)
-            : (a.x > b.x ? a : b);
+    const candidates = [desired, mid, ...corners, ...tops];
+    for (const center of [root, tip]) {
+        const length = distance(center, desired);
+        if (length > 1e-7) candidates.push({
+            x: center.x + (desired.x - center.x) * half / length,
+            y: center.y + (desired.y - center.y) * half / length
+        });
     }
-
-    // Arms:
-    // always choose the elbow farther toward the outside of the body.
-    if (index < 2) {
-        return moreOutward(jointA, jointB);
+    if (Number.isFinite(ceiling)) {
+        // The horizontal knee limit cuts a single interval out of the disk lens.
+        const spans = [root, tip].map(center => {
+            const width = Math.sqrt(Math.max(0, half * half - (ceiling - center.y) ** 2));
+            return [center.x - width, center.x + width];
+        });
+        const left = Math.max(...spans.map(p => p[0]));
+        const right = Math.min(...spans.map(p => p[1]));
+        if (left <= right + 1e-6)
+            candidates.push({ x: clamp(desired.x, left, right), y: ceiling });
     }
-
-    // Legs:
-    // Canvas Y increases downward, so a knee is above the foot
-    // when knee.y <= tip.y.
-    const aAboveFoot = jointA.y <= tip.y;
-    const bAboveFoot = jointB.y <= tip.y;
-
-    // If only one geometrically valid knee is above the foot,
-    // use it even if the other solution is farther outward.
-    if (aAboveFoot && !bAboveFoot)
-        return jointA;
-
-    if (bAboveFoot && !aAboveFoot)
-        return jointB;
-
-    // If both satisfy the height rule, choose the more outward knee.
-    if (aAboveFoot && bAboveFoot)
-        return moreOutward(jointA, jointB);
-
-    // In an extreme pose neither geometrically valid knee can be
-    // above the foot. Preserve limb lengths and fall back to the
-    // outward solution rather than deforming the leg.
-    return moreOutward(jointA, jointB);
+    // Projection onto a convex set gives a continuous bend through close holds,
+    // unlike switching between the two rigid 2D IK solutions.
+    return candidates.filter(p => inside(p) && p.y <= ceiling + 1e-6)
+        .sort((a, b) => distance(a, desired) - distance(b, desired))[0] || mid;
 }
 
 // Free limbs hang under gravity; animation affects only drawing, not grip selection.
@@ -539,6 +513,14 @@ function draw(now = 0) {
 
         ctx.save();
 
+        // A fixed foot limits the body center to foot.y + half the torso height.
+        const footSupports = visualFixed.filter(i => i >= 2);
+        const bodyBottom = footSupports.length
+            ? Math.min(...footSupports.map(i => startGrips[i].y + TORSO.height / 2))
+            : HEIGHT;
+        ctx.beginPath();
+        ctx.rect(0, 0, W, Math.max(0, bodyBottom));
+        ctx.clip();
         for (const p of areas) {
             ctx.beginPath();
             ctx.arc(
@@ -684,8 +666,7 @@ function draw(now = 0) {
                 i
             );
 
-        // Two equal rigid segments:
-        // flex the elbow/knee instead of stretching.
+        // Projected segments may shorten in depth, but never stretch.
         const joint =
             limbJoint(
                 root,
