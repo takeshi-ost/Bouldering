@@ -84,6 +84,11 @@ function createStageGenerator() {
             return { x: p.x, y: bottom + p.y };
         };
         route.push(pose(initialGrips));
+        // Start with both feet below the hips under the shared raised-foot rule.
+        for (const i of [2, 3]) {
+            initialGrips[i].x = clamp(route[0].x + limbs[i].x, 24, W - 24);
+            initialGrips[i].y = route[0].y + limbs[i].y;
+        }
         const stance = [...initialGrips];
         for (let i = 4; i < rows.length; i++) {
             const moving = stance.indexOf(stance.reduce((a, b) => a.row < b.row ? a : b));

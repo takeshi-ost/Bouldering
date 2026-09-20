@@ -1,59 +1,47 @@
-const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict');
-const root = path.join(__dirname, '..');
-const source = ['config', 'utils', 'game', 'renderer'].map(name =>
-    fs.readFileSync(path.join(root, 'js', name + '.js'), 'utf8')).join('\n');
-new Function('assert', `const document={getElementById(){return {getContext(){return {}}}}};\n` + source + `
-const p={x:200,y:300}, shoulder=p.y-TORSO.height/2;
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const source=['config','utils','game','renderer'].map(f=>fs.readFileSync(path.join(__dirname,'..','js',f+'.js'),'utf8')).join('\n');
+new Function('assert',`const document={getElementById(){return {getContext(){return {}}}}};\n`+source+`
+const p={x:200,y:300};
+const minimum=110*Math.sin(75*Math.PI/180);
 for(const i of [2,3]) {
-    const x=limbRoot(p,i).x;
-    assert(limbReachable(p,{x,y:shoulder},i),'Shoulder-height foot rejected');
-    assert(!limbReachable(p,{x,y:shoulder-.01},i),'Foot above shoulders accepted');
-    assert(limbReachable(p,{x,y:limbRoot(p,i).y+LIMB_LENGTHS[i]},i),'Downward reach was reduced');
+    const r=limbRoot(p,i), sign=i===2?-1:1;
+    const x=r.x+sign*Math.sqrt((minimum+.1)**2-36**2);
+    assert(limbReachable(p,{x,y:p.y},i),'Straight foot at body midpoint rejected');
+    assert(!limbReachable(p,{x,y:p.y-.01},i),'Foot above midpoint accepted');
+    assert(!limbReachable(p,{x:r.x+sign*30,y:r.y-10},i),'Bent high foot accepted');
+    assert(limbReachable(p,{x:r.x+sign*30,y:r.y},i),'Foot at hip height rejected');
+    assert(limbReachable(p,{x:r.x,y:r.y+110},i),'Downward reach reduced');
+    const nearAngle={x:r.x+sign*Math.sqrt((minimum-.1)**2-20**2),y:r.y-20};
+    assert(!limbReachable(p,nearAngle,i),'Knee below 150 degrees accepted');
+    nearAngle.x=r.x+sign*Math.sqrt(minimum**2-20**2);
+    assert(limbReachable(p,nearAngle,i),'150 degree boundary rejected');
 }
-assert(limbReachable(p,{x:180,y:shoulder-90},0),'Arm reach changed');
-startGrips=[{x:148,y:232},{x:252,y:232},{x:180,y:shoulder},{x:220,y:shoulder}];
-assert(supportsReachable(p,[2,3]));
-assert(!supportsReachable({x:p.x,y:p.y+1},[2,3]),'Fixed feet allow body below shoulder limit');
-// Moving feet must obey the same ceiling as fixed supports and route replay.
-holds=[{id:0,x:160,y:shoulder-.1,type:'normal'},{id:1,x:240,y:shoulder-.1,type:'normal'}];
-const attached=attachMoving(p,[0,1]);
-assert(attached && !attached[2] && !attached[3],'Moving feet snapped above shoulders');
+assert(limbReachable(p,{x:180,y:164},0),'Arm reach reduced');
+// Valid endpoints separated by a forbidden bent-high-foot interval.
+startGrips=[null,null,{x:75,y:336},{x:325,y:336}];
+const from={x:200,y:299},to={x:200,y:330};
+assert(supportsReachable(from,[2,3])&&supportsReachable(to,[2,3]));
+assert(!supportsReachable({x:200,y:308},[2,3]));
+assert(Math.abs(supportMotionFraction(from,to,[2,3])-1/31)<1e-6,'Movement tunnels through forbidden interval');
+assert(supportMotionFraction({x:200,y:300},to,[2,3])<1e-6,'Movement skips forbidden region at start');
+// Settling must not cross the same forbidden interval.
+body={x:200,y:300};grips=[{x:148,y:232},{x:252,y:232},startGrips[2],startGrips[3]];
+startPoseSettle();assert(characterAnimation.drop<1e-6,'Settle crosses raised-foot boundary');
+// Sweep all directions, including full extension and coincident endpoints.
 const origin={x:0,y:0};
-for(const i of [0,1]) {
-    const tip={x:(i?1:-1)*30,y:0};
-    assert(limbJoint(origin,tip,i).y>0,'Close elbow points upward');
-    let previous=null;
-    for(let x=-5;x<=5;x+=.1) {
-        const joint=limbJoint(origin,{x,y:0},i);
-        if(previous)assert(distance(previous,joint)<1,'Elbow flips across shoulder');
-        previous=joint;
+for(let i=0;i<4;i++)for(let angle=0;angle<Math.PI*2;angle+=.07)for(const ratio of [0,.1,.4,.8,.99,1]) {
+    const tip={x:Math.cos(angle)*LIMB_LENGTHS[i]*ratio,y:Math.sin(angle)*LIMB_LENGTHS[i]*ratio};
+    const before=JSON.stringify({origin,tip}),j=limbJoint(origin,tip,i),half=LIMB_LENGTHS[i]/2;
+    assert(Math.abs(distance(origin,j)-half)<1e-5,'Proximal length changes');
+    assert(Math.abs(distance(tip,j)-half)<1e-5,'Distal length changes');
+    if(i<2&&tip.y>=-1e-7)assert(j.y>=-1e-7,'Elbow above shoulder for low hand');
+    const mirror=limbJoint(origin,{x:-tip.x,y:tip.y},i^1);
+    assert(Math.abs(j.x+mirror.x)<1e-5&&Math.abs(j.y-mirror.y)<1e-5,'Asymmetric pose');
+    if(i>=2&&distance(origin,tip)>1e-9) {
+        const other={x:tip.x-j.x,y:tip.y-j.y},out=i%2?1:-1;
+        if(out*other.x>=0)assert(out*j.x>=-1e-7,'Inward knee chosen despite outward candidate');
     }
+    assert.equal(JSON.stringify({origin,tip}),before,'Contact moved by rendering');
 }
-const closeJoint=limbJoint(origin,{x:30,y:0},1);
-assert(distance(origin,closeJoint)<LIMB_LENGTHS[1]/2-.1,'Upper arm cannot shorten');
-const knee=limbJoint(origin,{x:-76,y:-48},2);
-assert(knee.y<=-48,'Raised foot knee still points downward');
-for(let i=0;i<4;i++) {
-    for(let angle=0;angle<Math.PI*2;angle+=.07) for(const ratio of [0,.1,.4,.8,.99,1]) {
-        const tip={x:Math.cos(angle)*LIMB_LENGTHS[i]*ratio,y:Math.sin(angle)*LIMB_LENGTHS[i]*ratio};
-        const before=JSON.stringify({origin,tip}), joint=limbJoint(origin,tip,i);
-        assert(Number.isFinite(joint.x)&&Number.isFinite(joint.y),'Nonfinite joint');
-        assert(distance(origin,joint)<=LIMB_LENGTHS[i]/2+1e-5,'Upper segment stretches');
-        const upperShort=LIMB_LENGTHS[i]/2-distance(origin,joint);
-        const lowerShort=LIMB_LENGTHS[i]/2-distance(tip,joint);
-        assert(lowerShort>=-1e-5,'Distal segment stretches');
-        assert(Math.abs(upperShort-8*lowerShort)<1e-5,'Shortening ratio differs from 8:1');
-        assert.equal(JSON.stringify({origin,tip}),before,'Joint rendering moves contacts');
-        const mirror=limbJoint(origin,{x:-tip.x,y:tip.y},i^1);
-        assert(Math.abs(joint.x+mirror.x)<1e-5 && Math.abs(joint.y-mirror.y)<1e-5,'Asymmetric limb pose');
-    }
-}
-// These poses previously placed the elbow/knee inside the torso.
-const torso={x:200,y:300};
-const hiddenCases=[{x:135,y:289},{x:135,y:249},{x:130,y:306},{x:130,y:326}];
-hiddenCases.forEach((tip,i)=>{
-    const joint=limbJoint(limbRoot(torso,i),tip,i);
-    assert(!(joint.x>180 && joint.x<220 && joint.y>264 && joint.y<336), 'Joint hidden by torso: '+i);
-});
-console.log('PASS shoulder boundary, fixed/moving feet, unchanged arm reach, close elbows, raised knees, 8:1 shortening, segment limits, symmetry and torso avoidance');
+console.log('PASS rigid bones, low-hand elbows, outward knees, midpoint/150-degree foot boundaries, no tunneling, safe settling');
 `)(assert);

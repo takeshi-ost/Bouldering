@@ -35,35 +35,57 @@ function generate(n) {
 
 // Anatomical reach is measured from the shoulder/hip, not the torso center.
 function limbReachable(p, h, i) {
-    // Feet may rise to shoulder height, including when they are fixed supports.
-    return (i < 2 || h.y >= p.y - TORSO.height / 2 - 1e-7) &&
-        distance(limbRoot(p, i), h) <= LIMB_LENGTHS[i] + 1e-7;
+    const root = limbRoot(p, i);
+    const reach = distance(root, h);
+    return reach <= LIMB_LENGTHS[i] + 1e-7 && (i < 2 || (
+        h.y >= p.y - 1e-7 &&
+        (h.y >= root.y - 1e-7 || reach >= LIMB_LENGTHS[i] * HIGH_FOOT_REACH_RATIO - 1e-7)
+    ));
 }
 
-// Return how far Body can move in the initial drag direction while
-// every limb in the support pair keeps its current hold.
-function supportPairReach(pair, ux, uy) {
-    let low = 0;
-    let high = Math.max(...pair.map(i => LIMB_LENGTHS[i])) * 2;
-
-    for (let step = 0; step < INPUT_CONFIG.reachSearchSteps; step++) {
-        const t = (low + high) / 2;
-        const p = {
-            x: committed.x + ux * t,
-            y: committed.y + uy * t
+// Raised fixed feet create a non-convex reachable area. Stop at the FIRST
+// invalid interval, even when the endpoint itself is reachable again.
+function supportMotionFraction(from, to, pair, stance = startGrips) {
+    if (!isSupportPair(pair) || !pair.every(i => stance[i] && limbReachable(from, stance[i], i))) return 0;
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const length2 = dx * dx + dy * dy;
+    if (length2 < 1e-16) return 1;
+    const cuts = [0, 1];
+    const add = t => { if (t > 0 && t < 1) cuts.push(t); };
+    for (const i of pair) {
+        const h = stance[i], root = limbRoot(from, i);
+        const x = root.x - h.x, y = root.y - h.y;
+        const circle = radius => {
+            const b = 2 * (x * dx + y * dy);
+            const c = x * x + y * y - radius * radius;
+            const discriminant = b * b - 4 * length2 * c;
+            if (discriminant < 0) return;
+            const q = Math.sqrt(discriminant);
+            add((-b - q) / (2 * length2));
+            add((-b + q) / (2 * length2));
         };
-
-        if (pair.every(i =>
-            startGrips[i] &&
-            limbReachable(p, startGrips[i], i)
-        )) {
-            low = t;
-        } else {
-            high = t;
+        circle(LIMB_LENGTHS[i]);
+        if (i >= 2) {
+            circle(LIMB_LENGTHS[i] * HIGH_FOOT_REACH_RATIO);
+            if (Math.abs(dy) > 1e-12) {
+                add((h.y - from.y) / dy);
+                add((h.y - TORSO.height / 2 - from.y) / dy);
+            }
         }
     }
+    cuts.sort((a, b) => a - b);
+    for (let k = 1; k < cuts.length; k++) {
+        const t = (cuts[k - 1] + cuts[k]) / 2;
+        const p = { x: from.x + dx * t, y: from.y + dy * t };
+        if (!pair.every(i => limbReachable(p, stance[i], i))) return cuts[k - 1];
+    }
+    return 1;
+}
 
-    return low;
+function supportPairReach(pair, ux, uy) {
+    const limit = Math.max(...pair.map(i => LIMB_LENGTHS[i])) * 2;
+    return limit * supportMotionFraction(committed,
+        { x: committed.x + ux * limit, y: committed.y + uy * limit }, pair);
 }
 
 // A moving limb should have a hold ahead of its current contact in the
@@ -256,6 +278,7 @@ function attachMoving(p, anchor) {
 
 function reset(n) {
     resetCharacterAnimation();
+    jointHistory.fill(null);
     level = n;
     if (courseMode === 'prototype') preparePrototypeStage();
     else prepareStage();
@@ -426,58 +449,11 @@ function move(e) {
         );
     }
 
-    const reachable = q =>
-        supportsReachable(q, drag.anchor);
-
-    // Keep the selected support throughout this gesture.
     const previousBody = { ...body };
-    const blocked = !reachable(target);
-
-    if (blocked) {
-        let low = 0;
-        let high = 1;
-
-        const origin = {
-            ...(reachable(body)
-                ? body
-                : committed)
-        };
-
-        for (
-            let i = 0;
-            i < INPUT_CONFIG.reachSearchSteps;
-            i++
-        ) {
-            const t = (low + high) / 2;
-
-            const q = {
-                x:
-                    origin.x +
-                    (target.x - origin.x) * t,
-
-                y:
-                    origin.y +
-                    (target.y - origin.y) * t
-            };
-
-            if (reachable(q))
-                low = t;
-            else
-                high = t;
-        }
-
-        body = {
-            x:
-                origin.x +
-                (target.x - origin.x) * low,
-
-            y:
-                origin.y +
-                (target.y - origin.y) * low
-        };
-    } else {
-        body = target;
-    }
+    const fraction = supportMotionFraction(body, target, drag.anchor);
+    const blocked = fraction < 1 - 1e-9;
+    body = { x: body.x + (target.x - body.x) * fraction,
+        y: body.y + (target.y - body.y) * fraction };
 
     const attached =
         attachMoving(body, drag.anchor);

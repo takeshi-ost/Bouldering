@@ -1,5 +1,5 @@
 "use strict";
-// Search, replay and pruning share live reach checks, including the shoulder-height foot limit.
+// Search, replay and pruning share live reach checks, including mid-body foot height and straight raised legs.
 function solveRoute(guide, maxMoves = 40) {
     const saved = { committed, startGrips };
     const needsTraverse = level !== 1;
@@ -40,7 +40,7 @@ function solveRoute(guide, maxMoves = 40) {
                 for (const p of candidates) {
                     if (p.x < 25 || p.x > W - 25 || p.y < 80 || p.y > HEIGHT - 40 || distance(p, node.p) < 5) continue;
                     const anchor = selectAnchor(p.x - node.p.x, p.y - node.p.y);
-                    if (!supportsReachable(p,anchor)) continue;
+                    if (!supportsReachable(p,anchor) || supportMotionFraction(node.p,p,anchor)<1-1e-9) continue;
                     const stance = attachMoving(p, anchor);
                     if (!stance) continue;
                     const won = bothHandsOnGoal(stance) && stance.every(Boolean);
@@ -77,7 +77,7 @@ function replayRoute(path) {
         for (let i = 1; i < path.length; i++) {
             committed = path[i - 1]; startGrips = stance;
             const p = path[i], anchor = selectAnchor(p.x - committed.x, p.y - committed.y);
-            if (!supportsReachable(p,anchor)) return null;
+            if (!supportsReachable(p,anchor) || supportMotionFraction(committed,p,anchor)<1-1e-9) return null;
             stance = attachMoving(p, anchor);
             if (!stance) return null;
             const won = bothHandsOnGoal(stance) && stance.every(Boolean);

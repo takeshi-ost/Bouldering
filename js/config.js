@@ -12,6 +12,8 @@ const limbs = [
     { x: 40, y: 78, name: "右足" },
 ];
 const LIMB_LENGTHS = [100, 100, 110, 110];
+const POSE_CONFIG = { highFootMinKneeAngle: 150 };
+const HIGH_FOOT_REACH_RATIO = Math.sin(POSE_CONFIG.highFootMinKneeAngle * Math.PI / 360);
 const limbArrows = ["↖", "↗", "↙", "↘"];
 // 初期配置の生成。実際の想定手数は現行ルールで探索して決定します。
 const STAGE_CONFIG = {
