@@ -277,7 +277,7 @@ footer button {
 .course-picker { z-index: 2; }
 button:disabled { opacity: .45; cursor: default; }
 
-.legend .dot.wide { width: 9px; border-radius: 0; }
+.legend .dot.wide { width: 12px; border-radius: 0; }
 footer { gap: 6px; }
 footer button { white-space: nowrap; }
 .legend { flex-wrap: wrap; gap: 6px 10px; max-width: 140px; }

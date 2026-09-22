@@ -42,8 +42,9 @@ function createStageGenerator() {
         const random = mulberry32(n);
         holds = [];
         route = [];
+        let nextHoldId = 0;
         const add = (x, y, type = 'normal', row = null) => {
-            const h = { x, y, type, row, id: holds.length };
+            const h = { x, y, type, row, id: nextHoldId++ };
             holds.push(h);
             return h;
         };
@@ -84,17 +85,22 @@ function createStageGenerator() {
             return { x: p.x, y: bottom + p.y };
         };
         route.push(pose(initialGrips));
-        // Start with both feet below the hips under the shared raised-foot rule.
-        for (const i of [2, 3]) {
-            initialGrips[i].x = clamp(route[0].x + limbs[i].x, 24, W - 24);
-            initialGrips[i].y = route[0].y + limbs[i].y;
-        }
         const stance = [...initialGrips];
         for (let i = 4; i < rows.length; i++) {
             const moving = stance.indexOf(stance.reduce((a, b) => a.row < b.row ? a : b));
             stance[moving] = holds[i];
             route.push({ ...pose(stance), hold: holds[i], limb: moving });
         }
+        // Keep the original guide, but use three physical starting holds:
+        // a shared hand bar above the shoulders and two feet on the bottom row.
+        const startBody = route[0], hand = holds[2], removedHand = holds[3];
+        hand.x = startBody.x; hand.y = startBody.y - 68; hand.wide = true;
+        initialGrips = [hand, hand, holds[0], holds[1]];
+        for (const i of [2,3]) {
+            initialGrips[i].x = clamp(startBody.x + limbs[i].x,24,W-24);
+            initialGrips[i].y = HEIGHT - HOLD_CONFIG.bottomMargin;
+        }
+        holds = holds.filter(h=>h !== removedHand);
         if (guideOnly)
             return { holds, route, HEIGHT, initialGrips };
         fillWall(random, add);
@@ -110,7 +116,7 @@ function createStageGenerator() {
         // R+12 corridor, they do not exclude all reachable alternative holds.
         const targets = route.slice(1).map((p, i) => ({ p, aim: gripAim(p, route[i]), score: distance(p.hold, gripAim(p, route[i])) }));
         const top = Math.min(...holds.map(h => h.y)) + HOLD_CONFIG.topMargin, bottom = HEIGHT - HOLD_CONFIG.bottomMargin;
-        const allowed = p => !holds.some(h => distance(h, p) < HOLD_SPACING) && !targets.some(t => distance(t.p, p) <= R && distance(t.aim, p) < t.score + HOLD_CONFIG.snapGuard);
+        const allowed = p => p.y <= initialGrips[2].y - 24 && !holds.some(h => distance(h, p) < HOLD_SPACING) && !targets.some(t => distance(t.p, p) <= R && distance(t.aim, p) < t.score + HOLD_CONFIG.snapGuard);
         // Repeated jittered grids fill gaps rather than scattering only at edges.
         // Existing route holds participate in the same minimum-distance check.
         for (let pass = 0; pass < HOLD_CONFIG.passes; pass++)

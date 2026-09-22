@@ -630,7 +630,7 @@ function draw(now = 0) {
         const holdShape = (x,y,r,fill,stroke) => {
             if (!h.wide) { circle(x,y,r,fill,stroke); return; }
             ctx.beginPath();
-            ctx.rect(x-r*1.5,y-r,r*3,r*2);
+            ctx.rect(x-r*2,y-r,r*4,r*2);
             if (fill) { ctx.fillStyle=fill; ctx.fill(); }
             if (stroke) { ctx.strokeStyle=stroke; ctx.stroke(); }
         };

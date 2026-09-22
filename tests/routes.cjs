@@ -19,6 +19,12 @@ check(!isSupportPair(0) && !isSupportPair([0]) && !isSupportPair([0,0]) && !isSu
 const report=[];
 for(let n=1;n<=20;n++){
     try { reset(n); } catch(error) { throw Error('Level '+n+': '+error.message); }
+    check(grips[0]===grips[1] && grips[0].wide,'Hands must share starting bar');
+    check(grips[2]!==grips[3] && grips[2].y===grips[3].y,'Feet must have separate bottom holds');
+    check(grips[2].y===HEIGHT-HOLD_CONFIG.bottomMargin,'Feet not on bottom row');
+    check(holds.every(h=>h===grips[2] || h===grips[3] || h.y<grips[2].y),'Other hold below starting feet');
+    check(grips.every((h,i)=>limbReachable(body,h,i)),'Unreachable starting limb');
+    check(new Set(holds.map(h=>h.id)).size===holds.length,'Duplicate hold IDs');
     advanceCameraIntro(0);advanceCameraIntro(1650);
     check(samePairRoute(route,replayRoute(route)),'Support selection changed after pruning '+n);
     const finalHolds=holds;

@@ -23,6 +23,12 @@ assert.equal(courseMode,'prototype'); assert.equal(state,'playing');
 const report=[];
 for (let n=1;n<=20;n++) {
     reset(n);
+    assert(grips[0]===grips[1] && grips[0].wide,'Hands must share starting bar');
+    assert(grips[2]!==grips[3] && grips[2].y===grips[3].y,'Feet must have separate bottom holds');
+    assert(grips[2].y===HEIGHT-HOLD_CONFIG.bottomMargin,'Feet not on bottom row');
+    assert(holds.every(h=>h===grips[2] || h===grips[3] || h.y<grips[2].y),'Other hold below starting feet');
+    assert(grips.every((h,i)=>limbReachable(body,h,i)),'Unreachable starting limb');
+    assert(new Set(holds.map(h=>h.id)).size===holds.length,'Duplicate hold IDs');
     const snapshot=JSON.stringify({holds,route});
     const bodyPath=route.map(p=>({x:p.x,y:p.y}));
     assert(replayRoute(route));

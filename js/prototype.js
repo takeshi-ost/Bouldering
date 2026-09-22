@@ -13,13 +13,14 @@ function preparePrototypeStage() {
         return from + random() * (to - from);
     };
     // The original guide contacts also form straight columns; vary only normal holds.
-    // The four starting contacts and the goal keep their original coordinates.
+    // The three starting holds and the goal keep their original coordinates.
+    const normalBottom = initialGrips[2].y - 24;
     for (const hold of holds) {
         if (hold.type !== 'normal') continue;
         hold.x = jitter(hold.x, 14, 24, W - 24);
-        hold.y = jitter(hold.y, 16, 28, HEIGHT - 28);
+        hold.y = jitter(hold.y, 16, 28, normalBottom);
     }
-    let nextId = holds.length;
+    let nextId = Math.max(...holds.map(h=>h.id)) + 1;
     for (let step = 1; step < guide.length; step++) {
         const a = guide[step - 1], b = guide[step];
         const length = distance(a, b);
@@ -30,7 +31,7 @@ function preparePrototypeStage() {
             const p = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
             for (const limb of limbs) {
                 const h = { x: jitter(p.x + limb.x, 16, 24, W - 24),
-                    y: jitter(p.y + limb.y, 18, 28, HEIGHT - 28) };
+                    y: jitter(p.y + limb.y, 18, 28, normalBottom) };
                 if (holds.every(other => distance(other, h) >= 24))
                     holds.push({ ...h, id: nextId++, type: 'normal', row: null });
             }
