@@ -5,7 +5,7 @@ const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "level", "stamina", "progress", "scrollRail", "scrollThumb", "overlay", "resultTag",
     "resultTitle", "resultText", "next", "retry", "restart", "showPath", "density",
-    "courseMenu", "existingCourse", "prototypeCourse", "undo", "courseError"
+    "courseMenu", "existingCourse", "prototypeCourse", "undo", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
 let courseMode = 'existing';
@@ -341,7 +341,7 @@ function reset(n, bonus = 0) {
 
 function updateUI() {
     ui.undo.disabled = !undoSnapshot || !!drag || !!cameraIntro || state === 'choosing';
-    ui.stamina.textContent = `${stamina-bonusStamina}+${bonusStamina}`;
+    ui.stamina.textContent = bonusStamina > 0 ? `${stamina-bonusStamina}+${bonusStamina}` : String(stamina);
     ui.stamina.setAttribute('aria-label',`通常 ${stamina-bonusStamina} 手、ボーナス ${bonusStamina} 手`);
     ui.stamina.style.color =
         stamina <= 4
@@ -547,7 +547,7 @@ function release(cancel = false) {
             y: body.y
         });
 
-        if (bonusStamina > 0) bonusStamina--;
+        if (stamina-bonusStamina === 0 && bonusStamina > 0) bonusStamina--;
         stamina--;
         moveCount++;
 

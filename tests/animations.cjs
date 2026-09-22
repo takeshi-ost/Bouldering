@@ -66,6 +66,13 @@ for(const ms of [0,160,325,650,1000,2000]){
  assert(v.pivot===null && v.angle===0,'Hang rotates the entire skeleton');
  v.contacts.forEach((h,i)=>{const r=limbRoot(v.body,i),j=v.joints?.[i] || limbJoint(r,h,i),half=LIMB_LENGTHS[i]/2;assert(Math.abs(half-distance(r,j))<1e-5 && Math.abs(half-distance(h,j))<1e-5,'Hang changes bone lengths');});
 }
+for(let ms=650;ms<=6000;ms+=33) {
+ const v=characterPose(began+ms);
+ for(const i of [0,1]) {
+  const reach=distance(limbRoot(v.body,i),v.contacts[i]);
+  assert(reach>=98.5 && reach<=100+1e-7,'Hanging arm not nearly straight or overextended');
+ }
+}
 const hanging=characterPose(began+1000);
 assert(hanging.contacts[2].y>hanging.body.y+100,'Legs did not extend');
 assert(Math.abs(hanging.body.x-goal.x)>1,'No suspended body sway');

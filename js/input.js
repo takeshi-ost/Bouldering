@@ -124,3 +124,11 @@ ui.undo.onclick = () => {
     endPan(); touchId = null; ignoreTouches = false;
     undoMove();
 };
+
+ui.showHelp.onclick = () => {
+    if (state !== 'choosing' || ui.helpDialog.open) return;
+    ui.helpDialog.showModal();
+    ui.helpDialog.scrollTop = 0;
+};
+ui.closeHelp.onclick = () => ui.helpDialog.close();
+ui.helpDialog.addEventListener('close', () => ui.showHelp.focus());

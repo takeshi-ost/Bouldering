@@ -360,8 +360,8 @@ function characterPose(now) {
     } else {
         const t=clamp(elapsed/650,0,1),ease=t*t*(3-2*t);
         const seconds=elapsed/1000, damping=Math.exp(-seconds/6);
-        const swing=Math.sin(seconds*2.4)*.10*damping;
-        const suspension=Math.sqrt(LIMB_LENGTHS[0]**2-(TORSO.width/2+12)**2)-2;
+        const swing=Math.sin(seconds*2.4)*.03*damping;
+        const suspension=Math.sqrt(LIMB_LENGTHS[0]**2-(TORSO.width/2+3)**2)-.15;
         const target={x:a.goal.x+Math.sin(swing)*suspension,
             y:a.goal.y+TORSO.height/2+Math.cos(swing)*suspension};
         pose.body={x:a.origin.x+(target.x-a.origin.x)*ease,y:a.origin.y+(target.y-a.origin.y)*ease};

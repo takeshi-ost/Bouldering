@@ -10,7 +10,7 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){}
 `;
-new Function('assert',environment+source+`
+new Function('assert','html',environment+source+`
 const wide={x:200,y:220,id:1,type:'normal',wide:true};
 for(let a=0;a<4;a++)for(let b=0;b<4;b++) {
  assert.equal(canShareHold(wide,a,b),a!==b && Math.floor(a/2)===Math.floor(b/2));
@@ -61,17 +61,17 @@ let winning;
 for(let i=1;i<route.length;i++)winning=playStep(route[i]);
 assert.equal(state,'won');checkUndo(winning);
 reset(2);assert.equal(undoSnapshot,null);assert.equal(ui.undo.disabled,true);
-// Bonus first, total remaining carried forward exactly once, no retry farming.
+// Regular stamina first, total remaining carried forward exactly once, no retry farming.
 reset(1,3);const regular=stamina-bonusStamina;
 assert.equal(ui.stamina.textContent,regular+'+3');
 const bonusMove=playStep(route[1]);
-assert.equal(bonusStamina,2);assert.equal(stamina-bonusStamina,regular);
+assert.equal(bonusStamina,3);assert.equal(stamina-bonusStamina,regular-1);
 checkUndo(bonusMove);assert.equal(bonusStamina,3);
 for(let i=1;i<route.length;i++) {
  const beforeBonus=bonusStamina,beforeRegular=stamina-bonusStamina;
  playStep(route[i]);
- assert.equal(bonusStamina,Math.max(0,beforeBonus-1));
- assert.equal(stamina-bonusStamina,beforeRegular-(beforeBonus===0?1:0));
+ assert.equal(bonusStamina,beforeBonus-(beforeRegular===0?1:0));
+ assert.equal(stamina-bonusStamina,Math.max(0,beforeRegular-1));
 }
 assert.equal(state,'won');draw(2000);const earned=stamina;
 ui.next.onclick();assert.equal(level,2);assert.equal(stageBonus,earned);assert.equal(bonusStamina,earned);
@@ -83,6 +83,16 @@ ui.retry.onclick();assert.equal(bonusStamina,earned);assert.equal(stamina,nextBu
 startCourse('prototype');assert.equal(stageBonus,0);assert.equal(bonusStamina,0);
 assert(ui.level.innerHTML.includes('ロジハラコース'));
 startCourse('existing');assert(ui.level.innerHTML.includes('ノーマルコース'));
-console.log('PASS bonus carryover, bonus-first spending, Undo, retry, Next guard, course labels');
+assert.equal(ui.stamina.textContent,String(stamina),'Zero bonus suffix displayed');
+reset(1,3);stamina=4;updateUI();assert.equal(ui.stamina.textContent,'1+3');
+playStep(route[1]);assert.equal(ui.stamina.textContent,'0+3');
+playStep(route[2]);assert.equal(ui.stamina.textContent,'0+2');
+reset(1,1);stamina=1;playStep(route[1]);assert.equal(ui.stamina.textContent,'0');assert.equal(state,'lost');
+showCourseMenu();
+ui.helpDialog.showModal=function(){this.open=true;};ui.helpDialog.close=function(){this.open=false;};
+ui.showHelp.onclick();assert.equal(ui.helpDialog.open,true);assert.equal(state,'choosing');
+ui.closeHelp.onclick();assert.equal(ui.helpDialog.open,false);
+assert(html.includes('くわしい説明') && html.includes('手足の制限') && html.includes('ホールドの種類'));
+console.log('PASS bonus carryover, regular-first spending, Undo, retry, Next guard, course labels');
 console.log('PASS Undo: actual input, single use, rearming, cancel, loss, win, reset, visible pose; wide holds: hands/feet sharing and mixed exclusion');
-`)(assert);
+`)(assert,html);

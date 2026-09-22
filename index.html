@@ -39,10 +39,11 @@
                 <div class="card">
                     <div class="eyebrow">ASCENT</div>
                     <h1>コースを選択</h1>
-                    <p>どちらの壁に挑戦しますか？</p>
+                    <p class="game-summary">体をスワイプして、壁を登るクライミングパズル。<br>2本の手足を支えに、残りの2本を動かします。<br>スタミナが尽きる前に、両手で黄色いゴールをつかもう。</p>
                     <button id="existingCourse">ノーマルコース</button>
                     <button class="secondary" id="prototypeCourse">ロジハラコース</button>
                     <p id="courseError" role="alert" hidden></p>
+                    <button class="secondary help-button" id="showHelp" aria-haspopup="dialog" aria-controls="helpDialog">くわしい説明</button>
                 </div>
             </div>
             <div class="overlay" id="overlay" hidden>
@@ -65,6 +66,24 @@
             <button id="restart" aria-label="現在のステージを最初からやり直す">↻ RESTART</button>
         </footer>
         <div class="density" id="density" aria-live="polite"></div>
+        <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
+            <div class="help-heading"><h2 id="helpTitle">くわしい説明</h2><button id="closeHelp" aria-label="説明を閉じる" autofocus>閉じる</button></div>
+            <h3>登り方</h3>
+            <p>壁のどこからでもスワイプして体を動かせます。移動方向に応じて2本の手足が支えに選ばれ、残りの2本が届くホールドへ自動で移ります。スワイプ中は支えの2本は変わりません。</p>
+            <p>指を離したときに4本ともホールドを保持できていれば1手確定します。保持できない場合や、同じ4つの接触位置に戻った場合は手数を消費しません。両足を保持したまま、両手で黄色いゴールをつかむとクリアです。</p>
+            <h3>手足の制限</h3>
+            <p>手は肩から、足は股関節から届く範囲にだけ置けます。足先は体の中点より上には置けません。股関節より高い足は、脚をほぼまっすぐに伸ばせる場合に限られます。体を動かす途中も、支えの手足が外れない範囲に制限されます。</p>
+            <h3>ホールドの種類</h3>
+            <ul><li><strong>丸いホールド：</strong>1本の手または足で使えます。緑色はスタート用です。</li>
+            <li><strong>横長の長方形：</strong>1本だけでも、両手または両足でも使えます。手と足を一緒に置いたり、3本以上で共有したりはできません。</li>
+            <li><strong>黄色いゴール：</strong>両手で共有できます。手と足、または両足での共有はできません。</li></ul>
+            <h3>スタミナとUndo</h3>
+            <p>1手でスタミナを1消費します。表示は「通常分＋ボーナス分」で、通常分から先に使います。ボーナスが0なら通常分だけを表示します。クリア時の残量は次のステージへ持ち越せます。</p>
+            <p>Undoで直前の1手を取り消し、姿勢とスタミナを戻せます。連続では使えませんが、新しく1手進むと再び使えます。クリア・手数切れ直後も利用できます。RESTARTは現在のステージをやり直し、スタミナとボーナスをそのステージ開始時の量に戻します。</p>
+            <h3>コースと便利な機能</h3>
+            <p><strong>ノーマルコース：</strong>壁全体にホールド候補を配置し、ルートを確認して調整したコースです。<br><strong>ロジハラコース：</strong>通れるルートを保ちながら、必要なホールドまで絞ったコースです。</p>
+            <p>「パス表示」で想定ルートを確認できます。右端の帯で壁をスクロールできます。開始時は最下段へのスクロールが終わると操作可能です。</p>
+        </dialog>
     </main>
 </body>
 </html>
