@@ -626,10 +626,13 @@ function draw(now = 0) {
             h.type === 'start';
 
         ctx.lineWidth = 1.5;
-        // Scale the hold silhouette only; contact coordinates and reach stay exact.
+        // Wide holds have a rectangular silhouette, with unchanged contact geometry.
         const holdShape = (x,y,r,fill,stroke) => {
-            ctx.save(); ctx.translate(x,y); ctx.scale(h.wide ? 1.5 : 1,1);
-            circle(0,0,r,fill,stroke); ctx.restore();
+            if (!h.wide) { circle(x,y,r,fill,stroke); return; }
+            ctx.beginPath();
+            ctx.rect(x-r*1.5,y-r,r*3,r*2);
+            if (fill) { ctx.fillStyle=fill; ctx.fill(); }
+            if (stroke) { ctx.strokeStyle=stroke; ctx.stroke(); }
         };
 
         if (active) {
