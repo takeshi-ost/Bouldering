@@ -19,6 +19,8 @@ let committed;
 let grips = [];
 let startGrips = [];
 let stamina = 0;
+let bonusStamina = 0;
+let stageBonus = 0;
 let moveCount = 0;
 let camera = 0;
 let cameraIntro = null;
@@ -279,7 +281,7 @@ function attachMoving(p, anchor) {
     return bestCount < 0 ? null : best;
 }
 
-function reset(n) {
+function reset(n, bonus = 0) {
     undoSnapshot = moveSnapshot = null;
     resetCharacterAnimation();
     jointHistory.fill(null);
@@ -302,7 +304,8 @@ function reset(n) {
     startGrips = [...grips];
     startInitialPose();
 
-    stamina = route.length - 1 + STAGE_CONFIG.spareMoves;
+    stageBonus = bonusStamina = Math.max(0,Math.floor(bonus));
+    stamina = route.length - 1 + STAGE_CONFIG.spareMoves + bonusStamina;
 
     moveCount = 0;
 
@@ -330,7 +333,7 @@ function reset(n) {
     ui.overlay.hidden = true;
     ui.restart.disabled = false;
 
-    ui.level.innerHTML = `Level ${level}<span>${courseMode === 'prototype' ? '試作コース' : '既存コース'} · 2点固定</span>`;
+    ui.level.innerHTML = `Level ${level}<span>${courseMode === 'prototype' ? 'ロジハラコース' : 'ノーマルコース'} · 2点固定</span>`;
     ui.next.textContent = 'NEXT STAGE →';
 
     updateUI();
@@ -338,7 +341,8 @@ function reset(n) {
 
 function updateUI() {
     ui.undo.disabled = !undoSnapshot || !!drag || !!cameraIntro || state === 'choosing';
-    ui.stamina.textContent = stamina;
+    ui.stamina.textContent = `${stamina-bonusStamina}+${bonusStamina}`;
+    ui.stamina.setAttribute('aria-label',`通常 ${stamina-bonusStamina} 手、ボーナス ${bonusStamina} 手`);
     ui.stamina.style.color =
         stamina <= 4
             ? '#bc5144'
@@ -348,7 +352,7 @@ function updateUI() {
         `${moveCount} 手 / 想定 ${route.length - 1} 手`;
 
     if (densityStats.prototype) {
-        ui.density.textContent = `試作：必要ホールド ${densityStats.total} 個 · 想定 ${route.length - 1} 手`;
+        ui.density.textContent = `ロジハラ：必要ホールド ${densityStats.total} 個 · 想定 ${route.length - 1} 手`;
         return;
     }
     ui.density.textContent =
@@ -411,7 +415,7 @@ function down(e) {
 
     // Preserve the visible settled pose as well as the logical move origin.
     moveSnapshot = {
-        body:{...body}, grips:[...grips], stamina, moveCount,
+        body:{...body}, grips:[...grips], stamina, bonusStamina, moveCount,
         playerPath:playerPath.map(p=>({...p})), camera,
         visibleBody:{...characterPose(performance.now()).body},
         joints:jointHistory.map(p=>p && ({...p}))
@@ -543,6 +547,7 @@ function release(cancel = false) {
             y: body.y
         });
 
+        if (bonusStamina > 0) bonusStamina--;
         stamina--;
         moveCount++;
 
@@ -567,7 +572,7 @@ function undoMove() {
     undoSnapshot = moveSnapshot = null;
     body = {...saved.body}; committed = {...body};
     grips = [...saved.grips]; startGrips = [...grips];
-    stamina = saved.stamina; moveCount = saved.moveCount;
+    stamina = saved.stamina; bonusStamina = saved.bonusStamina; moveCount = saved.moveCount;
     playerPath = saved.playerPath.map(p=>({...p}));
     camera = saved.camera; inspecting = false; warning = 0; state = 'playing';
     resetCharacterAnimation();
@@ -597,7 +602,7 @@ function finish(won) {
 
     ui.resultText.textContent =
         won
-            ? `Level ${level} を ${moveCount} 手でクリア。残り ${stamina} 手。`
+            ? `Level ${level} を ${moveCount} 手でクリア。残り ${stamina} 手を次ステージのボーナスに。`
             : 'スタミナがなくなりました。同じ壁でルートを見直してみよう。';
 
     (won ? ui.next : ui.retry).focus();

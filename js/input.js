@@ -77,11 +77,11 @@ function touchEnd(e, cancel) {
 }
 canvas.addEventListener('touchend', e => touchEnd(e, false));
 canvas.addEventListener('touchcancel', e => touchEnd(e, true));
-function restartInput(n) {
-    endPan(); touchId = null; ignoreTouches = false; reset(n);
+function restartInput(n, bonus = 0) {
+    endPan(); touchId = null; ignoreTouches = false; reset(n, bonus);
 }
-ui.next.onclick = () => restartInput(level + 1);
-ui.retry.onclick = ui.restart.onclick = () => restartInput(level);
+ui.next.onclick = () => { if (state === 'won') restartInput(level + 1, stamina); };
+ui.retry.onclick = ui.restart.onclick = () => restartInput(level, stageBonus);
 
 function showCourseMenu() {
     release(true);

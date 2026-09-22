@@ -61,5 +61,28 @@ let winning;
 for(let i=1;i<route.length;i++)winning=playStep(route[i]);
 assert.equal(state,'won');checkUndo(winning);
 reset(2);assert.equal(undoSnapshot,null);assert.equal(ui.undo.disabled,true);
+// Bonus first, total remaining carried forward exactly once, no retry farming.
+reset(1,3);const regular=stamina-bonusStamina;
+assert.equal(ui.stamina.textContent,regular+'+3');
+const bonusMove=playStep(route[1]);
+assert.equal(bonusStamina,2);assert.equal(stamina-bonusStamina,regular);
+checkUndo(bonusMove);assert.equal(bonusStamina,3);
+for(let i=1;i<route.length;i++) {
+ const beforeBonus=bonusStamina,beforeRegular=stamina-bonusStamina;
+ playStep(route[i]);
+ assert.equal(bonusStamina,Math.max(0,beforeBonus-1));
+ assert.equal(stamina-bonusStamina,beforeRegular-(beforeBonus===0?1:0));
+}
+assert.equal(state,'won');draw(2000);const earned=stamina;
+ui.next.onclick();assert.equal(level,2);assert.equal(stageBonus,earned);assert.equal(bonusStamina,earned);
+const nextBudget=route.length-1+STAGE_CONFIG.spareMoves;
+assert.equal(ui.stamina.textContent,nextBudget+'+'+earned);
+ui.next.onclick();assert.equal(level,2,'Repeated Next advances or awards twice');
+advanceCameraIntro(0);advanceCameraIntro(1650);playStep(route[1]);
+ui.retry.onclick();assert.equal(bonusStamina,earned);assert.equal(stamina,nextBudget+earned);
+startCourse('prototype');assert.equal(stageBonus,0);assert.equal(bonusStamina,0);
+assert(ui.level.innerHTML.includes('ロジハラコース'));
+startCourse('existing');assert(ui.level.innerHTML.includes('ノーマルコース'));
+console.log('PASS bonus carryover, bonus-first spending, Undo, retry, Next guard, course labels');
 console.log('PASS Undo: actual input, single use, rearming, cancel, loss, win, reset, visible pose; wide holds: hands/feet sharing and mixed exclusion');
 `)(assert);

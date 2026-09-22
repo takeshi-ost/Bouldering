@@ -13,7 +13,7 @@ for(const ms of [0,60,120,240,800]){
 
  assert(grips.every((h,i)=>limbReachable(v.body,h,i)),'Settle exceeds a limb reach');
  assert(v.contacts===grips,'Settle moved a contact');
- v.contacts.forEach((h,i)=>{const r=limbRoot(v.body,i),j=limbJoint(r,h,i),half=LIMB_LENGTHS[i]/2;assert(Math.abs(half-distance(r,j))<1e-5 && Math.abs(half-distance(h,j))<1e-5,'Settle changes bone lengths');});
+ v.contacts.forEach((h,i)=>{const r=limbRoot(v.body,i),j=v.joints?.[i] || limbJoint(r,h,i),half=LIMB_LENGTHS[i]/2;assert(Math.abs(half-distance(r,j))<1e-5 && Math.abs(half-distance(h,j))<1e-5,'Settle changes bone lengths');});
 }
 const settled=characterPose(start+240).body;
 const initialValue=bodyPoseEvaluation(body,grips),settledValue=bodyPoseEvaluation(settled,grips);
@@ -63,12 +63,17 @@ for(const ms of [0,160,325,650,1000,2000]){
  const v=characterPose(began+ms);
  assert(v.contacts[0].x===goal.x && v.contacts[0].y===goal.y && v.contacts[1].y===goal.y,'Hands left goal');
  assert(v.contacts.every((h,i)=>limbReachable(v.body,h,i)),'Hang stretches limb beyond reach');
- assert(v.pivot.x===goal.x && v.pivot.y===goal.y,'Wrong pendulum pivot');
- v.contacts.forEach((h,i)=>{const r=limbRoot(v.body,i),j=limbJoint(r,h,i),half=LIMB_LENGTHS[i]/2;assert(Math.abs(half-distance(r,j))<1e-5 && Math.abs(half-distance(h,j))<1e-5,'Hang changes bone lengths');});
+ assert(v.pivot===null && v.angle===0,'Hang rotates the entire skeleton');
+ v.contacts.forEach((h,i)=>{const r=limbRoot(v.body,i),j=v.joints?.[i] || limbJoint(r,h,i),half=LIMB_LENGTHS[i]/2;assert(Math.abs(half-distance(r,j))<1e-5 && Math.abs(half-distance(h,j))<1e-5,'Hang changes bone lengths');});
 }
 const hanging=characterPose(began+1000);
 assert(hanging.contacts[2].y>hanging.body.y+100,'Legs did not extend');
-assert(Math.abs(hanging.angle)>.01,'No hanging sway');
+assert(Math.abs(hanging.body.x-goal.x)>1,'No suspended body sway');
+const hip=limbRoot(hanging.body,2),knee=hanging.joints[2],foot=hanging.contacts[2];
+const thighAngle=Math.atan2(knee.x-hip.x,knee.y-hip.y),calfAngle=Math.atan2(foot.x-knee.x,foot.y-knee.y);
+assert(Math.abs(thighAngle-calfAngle)>.01,'Knee segment moves rigidly with thigh');
+const nextHang=characterPose(began+1200);
+assert(distance(nextHang.joints[2],knee)>1,'Knee does not follow the swing');
 assert(JSON.stringify({body,grips,playerPath})===wonPose,'Hang modified actual contacts');
 resetCharacterAnimation();assert(characterAnimation===null && characterPose(0).body.y===body.y,'Animation reset failed');
 `,context);

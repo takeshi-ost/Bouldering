@@ -92,6 +92,6 @@ check(pose && pose[0]===goal && pose[1]===goal && pose[2]===left && pose[3]===ri
 check(attachMoving({x:200,y:300},2)===null,'Single-support attachment still permitted');
 restartInput(1);const repeated=JSON.stringify({holds,route});
 ui.retry.onclick();check(JSON.stringify({holds,route})===repeated && !cameraIntro && playerPath.length===1,'Retry failed');
-ui.next.onclick();check(level===2 && cameraIntro,'Next stage failed');
+state='won';ui.next.onclick();check(level===2 && cameraIntro,'Next stage failed');
 JSON.stringify(report);
 `,context));

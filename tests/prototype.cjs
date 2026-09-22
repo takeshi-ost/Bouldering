@@ -64,7 +64,7 @@ for (let n=1;n<=20;n++) {
     report.push({level:n,holds:holds.length,wide:holds.filter(h=>h.wide).length,moves:route.length-1});
 }
 assert(report.some(p=>p.wide>0),'Wide holds never survive pruning');
-ui.next.onclick();assert.equal(level,21);assert.equal(courseMode,'prototype');
+state='won';ui.next.onclick();assert.equal(level,21);assert.equal(courseMode,'prototype');
 showCourseMenu();assert.equal(state,'choosing');assert.equal(drag,null);
 ui.existingCourse.onclick();assert.equal(courseMode,'existing');assert.equal(level,1);
 const original=JSON.stringify({holds,route});

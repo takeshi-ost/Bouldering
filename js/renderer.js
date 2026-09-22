@@ -340,8 +340,12 @@ function startPoseSettle() {
     characterAnimation={kind:'settle',start:performance.now(),origin:{...body},target};
 }
 function startGoalHang() {
+    const legAngles=[2,3].map(i=>{
+        const root=limbRoot(body,i), tip=grips[i], joint=limbJoint(root,tip,i,jointHistory[i]);
+        return [Math.atan2(joint.x-root.x,joint.y-root.y),Math.atan2(tip.x-joint.x,tip.y-joint.y)];
+    });
     characterAnimation={kind:'hang',start:performance.now(),origin:{x:body.x,y:body.y},
-        contacts:grips.map(h=>({x:h.x,y:h.y})),goal:{x:grips[0].x,y:grips[0].y}};
+        contacts:grips.map(h=>({x:h.x,y:h.y})),goal:{x:grips[0].x,y:grips[0].y},legAngles};
 }
 function characterPose(now) {
     const pose={body:{x:body.x,y:body.y},contacts:grips,angle:0,pivot:null};
@@ -355,13 +359,24 @@ function characterPose(now) {
             y:a.origin.y+(a.target.y-a.origin.y)*ease};
     } else {
         const t=clamp(elapsed/650,0,1),ease=t*t*(3-2*t);
-        const target={x:a.goal.x,y:a.goal.y+TORSO.height/2+Math.sqrt(LIMB_LENGTHS[0]**2-(TORSO.width/2)**2)-2};
+        const seconds=elapsed/1000, damping=Math.exp(-seconds/6);
+        const swing=Math.sin(seconds*2.4)*.10*damping;
+        const suspension=Math.sqrt(LIMB_LENGTHS[0]**2-(TORSO.width/2+12)**2)-2;
+        const target={x:a.goal.x+Math.sin(swing)*suspension,
+            y:a.goal.y+TORSO.height/2+Math.cos(swing)*suspension};
         pose.body={x:a.origin.x+(target.x-a.origin.x)*ease,y:a.origin.y+(target.y-a.origin.y)*ease};
-        pose.contacts=a.contacts.map((p,i)=>i<2?a.goal:{
-            x:p.x+(target.x+(i===2?-1:1)*(TORSO.width/2+3)-p.x)*ease,
-            y:p.y+(target.y+TORSO.height/2+LIMB_LENGTHS[i]*.98-p.y)*ease});
-        pose.pivot=a.goal;
-        pose.angle=Math.sin(elapsed/520)*.055*ease;
+        pose.contacts=[a.goal,a.goal,null,null];
+        pose.joints=[null,null,null,null];
+        const blendAngle=(from,to)=>from+Math.atan2(Math.sin(to-from),Math.cos(to-from))*ease;
+        for(const i of [2,3]) {
+            const side=i===2?-1:1, root=limbRoot(pose.body,i), half=LIMB_LENGTHS[i]/2;
+            // Motion propagates from the hip through the knee with a phase delay.
+            const thigh=blendAngle(a.legAngles[i-2][0],side*.05+Math.sin(seconds*2.4-.35)*.14*damping);
+            const calf=blendAngle(a.legAngles[i-2][1],side*.025+Math.sin(seconds*2.4-.8)*.22*damping);
+            const knee={x:root.x+Math.sin(thigh)*half,y:root.y+Math.cos(thigh)*half};
+            pose.joints[i]=knee;
+            pose.contacts[i]={x:knee.x+Math.sin(calf)*half,y:knee.y+Math.cos(calf)*half};
+        }
     }
     return pose;
 }
@@ -733,7 +748,7 @@ function draw(now = 0) {
             );
 
         // Both segments retain their original lengths.
-        const joint =
+        const joint = visual.joints?.[i] ||
             limbJoint(
                 root,
                 h,
