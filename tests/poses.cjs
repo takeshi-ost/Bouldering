@@ -34,30 +34,31 @@ for(let i=0;i<4;i++)for(let angle=0;angle<Math.PI*2;angle+=.07)for(const ratio o
     const before=JSON.stringify({origin,tip}),j=limbJoint(origin,tip,i),half=LIMB_LENGTHS[i]/2;
     assert(Math.abs(distance(origin,j)-half)<1e-5,'Proximal length changes');
     assert(Math.abs(distance(tip,j)-half)<1e-5,'Distal length changes');
-    if(i<2&&tip.y>=-1e-7)assert(j.y>=-1e-7,'Elbow above shoulder for low hand');
     const mirror=limbJoint(origin,{x:-tip.x,y:tip.y},i^1);
     assert(Math.abs(j.x+mirror.x)<1e-5&&Math.abs(j.y-mirror.y)<1e-5,'Asymmetric pose');
-    if(i>=2&&distance(origin,tip)>1e-9 && !isFoldedLeg(origin,tip,i)) {
-        const other={x:tip.x-j.x,y:tip.y-j.y},out=i%2?1:-1;
-        if(out*other.x>=0)assert(out*j.x>=-1e-7,'Inward knee chosen despite outward candidate');
-    }
-    if(isFoldedLeg(origin,tip,i))
-        assert(j.y <= tip.y-j.y+1e-7,'Folded leg chose lower knee');
     assert.equal(JSON.stringify({origin,tip}),before,'Contact moved by rendering');
 }
-// Approximate hip-relative contacts in the four supplied screenshots, plus coincidence.
-for(const [i,x,y] of [[3,10,0],[3,-20,0],[2,74,24],[3,0,0]]) {
-    const tip={x,y},j=limbJoint(origin,tip,i);
-    assert(isFoldedLeg(origin,tip,i));
-    assert(j.y<0,'Screenshot folded knee does not rise above hip');
-    assert(Math.abs(distance(origin,j)-55)<1e-5 && Math.abs(distance(tip,j)-55)<1e-5);
+// Contacts estimated from IMG_6208 / 6207 / 6206, in torso-relative units.
+// Test both bend histories: prior inward poses must not trap the new selection.
+for (const [i,x,y] of [[2,24,54],[2,28,68],[2,13,34],[0,-10,30],[0,-11,5]]) {
+    for (const previous of [null,{x:45,y:10},{x:-45,y:-10}]) {
+        const j=limbJoint(origin,{x,y},i,previous);
+        assert(j.x<0,'Reported left limb remains inward');
+    }
 }
-// Ensure folded legs remain visible in front of the torso, not merely raised behind it.
+// Folding at hip height still lifts the knee when it can also stay open.
+for (const i of [2,3]) {
+    const tip={x:(i===2?-1:1)*20,y:0}, j=limbJoint(origin,tip,i);
+    assert(j.y<0,'Hip-height folded knee points down');
+}
+// Ordinary low-hand poses retain a lowered elbow; close holds may need an exception.
+assert(limbJoint(origin,{x:-35,y:55},0).y>=0);
+// Every limb must be painted before the torso, including folded legs.
 const originalDrawLimb=drawLimbSegments;
 drawLimbSegments=(root,joint,tip,color)=>{paint.push(root.y===336 && tip.x===230 ? 'folded' : 'other');originalDrawLimb(root,joint,tip,color);};
 body={x:200,y:300};grips=[{x:148,y:232},{x:252,y:232},{x:160,y:410},{x:230,y:336}];
 state='playing';cameraIntro=null;camera=0;drag=null;holds=[];route=[];resetCharacterAnimation();
 draw(0);
-assert(paint.indexOf('torso')>=0 && paint.indexOf('folded')>paint.indexOf('torso'),'Folded leg drawn behind torso');
-console.log('PASS rigid bones, low-hand elbows, raised folded knees, outward extended knees, midpoint/150-degree foot boundaries, no tunneling, safe settling, foreground folded legs');
+assert(paint.indexOf('torso')>=0 && paint.indexOf('folded')>=0 && paint.lastIndexOf('other')<paint.indexOf('torso') && paint.indexOf('folded')<paint.indexOf('torso'),'Limb drawn in front of torso');
+console.log('PASS rigid bones, unified outward joints, raised compatible folded knees, midpoint/150-degree foot boundaries, no tunneling, safe settling, torso occlusion');
 `)(assert);

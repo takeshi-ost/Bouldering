@@ -22,13 +22,8 @@ function line(a, b, color, width) {
     ctx.stroke();
 }
 
-// Fixed-length 2D skeleton. Anatomical conditions select legal bend branches;
-// spreading and visibility choose between the remaining branches.
+// All rigid IK candidates share one pose cost; no early bend-direction filters.
 const jointHistory = [null, null, null, null];
-function isFoldedLeg(root, tip, index) {
-    return index >= 2 && distance(root, tip) <= LIMB_LENGTHS[index] *
-        Math.sin(POSE_CONFIG.foldedKneeAngle * Math.PI / 360) + 1e-7;
-}
 function drawLimbSegments(root, joint, tip, color) {
     line(root, joint, color, 6);
     line(joint, tip, color, 5);
@@ -39,42 +34,34 @@ function limbJoint(root, tip, index, previous = null) {
     const half = LIMB_LENGTHS[index] / 2;
     const d = distance(root, tip);
     const outward = index % 2 ? 1 : -1;
-    if (d < 1e-9) return index < 2
-        ? { x: root.x, y: root.y + half }
-        : { x: root.x, y: root.y - half };
     const mid = { x: (root.x + tip.x) / 2, y: (root.y + tip.y) / 2 };
     const bend = Math.sqrt(Math.max(0, half * half - d * d / 4));
-    const nx = -(tip.y - root.y) / d, ny = (tip.x - root.x) / d;
-    let candidates = [-1, 1].map(side => ({
-        x: mid.x + nx * bend * side, y: mid.y + ny * bend * side
-    }));
-    if (index < 2 && tip.y >= root.y - 1e-7)
-        candidates = candidates.filter(p => p.y >= root.y - 1e-7);
-    if (isFoldedLeg(root, tip, index)) {
-        // Folded knees go up even when the outward branch points down.
-        const highest = Math.min(...candidates.map(p => p.y));
-        candidates = candidates.filter(p => p.y <= highest + 1e-7);
-    }
-    if (index >= 2) {
-        const opened = candidates.filter(p => outward * (p.x - root.x) >= -1e-7);
-        if (opened.length) candidates = opened;
-        else {
-            // Cross-body contacts can make both solutions inward. Use the least
-            // inward solution without shortening bones or moving the contact.
-            const best = Math.max(...candidates.map(p => outward * (p.x - root.x)));
-            candidates = candidates.filter(p => outward * (p.x - root.x) >= best - 1e-7);
-        }
-    }
+    // Coincident endpoints have a circle of valid joints, evaluated by the same cost.
+    const candidates = d < 1e-9
+        ? Array.from({length:16}, (_, k) => ({
+            x: root.x + outward * half * Math.cos(k * Math.PI / 8),
+            y: root.y + half * Math.sin(k * Math.PI / 8)
+        }))
+        : [-1, 1].map(side => ({
+            x: mid.x - (tip.y-root.y) / d * bend * side,
+            y: mid.y + (tip.x-root.x) / d * bend * side
+        }));
     const left = root.x - (index % 2 ? TORSO.width : 0);
     const top = root.y - (index < 2 ? 0 : TORSO.height);
+    const foldLimit = LIMB_LENGTHS[index] * Math.sin(POSE_CONFIG.foldedKneeAngle * Math.PI / 360);
+    const fold = index >= 2 ? clamp((foldLimit-d) / (foldLimit * .2), 0, 1) : 0;
+    const weights = POSE_CONFIG.jointWeights;
     const score = p => {
         const overlap = Math.max(0, Math.min(p.x-left, left+TORSO.width-p.x,
             p.y-top, top+TORSO.height-p.y));
-        const spread = outward * (p.x - root.x);
+        const spread = outward * (p.x-root.x);
+        const raisedElbow = index < 2 && tip.y >= root.y ? Math.max(0, root.y-p.y) : 0;
         const continuity = previous ? distance(p, {x:root.x+previous.x,y:root.y+previous.y}) : 0;
-        return 4 * overlap - spread + .08 * continuity;
+        return weights.overlap * overlap + weights.inward * Math.max(0, -spread)
+            - weights.spread * spread + weights.lowHand * raisedElbow
+            + weights.foldHeight * fold * (p.y-root.y) + weights.continuity * continuity;
     };
-    return candidates.sort((a,b) => score(a)-score(b) || a.y-b.y)[0] || mid;
+    return candidates.sort((a,b) => score(a)-score(b) || a.y-b.y)[0];
 }
 
 // Free limbs hang under gravity; animation affects only drawing, not grip selection.
@@ -660,7 +647,6 @@ function draw(now = 0) {
     const animationTime =
         performance.now() / 1000;
 
-    const foregroundLegs = [];
     visual.contacts.forEach((grip, i) => {
         const moving =
             drag &&
@@ -696,8 +682,7 @@ function draw(now = 0) {
                 ? '#c39037'
                 : '#435c50';
 
-        if (isFoldedLeg(root, h, i)) foregroundLegs.push({root, joint, tip:h, color});
-        else drawLimbSegments(root, joint, h, color);
+        drawLimbSegments(root, joint, h, color);
 
         if (
             drag &&
@@ -816,11 +801,6 @@ function draw(now = 0) {
             );
         }
     }
-
-    // A raised folded knee may overlap the torso with fixed bones. Keep the
-    // entire folded leg visible rather than hiding it behind the body rectangle.
-    for (const leg of foregroundLegs)
-        drawLimbSegments(leg.root, leg.joint, leg.tip, leg.color);
 
     ctx.restore();
     ctx.restore();
