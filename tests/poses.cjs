@@ -40,12 +40,28 @@ for(let i=0;i<4;i++)for(let angle=0;angle<Math.PI*2;angle+=.07)for(const ratio o
 }
 // Contacts estimated from IMG_6208 / 6207 / 6206, in torso-relative units.
 // Test both bend histories: prior inward poses must not trap the new selection.
-for (const [i,x,y] of [[2,24,54],[2,28,68],[2,13,34],[0,-10,30],[0,-11,5]]) {
+for (const [i,x,y] of [[2,24,54],[2,28,68],[0,-10,30],[0,-11,5]]) {
     for (const previous of [null,{x:45,y:10},{x:-45,y:-10}]) {
         const j=limbJoint(origin,{x,y},i,previous);
         assert(j.x<0,'Reported left limb remains inward');
     }
 }
+// New reports and the former outward-only exception: knees must stay above feet,
+// including extended legs and cross-body contacts. Check both bend histories.
+for(const [i,x,y] of [[3,103,-20],[2,86,39],[3,-20,8],[2,13,34]]) {
+    const tip={x,y};
+    for(const previous of [null,{x:-45,y:45},{x:45,y:45}]) {
+        const j=limbJoint(origin,tip,i,previous);
+        assert(j.y<=tip.y+1,'Knee remains below foot');
+    }
+}
+// A knee below the hip but above the foot has no knee-height violation or cost.
+const relaxed=jointPoseEvaluation(origin,{x:0,y:100},2,{x:-20,y:50});
+assert.equal(relaxed.kneeViolations,0);
+// If neither rigid branch can put the knee above a high foot, retain fixed bones.
+const highTip={x:0,y:-110}, highKnee=limbJoint(origin,highTip,3);
+assert.equal(highKnee.y,-55);
+assert.equal(jointPoseEvaluation(origin,highTip,3,highKnee).kneeViolations,1);
 // Folding at hip height still lifts the knee when it can also stay open.
 for (const i of [2,3]) {
     const tip={x:(i===2?-1:1)*20,y:0}, j=limbJoint(origin,tip,i);
@@ -60,5 +76,5 @@ body={x:200,y:300};grips=[{x:148,y:232},{x:252,y:232},{x:160,y:410},{x:230,y:336
 state='playing';cameraIntro=null;camera=0;drag=null;holds=[];route=[];resetCharacterAnimation();
 draw(0);
 assert(paint.indexOf('torso')>=0 && paint.indexOf('folded')>=0 && paint.lastIndexOf('other')<paint.indexOf('torso') && paint.indexOf('folded')<paint.indexOf('torso'),'Limb drawn in front of torso');
-console.log('PASS rigid bones, unified outward joints, raised compatible folded knees, midpoint/150-degree foot boundaries, no tunneling, safe settling, torso occlusion');
+console.log('PASS rigid bones, unified outward joints, knees above feet, midpoint/150-degree foot boundaries, no tunneling, safe settling, torso occlusion');
 `)(assert);

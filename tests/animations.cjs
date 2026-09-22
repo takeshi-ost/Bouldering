@@ -17,16 +17,16 @@ for(const ms of [0,60,120,240,800]){
 }
 const settled=characterPose(start+240).body;
 const initialValue=bodyPoseEvaluation(body,grips),settledValue=bodyPoseEvaluation(settled,grips);
-assert(settledValue.violations<initialValue.violations || (settledValue.violations===initialValue.violations && settledValue.cost<=initialValue.cost),'Settling worsens pose');
+assert(comparePoseEvaluation(settledValue,initialValue)<=0,'Settling worsens pose');
 assert(JSON.stringify({body,committed,grips,playerPath})===before,'Animation modified game state');
 // Four fully extended limbs pin the body: no reachable improvement exists.
 grips=[{x:180,y:164},{x:220,y:164},{x:180,y:446},{x:220,y:446}];
 startPoseSettle();assert(distance(characterAnimation.target,body)<1e-5,'Pinned pose moved');
 // A close, tucked stance has conflicting knees/elbows which body motion can resolve.
-grips=[{x:170,y:294},{x:255,y:240},{x:204,y:390},{x:265,y:390}];
+grips=[[-35.57,-72.16],[87.63,36.08],[65.98,74.74],[0,43.81]].map(([x,y])=>({x:body.x+x,y:body.y+y}));
 const bad=bodyPoseEvaluation(body,grips);startPoseSettle();
 const improved=bodyPoseEvaluation(characterAnimation.target,grips);
-assert(improved.violations<bad.violations,'Body motion did not satisfy more requirements');
+assert(improved.kneeViolations===0 && improved.violations<bad.violations,'Body motion did not improve the reported stance');
 for(let ms=0;ms<=240;ms+=4){
  const v=characterPose(characterAnimation.start+ms);
  assert(grips.every((h,i)=>limbReachable(v.body,h,i)),'Adjustment detached a limb');
@@ -46,8 +46,8 @@ for(let sample=0;sample<40;sample++) {
  });
  const target=settledBodyPosition(body,contacts);
  const oldValue=bodyPoseEvaluation(body,contacts),newValue=bodyPoseEvaluation(target,contacts);
- assert(newValue.violations<=oldValue.violations,'Increased requirement violations');
- if(newValue.violations===oldValue.violations)assert(newValue.cost<=oldValue.cost+1e-7,'Worsened joint cost');
+ assert(comparePoseEvaluation(newValue,oldValue)<=0,'Increased requirement violations');
+ if(newValue.kneeViolations===oldValue.kneeViolations && newValue.violations===oldValue.violations)assert(newValue.cost<=oldValue.cost+1e-7,'Worsened joint cost');
  if(newValue.violations<oldValue.violations)improvedCount++;
  assert(supportMotionFraction(body,target,[0,1],contacts)>1-1e-7 && supportMotionFraction(body,target,[2,3],contacts)>1-1e-7,'Unsafe transition interval');
  for(let t=0;t<=1;t+=.05){

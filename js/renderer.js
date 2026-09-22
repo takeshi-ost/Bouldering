@@ -46,9 +46,8 @@ function limbJoint(root, tip, index, previous = null) {
             x: mid.x - (tip.y-root.y) / d * bend * side,
             y: mid.y + (tip.x-root.x) / d * bend * side
         }));
-    return candidates.sort((a,b) =>
-        jointPoseEvaluation(root, tip, index, a, previous).cost -
-        jointPoseEvaluation(root, tip, index, b, previous).cost || a.y-b.y)[0];
+    return candidates.map(joint => ({joint, value:jointPoseEvaluation(root,tip,index,joint,previous)}))
+        .sort((a,b) => comparePoseEvaluation(a.value,b.value) || a.joint.y-b.joint.y)[0].joint;
 }
 
 // Shared by IK branch selection and the settled body's position search.
@@ -56,28 +55,34 @@ function jointPoseEvaluation(root, tip, index, joint, previous = null) {
     const outward = index % 2 ? 1 : -1;
     const left = root.x - (index % 2 ? TORSO.width : 0);
     const top = root.y - (index < 2 ? 0 : TORSO.height);
-    const foldLimit = LIMB_LENGTHS[index] * Math.sin(POSE_CONFIG.foldedKneeAngle * Math.PI / 360);
-    const fold = index >= 2 ? clamp((foldLimit-distance(root,tip)) / (foldLimit * .2), 0, 1) : 0;
     const overlap = Math.max(0, Math.min(joint.x-left, left+TORSO.width-joint.x,
         joint.y-top, top+TORSO.height-joint.y));
     const spread = outward * (joint.x-root.x);
     const raisedElbow = index < 2 && tip.y >= root.y ? Math.max(0, root.y-joint.y) : 0;
-    const loweredKnee = fold * Math.max(0, joint.y-root.y);
+    const loweredKnee = index >= 2 ? Math.max(0, joint.y-tip.y) : 0;
     const continuity = previous ? distance(joint, {x:root.x+previous.x,y:root.y+previous.y}) : 0;
     const weights = POSE_CONFIG.jointWeights;
     return {
+        kneeViolations: loweredKnee > 1 ? 1 : 0,
         violations: [overlap, -spread, raisedElbow, loweredKnee].filter(v=>v>1).length,
         cost: weights.overlap * overlap + weights.inward * Math.max(0, -spread)
             - weights.spread * spread + weights.lowHand * raisedElbow
-            + weights.foldHeight * fold * (joint.y-root.y) + weights.continuity * continuity
+            + weights.kneeBelowFoot * loweredKnee + weights.continuity * continuity
     };
+}
+// The same lexicographic priorities apply to branches and whole-body candidates.
+// Additive per-limb metrics mean independent branch minima also minimize the
+// combined pose; no potentially better upper-knee branch is discarded by cost alone.
+function comparePoseEvaluation(a, b) {
+    return a.kneeViolations-b.kneeViolations || a.violations-b.violations || a.cost-b.cost;
 }
 function bodyPoseEvaluation(position, contacts) {
     return contacts.reduce((total, tip, index) => {
         const root = limbRoot(position, index);
         const result = jointPoseEvaluation(root, tip, index, limbJoint(root, tip, index));
-        return {violations:total.violations+result.violations, cost:total.cost+result.cost};
-    }, {violations:0,cost:0});
+        return {kneeViolations:total.kneeViolations+result.kneeViolations,
+            violations:total.violations+result.violations, cost:total.cost+result.cost};
+    }, {kneeViolations:0,violations:0,cost:0});
 }
 function settledBodyPosition(origin, contacts) {
     if (contacts.length !== 4 || !contacts.every((h,i)=>h && limbReachable(origin,h,i)))
@@ -93,8 +98,7 @@ function settledBodyPosition(origin, contacts) {
         const value = bodyPoseEvaluation(p,contacts);
         // A slight displacement cost breaks near-ties in favour of less movement.
         value.cost += distance(origin,p)*.05;
-        if (value.violations < bestValue.violations ||
-            (value.violations === bestValue.violations && value.cost < bestValue.cost-.05)) {
+        if (comparePoseEvaluation({...value,cost:value.cost+.05},bestValue) < 0) {
             best=p; bestValue=value;
         }
     };

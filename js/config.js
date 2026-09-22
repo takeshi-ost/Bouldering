@@ -13,8 +13,8 @@ const limbs = [
 ];
 const LIMB_LENGTHS = [100, 100, 110, 110];
 const POSE_CONFIG = {
-    highFootMinKneeAngle: 150, foldedKneeAngle: 120,
-    jointWeights: { inward: 4, spread: 1, overlap: 4, lowHand: .75, foldHeight: .5, continuity: .03 }
+    highFootMinKneeAngle: 150,
+    jointWeights: { inward: 4, spread: 1, overlap: 4, lowHand: .75, kneeBelowFoot: 4, continuity: .03 }
 };
 const HIGH_FOOT_REACH_RATIO = Math.sin(POSE_CONFIG.highFootMinKneeAngle * Math.PI / 360);
 const limbArrows = ["↖", "↗", "↙", "↘"];
