@@ -29,6 +29,7 @@ for (let n=1;n<=20;n++) {
     assert(holds.every(h=>h===grips[2] || h===grips[3] || h.y<grips[2].y),'Other hold below starting feet');
     assert(grips.every((h,i)=>limbReachable(body,h,i)),'Unreachable starting limb');
     assert(new Set(holds.map(h=>h.id)).size===holds.length,'Duplicate hold IDs');
+    assert(holds.every(h=>h.type==='start' || !insideStartTriangle(h,grips)),'Hold inside starting triangle');
     const snapshot=JSON.stringify({holds,route});
     const bodyPath=route.map(p=>({x:p.x,y:p.y}));
     assert(replayRoute(route));

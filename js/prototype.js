@@ -20,6 +20,7 @@ function preparePrototypeStage() {
         hold.x = jitter(hold.x, 14, 24, W - 24);
         hold.y = jitter(hold.y, 16, 28, normalBottom);
     }
+    holds = holds.filter(h=>h.type!=='normal' || !insideStartTriangle(h,initialGrips));
     let nextId = Math.max(...holds.map(h=>h.id)) + 1;
     for (let step = 1; step < guide.length; step++) {
         const a = guide[step - 1], b = guide[step];
@@ -32,7 +33,7 @@ function preparePrototypeStage() {
             for (const limb of limbs) {
                 const h = { x: jitter(p.x + limb.x, 16, 24, W - 24),
                     y: jitter(p.y + limb.y, 18, 28, normalBottom) };
-                if (holds.every(other => distance(other, h) >= 24))
+                if (!insideStartTriangle(h,initialGrips) && holds.every(other => distance(other, h) >= 24))
                     holds.push({ ...h, id: nextId++, type: 'normal', row: null });
             }
         }

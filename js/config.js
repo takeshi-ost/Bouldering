@@ -34,6 +34,7 @@ const STAGE_CONFIG = {
     climbVariation: 20,
     verticalPadding: 220,
     bottomMargin: 80,
+    startFootSpan: 140,
     longStageInterval: 5,
     longStageLengthScale: 1.6,
     longStageClimbHeight: 600,

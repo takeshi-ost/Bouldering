@@ -19,3 +19,12 @@ function gripAim(p, origin) {
 function isTraverse(a, b, minimum = 30) {
     return Math.abs(b.x-a.x)>=minimum && b.y>=a.y-1e-7;
 }
+
+// Include the boundary so new holds do not sit across the opening stance.
+function insideStartTriangle(p, contacts) {
+    const [a,b,c] = [contacts[0],contacts[2],contacts[3]];
+    const cross = (u,v,w) => (v.x-u.x)*(w.y-u.y)-(v.y-u.y)*(w.x-u.x);
+    if (Math.abs(cross(a,b,c)) < 1e-7) return false;
+    const sides = [cross(a,b,p),cross(b,c,p),cross(c,a,p)];
+    return sides.every(v=>v>=-1e-7) || sides.every(v=>v<=1e-7);
+}

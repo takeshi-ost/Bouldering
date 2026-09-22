@@ -27,6 +27,7 @@ for(let n=1;n<=20;n++){
     check(holds.every(h=>h===grips[2] || h===grips[3] || h.y<grips[2].y),'Other hold below starting feet');
     check(grips.every((h,i)=>limbReachable(body,h,i)),'Unreachable starting limb');
     check(new Set(holds.map(h=>h.id)).size===holds.length,'Duplicate hold IDs');
+    check(holds.every(h=>h.type==='start' || !insideStartTriangle(h,grips)),'Hold inside starting triangle');
     advanceCameraIntro(0);advanceCameraIntro(1650);
     check(samePairRoute(route,replayRoute(route)),'Support selection changed after pruning '+n);
     const finalHolds=holds;

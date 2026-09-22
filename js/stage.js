@@ -100,10 +100,11 @@ function createStageGenerator() {
         hand.x = startBody.x; hand.y = startBody.y - 68; hand.wide = true;
         initialGrips = [hand, hand, holds[0], holds[1]];
         for (const i of [2,3]) {
-            initialGrips[i].x = clamp(startBody.x + (i===2 ? -1 : 1) * TORSO.width / 2,24,W-24);
+            initialGrips[i].x = clamp(startBody.x + (i===2 ? -1 : 1) * STAGE_CONFIG.startFootSpan / 2,24,W-24);
             initialGrips[i].y = HEIGHT - HOLD_CONFIG.bottomMargin;
         }
-        holds = holds.filter(h=>h !== removedHand);
+        holds = holds.filter(h=>h !== removedHand &&
+            (h.type !== 'normal' || !insideStartTriangle(h,initialGrips)));
         if (guideOnly)
             return { holds, route, HEIGHT, initialGrips };
         fillWall(random, add);
@@ -119,7 +120,7 @@ function createStageGenerator() {
         // R+12 corridor, they do not exclude all reachable alternative holds.
         const targets = route.slice(1).map((p, i) => ({ p, aim: gripAim(p, route[i]), score: distance(p.hold, gripAim(p, route[i])) }));
         const top = Math.min(...holds.map(h => h.y)) + HOLD_CONFIG.topMargin, bottom = HEIGHT - HOLD_CONFIG.bottomMargin;
-        const allowed = p => p.y <= initialGrips[2].y - 24 && !holds.some(h => distance(h, p) < HOLD_SPACING) && !targets.some(t => distance(t.p, p) <= R && distance(t.aim, p) < t.score + HOLD_CONFIG.snapGuard);
+        const allowed = p => !insideStartTriangle(p,initialGrips) && p.y <= initialGrips[2].y - 24 && !holds.some(h => distance(h, p) < HOLD_SPACING) && !targets.some(t => distance(t.p, p) <= R && distance(t.aim, p) < t.score + HOLD_CONFIG.snapGuard);
         // Repeated jittered grids fill gaps rather than scattering only at edges.
         // Existing route holds participate in the same minimum-distance check.
         for (let pass = 0; pass < HOLD_CONFIG.passes; pass++)
