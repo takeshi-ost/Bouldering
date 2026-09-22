@@ -60,3 +60,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-routes.ps1
 配置の調査には `node scripts/inspect-routes.cjs 1 3` を使用できます。
 
 詳細は [ゲーム仕様](GAME_SPEC.md) と [生成手順](docs/course-generation.md) を参照してください。`docs/layout-study.md`、`docs/controll_test.md`、`docs/report_light.md` は過去の検討記録です。
+
+姿勢制御の詳細と優先順は [docs/pose-control.md](docs/pose-control.md) を参照してください。
