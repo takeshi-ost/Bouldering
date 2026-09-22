@@ -26,7 +26,7 @@ assert(Math.abs(supportMotionFraction(from,to,[2,3])-1/31)<1e-6,'Movement tunnel
 assert(supportMotionFraction({x:200,y:300},to,[2,3])<1e-6,'Movement skips forbidden region at start');
 // Settling must not cross the same forbidden interval.
 body={x:200,y:300};grips=[{x:148,y:232},{x:252,y:232},startGrips[2],startGrips[3]];
-startPoseSettle();assert(characterAnimation.drop<1e-6,'Settle crosses raised-foot boundary');
+startPoseSettle();assert(characterAnimation.target.y<=body.y+1e-6,'Settle crosses raised-foot boundary');
 // Sweep all directions, including full extension and coincident endpoints.
 const origin={x:0,y:0};
 for(let i=0;i<4;i++)for(let angle=0;angle<Math.PI*2;angle+=.07)for(const ratio of [0,.1,.4,.8,.99,1]) {

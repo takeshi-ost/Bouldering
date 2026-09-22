@@ -46,22 +46,69 @@ function limbJoint(root, tip, index, previous = null) {
             x: mid.x - (tip.y-root.y) / d * bend * side,
             y: mid.y + (tip.x-root.x) / d * bend * side
         }));
+    return candidates.sort((a,b) =>
+        jointPoseEvaluation(root, tip, index, a, previous).cost -
+        jointPoseEvaluation(root, tip, index, b, previous).cost || a.y-b.y)[0];
+}
+
+// Shared by IK branch selection and the settled body's position search.
+function jointPoseEvaluation(root, tip, index, joint, previous = null) {
+    const outward = index % 2 ? 1 : -1;
     const left = root.x - (index % 2 ? TORSO.width : 0);
     const top = root.y - (index < 2 ? 0 : TORSO.height);
     const foldLimit = LIMB_LENGTHS[index] * Math.sin(POSE_CONFIG.foldedKneeAngle * Math.PI / 360);
-    const fold = index >= 2 ? clamp((foldLimit-d) / (foldLimit * .2), 0, 1) : 0;
+    const fold = index >= 2 ? clamp((foldLimit-distance(root,tip)) / (foldLimit * .2), 0, 1) : 0;
+    const overlap = Math.max(0, Math.min(joint.x-left, left+TORSO.width-joint.x,
+        joint.y-top, top+TORSO.height-joint.y));
+    const spread = outward * (joint.x-root.x);
+    const raisedElbow = index < 2 && tip.y >= root.y ? Math.max(0, root.y-joint.y) : 0;
+    const loweredKnee = fold * Math.max(0, joint.y-root.y);
+    const continuity = previous ? distance(joint, {x:root.x+previous.x,y:root.y+previous.y}) : 0;
     const weights = POSE_CONFIG.jointWeights;
-    const score = p => {
-        const overlap = Math.max(0, Math.min(p.x-left, left+TORSO.width-p.x,
-            p.y-top, top+TORSO.height-p.y));
-        const spread = outward * (p.x-root.x);
-        const raisedElbow = index < 2 && tip.y >= root.y ? Math.max(0, root.y-p.y) : 0;
-        const continuity = previous ? distance(p, {x:root.x+previous.x,y:root.y+previous.y}) : 0;
-        return weights.overlap * overlap + weights.inward * Math.max(0, -spread)
+    return {
+        violations: [overlap, -spread, raisedElbow, loweredKnee].filter(v=>v>1).length,
+        cost: weights.overlap * overlap + weights.inward * Math.max(0, -spread)
             - weights.spread * spread + weights.lowHand * raisedElbow
-            + weights.foldHeight * fold * (p.y-root.y) + weights.continuity * continuity;
+            + weights.foldHeight * fold * (joint.y-root.y) + weights.continuity * continuity
     };
-    return candidates.sort((a,b) => score(a)-score(b) || a.y-b.y)[0];
+}
+function bodyPoseEvaluation(position, contacts) {
+    return contacts.reduce((total, tip, index) => {
+        const root = limbRoot(position, index);
+        const result = jointPoseEvaluation(root, tip, index, limbJoint(root, tip, index));
+        return {violations:total.violations+result.violations, cost:total.cost+result.cost};
+    }, {violations:0,cost:0});
+}
+function settledBodyPosition(origin, contacts) {
+    if (contacts.length !== 4 || !contacts.every((h,i)=>h && limbReachable(origin,h,i)))
+        return {...origin};
+    let best = {...origin}, bestValue = bodyPoseEvaluation(origin,contacts);
+    const consider = target => {
+        target = {x:clamp(target.x,25,W-25),y:clamp(target.y,80,HEIGHT-40)};
+        const fraction = Math.min(supportMotionFraction(origin,target,[0,1],contacts),
+            supportMotionFraction(origin,target,[2,3],contacts));
+        const p = {x:origin.x+(target.x-origin.x)*fraction,
+            y:origin.y+(target.y-origin.y)*fraction};
+        if (!contacts.every((h,i)=>limbReachable(p,h,i))) return;
+        const value = bodyPoseEvaluation(p,contacts);
+        // A slight displacement cost breaks near-ties in favour of less movement.
+        value.cost += distance(origin,p)*.05;
+        if (value.violations < bestValue.violations ||
+            (value.violations === bestValue.violations && value.cost < bestValue.cost-.05)) {
+            best=p; bestValue=value;
+        }
+    };
+    // Sample the reachable region, then refine around its best point. Every
+    // candidate's entire straight transition is checked from the original pose.
+    for (const radius of [4,8,16,32,64,128,220])
+        for (let i=0;i<32;i++) consider({x:origin.x+radius*Math.cos(i*Math.PI/16),
+            y:origin.y+radius*Math.sin(i*Math.PI/16)});
+    for (const radius of [8,4,2,.5]) {
+        const center=best;
+        for (let i=0;i<16;i++) consider({x:center.x+radius*Math.cos(i*Math.PI/8),
+            y:center.y+radius*Math.sin(i*Math.PI/8)});
+    }
+    return best;
 }
 
 // Free limbs hang under gravity; animation affects only drawing, not grip selection.
@@ -277,12 +324,8 @@ function drawPath() {
 let characterAnimation = null;
 function resetCharacterAnimation() { characterAnimation=null; }
 function startPoseSettle() {
-    const target = { x: body.x, y: body.y + 8 };
-    const fraction = Math.min(
-        supportMotionFraction(body, target, [0,1], grips),
-        supportMotionFraction(body, target, [2,3], grips)
-    );
-    characterAnimation={kind:'settle',start:performance.now(),drop:8*fraction};
+    const target = settledBodyPosition(body, grips);
+    characterAnimation={kind:'settle',start:performance.now(),origin:{...body},target};
 }
 function startGoalHang() {
     characterAnimation={kind:'hang',start:performance.now(),origin:{x:body.x,y:body.y},
@@ -295,7 +338,9 @@ function characterPose(now) {
     const elapsed=Math.max(0,now-a.start);
     if(a.kind==='settle') {
         const t=clamp(elapsed/240,0,1);
-        pose.body.y+=a.drop*(1-Math.pow(1-t,3));
+        const ease=1-Math.pow(1-t,3);
+        pose.body={x:a.origin.x+(a.target.x-a.origin.x)*ease,
+            y:a.origin.y+(a.target.y-a.origin.y)*ease};
     } else {
         const t=clamp(elapsed/650,0,1),ease=t*t*(3-2*t);
         const target={x:a.goal.x,y:a.goal.y+TORSO.height/2+Math.sqrt(LIMB_LENGTHS[0]**2-(TORSO.width/2)**2)-2};
