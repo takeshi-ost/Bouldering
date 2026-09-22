@@ -300,6 +300,7 @@ function reset(n) {
     }
 
     startGrips = [...grips];
+    startInitialPose();
 
     stamina = route.length - 1 + STAGE_CONFIG.spareMoves;
 
@@ -316,15 +317,10 @@ function reset(n) {
         HEIGHT - H
     );
 
-    cameraIntro = {
-        from: camera,
-        to: clamp(
-            body.y - H * CAMERA_CONFIG.bodyScreenRatio,
-            0,
-            HEIGHT - H
-        ),
-        start: null
-    };
+    const introTarget = HEIGHT - H;
+    cameraIntro = camera < introTarget
+        ? {from:camera,to:introTarget,start:null}
+        : null;
 
     inspecting = false;
     drag = null;
@@ -615,19 +611,12 @@ function advanceCameraIntro(now) {
     if (cameraIntro.start === null)
         cameraIntro.start = now;
 
-    const t = clamp(
-        (now - cameraIntro.start - 450) / 1200,
-        0,
-        1
-    );
-
-    camera =
-        cameraIntro.from +
-        (cameraIntro.to - cameraIntro.from) *
-        t * t * (3 - 2 * t);
-
-    if (t === 1)
+    camera = Math.min(cameraIntro.to, cameraIntro.from +
+        Math.max(0,now-cameraIntro.start) * CAMERA_CONFIG.introSpeed / 1000);
+    if (camera >= cameraIntro.to) {
         cameraIntro = null;
+        updateUI();
+    }
 }
 
 function isSupportPair(pair) {

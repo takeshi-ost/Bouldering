@@ -10,11 +10,13 @@ console.log(vm.runInContext(`
 function check(v,m){if(!v)throw Error(m);}
 check(state==='choosing' && !cameraIntro && !ui.courseMenu.hidden,'Course menu startup failed');
 ui.existingCourse.onclick();
-check(state==='playing' && cameraIntro && level===1 && courseMode==='existing','Existing course startup failed');
-advanceCameraIntro(0);advanceCameraIntro(450);
-check(camera===cameraIntro.from,'Goal preview skipped');
+check(state==='playing' && !cameraIntro && level===1 && courseMode==='existing','One-screen stage should start immediately');
+reset(2);check(cameraIntro,'Tall stage needs a scroll');
+advanceCameraIntro(0);
+const introEnd=(cameraIntro.to-cameraIntro.from)/CAMERA_CONFIG.introSpeed*1000;
+advanceCameraIntro(introEnd/2);check(cameraIntro && camera<HEIGHT-H,'Introduction ended too early');
 down({clientX:200,clientY:400});check(!drag,'Input during introduction');
-advanceCameraIntro(1650);check(!cameraIntro,'Introduction failed to finish');
+advanceCameraIntro(introEnd+1);check(!cameraIntro && camera===HEIGHT-H,'Introduction did not finish at bottom');
 check(!isSupportPair(0) && !isSupportPair([0]) && !isSupportPair([0,0]) && !isSupportPair([0,1,1]),'Non-pair supports accepted');
 const report=[];
 for(let n=1;n<=20;n++){
@@ -88,7 +90,7 @@ const pose=attachMoving({x:200,y:300},[2,3]);
 check(pose && pose[0]===goal && pose[1]===goal && pose[2]===left && pose[3]===right,'Two-support goal sharing failed');
 check(attachMoving({x:200,y:300},2)===null,'Single-support attachment still permitted');
 restartInput(1);const repeated=JSON.stringify({holds,route});
-ui.retry.onclick();check(JSON.stringify({holds,route})===repeated && cameraIntro && playerPath.length===1,'Retry failed');
+ui.retry.onclick();check(JSON.stringify({holds,route})===repeated && !cameraIntro && playerPath.length===1,'Retry failed');
 ui.next.onclick();check(level===2 && cameraIntro,'Next stage failed');
 JSON.stringify(report);
 `,context));

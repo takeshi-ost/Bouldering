@@ -49,8 +49,11 @@ function createStageGenerator() {
             return h;
         };
         // A finite wall cannot accumulate an unlimited number of distinct holds.
-        // Add traverses within the two-screen budget, then vary the seeded layout.
-        const guideSteps = n === 1 ? STAGE_CONFIG.introGuideSteps : STAGE_CONFIG.baseMoves + Math.min(n - 2, STAGE_CONFIG.growthLevels) * STAGE_CONFIG.movesPerLevel, rows = [0, 1, 2, 3], support = [...rows];
+        // Only every fifth stage may reach two screens; long walls cap at three.
+        const longStage = n % STAGE_CONFIG.longStageInterval === 0;
+        const baseSteps = n === 1 ? STAGE_CONFIG.introGuideSteps : STAGE_CONFIG.baseMoves + Math.min(n - 2, STAGE_CONFIG.growthLevels) * STAGE_CONFIG.movesPerLevel;
+        const guideSteps = Math.ceil(baseSteps * (longStage ? STAGE_CONFIG.longStageLengthScale : 1));
+        const rows = [0,1,2,3], support = [...rows];
         // "row" is a station every 40px ALONG the course, not a vertical grid row.
         // Four supports span at most 200px of arc. The torso at its midpoint is
         // within 100px + the 8px hold offset of all four supports (R = 112px).
@@ -65,9 +68,9 @@ function createStageGenerator() {
         if (n === 1)
             rows.splice(4, STAGE_CONFIG.introGuideSteps, ...STAGE_CONFIG.introStations);
         const lastStation = rows[rows.length - 1] * STAGE_CONFIG.stationSpacing;
-        const rawCourse = n === 1 ? s => ({ x: W / 2, y: -s, nx: 1, ny: 0 }) : makeCourse(lastStation, random() < .5 ? -1 : 1, STAGE_CONFIG.climbHeight + random() * STAGE_CONFIG.climbVariation);
+        const rawCourse = n === 1 ? s => ({ x: W / 2, y: -s, nx: 1, ny: 0 }) : makeCourse(lastStation, random() < .5 ? -1 : 1, (longStage ? STAGE_CONFIG.longStageClimbHeight : STAGE_CONFIG.climbHeight) + random() * STAGE_CONFIG.climbVariation);
         const rise = -rawCourse(lastStation).y;
-        HEIGHT = n === 1 ? H : Math.min(MAX_HEIGHT, Math.max(H, Math.ceil(rise) + STAGE_CONFIG.verticalPadding));
+        HEIGHT = n === 1 ? H : Math.min(longStage ? MAX_HEIGHT : H * 2 - 1, Math.max(H, Math.ceil(rise) + STAGE_CONFIG.verticalPadding));
         const scaleY = n === 1 ? 1 : Math.min(1, (HEIGHT - STAGE_CONFIG.verticalPadding) / rise);
         const course = s => {
             const p = rawCourse(s);
@@ -97,7 +100,7 @@ function createStageGenerator() {
         hand.x = startBody.x; hand.y = startBody.y - 68; hand.wide = true;
         initialGrips = [hand, hand, holds[0], holds[1]];
         for (const i of [2,3]) {
-            initialGrips[i].x = clamp(startBody.x + limbs[i].x,24,W-24);
+            initialGrips[i].x = clamp(startBody.x + (i===2 ? -1 : 1) * TORSO.width / 2,24,W-24);
             initialGrips[i].y = HEIGHT - HOLD_CONFIG.bottomMargin;
         }
         holds = holds.filter(h=>h !== removedHand);

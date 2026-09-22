@@ -327,6 +327,14 @@ function drawPath() {
 // Presentation state only: never writes body, grips, committed or playerPath.
 let characterAnimation = null;
 function resetCharacterAnimation() { characterAnimation=null; }
+// Opening-only crouch, with all four holds unchanged throughout the descent.
+function startInitialPose() {
+    const target={x:body.x,y:HEIGHT-40};
+    const fraction=Math.min(supportMotionFraction(body,target,[0,1],grips),
+        supportMotionFraction(body,target,[2,3],grips));
+    const lowest={x:body.x,y:body.y+(target.y-body.y)*fraction};
+    characterAnimation={kind:'settle',start:performance.now(),origin:lowest,target:lowest};
+}
 function startPoseSettle() {
     const target = settledBodyPosition(body, grips);
     characterAnimation={kind:'settle',start:performance.now(),origin:{...body},target};

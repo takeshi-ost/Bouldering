@@ -3,7 +3,7 @@
 const W = 400;
 const H = 700;
 const R = 112;
-const MAX_HEIGHT = H * 2;
+const MAX_HEIGHT = H * 3;
 const TORSO = { width: 40, height: 72, hitPadding: 8 };
 const limbs = [
     { x: -52, y: -68, name: "左手" },
@@ -34,6 +34,9 @@ const STAGE_CONFIG = {
     climbVariation: 20,
     verticalPadding: 220,
     bottomMargin: 80,
+    longStageInterval: 5,
+    longStageLengthScale: 1.6,
+    longStageClimbHeight: 600,
     holdOffset: 8,
 };
 // 追加ホールドの候補配置。
@@ -57,5 +60,5 @@ const DENSITY_CONFIG = {
 };
 // 操作と描画。
 const INPUT_CONFIG = { dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24 };
-const CAMERA_CONFIG = { bodyScreenRatio: 0.6, followRate: 0.08 };
+const CAMERA_CONFIG = { bodyScreenRatio: 0.6, followRate: 0.08, introSpeed: H * 1.5 };
 const RENDER_CONFIG = { maxPixelRatio: 2 };
