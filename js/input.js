@@ -2,45 +2,31 @@
 let touchId = null;
 let pan = null;
 let ignoreTouches = false;
-function endPan() {
-    const previous = pan;
-    pan = null;
-    if (previous && ui.scrollRail.hasPointerCapture(previous.id))
-        ui.scrollRail.releasePointerCapture(previous.id);
-}
-ui.scrollRail.addEventListener('pointerdown', e => {
-    if (state === 'choosing' || cameraIntro || e.button !== 0 || pan || HEIGHT <= H) return;
-    e.preventDefault();
+function endPan() { pan = null; }
+function canScrollStage() { return state !== 'choosing' && !cameraIntro && HEIGHT > H; }
+function beginTouchPan(touches) {
+    if (!canScrollStage() || touches.length !== 2) return;
     release(true);
     touchId = null;
     inspecting = true;
-    pan = { id: e.pointerId, y: e.clientY, camera };
-    ui.scrollRail.setPointerCapture(e.pointerId);
-});
-ui.scrollRail.addEventListener('pointermove', e => {
-    if (!pan || e.pointerId !== pan.id) return;
-    e.preventDefault();
-    const scale = HEIGHT / ui.scrollRail.getBoundingClientRect().height;
-    camera = clamp(pan.camera + (e.clientY - pan.y) * scale, 0, HEIGHT - H);
-});
-for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
-    ui.scrollRail.addEventListener(type, e => {
-        if (pan?.id === e.pointerId) endPan();
-    });
+    pan = {ids:Array.from(touches,t=>t.identifier),y:(touches[0].clientY+touches[1].clientY)/2,camera};
+    // Never turn the remaining finger into a character drag on release.
+    ignoreTouches = true;
 }
-ui.scrollRail.addEventListener('keydown', e => {
-    if(state === 'choosing' || cameraIntro)return;
-    const max = HEIGHT - H;
-    const positions = {
-        ArrowUp: camera - 40, ArrowDown: camera + 40,
-        PageUp: camera - H, PageDown: camera + H, Home: 0, End: max
-    };
-    if (!(e.key in positions) || max <= 0) return;
-    e.preventDefault();
-    release(true);
-    inspecting = true;
-    camera = clamp(positions[e.key], 0, max);
+canvas.addEventListener('keydown', e => {
+    if (!canScrollStage()) return;
+    const max=HEIGHT-H;
+    const positions={ArrowUp:camera-40,ArrowDown:camera+40,PageUp:camera-H,PageDown:camera+H,Home:0,End:max};
+    if (!(e.key in positions)) return;
+    e.preventDefault();release(true);inspecting=true;
+    camera=clamp(positions[e.key],0,max);
 });
+canvas.addEventListener('wheel', e => {
+    if (!canScrollStage() || pan) return;
+    e.preventDefault();release(true);inspecting=true;
+    const scale=e.deltaMode===1 ? 16 : e.deltaMode===2 ? H : H/canvas.getBoundingClientRect().height;
+    camera=clamp(camera+e.deltaY*scale,0,HEIGHT-H);
+}, {passive:false});
 canvas.addEventListener('mousedown', e => {
     if (e.button === 0 && !pan) { e.preventDefault(); down(e); }
 });
@@ -51,7 +37,12 @@ window.addEventListener('blur', () => {
 });
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
+    if (e.touches.length === 2 && !pan && !ignoreTouches && canScrollStage()) {
+        beginTouchPan(e.touches);
+        return;
+    }
     if (e.touches.length !== 1 || pan || ignoreTouches) {
+        endPan();
         release(true);
         touchId = null;
         ignoreTouches = true;
@@ -64,11 +55,21 @@ canvas.addEventListener('touchstart', e => {
 }, { passive: false });
 canvas.addEventListener('touchmove', e => {
     e.preventDefault();
-    if (pan || ignoreTouches) return;
+    if (pan) {
+        const fingers=pan.ids.map(id=>Array.from(e.touches).find(t=>t.identifier===id));
+        if (e.touches.length!==2 || fingers.some(t=>!t)) { endPan(); return; }
+        const y=(fingers[0].clientY+fingers[1].clientY)/2;
+        camera=clamp(pan.camera-(y-pan.y)*H/canvas.getBoundingClientRect().height,0,HEIGHT-H);
+        return;
+    }
+    if (ignoreTouches) return;
     const t = Array.from(e.changedTouches).find(t => t.identifier === touchId);
     if (t) move(t);
 }, { passive: false });
 function touchEnd(e, cancel) {
+    if (pan && (cancel || e.touches.length!==2 || pan.ids.some(id=>!Array.from(e.touches).some(t=>t.identifier===id)))) {
+        endPan(); touchId=null;
+    }
     if (Array.from(e.changedTouches).some(t => t.identifier === touchId)) {
         release(cancel);
         touchId = null;
@@ -97,7 +98,7 @@ function showCourseMenu() {
     ui.restart.disabled = true;
     ui.undo.disabled = true;
     ui.showPath.disabled = true;
-    ui.scrollRail.setAttribute('tabindex', '-1');
+    canvas.setAttribute('tabindex', '-1');
     ui.level.textContent = 'コース選択';
     ui.existingCourse.focus();
 }
@@ -109,7 +110,7 @@ function startCourse(mode) {
         restartInput(1);
         ui.courseMenu.hidden = true;
         ui.showPath.disabled = false;
-        ui.scrollRail.setAttribute('tabindex', '0');
+        canvas.setAttribute('tabindex', '0');
         ui.restart.focus();
     } catch (error) {
         showCourseMenu();

@@ -5,7 +5,7 @@ assert(html.includes('id="undo"') && !html.includes('id="changeCourse"'));
 const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const environment=`
 const elements={};const document={getElementById(id){return elements[id] ||= {
- style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},
+ style:{},classList:{toggle(){}},focus(){},events:{},addEventListener(name,fn){this.events[name]=fn;},setAttribute(){},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}})},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){}
@@ -74,6 +74,7 @@ for(let i=1;i<route.length;i++) {
  assert.equal(stamina-bonusStamina,Math.max(0,beforeRegular-1));
 }
 assert.equal(state,'won');draw(2000);const earned=stamina;
+assert.equal(ui.resultText.textContent,'ステージクリア！+'+earned+' ボーナス');
 ui.next.onclick();assert.equal(level,2);assert.equal(stageBonus,earned);assert.equal(bonusStamina,earned);
 const nextBudget=route.length-1+STAGE_CONFIG.spareMoves;
 assert.equal(ui.stamina.textContent,nextBudget+'+'+earned);
@@ -88,6 +89,36 @@ reset(1,3);stamina=4;updateUI();assert.equal(ui.stamina.textContent,'1+3');
 playStep(route[1]);assert.equal(ui.stamina.textContent,'0+3');
 playStep(route[2]);assert.equal(ui.stamina.textContent,'0+2');
 reset(1,1);stamina=1;playStep(route[1]);assert.equal(ui.stamina.textContent,'0');assert.equal(state,'lost');
+// Two fingers cancel movement without spending a move and pan in canvas units.
+reset(1);cameraIntro=null;HEIGHT=H*2;
+const beforePan={stamina,moveCount,body:{...body},grips:[...grips]};
+const finger=(id,y)=>({identifier:id,clientX:200,clientY:y});
+const emit=(name,touches,changed=touches)=>canvas.events[name]({touches,changedTouches:changed,preventDefault(){}});
+emit('touchstart',[finger(1,350)]);assert(drag);
+emit('touchstart',[finger(1,350),finger(2,450)],[finger(2,450)]);
+assert(pan);assert.equal(drag,null);assert(inspecting);
+const initialCamera=camera;
+canvas.getBoundingClientRect=()=>({left:0,top:0,width:200,height:350});
+emit('touchmove',[finger(1,300),finger(2,400)]);
+assert.equal(camera,clamp(initialCamera+100,0,HEIGHT-H));
+emit('touchmove',[finger(1,-5000),finger(2,-4900)]);assert.equal(camera,HEIGHT-H);
+emit('touchmove',[finger(1,5000),finger(2,5100)]);assert.equal(camera,0);
+emit('touchend',[finger(1,350)],[finger(2,450)]);assert.equal(pan,null);
+emit('touchmove',[finger(1,400)]);assert.equal(drag,null);
+emit('touchend',[],[finger(1,400)]);assert.equal(ignoreTouches,false);
+assert.equal(stamina,beforePan.stamina);assert.equal(moveCount,beforePan.moveCount);
+assert.deepEqual(body,beforePan.body);assert.deepEqual(grips,beforePan.grips);
+emit('touchstart',[finger(1,100),finger(2,200)]);assert(pan);
+emit('touchstart',[finger(1,100),finger(2,200),finger(3,300)]);assert.equal(pan,null);
+emit('touchend',[],[finger(1,100),finger(2,200),finger(3,300)]);
+emit('touchstart',[finger(1,100),finger(2,200)]);assert(pan);
+emit('touchcancel',[],[finger(1,100),finger(2,200)]);assert.equal(pan,null);assert.equal(ignoreTouches,false);
+cameraIntro={from:0,to:HEIGHT-H,start:null};
+emit('touchstart',[finger(1,100),finger(2,200)]);assert.equal(pan,null);
+emit('touchend',[],[finger(1,100),finger(2,200)]);
+assert(!html.includes('id="scrollRail"') && !html.includes('id="density"'));
+assert(!ui.level.innerHTML.includes('2点固定'));
+console.log('PASS two-finger scrolling: cancel movement, scale, bounds, finger release, third finger, cancel, intro guard');
 showCourseMenu();
 ui.helpDialog.showModal=function(){this.open=true;};ui.helpDialog.close=function(){this.open=false;};
 ui.showHelp.onclick();assert.equal(ui.helpDialog.open,true);assert.equal(state,'choosing');

@@ -26,10 +26,7 @@
             <div class="level" id="level">Level 1<span>BOULDERING PUZZLE</span></div>
         </header>
         <section class="wall" aria-label="クライミングゲーム">
-            <canvas id="game" width="400" height="700" aria-label="フィールドのどこからでもスワイプして黄色のゴールを目指してください"></canvas>
-            <div id="scrollRail" class="scroll-rail" role="slider" tabindex="0" aria-label="ステージのスクロール" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
-                <div id="scrollThumb" class="scroll-thumb"><span>↕</span></div>
-            </div>
+            <canvas id="game" tabindex="0" width="400" height="700" aria-label="1本指のスワイプで移動、2本指のスワイプでステージをスクロール"></canvas>
             <div class="hud">
                 <div class="pill">STAMINA <strong id="stamina">—</strong></div>
                 <div class="progress" id="progress">0 手 / 準備中</div>
@@ -65,7 +62,6 @@
             <button id="undo" aria-label="直前の移動を1手取り消す" disabled>↶ UNDO</button>
             <button id="restart" aria-label="現在のステージを最初からやり直す">↻ RESTART</button>
         </footer>
-        <div class="density" id="density" aria-live="polite"></div>
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
             <div class="help-heading"><h2 id="helpTitle">くわしい説明</h2><button id="closeHelp" aria-label="説明を閉じる" autofocus>閉じる</button></div>
             <h3>登り方</h3>
@@ -82,7 +78,7 @@
             <p>Undoで直前の1手を取り消し、姿勢とスタミナを戻せます。連続では使えませんが、新しく1手進むと再び使えます。クリア・手数切れ直後も利用できます。RESTARTは現在のステージをやり直し、スタミナとボーナスをそのステージ開始時の量に戻します。</p>
             <h3>コースと便利な機能</h3>
             <p><strong>ノーマルコース：</strong>壁全体にホールド候補を配置し、ルートを確認して調整したコースです。<br><strong>ロジハラコース：</strong>通れるルートを保ちながら、必要なホールドまで絞ったコースです。</p>
-            <p>「パス表示」で想定ルートを確認できます。右端の帯で壁をスクロールできます。開始時は最下段へのスクロールが終わると操作可能です。</p>
+            <p>「パス表示」で想定ルートを確認できます。ステージ上を2本指で上下にスワイプすると壁をスクロールできます。1本指はキャラクターの移動です。開始時は最下段へのスクロールが終わると操作可能です。</p>
         </dialog>
     </main>
 </body>

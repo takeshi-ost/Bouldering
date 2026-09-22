@@ -3,8 +3,8 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
-    "level", "stamina", "progress", "scrollRail", "scrollThumb", "overlay", "resultTag",
-    "resultTitle", "resultText", "next", "retry", "restart", "showPath", "density",
+    "level", "stamina", "progress", "overlay", "resultTag",
+    "resultTitle", "resultText", "next", "retry", "restart", "showPath",
     "courseMenu", "existingCourse", "prototypeCourse", "undo", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
@@ -333,7 +333,7 @@ function reset(n, bonus = 0) {
     ui.overlay.hidden = true;
     ui.restart.disabled = false;
 
-    ui.level.innerHTML = `Level ${level}<span>${courseMode === 'prototype' ? 'ロジハラコース' : 'ノーマルコース'} · 2点固定</span>`;
+    ui.level.innerHTML = `Level ${level}<span>${courseMode === 'prototype' ? 'ロジハラコース' : 'ノーマルコース'}</span>`;
     ui.next.textContent = 'NEXT STAGE →';
 
     updateUI();
@@ -350,18 +350,6 @@ function updateUI() {
 
     ui.progress.textContent =
         `${moveCount} 手 / 想定 ${route.length - 1} 手`;
-
-    if (densityStats.prototype) {
-        ui.density.textContent = `ロジハラ：必要ホールド ${densityStats.total} 個 · 想定 ${route.length - 1} 手`;
-        return;
-    }
-    ui.density.textContent =
-        `密度：最大 ${densityStats.peak} 個／画面 · ` +
-        `基準 ${densityStats.target} 個 · ` +
-        `全体 ${densityStats.total} 個 · ` +
-        `${densityStats.iterations} 回調整` +
-        `${densityStats.converged ? '' : '（制約により調整停止）'} · ` +
-        `ルート検証で ${densityStats.routeRemoved} 個削減`;
 }
 
 function point(e) {
@@ -602,7 +590,7 @@ function finish(won) {
 
     ui.resultText.textContent =
         won
-            ? `Level ${level} を ${moveCount} 手でクリア。残り ${stamina} 手を次ステージのボーナスに。`
+            ? `ステージクリア！+${stamina} ボーナス`
             : 'スタミナがなくなりました。同じ壁でルートを見直してみよう。';
 
     (won ? ui.next : ui.retry).focus();

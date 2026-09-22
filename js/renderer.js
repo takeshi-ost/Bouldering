@@ -411,27 +411,6 @@ function draw(now = 0) {
             CAMERA_CONFIG.followRate;
     }
 
-    ui.scrollThumb.style.height =
-        (H / HEIGHT * 100) + '%';
-
-    ui.scrollThumb.style.top =
-        (camera / HEIGHT * 100) + '%';
-
-    ui.scrollRail.setAttribute(
-        'aria-valuemax',
-        String(HEIGHT - H)
-    );
-
-    ui.scrollRail.setAttribute(
-        'aria-valuenow',
-        String(Math.round(camera))
-    );
-
-    ui.scrollRail.setAttribute(
-        'aria-disabled',
-        String(HEIGHT <= H)
-    );
-
     const ratio = Math.min(
         window.devicePixelRatio || 1,
         RENDER_CONFIG.maxPixelRatio
@@ -697,9 +676,8 @@ function draw(now = 0) {
             '#ffffff70'
         );
 
-        if (gold) {
-            ctx.fillStyle =
-                '#9e7b2c';
+        if (gold || (green && h.wide)) {
+            ctx.fillStyle = gold ? '#9e7b2c' : '#526659';
 
             ctx.font =
                 'bold 10px system-ui';
@@ -708,7 +686,7 @@ function draw(now = 0) {
                 'center';
 
             ctx.fillText(
-                'GOAL',
+                gold ? 'GOAL' : 'START',
                 h.x,
                 h.y - 23
             );
@@ -763,28 +741,6 @@ function draw(now = 0) {
                 : '#435c50';
 
         drawLimbSegments(root, joint, h, color);
-
-        if (
-            drag &&
-            drag.anchor !== null &&
-            !moving &&
-            grip === startGrips[i]
-        ) {
-            ctx.fillStyle =
-                '#526659';
-
-            ctx.font =
-                '9px system-ui';
-
-            ctx.textAlign =
-                'center';
-
-            ctx.fillText(
-                '固定',
-                h.x,
-                h.y + 24
-            );
-        }
     });
 
     const left =

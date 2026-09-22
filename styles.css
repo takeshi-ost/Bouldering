@@ -211,13 +211,6 @@ footer button {
     background: #d8b14c;
 }
 
-.density {
-    font-size: 10px;
-    color: #768076;
-    margin-top: 7px;
-    line-height: 1.7;
-}
-
 @media(max-height:820px) and (min-width:460px) {
     main {
         width: min(390px,calc((100svh - 175px)*4/7));
@@ -235,37 +228,6 @@ footer button {
 .path-toggle { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; white-space: nowrap; cursor: pointer; }
 .path-toggle input { width: 18px; height: 18px; accent-color: #39785b; }
 
-
-/* A separate column keeps the scroll control off the climbing surface. */
-.wall { display: flex; align-items: stretch; }
-.wall canvas { width: calc(100% - 32px); min-width: 0; flex: 1 1 auto; }
-.hud { right: 46px; }
-.scroll-rail {
-    position: relative;
-    flex: 0 0 32px;
-    background: #d9ded4;
-    border-left: 1px solid #bcc7b8;
-    touch-action: none;
-    user-select: none;
-    cursor: ns-resize;
-}
-.scroll-rail:focus-visible { outline: 2px solid #39785b; outline-offset: -3px; }
-.scroll-thumb {
-    position: absolute;
-    left: 5px;
-    right: 5px;
-    top: 0;
-    height: 100%;
-    border-radius: 12px;
-    background: #8ca68c;
-    border: 1px solid #718d74;
-    pointer-events: none;
-    display: grid;
-    place-items: center;
-    color: #f8f6ee;
-    font-size: 20px;
-}
-.scroll-rail[aria-disabled="true"] { cursor: default; opacity: .45; }
 
 /* Leave the wall visible and scrollable while comparing the two paths. */
 .overlay.reviewing { background: transparent; backdrop-filter: none; pointer-events: none; align-items: end; padding: 8px; }
