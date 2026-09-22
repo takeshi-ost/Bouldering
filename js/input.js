@@ -95,7 +95,7 @@ function showCourseMenu() {
     ui.courseMenu.hidden = false;
     ui.courseError.hidden = true;
     ui.restart.disabled = true;
-    ui.changeCourse.disabled = true;
+    ui.undo.disabled = true;
     ui.showPath.disabled = true;
     ui.scrollRail.setAttribute('tabindex', '-1');
     ui.level.textContent = 'コース選択';
@@ -108,7 +108,6 @@ function startCourse(mode) {
     try {
         restartInput(1);
         ui.courseMenu.hidden = true;
-        ui.changeCourse.disabled = false;
         ui.showPath.disabled = false;
         ui.scrollRail.setAttribute('tabindex', '0');
         ui.restart.focus();
@@ -121,4 +120,7 @@ function startCourse(mode) {
 }
 ui.existingCourse.onclick = () => startCourse('existing');
 ui.prototypeCourse.onclick = () => startCourse('prototype');
-ui.changeCourse.onclick = showCourseMenu;
+ui.undo.onclick = () => {
+    endPan(); touchId = null; ignoreTouches = false;
+    undoMove();
+};

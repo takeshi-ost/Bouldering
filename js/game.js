@@ -5,7 +5,7 @@ const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "level", "stamina", "progress", "scrollRail", "scrollThumb", "overlay", "resultTag",
     "resultTitle", "resultText", "next", "retry", "restart", "showPath", "density",
-    "courseMenu", "existingCourse", "prototypeCourse", "changeCourse", "courseError"
+    "courseMenu", "existingCourse", "prototypeCourse", "undo", "courseError"
 ].map(id => [id, document.getElementById(id)]));
 
 let courseMode = 'existing';
@@ -28,6 +28,8 @@ let drag = null;
 let state = "choosing";
 let warning = 0;
 let densityStats = null;
+let undoSnapshot = null;
+let moveSnapshot = null;
 
 function generate(n) {
     ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n));
@@ -116,7 +118,7 @@ function movingLimbHasForwardHold(i, pair, ux, uy, pairReach) {
             // The goal is the one exception: both hands may share it.
             const occupiedBySupport = pair.some(j =>
                 startGrips[j] === h &&
-                !canShareGoal(h, i, j)
+                !canShareHold(h, i, j)
             );
 
             if (occupiedBySupport)
@@ -187,8 +189,9 @@ function selectAnchor(dx, dy) {
     return [...bestPair];
 }
 
-function canShareGoal(hold, a, b) {
-    return hold.type === 'goal' && a < 2 && b < 2 && a !== b;
+function canShareHold(hold, a, b) {
+    return a !== b && ((hold.type === 'goal' && a < 2 && b < 2) ||
+        (hold.wide === true && Math.floor(a / 2) === Math.floor(b / 2)));
 }
 
 function attachMoving(p, anchor) {
@@ -211,7 +214,7 @@ function attachMoving(p, anchor) {
 
         return available
             .filter(h =>
-                fixed.every(j => h !== result[j] || canShareGoal(h, i, j)) &&
+                fixed.every(j => h !== result[j] || canShareHold(h, i, j)) &&
                 limbReachable(p, h, i)
             )
             .map(h => ({
@@ -226,7 +229,7 @@ function attachMoving(p, anchor) {
             );
     });
 
-    // Only the two hands can share the goal; the selected anchor never changes.
+    // Sharing is pairwise: a wide hold accepts two hands OR two feet, never a mix.
     let best = [...result];
     let bestCount = -1;
     let bestCost = Infinity;
@@ -258,7 +261,7 @@ function attachMoving(p, anchor) {
                 result.some((h, j) =>
                     j !== i &&
                     h === candidate.h &&
-                    !canShareGoal(h, i, j)
+                    !canShareHold(h, i, j)
                 )
             )
                 continue;
@@ -277,6 +280,7 @@ function attachMoving(p, anchor) {
 }
 
 function reset(n) {
+    undoSnapshot = moveSnapshot = null;
     resetCharacterAnimation();
     jointHistory.fill(null);
     level = n;
@@ -337,6 +341,7 @@ function reset(n) {
 }
 
 function updateUI() {
+    ui.undo.disabled = !undoSnapshot || !!drag || !!cameraIntro || state === 'choosing';
     ui.stamina.textContent = stamina;
     ui.stamina.style.color =
         stamina <= 4
@@ -408,6 +413,13 @@ function down(e) {
     )
         return;
 
+    // Preserve the visible settled pose as well as the logical move origin.
+    moveSnapshot = {
+        body:{...body}, grips:[...grips], stamina, moveCount,
+        playerPath:playerPath.map(p=>({...p})), camera,
+        visibleBody:{...characterPose(performance.now()).body},
+        joints:jointHistory.map(p=>p && ({...p}))
+    };
     resetCharacterAnimation();
     drag = {
         dx: body.x - p.x,
@@ -529,6 +541,7 @@ function release(cancel = false) {
         body = { ...committed };
         grips = [...startGrips];
     } else {
+        undoSnapshot = moveSnapshot;
         playerPath.push({
             x: body.x,
             y: body.y
@@ -546,9 +559,28 @@ function release(cancel = false) {
             finish(false);
     }
 
+    moveSnapshot = null;
     warning = 0;
 
     updateUI();
+}
+
+function undoMove() {
+    if (!undoSnapshot || drag || cameraIntro || state === 'choosing') return false;
+    const saved = undoSnapshot;
+    undoSnapshot = moveSnapshot = null;
+    body = {...saved.body}; committed = {...body};
+    grips = [...saved.grips]; startGrips = [...grips];
+    stamina = saved.stamina; moveCount = saved.moveCount;
+    playerPath = saved.playerPath.map(p=>({...p}));
+    camera = saved.camera; inspecting = false; warning = 0; state = 'playing';
+    resetCharacterAnimation();
+    characterAnimation = {kind:'settle',start:performance.now(),
+        origin:{...saved.visibleBody},target:{...saved.visibleBody}};
+    saved.joints.forEach((p,i)=>jointHistory[i]=p && ({...p}));
+    ui.overlay.hidden = true; ui.next.hidden = true;
+    updateUI();
+    return true;
 }
 
 function finish(won) {

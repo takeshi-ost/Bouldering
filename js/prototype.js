@@ -36,6 +36,7 @@ function preparePrototypeStage() {
             }
         }
     }
+    assignWideHolds(guide);
     const candidateCount = holds.length;
     route = solveRoute(guide);
     if (!route) throw new Error('Prototype route search failed for level ' + level);

@@ -42,7 +42,7 @@ for(let n=1;n<=20;n++){
             check(Array.isArray(drag.anchor)&&new Set(drag.anchor).size===2,'Not two supports');
             selected??=JSON.stringify(drag.anchor);
             check(JSON.stringify(drag.anchor)===selected,'Supports switched during swipe');
-            check(grips.filter(Boolean).every((h,k,list)=>list.every((other,j)=>j===k || h!==other || h.type==='goal')),'Duplicate normal contact');
+            check(grips.every((h,k)=>!h || grips.every((other,j)=>j===k || h!==other || canShareHold(h,k,j))),'Invalid shared contact');
             check(drag.anchor.every(k=>grips[k]===before[k]&&limbReachable(body,grips[k],k)),'Fixed support moved');
         }
         check(grips.every((h,k)=>h && limbReachable(body,h,k)),'Unreachable contact or foot above shoulders');
@@ -56,7 +56,8 @@ for(let n=1;n<=20;n++){
         check(playerPath.length===i+1,'Committed path incorrect');
     }
     check(state==='won'&&bothHandsOnGoal()&&stamina===STAGE_CONFIG.spareMoves,'Goal or budget failed');
-    report.push({level:n,moves:moveCount,holds:holds.length,selectionHolds:densityStats.selectionHoldIds.length});
+    check(holds.filter(h=>h.wide).length<=3,'Too many wide holds');
+    report.push({level:n,moves:moveCount,holds:holds.length,wide:holds.filter(h=>h.wide).length,selectionHolds:densityStats.selectionHoldIds.length});
 }
 reset(2);advanceCameraIntro(0);advanceCameraIntro(1650);
 const origin={...body},before=[...grips],budget=stamina;
@@ -74,7 +75,7 @@ check(distance(body,origin)===0&&stamina===budget&&playerPath.length===1,'Cancel
 // A no-op with a legitimate pair retains both the posture and stamina.
 committed={...body};startGrips=[...grips];drag={anchor:[0,1]};release();
 check(stamina===budget&&moveCount===0,'No-op consumed stamina');
-// Only the goal can be shared; both feet remain fixed when both hands reach it.
+// Goal still accepts both hands while the feet remain fixed.
 const goal={id:0,x:200,y:232,type:'goal'},left={id:1,x:160,y:378,type:'normal'},right={id:2,x:240,y:378,type:'normal'};
 holds=[goal,left,right];startGrips=[{x:148,y:232},{x:252,y:232},left,right];
 const pose=attachMoving({x:200,y:300},[2,3]);

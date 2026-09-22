@@ -626,9 +626,14 @@ function draw(now = 0) {
             h.type === 'start';
 
         ctx.lineWidth = 1.5;
+        // Scale the hold silhouette only; contact coordinates and reach stay exact.
+        const holdShape = (x,y,r,fill,stroke) => {
+            ctx.save(); ctx.translate(x,y); ctx.scale(h.wide ? 1.5 : 1,1);
+            circle(0,0,r,fill,stroke); ctx.restore();
+        };
 
         if (active) {
-            circle(
+            holdShape(
                 h.x,
                 h.y,
                 14,
@@ -639,14 +644,14 @@ function draw(now = 0) {
             );
         }
 
-        circle(
+        holdShape(
             h.x,
             h.y + 2,
             gold ? 10 : 8,
             '#293c3020'
         );
 
-        circle(
+        holdShape(
             h.x,
             h.y,
             gold ? 10 : 8,
@@ -659,7 +664,7 @@ function draw(now = 0) {
                         : '#b2b6aa'
         );
 
-        circle(
+        holdShape(
             h.x - 2,
             h.y - 2,
             2,

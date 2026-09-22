@@ -93,6 +93,7 @@ function replayRoute(path) {
 
 function prepareStage() {
     generate(level);
+    assignWideHolds(route);
     const solved=solveRoute(route);
     if(!solved)throw new Error('Two-support route search failed for level '+level);
     route=solved;
@@ -137,4 +138,20 @@ function updateStageDensity() {
     densityStats.coreCount=holds.filter(h=>used.has(h.id)).length;
     densityStats.branchCount=holds.length-densityStats.coreCount;
     densityStats.peak=Math.max(...windows.map(y=>holds.filter(h=>h.y>=y&&h.y<=y+H).length));
+}
+
+// Upgrade existing candidates before solving. Separate RNG preserves guide layout.
+// Wide holds remain normal holds for density and pruning; removed ones stay removed.
+function assignWideHolds(guide) {
+    const random = mulberry32(level ^ 0x6B1D2F43);
+    const count = Math.floor(random() * 4);
+    const candidates = holds.filter(h => h.type === 'normal').map(h => ({h,key:random()}));
+    candidates.sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
+    let placed = 0;
+    for (const {h} of candidates) {
+        if (placed === count) break;
+        if (!guide.some(p => [[0,1],[2,3]].some(pair=>pair.every(i=>limbReachable(p,h,i))))) continue;
+        h.wide = true;
+        placed++;
+    }
 }

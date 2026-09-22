@@ -53,14 +53,16 @@ for (let n=1;n<=20;n++) {
     }
     assert.equal(state,'won');assert.equal(stamina,STAGE_CONFIG.spareMoves);
     ui.retry.onclick();assert.equal(JSON.stringify({holds,route}),snapshot);
-    report.push({level:n,holds:holds.length,moves:route.length-1});
+    assert(holds.filter(h=>h.wide).length<=3);
+    report.push({level:n,holds:holds.length,wide:holds.filter(h=>h.wide).length,moves:route.length-1});
 }
+assert(report.some(p=>p.wide>0),'Wide holds never survive pruning');
 ui.next.onclick();assert.equal(level,21);assert.equal(courseMode,'prototype');
-ui.changeCourse.onclick();assert.equal(state,'choosing');assert.equal(drag,null);
+showCourseMenu();assert.equal(state,'choosing');assert.equal(drag,null);
 ui.existingCourse.onclick();assert.equal(courseMode,'existing');assert.equal(level,1);
 const original=JSON.stringify({holds,route});
-ui.changeCourse.onclick();ui.prototypeCourse.onclick();
-ui.changeCourse.onclick();ui.existingCourse.onclick();
+showCourseMenu();ui.prototypeCourse.onclick();
+showCourseMenu();ui.existingCourse.onclick();
 assert.equal(JSON.stringify({holds,route}),original,'Prototype contaminated existing course');
 // Guide-only generation returns the exact same pre-search guide and start/goal.
 for(let n=1;n<=20;n++) {
