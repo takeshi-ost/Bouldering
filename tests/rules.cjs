@@ -67,12 +67,12 @@ for(let i=1;i<route.length;i++)playStep(route[i]);
 assert.equal(state,'won');draw(2000);
 assert.equal(ui.resultText.textContent,'ステージクリア！');
 ui.next.onclick();assert.equal(level,2);
-const nextBudget=route.length-1+STAGE_CONFIG.spareMoves-hearts.length*2;
+const nextBudget=stageStamina(route.length-1)-hearts.length*2;
 assert.equal(stamina,nextBudget);assert.equal(ui.stamina.textContent,String(nextBudget));
 ui.next.onclick();assert.equal(level,2,'Repeated Next advances twice');
 advanceCameraIntro(0);advanceCameraIntro(1650);playStep(route[1]);
 ui.retry.onclick();assert.equal(stamina,nextBudget);
-startCourse('prototype');assert.equal(stamina,route.length-1+STAGE_CONFIG.spareMoves);
+startCourse('prototype');assert.equal(stamina,stageStamina(route.length-1));
 assert(ui.level.innerHTML.includes('ロジハラコース'));
 startCourse('existing');assert(ui.level.innerHTML.includes('ノーマルコース'));
 assert.equal(ui.stamina.textContent,String(stamina));
@@ -87,6 +87,9 @@ drawnColors.length=0;state='playing';drawPath();assert.equal(drawnColors.length,
 ui.showPath.checked=true;state='won';drawPath();
 assert(drawnColors.includes('#527faa9c') && drawnColors.includes('#d14479'));
 ui.showPath.checked=false;
+// Ten-move stamina boundaries, including the explicit 30 -> 33 example.
+for(const [moves,budget] of [[5,5],[9,9],[10,11],[19,20],[20,22],[29,31],[30,33],[39,42],[40,44]])
+ assert.equal(stageStamina(moves),budget);
 // Heart generation boundaries, seeded count and a playable recovery schedule.
 const samplePath=Array.from({length:6},(_,i)=>({x:200+i*20,y:600-i*40}));
 for(let n=1;n<5;n++)assert.deepEqual(createHearts(n,samplePath),[]);
@@ -95,14 +98,14 @@ const seenHeartCounts=new Set();
 for(let n=5;n<105;n++) {
  const items=createHearts(n,samplePath);seenHeartCounts.add(items.length);
  assert(items.length<=2);assert.deepEqual(createHearts(n,samplePath),items);
- let budget=5+STAGE_CONFIG.spareMoves-items.length*2;
+ let budget=stageStamina(5)-items.length*2;
  const picked=new Set();
  for(let i=1;i<samplePath.length;i++) {
   assert(budget>0,'Cannot start next move before recovery');
   items.forEach(h=>{if(!picked.has(h.id)&&torsoTouchesHeart(samplePath[i-1],samplePath[i],h)){picked.add(h.id);budget+=2;}});
   budget--;
  }
- assert.equal(picked.size,items.length);assert.equal(budget,STAGE_CONFIG.spareMoves);
+ assert.equal(picked.size,items.length);assert.equal(budget,0);
 }
 assert.deepEqual([...seenHeartCounts].sort(),[0,1,2]);
 assert(torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:300}),'Fast sweep misses heart');
@@ -117,7 +120,9 @@ function dragToFirst() {
  down(event(body));move(event(route[1]));
 }
 dragToFirst();assert(hearts[0].collected);assert.equal(stamina,initialHeartBudget+2);
+assert.equal(heartPopups.length,1);assert.equal(heartPopups[0].x,heartTarget.x);assert.equal(heartPopups[0].y,heartTarget.y);
 move({clientX:body.x,clientY:body.y-camera});assert.equal(stamina,initialHeartBudget+2,'Repeated contact farms recovery');
+assert.equal(heartPopups.length,1,'Repeated contact duplicates popup');
 release(true);assert(hearts[0].collected);assert.equal(stamina,initialHeartBudget+2);
 assert.equal(moveCount,0,'Canceled pickup consumes a move');
 dragToFirst();grips=[...startGrips];release();
@@ -143,7 +148,17 @@ assert(hearts.every(h=>h.collected));
 // Recovery on the final available move happens before the loss check.
 reset(1);cameraIntro=null;hearts=[{id:0,x:route[1].x,y:route[1].y,collected:false}];
 stamina=1;playStep(route[1]);assert.equal(state,'playing');assert.equal(stamina,2);
-reset(1);assert.deepEqual(hearts,[]);
+reset(1);assert.deepEqual(hearts,[]);assert.deepEqual(heartPopups,[]);
+// Sample the drawn positions and opacity at known elapsed times without real waits.
+const popupCalls=[];
+ctx.fillText=(text,x,y)=>popupCalls.push({text,x,y,alpha:ctx.globalAlpha});
+heartPopups=[{x:170,y:400,start:1000}];
+drawHeartPopups(1000);assert.deepEqual(popupCalls.pop(),{text:'+2',x:170,y:400,alpha:1});
+drawHeartPopups(1500);assert.deepEqual(popupCalls.pop(),{text:'+2',x:170,y:385,alpha:.5});
+drawHeartPopups(1999);const lastPopup=popupCalls.pop();
+assert(Math.abs(lastPopup.y-370.03)<1e-9);assert(lastPopup.alpha>0 && lastPopup.alpha<.002);
+drawHeartPopups(2000);assert.equal(popupCalls.length,0);assert.deepEqual(heartPopups,[]);
+console.log('PASS +2 popup position, 30px/1s rise, opacity, expiration, reset, no duplicate; stamina 10/20/30 thresholds');
 console.log('PASS hearts: eligibility, retry seed, route budget, swept contact, persistent cancel/no-op/invalid/Undo pickups, no duplicate recovery, last-stamina rescue');
 // Two fingers cancel movement without spending a move and pan in canvas units.
 reset(1);cameraIntro=null;HEIGHT=H*2;

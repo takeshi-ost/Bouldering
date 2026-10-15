@@ -386,6 +386,25 @@ function characterPose(now) {
     return pose;
 }
 
+function drawHeartPopups(now) {
+    heartPopups = heartPopups.filter(popup => now-popup.start < HEART_CONFIG.popupDuration);
+    ctx.save();
+    ctx.font = 'bold 18px system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#c94661';
+    ctx.strokeStyle = '#fff9ed';
+    ctx.lineWidth = 3;
+    for (const popup of heartPopups) {
+        const t = clamp((now-popup.start)/HEART_CONFIG.popupDuration,0,1);
+        const y = popup.y - HEART_CONFIG.popupRise*t;
+        ctx.globalAlpha = 1-t;
+        ctx.strokeText('+2',popup.x,y);
+        ctx.fillText('+2',popup.x,y);
+    }
+    ctx.restore();
+}
+
 function draw(now = 0) {
     if (state === 'choosing') {
         requestAnimationFrame(draw);
@@ -857,6 +876,7 @@ function draw(now = 0) {
     }
 
     ctx.restore();
+    drawHeartPopups(performance.now());
     ctx.restore();
 
     requestAnimationFrame(draw);

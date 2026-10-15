@@ -39,7 +39,7 @@ for(let n=1;n<=20;n++){
     check(replayRoute(route),'Two-support route replay failed '+n);
     check(HEIGHT<=MAX_HEIGHT,'Wall too tall');
     const budget=stamina;
-    check(budget===route.length-1+STAGE_CONFIG.spareMoves-hearts.length*2,'Initial heart budget failed');
+    check(budget===stageStamina(route.length-1)-hearts.length*2,'Initial heart budget failed');
     for(let i=1;i<route.length;i++){
         camera=clamp(body.y-H*.6,0,HEIGHT-H);
         const before=[...grips],origin={...body},target=route[i];
@@ -65,7 +65,7 @@ for(let n=1;n<=20;n++){
         check(grips.every((h,k)=>h.id===target.grips[k]),'Different contact sequence');
         check(playerPath.length===i+1,'Committed path incorrect');
     }
-    check(state==='won'&&bothHandsOnGoal()&&stamina===STAGE_CONFIG.spareMoves,'Goal or budget failed');
+    check(state==='won'&&bothHandsOnGoal()&&stamina===Math.floor((route.length-1)/10),'Goal or budget failed');
     check(hearts.every(h=>h.collected),'Missed recovery on validated route');
     check(holds.filter(h=>h.wide).length<=3,'Too many wide holds');
     report.push({level:n,moves:moveCount,holds:holds.length,wide:holds.filter(h=>h.wide).length,selectionHolds:densityStats.selectionHoldIds.length});

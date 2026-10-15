@@ -31,7 +31,7 @@ for (let n=1;n<=20;n++) {
     assert(new Set(holds.map(h=>h.id)).size===holds.length,'Duplicate hold IDs');
     assert(holds.every(h=>h.type==='start' || !insideStartTriangle(h,grips)),'Hold inside starting triangle');
     const snapshot=JSON.stringify({holds,route,hearts});
-    assert.equal(stamina,route.length-1+STAGE_CONFIG.spareMoves-hearts.length*2);
+    assert.equal(stamina,stageStamina(route.length-1)-hearts.length*2);
     const bodyPath=route.map(p=>({x:p.x,y:p.y}));
     assert(replayRoute(route));
     const complete=holds;
@@ -59,7 +59,7 @@ for (let n=1;n<=20;n++) {
         assert.equal(moveCount,i,'Failed move '+n+'/'+i);
         assert.deepEqual(grips.map(h=>h.id),target.grips);
     }
-    assert.equal(state,'won');assert.equal(stamina,STAGE_CONFIG.spareMoves);
+    assert.equal(state,'won');assert.equal(stamina,Math.floor((route.length-1)/10));
     assert(hearts.every(h=>h.collected),'Missed recovery on validated route');
     ui.retry.onclick();assert.equal(JSON.stringify({holds,route,hearts}),snapshot);
     assert(holds.filter(h=>h.wide).length<=3);

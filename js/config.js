@@ -24,7 +24,7 @@ const STAGE_CONFIG = {
     baseMoves: 20,
     movesPerLevel: 2,
     growthLevels: 3,
-    spareMoves: 1,
+    staminaInterval: 10,
     stationSpacing: 40,
     supportSpan: 5,
     introStations: [6.5, 7.5, 8.5, 11.5, 14.5],
@@ -60,7 +60,7 @@ const DENSITY_CONFIG = {
     crowdWeight: 8,
 };
 // ルート上の回復アイテム。取得分を開始スタミナから先に差し引きます。
-const HEART_CONFIG = { firstLevel: 5, minMoves: 5, maxCount: 2, recovery: 2, radius: 10 };
+const HEART_CONFIG = { firstLevel: 5, minMoves: 5, maxCount: 2, recovery: 2, radius: 10, popupDuration: 1000, popupRise: 30 };
 // 操作と描画。
 const INPUT_CONFIG = { dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24 };
 const CAMERA_CONFIG = { bodyScreenRatio: 0.6, followRate: 0.08, introSpeed: H * 1.5 };

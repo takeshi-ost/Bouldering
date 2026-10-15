@@ -13,6 +13,7 @@ let level = 1;
 let holds = [];
 let route = [];
 let hearts = [];
+let heartPopups = [];
 let HEIGHT = H;
 let initialGrips = [];
 let body;
@@ -280,18 +281,22 @@ function attachMoving(p, anchor) {
     return bestCount < 0 ? null : best;
 }
 
+function stageStamina(moves) {
+    return moves + Math.floor(moves / STAGE_CONFIG.staminaInterval);
+}
+
 // Use an independent stream: retries preserve both holds and items.
 function createHearts(n, path) {
     const moves = path.length - 1;
     if (n < HEART_CONFIG.firstLevel || moves < HEART_CONFIG.minMoves) return [];
     const random = mulberry32(n ^ 0x48EA27B1);
     const count = Math.floor(random() * (HEART_CONFIG.maxCount + 1));
-    const initialBudget = moves + STAGE_CONFIG.spareMoves - count * HEART_CONFIG.recovery;
+    const initialBudget = stageStamina(moves) - count * HEART_CONFIG.recovery;
     let previousStep = 0;
     return Array.from({length:count}, (_,id) => {
-        // Leave one stamina point in reserve before each scheduled pickup.
+        // Schedule pickups no later than the last available move before recovery.
         // Later items may depend on earlier pickups, without carrying stamina from an earlier stage.
-        const latest = Math.min(moves - (count - id), initialBudget + id * HEART_CONFIG.recovery - 1);
+        const latest = Math.min(moves - (count - id), initialBudget + id * HEART_CONFIG.recovery);
         const step = previousStep + 1 + Math.floor(random() * (latest - previousStep));
         previousStep = step;
         return {id, x:path[step].x, y:path[step].y, collected:false};
@@ -323,6 +328,7 @@ function collectHearts(from, to) {
         if (!heart.collected && torsoTouchesHeart(from,to,heart)) {
             heart.collected = true;
             stamina += HEART_CONFIG.recovery;
+            heartPopups.push({x:heart.x,y:heart.y,start:performance.now()});
         }
     }
 }
@@ -356,7 +362,8 @@ function reset(n) {
     startInitialPose();
 
     hearts = createHearts(n,route);
-    stamina = route.length - 1 + STAGE_CONFIG.spareMoves - hearts.length * HEART_CONFIG.recovery;
+    heartPopups = [];
+    stamina = stageStamina(route.length - 1) - hearts.length * HEART_CONFIG.recovery;
 
     moveCount = 0;
 
