@@ -693,6 +693,19 @@ function draw(now = 0) {
         }
     }
 
+    // Vector heart avoids relying on an emoji font on each device.
+    for (const heart of hearts) {
+        if (heart.collected || heart.y < camera-20 || heart.y > camera+H+20) continue;
+        const x=heart.x, y=heart.y, r=HEART_CONFIG.radius;
+        ctx.beginPath();
+        ctx.moveTo(x,y+r);
+        ctx.bezierCurveTo(x-r*2,y, x-r,y-r*1.5, x,y-r*.5);
+        ctx.bezierCurveTo(x+r,y-r*1.5, x+r*2,y, x,y+r);
+        ctx.closePath();
+        ctx.fillStyle='#d85869'; ctx.fill();
+        ctx.strokeStyle='#fff6ed'; ctx.lineWidth=2; ctx.stroke();
+    }
+
     const visual=characterPose(performance.now());
     ctx.save();
     if(visual.pivot) {

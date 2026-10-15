@@ -12,6 +12,7 @@ let courseMode = 'existing';
 let level = 1;
 let holds = [];
 let route = [];
+let hearts = [];
 let HEIGHT = H;
 let initialGrips = [];
 let body;
@@ -281,6 +282,59 @@ function attachMoving(p, anchor) {
     return bestCount < 0 ? null : best;
 }
 
+// Use an independent stream: retries preserve both holds and items.
+function createHearts(n, path) {
+    const moves = path.length - 1;
+    if (n < HEART_CONFIG.firstLevel || moves < HEART_CONFIG.minMoves) return [];
+    const random = mulberry32(n ^ 0x48EA27B1);
+    const count = Math.floor(random() * (HEART_CONFIG.maxCount + 1));
+    const initialBudget = moves + STAGE_CONFIG.spareMoves - count * HEART_CONFIG.recovery;
+    let previousStep = 0;
+    return Array.from({length:count}, (_,id) => {
+        // Leave one stamina point in reserve before each scheduled pickup.
+        // Later items may depend on earlier pickups, but never on a stage bonus.
+        const latest = Math.min(moves - (count - id), initialBudget + id * HEART_CONFIG.recovery - 1);
+        const step = previousStep + 1 + Math.floor(random() * (latest - previousStep));
+        previousStep = step;
+        return {id, x:path[step].x, y:path[step].y, collected:false};
+    });
+}
+
+// Sweep the torso rectangle along each actual movement segment so fast drags
+// cannot skip an item. Limbs, camera movement and pose-only settling do not collect.
+function torsoTouchesHeart(from, to, heart) {
+    const halfWidth = TORSO.width / 2 + HEART_CONFIG.radius;
+    const halfHeight = TORSO.height / 2 + HEART_CONFIG.radius;
+    let enter = 0, exit = 1;
+    for (const [axis,half] of [['x',halfWidth],['y',halfHeight]]) {
+        const delta = to[axis] - from[axis];
+        const offset = from[axis] - heart[axis];
+        if (Math.abs(delta) < 1e-12) {
+            if (Math.abs(offset) > half) return false;
+        } else {
+            const a = (-half-offset)/delta, b = (half-offset)/delta;
+            enter = Math.max(enter,Math.min(a,b));
+            exit = Math.min(exit,Math.max(a,b));
+            if (enter > exit) return false;
+        }
+    }
+    return true;
+}
+function collectHearts(from, to) {
+    for (const heart of hearts) {
+        if (!heart.collected && torsoTouchesHeart(from,to,heart)) {
+            heart.collected = true;
+            stamina += HEART_CONFIG.recovery;
+        }
+    }
+}
+function restoreMoveItems(saved) {
+    if (!saved) return;
+    stamina = saved.stamina;
+    bonusStamina = saved.bonusStamina;
+    hearts.forEach((heart,i) => heart.collected = saved.collectedHearts[i]);
+}
+
 function reset(n, bonus = 0) {
     undoSnapshot = moveSnapshot = null;
     resetCharacterAnimation();
@@ -305,7 +359,8 @@ function reset(n, bonus = 0) {
     startInitialPose();
 
     stageBonus = bonusStamina = Math.max(0,Math.floor(bonus));
-    stamina = route.length - 1 + STAGE_CONFIG.spareMoves + bonusStamina;
+    hearts = createHearts(n,route);
+    stamina = route.length - 1 + STAGE_CONFIG.spareMoves + bonusStamina - hearts.length * HEART_CONFIG.recovery;
 
     moveCount = 0;
 
@@ -404,6 +459,7 @@ function down(e) {
     // Preserve the visible settled pose as well as the logical move origin.
     moveSnapshot = {
         body:{...body}, grips:[...grips], stamina, bonusStamina, moveCount,
+        collectedHearts:hearts.map(heart=>heart.collected),
         playerPath:playerPath.map(p=>({...p})), camera,
         visibleBody:{...characterPose(performance.now()).body},
         joints:jointHistory.map(p=>p && ({...p}))
@@ -463,6 +519,7 @@ function move(e) {
     else
         body = previousBody;
 
+    collectHearts(previousBody,body);
     warning = blocked ? 1 : 0;
 
     updateUI();
@@ -528,6 +585,7 @@ function release(cancel = false) {
     ) {
         body = { ...committed };
         grips = [...startGrips];
+        restoreMoveItems(moveSnapshot);
     } else {
         undoSnapshot = moveSnapshot;
         playerPath.push({
@@ -560,7 +618,8 @@ function undoMove() {
     undoSnapshot = moveSnapshot = null;
     body = {...saved.body}; committed = {...body};
     grips = [...saved.grips]; startGrips = [...grips];
-    stamina = saved.stamina; bonusStamina = saved.bonusStamina; moveCount = saved.moveCount;
+    restoreMoveItems(saved);
+    moveCount = saved.moveCount;
     playerPath = saved.playerPath.map(p=>({...p}));
     camera = saved.camera; inspecting = false; warning = 0; state = 'playing';
     resetCharacterAnimation();

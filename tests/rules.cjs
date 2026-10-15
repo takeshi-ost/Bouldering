@@ -89,6 +89,51 @@ reset(1,3);stamina=4;updateUI();assert.equal(ui.stamina.textContent,'1+3');
 playStep(route[1]);assert.equal(ui.stamina.textContent,'0+3');
 playStep(route[2]);assert.equal(ui.stamina.textContent,'0+2');
 reset(1,1);stamina=1;playStep(route[1]);assert.equal(ui.stamina.textContent,'0');assert.equal(state,'lost');
+// Heart generation boundaries, seeded count and a playable recovery schedule.
+const samplePath=Array.from({length:6},(_,i)=>({x:200+i*20,y:600-i*40}));
+for(let n=1;n<5;n++)assert.deepEqual(createHearts(n,samplePath),[]);
+for(let moves=0;moves<5;moves++)assert.deepEqual(createHearts(5,samplePath.slice(0,moves+1)),[]);
+const seenHeartCounts=new Set();
+for(let n=5;n<105;n++) {
+ const items=createHearts(n,samplePath);seenHeartCounts.add(items.length);
+ assert(items.length<=2);assert.deepEqual(createHearts(n,samplePath),items);
+ let budget=5+STAGE_CONFIG.spareMoves-items.length*2;
+ const picked=new Set();
+ for(let i=1;i<samplePath.length;i++) {
+  assert(budget>0,'Cannot start next move before recovery');
+  items.forEach(h=>{if(!picked.has(h.id)&&torsoTouchesHeart(samplePath[i-1],samplePath[i],h)){picked.add(h.id);budget+=2;}});
+  budget--;
+ }
+ assert.equal(picked.size,items.length);assert.equal(budget,STAGE_CONFIG.spareMoves);
+}
+assert.deepEqual([...seenHeartCounts].sort(),[0,1,2]);
+assert(torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:300}),'Fast sweep misses heart');
+assert(!torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:347}),'Arm/leg contact collects heart');
+reset(1,3);cameraIntro=null;
+const heartTarget=route[1];
+hearts=[{id:0,x:heartTarget.x,y:heartTarget.y,collected:false}];
+const initialHeartBudget=stamina;
+function dragToFirst() {
+ camera=clamp(body.y-H*.6,0,HEIGHT-H);
+ const event=p=>({clientX:p.x,clientY:p.y-camera});
+ down(event(body));move(event(route[1]));
+}
+dragToFirst();assert(hearts[0].collected);assert.equal(stamina,initialHeartBudget+2);
+move({clientX:body.x,clientY:body.y-camera});assert.equal(stamina,initialHeartBudget+2,'Repeated contact farms recovery');
+release(true);assert(!hearts[0].collected);assert.equal(stamina,initialHeartBudget);
+dragToFirst();grips=[...startGrips];release();
+assert(!hearts[0].collected);assert.equal(stamina,initialHeartBudget,'No-op farms recovery');
+dragToFirst();grips=[null,...grips.slice(1)];release();
+assert(!hearts[0].collected);assert.equal(stamina,initialHeartBudget,'Invalid move farms recovery');
+const beforeHeart=playStep(route[1]);assert(hearts[0].collected);
+assert.equal(stamina,initialHeartBudget+1);assert.equal(bonusStamina,3,'Recovery must add to regular stamina');
+checkUndo(beforeHeart);assert(!hearts[0].collected);
+playStep(route[1]);assert.equal(stamina,initialHeartBudget+1,'Undo then pickup duplicates recovery');
+// Recovery on the final available move happens before the loss check.
+reset(1);cameraIntro=null;hearts=[{id:0,x:route[1].x,y:route[1].y,collected:false}];
+stamina=1;playStep(route[1]);assert.equal(state,'playing');assert.equal(stamina,2);
+reset(1);assert.deepEqual(hearts,[]);
+console.log('PASS hearts: eligibility, 0/1/2 counts, retry seed, recoverable route, swept torso contact, once-only pickup, cancel/no-op/invalid, Undo, bonus accounting, last-stamina rescue');
 // Two fingers cancel movement without spending a move and pan in canvas units.
 reset(1);cameraIntro=null;HEIGHT=H*2;
 const beforePan={stamina,moveCount,body:{...body},grips:[...grips]};

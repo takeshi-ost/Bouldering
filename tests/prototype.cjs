@@ -30,7 +30,8 @@ for (let n=1;n<=20;n++) {
     assert(grips.every((h,i)=>limbReachable(body,h,i)),'Unreachable starting limb');
     assert(new Set(holds.map(h=>h.id)).size===holds.length,'Duplicate hold IDs');
     assert(holds.every(h=>h.type==='start' || !insideStartTriangle(h,grips)),'Hold inside starting triangle');
-    const snapshot=JSON.stringify({holds,route});
+    const snapshot=JSON.stringify({holds,route,hearts});
+    assert.equal(stamina,route.length-1+STAGE_CONFIG.spareMoves-hearts.length*2);
     const bodyPath=route.map(p=>({x:p.x,y:p.y}));
     assert(replayRoute(route));
     const complete=holds;
@@ -59,7 +60,8 @@ for (let n=1;n<=20;n++) {
         assert.deepEqual(grips.map(h=>h.id),target.grips);
     }
     assert.equal(state,'won');assert.equal(stamina,STAGE_CONFIG.spareMoves);
-    ui.retry.onclick();assert.equal(JSON.stringify({holds,route}),snapshot);
+    assert(hearts.every(h=>h.collected),'Missed recovery on validated route');
+    ui.retry.onclick();assert.equal(JSON.stringify({holds,route,hearts}),snapshot);
     assert(holds.filter(h=>h.wide).length<=3);
     report.push({level:n,holds:holds.length,wide:holds.filter(h=>h.wide).length,moves:route.length-1});
 }

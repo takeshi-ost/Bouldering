@@ -59,6 +59,8 @@ const DENSITY_CONFIG = {
     crowdRadius: 110,
     crowdWeight: 8,
 };
+// ルート上の回復アイテム。取得分を開始スタミナから先に差し引きます。
+const HEART_CONFIG = { firstLevel: 5, minMoves: 5, maxCount: 2, recovery: 2, radius: 10 };
 // 操作と描画。
 const INPUT_CONFIG = { dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24 };
 const CAMERA_CONFIG = { bodyScreenRatio: 0.6, followRate: 0.08, introSpeed: H * 1.5 };
