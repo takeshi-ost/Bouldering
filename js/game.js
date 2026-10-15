@@ -20,8 +20,6 @@ let committed;
 let grips = [];
 let startGrips = [];
 let stamina = 0;
-let bonusStamina = 0;
-let stageBonus = 0;
 let moveCount = 0;
 let camera = 0;
 let cameraIntro = null;
@@ -292,7 +290,7 @@ function createHearts(n, path) {
     let previousStep = 0;
     return Array.from({length:count}, (_,id) => {
         // Leave one stamina point in reserve before each scheduled pickup.
-        // Later items may depend on earlier pickups, but never on a stage bonus.
+        // Later items may depend on earlier pickups, without carrying stamina from an earlier stage.
         const latest = Math.min(moves - (count - id), initialBudget + id * HEART_CONFIG.recovery - 1);
         const step = previousStep + 1 + Math.floor(random() * (latest - previousStep));
         previousStep = step;
@@ -328,14 +326,13 @@ function collectHearts(from, to) {
         }
     }
 }
-function restoreMoveItems(saved) {
-    if (!saved) return;
-    stamina = saved.stamina;
-    bonusStamina = saved.bonusStamina;
-    hearts.forEach((heart,i) => heart.collected = saved.collectedHearts[i]);
+// Pickups persist for the whole attempt, including canceled moves and Undo.
+function restoreMoveStamina(saved) {
+    const newPickups = hearts.filter((heart,i) => heart.collected && !saved.collectedHearts[i]).length;
+    stamina = saved.stamina + newPickups * HEART_CONFIG.recovery;
 }
 
-function reset(n, bonus = 0) {
+function reset(n) {
     undoSnapshot = moveSnapshot = null;
     resetCharacterAnimation();
     jointHistory.fill(null);
@@ -358,9 +355,8 @@ function reset(n, bonus = 0) {
     startGrips = [...grips];
     startInitialPose();
 
-    stageBonus = bonusStamina = Math.max(0,Math.floor(bonus));
     hearts = createHearts(n,route);
-    stamina = route.length - 1 + STAGE_CONFIG.spareMoves + bonusStamina - hearts.length * HEART_CONFIG.recovery;
+    stamina = route.length - 1 + STAGE_CONFIG.spareMoves - hearts.length * HEART_CONFIG.recovery;
 
     moveCount = 0;
 
@@ -396,8 +392,8 @@ function reset(n, bonus = 0) {
 
 function updateUI() {
     ui.undo.disabled = !undoSnapshot || !!drag || !!cameraIntro || state === 'choosing';
-    ui.stamina.textContent = bonusStamina > 0 ? `${stamina-bonusStamina}+${bonusStamina}` : String(stamina);
-    ui.stamina.setAttribute('aria-label',`通常 ${stamina-bonusStamina} 手、ボーナス ${bonusStamina} 手`);
+    ui.stamina.textContent = String(stamina);
+    ui.stamina.setAttribute('aria-label',`スタミナ ${stamina} 手`);
     ui.stamina.style.color =
         stamina <= 4
             ? '#bc5144'
@@ -458,7 +454,7 @@ function down(e) {
 
     // Preserve the visible settled pose as well as the logical move origin.
     moveSnapshot = {
-        body:{...body}, grips:[...grips], stamina, bonusStamina, moveCount,
+        body:{...body}, grips:[...grips], stamina, moveCount,
         collectedHearts:hearts.map(heart=>heart.collected),
         playerPath:playerPath.map(p=>({...p})), camera,
         visibleBody:{...characterPose(performance.now()).body},
@@ -585,7 +581,6 @@ function release(cancel = false) {
     ) {
         body = { ...committed };
         grips = [...startGrips];
-        restoreMoveItems(moveSnapshot);
     } else {
         undoSnapshot = moveSnapshot;
         playerPath.push({
@@ -593,7 +588,6 @@ function release(cancel = false) {
             y: body.y
         });
 
-        if (stamina-bonusStamina === 0 && bonusStamina > 0) bonusStamina--;
         stamina--;
         moveCount++;
 
@@ -618,7 +612,7 @@ function undoMove() {
     undoSnapshot = moveSnapshot = null;
     body = {...saved.body}; committed = {...body};
     grips = [...saved.grips]; startGrips = [...grips];
-    restoreMoveItems(saved);
+    restoreMoveStamina(saved);
     moveCount = saved.moveCount;
     playerPath = saved.playerPath.map(p=>({...p}));
     camera = saved.camera; inspecting = false; warning = 0; state = 'playing';
@@ -649,7 +643,7 @@ function finish(won) {
 
     ui.resultText.textContent =
         won
-            ? `ステージクリア！+${stamina} ボーナス`
+            ? 'ステージクリア！'
             : 'スタミナがなくなりました。同じ壁でルートを見直してみよう。';
 
     (won ? ui.next : ui.retry).focus();

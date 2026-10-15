@@ -61,34 +61,32 @@ let winning;
 for(let i=1;i<route.length;i++)winning=playStep(route[i]);
 assert.equal(state,'won');checkUndo(winning);
 reset(2);assert.equal(undoSnapshot,null);assert.equal(ui.undo.disabled,true);
-// Regular stamina first, total remaining carried forward exactly once, no retry farming.
-reset(1,3);const regular=stamina-bonusStamina;
-assert.equal(ui.stamina.textContent,regular+'+3');
-const bonusMove=playStep(route[1]);
-assert.equal(bonusStamina,3);assert.equal(stamina-bonusStamina,regular-1);
-checkUndo(bonusMove);assert.equal(bonusStamina,3);
-for(let i=1;i<route.length;i++) {
- const beforeBonus=bonusStamina,beforeRegular=stamina-bonusStamina;
- playStep(route[i]);
- assert.equal(bonusStamina,beforeBonus-(beforeRegular===0?1:0));
- assert.equal(stamina-bonusStamina,Math.max(0,beforeRegular-1));
-}
-assert.equal(state,'won');draw(2000);const earned=stamina;
-assert.equal(ui.resultText.textContent,'ステージクリア！+'+earned+' ボーナス');
-ui.next.onclick();assert.equal(level,2);assert.equal(stageBonus,earned);assert.equal(bonusStamina,earned);
-const nextBudget=route.length-1+STAGE_CONFIG.spareMoves;
-assert.equal(ui.stamina.textContent,nextBudget+'+'+earned);
-ui.next.onclick();assert.equal(level,2,'Repeated Next advances or awards twice');
+// Every stage starts with its own fixed budget; no carryover or bonus suffix.
+reset(1);const regular=stamina;
+for(let i=1;i<route.length;i++)playStep(route[i]);
+assert.equal(state,'won');draw(2000);
+assert.equal(ui.resultText.textContent,'ステージクリア！');
+ui.next.onclick();assert.equal(level,2);
+const nextBudget=route.length-1+STAGE_CONFIG.spareMoves-hearts.length*2;
+assert.equal(stamina,nextBudget);assert.equal(ui.stamina.textContent,String(nextBudget));
+ui.next.onclick();assert.equal(level,2,'Repeated Next advances twice');
 advanceCameraIntro(0);advanceCameraIntro(1650);playStep(route[1]);
-ui.retry.onclick();assert.equal(bonusStamina,earned);assert.equal(stamina,nextBudget+earned);
-startCourse('prototype');assert.equal(stageBonus,0);assert.equal(bonusStamina,0);
+ui.retry.onclick();assert.equal(stamina,nextBudget);
+startCourse('prototype');assert.equal(stamina,route.length-1+STAGE_CONFIG.spareMoves);
 assert(ui.level.innerHTML.includes('ロジハラコース'));
 startCourse('existing');assert(ui.level.innerHTML.includes('ノーマルコース'));
-assert.equal(ui.stamina.textContent,String(stamina),'Zero bonus suffix displayed');
-reset(1,3);stamina=4;updateUI();assert.equal(ui.stamina.textContent,'1+3');
-playStep(route[1]);assert.equal(ui.stamina.textContent,'0+3');
-playStep(route[2]);assert.equal(ui.stamina.textContent,'0+2');
-reset(1,1);stamina=1;playStep(route[1]);assert.equal(ui.stamina.textContent,'0');assert.equal(state,'lost');
+assert.equal(ui.stamina.textContent,String(stamina));
+// Actual route is automatic after winning; planned route still follows the checkbox.
+const drawnColors=[],drawnLabels=[];
+ctx.stroke=()=>drawnColors.push(ctx.strokeStyle);
+ctx.fillText=text=>drawnLabels.push(text);
+ui.showPath.checked=false;state='won';playerPath=[{x:100,y:300},{x:150,y:250}];
+drawPath();assert(drawnColors.includes('#d14479'));assert(!drawnColors.includes('#527faa9c'));
+assert(drawnLabels.includes('実際のルート'));
+drawnColors.length=0;state='playing';drawPath();assert.equal(drawnColors.length,0);
+ui.showPath.checked=true;state='won';drawPath();
+assert(drawnColors.includes('#527faa9c') && drawnColors.includes('#d14479'));
+ui.showPath.checked=false;
 // Heart generation boundaries, seeded count and a playable recovery schedule.
 const samplePath=Array.from({length:6},(_,i)=>({x:200+i*20,y:600-i*40}));
 for(let n=1;n<5;n++)assert.deepEqual(createHearts(n,samplePath),[]);
@@ -109,7 +107,7 @@ for(let n=5;n<105;n++) {
 assert.deepEqual([...seenHeartCounts].sort(),[0,1,2]);
 assert(torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:300}),'Fast sweep misses heart');
 assert(!torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:347}),'Arm/leg contact collects heart');
-reset(1,3);cameraIntro=null;
+reset(1);cameraIntro=null;
 const heartTarget=route[1];
 hearts=[{id:0,x:heartTarget.x,y:heartTarget.y,collected:false}];
 const initialHeartBudget=stamina;
@@ -120,20 +118,33 @@ function dragToFirst() {
 }
 dragToFirst();assert(hearts[0].collected);assert.equal(stamina,initialHeartBudget+2);
 move({clientX:body.x,clientY:body.y-camera});assert.equal(stamina,initialHeartBudget+2,'Repeated contact farms recovery');
-release(true);assert(!hearts[0].collected);assert.equal(stamina,initialHeartBudget);
+release(true);assert(hearts[0].collected);assert.equal(stamina,initialHeartBudget+2);
+assert.equal(moveCount,0,'Canceled pickup consumes a move');
 dragToFirst();grips=[...startGrips];release();
-assert(!hearts[0].collected);assert.equal(stamina,initialHeartBudget,'No-op farms recovery');
+assert(hearts[0].collected);assert.equal(stamina,initialHeartBudget+2,'No-op duplicates recovery');
 dragToFirst();grips=[null,...grips.slice(1)];release();
-assert(!hearts[0].collected);assert.equal(stamina,initialHeartBudget,'Invalid move farms recovery');
+assert(hearts[0].collected);assert.equal(stamina,initialHeartBudget+2,'Invalid move duplicates recovery');
 const beforeHeart=playStep(route[1]);assert(hearts[0].collected);
-assert.equal(stamina,initialHeartBudget+1);assert.equal(bonusStamina,3,'Recovery must add to regular stamina');
-checkUndo(beforeHeart);assert(!hearts[0].collected);
+assert.equal(stamina,initialHeartBudget+1);
+checkUndo(beforeHeart);assert(hearts[0].collected);
 playStep(route[1]);assert.equal(stamina,initialHeartBudget+1,'Undo then pickup duplicates recovery');
+// Undo the move on which a heart was first touched: keep the pickup and refund the move.
+reset(1);cameraIntro=null;hearts=[{id:0,x:route[1].x,y:route[1].y,collected:false}];
+const beforeFreshPickup=stamina;playStep(route[1]);assert.equal(stamina,beforeFreshPickup+1);
+assert(undoMove());assert(hearts[0].collected);assert.equal(stamina,beforeFreshPickup+2);
+playStep(route[1]);assert.equal(stamina,beforeFreshPickup+1);
+// A later canceled pickup must also survive Undo of the earlier committed move.
+hearts.push({id:1,x:route[2].x,y:route[2].y,collected:false});
+camera=clamp(body.y-H*.6,0,HEIGHT-H);
+down({clientX:body.x,clientY:body.y-camera});
+move({clientX:route[2].x,clientY:route[2].y-camera});release(true);
+assert(hearts[1].collected);assert(undoMove());assert.equal(stamina,beforeFreshPickup+4);
+assert(hearts.every(h=>h.collected));
 // Recovery on the final available move happens before the loss check.
 reset(1);cameraIntro=null;hearts=[{id:0,x:route[1].x,y:route[1].y,collected:false}];
 stamina=1;playStep(route[1]);assert.equal(state,'playing');assert.equal(stamina,2);
 reset(1);assert.deepEqual(hearts,[]);
-console.log('PASS hearts: eligibility, 0/1/2 counts, retry seed, recoverable route, swept torso contact, once-only pickup, cancel/no-op/invalid, Undo, bonus accounting, last-stamina rescue');
+console.log('PASS hearts: eligibility, retry seed, route budget, swept contact, persistent cancel/no-op/invalid/Undo pickups, no duplicate recovery, last-stamina rescue');
 // Two fingers cancel movement without spending a move and pan in canvas units.
 reset(1);cameraIntro=null;HEIGHT=H*2;
 const beforePan={stamina,moveCount,body:{...body},grips:[...grips]};
@@ -169,6 +180,6 @@ ui.helpDialog.showModal=function(){this.open=true;};ui.helpDialog.close=function
 ui.showHelp.onclick();assert.equal(ui.helpDialog.open,true);assert.equal(state,'choosing');
 ui.closeHelp.onclick();assert.equal(ui.helpDialog.open,false);
 assert(html.includes('くわしい説明') && html.includes('手足の制限') && html.includes('ホールドの種類'));
-console.log('PASS bonus carryover, regular-first spending, Undo, retry, Next guard, course labels');
+console.log('PASS fixed stage stamina, no carryover, retry, Next guard, automatic actual route and optional planned route');
 console.log('PASS Undo: actual input, single use, rearming, cancel, loss, win, reset, visible pose; wide holds: hands/feet sharing and mixed exclusion');
 `)(assert,html);

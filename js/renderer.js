@@ -128,104 +128,109 @@ function danglingTip(p, index, time) {
 }
 
 function drawPath() {
-    if (!ui.showPath.checked)
+    if (!ui.showPath.checked && state !== 'won')
         return;
 
     ctx.save();
 
-    ctx.setLineDash([6, 5]);
+    if (ui.showPath.checked) {
+        ctx.setLineDash([6, 5]);
 
-    for (let i = 1; i < route.length; i++) {
-        const a = route[i - 1];
-        const b = route[i];
+        for (let i = 1; i < route.length; i++) {
+            const a = route[i - 1];
+            const b = route[i];
 
-        if (
-            Math.max(a.y, b.y) < camera - 24 ||
-            Math.min(a.y, b.y) > camera + H + 24
-        )
-            continue;
+            if (
+                Math.max(a.y, b.y) < camera - 24 ||
+                Math.min(a.y, b.y) > camera + H + 24
+            )
+                continue;
 
-        line(
-            a,
-            b,
-            '#527faa9c',
-            state === 'won' ? 5 : 2
-        );
-
-        // Arrowheads indicate the direction of travel, including lateral turns.
-        const angle = Math.atan2(
-            b.y - a.y,
-            b.x - a.x
-        );
-
-        const mid = {
-            x: (a.x + b.x) / 2,
-            y: (a.y + b.y) / 2
-        };
-
-        ctx.setLineDash([]);
-
-        for (const offset of [-.55, .55]) {
             line(
-                mid,
-                {
-                    x: mid.x - 7 * Math.cos(angle + offset),
-                    y: mid.y - 7 * Math.sin(angle + offset)
-                },
+                a,
+                b,
                 '#527faa9c',
-                1.5
+                state === 'won' ? 5 : 2
             );
+
+            // Arrowheads indicate the direction of travel, including lateral turns.
+            const angle = Math.atan2(
+                b.y - a.y,
+                b.x - a.x
+            );
+
+            const mid = {
+                x: (a.x + b.x) / 2,
+                y: (a.y + b.y) / 2
+            };
+
+            ctx.setLineDash([]);
+
+            for (const offset of [-.55, .55]) {
+                line(
+                    mid,
+                    {
+                        x: mid.x - 7 * Math.cos(angle + offset),
+                        y: mid.y - 7 * Math.sin(angle + offset)
+                    },
+                    '#527faa9c',
+                    1.5
+                );
+            }
+
+            ctx.setLineDash([6, 5]);
         }
 
-        ctx.setLineDash([6, 5]);
+        ctx.setLineDash([]);
+        ctx.font = 'bold 10px system-ui';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        route.forEach((p, i) => {
+            if (
+                p.y < camera - 24 ||
+                p.y > camera + H + 24
+            )
+                return;
+
+            ctx.lineWidth = 1.5;
+
+            circle(
+                p.x,
+                p.y,
+                4,
+                '#f3f0e7',
+                '#527faa'
+            );
+
+            const labelX =
+                p.x > W - 65
+                    ? p.x - 20
+                    : p.x + 20;
+
+            circle(
+                labelX,
+                p.y,
+                11,
+                '#eef3f7ee'
+            );
+
+            ctx.fillStyle = '#527faa';
+            ctx.fillText(
+                String(i),
+                labelX,
+                p.y
+            );
+        });
     }
-
-    ctx.setLineDash([]);
-    ctx.font = 'bold 10px system-ui';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    route.forEach((p, i) => {
-        if (
-            p.y < camera - 24 ||
-            p.y > camera + H + 24
-        )
-            return;
-
-        ctx.lineWidth = 1.5;
-
-        circle(
-            p.x,
-            p.y,
-            4,
-            '#f3f0e7',
-            '#527faa'
-        );
-
-        const labelX =
-            p.x > W - 65
-                ? p.x - 20
-                : p.x + 20;
-
-        circle(
-            labelX,
-            p.y,
-            11,
-            '#eef3f7ee'
-        );
-
-        ctx.fillStyle = '#527faa';
-        ctx.fillText(
-            String(i),
-            labelX,
-            p.y
-        );
-    });
 
     if (
         state === 'won' &&
         playerPath.length > 1
     ) {
+        ctx.font = 'bold 10px system-ui';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.setLineDash([6, 5]);
 
         for (
