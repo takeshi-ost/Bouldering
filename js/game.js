@@ -294,9 +294,12 @@ function createHearts(n, path) {
     const initialBudget = stageStamina(moves) - count * HEART_CONFIG.recovery;
     let previousStep = 0;
     return Array.from({length:count}, (_,id) => {
-        // Schedule pickups no later than the last available move before recovery.
-        // Later items may depend on earlier pickups, without carrying stamina from an earlier stage.
-        const latest = Math.min(moves - (count - id), initialBudget + id * HEART_CONFIG.recovery);
+        // Recover before the late climb: one item by halfway, or two by 1/3 and 2/3.
+        // Also reserve stamina before pickup where the short-stage budget permits it.
+        const routeDeadline = Math.floor(moves * (id + 1) / (count + 1));
+        const budgetDeadline = initialBudget + id * HEART_CONFIG.recovery - 1;
+        const latest = Math.max(previousStep + 1,
+            Math.min(routeDeadline,budgetDeadline,moves - (count - id)));
         const step = previousStep + 1 + Math.floor(random() * (latest - previousStep));
         previousStep = step;
         return {id, x:path[step].x, y:path[step].y, collected:false};

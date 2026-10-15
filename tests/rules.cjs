@@ -108,6 +108,45 @@ for(let n=5;n<105;n++) {
  assert.equal(picked.size,items.length);assert.equal(budget,0);
 }
 assert.deepEqual([...seenHeartCounts].sort(),[0,1,2]);
+// No near-goal recoveries: cover all supported route lengths and 100 stage seeds.
+for(let moves=5;moves<=40;moves++)for(let n=5;n<105;n++) {
+ const path=Array.from({length:moves+1},(_,i)=>({x:200,y:(moves-i)*100}));
+ const items=createHearts(n,path);
+ let budget=stageStamina(moves)-items.length*2;
+ let step=0;
+ for(let i=0;i<items.length;i++) {
+  const pickup=path.findIndex(p=>p.x===items[i].x && p.y===items[i].y);
+  assert(pickup>step);
+  assert(pickup<=Math.floor(moves*(i+1)/(items.length+1)),'Recovery placed too late');
+  const beforePickup=budget-(pickup-step-1);
+  assert(beforePickup>=1,'Cannot reach recovery');
+  if(moves>=10)assert(beforePickup>=2,'No reserve before recovery');
+  budget=beforePickup+2-1;step=pickup;
+ }
+ assert.equal(budget-(moves-step),Math.floor(moves/10));
+}
+// Lv14 regression: both recoveries must be reached before the final third.
+for(const mode of ['existing','prototype']) {
+ courseMode=mode;reset(14);cameraIntro=null;
+ const count=route.length-1;
+ assert.equal(hearts.length,2);
+ const schedule=hearts.map(h=>route.findIndex(p=>p.x===h.x && p.y===h.y));
+ assert(schedule[1]<=Math.floor(count*2/3));
+ const initial=stamina;
+ // Consume one point to model an extra cost before reaching the second heart.
+ stamina--;
+ for(let i=1;i<route.length;i++) {
+  playStep(route[i]);
+  if(i===schedule[1])assert(hearts.every(h=>h.collected) && stamina>0);
+ }
+ assert.equal(state,'won','Lv14 runs out before the late heart');
+ assert.equal(stamina,Math.floor(count/10)-1);
+ ui.retry.onclick();
+ assert.equal(stamina,initial);assert(hearts.every(h=>!h.collected));
+ assert.deepEqual(hearts.map(h=>route.findIndex(p=>p.x===h.x && p.y===h.y)),schedule);
+}
+courseMode='existing';
+console.log('PASS early heart deadlines across 3600 routes; Lv14 both courses with one stamina spent before pickup');
 assert(torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:300}),'Fast sweep misses heart');
 assert(!torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:347}),'Arm/leg contact collects heart');
 reset(1);cameraIntro=null;
