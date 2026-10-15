@@ -406,7 +406,8 @@ function drawHeartPopups(now) {
 }
 
 function draw(now = 0) {
-    if (state === 'choosing') {
+    if (state === 'choosing' || state === 'map') {
+        if (state === 'map') advanceLevelMap(now);
         requestAnimationFrame(draw);
         return;
     }

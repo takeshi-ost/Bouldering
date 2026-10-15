@@ -3,7 +3,7 @@ let touchId = null;
 let pan = null;
 let ignoreTouches = false;
 function endPan() { pan = null; }
-function canScrollStage() { return state !== 'choosing' && !cameraIntro && HEIGHT > H; }
+function canScrollStage() { return ['playing','won','lost'].includes(state) && !cameraIntro && HEIGHT > H; }
 function beginTouchPan(touches) {
     if (!canScrollStage() || touches.length !== 2) return;
     release(true);
@@ -81,8 +81,9 @@ canvas.addEventListener('touchcancel', e => touchEnd(e, true));
 function restartInput(n) {
     endPan(); touchId = null; ignoreTouches = false; reset(n);
 }
-ui.next.onclick = () => { if (state === 'won') restartInput(level + 1); };
-ui.retry.onclick = ui.restart.onclick = () => restartInput(level);
+ui.next.onclick = () => { if (state === 'won') showLevelMap({advanceFrom:level}); };
+ui.retry.onclick = ui.restart.onclick = () => { if (['playing','won','lost'].includes(state)) restartInput(level); };
+ui.mapButton.onclick = () => { if (['playing','won','lost'].includes(state)) showLevelMap({target:level}); };
 
 function showCourseMenu() {
     release(true);
@@ -92,6 +93,10 @@ function showCourseMenu() {
     drag = null;
     cameraIntro = null;
     state = 'choosing';
+    mapTransition = null;
+    ui.levelMap.hidden = true;
+    ui.wall.classList.toggle('map-open',false);
+    ui.mapButton.disabled = true;
     ui.overlay.hidden = true;
     ui.courseMenu.hidden = false;
     ui.courseError.hidden = true;
@@ -106,18 +111,7 @@ function startCourse(mode) {
     if (mode !== 'existing' && mode !== 'prototype') return;
     courseMode = mode;
     ui.showPath.checked = false;
-    try {
-        restartInput(1);
-        ui.courseMenu.hidden = true;
-        ui.showPath.disabled = false;
-        canvas.setAttribute('tabindex', '0');
-        ui.restart.focus();
-    } catch (error) {
-        showCourseMenu();
-        ui.courseError.textContent = 'コースを生成できませんでした。もう一度選択してください。';
-        ui.courseError.hidden = false;
-        console.error(error);
-    }
+    showLevelMap();
 }
 ui.existingCourse.onclick = () => startCourse('existing');
 ui.prototypeCourse.onclick = () => startCourse('prototype');

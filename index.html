@@ -12,6 +12,7 @@
     <script src="js/game.js" defer></script>
     <script src="js/route.js" defer></script>
     <script src="js/prototype.js" defer></script>
+    <script src="js/level-map.js" defer></script>
     <script src="js/input.js" defer></script>
     <script src="js/renderer.js" defer></script>
     <script src="js/main.js" defer></script>
@@ -25,7 +26,7 @@
             </div>
             <div class="level" id="level">Level 1<span>BOULDERING PUZZLE</span></div>
         </header>
-        <section class="wall" aria-label="クライミングゲーム">
+        <section class="wall" id="wall" aria-label="クライミングゲーム">
             <canvas id="game" tabindex="0" width="400" height="700" aria-label="1本指のスワイプで移動、2本指のスワイプでステージをスクロール"></canvas>
             <div class="hud">
                 <div class="pill">STAMINA <strong id="stamina">—</strong></div>
@@ -43,6 +44,27 @@
                     <button class="secondary help-button" id="showHelp" aria-haspopup="dialog" aria-controls="helpDialog">くわしい説明</button>
                 </div>
             </div>
+            <section class="level-map" id="levelMap" aria-labelledby="mapTitle" hidden>
+                <div class="map-heading">
+                    <div><div class="eyebrow" id="mapCourse"></div><h1 id="mapTitle">ステージマップ</h1></div>
+                    <button id="mapCourses" class="map-secondary">コース選択</button>
+                </div>
+                <p id="mapStatus" class="map-status" aria-live="polite"></p>
+                <p id="mapError" class="map-error" role="alert" hidden></p>
+                <div class="map-scroll" id="mapScroll" tabindex="0" aria-label="ステージ一覧。上下にスクロールできます">
+                    <div class="map-track" id="mapTrack">
+                        <svg id="mapRoad" class="map-road" aria-hidden="true" preserveAspectRatio="none"></svg>
+                        <div id="mapNodes"></div>
+                        <div id="mapMarker" class="map-marker" aria-hidden="true"><i></i><b></b></div>
+                    </div>
+                </div>
+                <div class="map-navigation">
+                    <button id="mapPrev" class="map-secondary" aria-label="前のレベル範囲">←</button>
+                    <span id="mapRange"></span>
+                    <button id="mapNext" class="map-secondary" aria-label="次のレベル範囲">→</button>
+                </div>
+                <p class="map-hint">✓ クリア済みもタッチでもう一度遊べます</p>
+            </section>
             <div class="overlay" id="overlay" hidden>
                 <div class="card">
                     <div class="eyebrow" id="resultTag"></div>
@@ -59,6 +81,7 @@
                 <span><i class="dot gold"></i>GOAL</span>
                 <span><i class="dot wide"></i>両手／両足</span>
             </div>
+            <button id="mapButton" aria-label="ステージマップへ戻る" disabled>MAP</button>
             <button id="undo" aria-label="直前の移動を1手取り消す" disabled>↶ UNDO</button>
             <button id="restart" aria-label="現在のステージを最初からやり直す">↻ RESTART</button>
         </footer>
@@ -78,6 +101,7 @@
             <p>Undoで直前の1手を取り消し、姿勢と消費したスタミナを戻せます。❤️の取得と回復分は維持します。連続では使えませんが、新しく1手進むと再び使えます。クリア・手数切れ直後も利用できます。RESTARTは現在のステージをやり直し、スタミナと❤️をそのステージ開始時の状態に戻します。</p>
             <p>ステージ5以降、想定5手以上のステージではルート上に❤️が0〜2個現れます。手足ではなくボディで触れるとスタミナが2回復します。開始時の通常スタミナは❤️1個につき2少なくなるため、途中で回収しながら登りましょう。取得位置に「+2」が上昇しながら消えます。ボディが触れれば、移動が確定できなくても取得できます。キャンセル・Undoでも❤️と回復分は維持されます。</p>
             <h3>コースと便利な機能</h3>
+            <p>コースを選ぶとステージマップが開きます。挑戦できるレベルをタッチして開始し、クリアすると次のレベルが解放されます。クリア済みのレベルも何度でも遊べます。進行状況はコース別にこの端末へ保存します。MAPボタンでマップへ戻ると、進行中の挑戦は終了します。</p>
             <p><strong>ノーマルコース：</strong>壁全体にホールド候補を配置し、ルートを確認して調整したコースです。<br><strong>ロジハラコース：</strong>通れるルートを保ちながら、必要なホールドまで絞ったコースです。</p>
             <p>「パス表示」で想定ルートを確認できます。クリア時は実際に通ったルートを自動表示します。ステージ上を2本指で上下にスワイプすると壁をスクロールできます。1本指はキャラクターの移動です。開始時は最下段へのスクロールが終わると操作可能です。</p>
         </dialog>

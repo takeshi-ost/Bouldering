@@ -18,7 +18,7 @@ function requestAnimationFrame(){}
 new Function('assert', environment + source + `
 assert.equal(state, 'choosing');
 draw(0); down({clientX:200,clientY:400}); assert.equal(drag,null);
-ui.prototypeCourse.onclick();
+ui.prototypeCourse.onclick();assert.equal(state,'map');assert(selectStage(1));
 assert.equal(courseMode,'prototype'); assert.equal(state,'playing');
 const report=[];
 for (let n=1;n<=20;n++) {
@@ -66,12 +66,12 @@ for (let n=1;n<=20;n++) {
     report.push({level:n,holds:holds.length,wide:holds.filter(h=>h.wide).length,moves:route.length-1});
 }
 assert(report.some(p=>p.wide>0),'Wide holds never survive pruning');
-state='won';ui.next.onclick();assert.equal(level,21);assert.equal(courseMode,'prototype');
+state='won';ui.next.onclick();assert.equal(state,'map');advanceLevelMap(0);advanceLevelMap(650);assert.equal(mapSelected,21);assert(selectStage(21));assert.equal(level,21);assert.equal(courseMode,'prototype');
 showCourseMenu();assert.equal(state,'choosing');assert.equal(drag,null);
-ui.existingCourse.onclick();assert.equal(courseMode,'existing');assert.equal(level,1);
+ui.existingCourse.onclick();assert.equal(state,'map');assert(selectStage(1));assert.equal(courseMode,'existing');assert.equal(level,1);
 const original=JSON.stringify({holds,route});
-showCourseMenu();ui.prototypeCourse.onclick();
-showCourseMenu();ui.existingCourse.onclick();
+showCourseMenu();ui.prototypeCourse.onclick();assert(selectStage(1));
+showCourseMenu();ui.existingCourse.onclick();assert(selectStage(1));
 assert.equal(JSON.stringify({holds,route}),original,'Prototype contaminated existing course');
 // Guide-only generation returns the exact same pre-search guide and start/goal.
 for(let n=1;n<=20;n++) {

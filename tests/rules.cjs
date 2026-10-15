@@ -31,7 +31,7 @@ startGrips=attached;assert(supportsReachable(body,[2,3]),'Two feet on wide hold 
 wide.wide=false;startGrips=[null,null,...feet];holds=[wide,...feet];
 attached=attachMoving(body,[2,3]);assert(attached.filter(h=>h===wide).length<=1);
 // Actual input / release path, including visual restoration and terminal states.
-startCourse('existing');assert.equal(state,'playing');
+startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert.equal(state,'playing');
 advanceCameraIntro(0);advanceCameraIntro(1650);assert.equal(ui.undo.disabled,true);
 function playStep(step) {
  camera=clamp(body.y-H*.6,0,HEIGHT-H);
@@ -66,15 +66,16 @@ reset(1);const regular=stamina;
 for(let i=1;i<route.length;i++)playStep(route[i]);
 assert.equal(state,'won');draw(2000);
 assert.equal(ui.resultText.textContent,'ステージクリア！');
-ui.next.onclick();assert.equal(level,2);
+ui.next.onclick();assert.equal(state,'map');
+advanceLevelMap(0);advanceLevelMap(MAP_HOP_DURATION);assert.equal(mapSelected,2);assert(selectStage(2));assert.equal(level,2);
 const nextBudget=stageStamina(route.length-1)-hearts.length*2;
 assert.equal(stamina,nextBudget);assert.equal(ui.stamina.textContent,String(nextBudget));
 ui.next.onclick();assert.equal(level,2,'Repeated Next advances twice');
 advanceCameraIntro(0);advanceCameraIntro(1650);playStep(route[1]);
 ui.retry.onclick();assert.equal(stamina,nextBudget);
-startCourse('prototype');assert.equal(stamina,stageStamina(route.length-1));
+startCourse('prototype');assert.equal(state,'map');assert(selectStage(1));assert.equal(stamina,stageStamina(route.length-1));
 assert(ui.level.innerHTML.includes('ロジハラコース'));
-startCourse('existing');assert(ui.level.innerHTML.includes('ノーマルコース'));
+startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert(ui.level.innerHTML.includes('ノーマルコース'));
 assert.equal(ui.stamina.textContent,String(stamina));
 // Actual route is automatic after winning; planned route still follows the checkbox.
 const drawnColors=[],drawnLabels=[];

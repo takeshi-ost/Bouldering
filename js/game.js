@@ -3,8 +3,9 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
-    "level", "stamina", "progress", "overlay", "resultTag",
+    "wall", "level", "stamina", "progress", "overlay", "resultTag",
     "resultTitle", "resultText", "next", "retry", "restart", "showPath",
+    "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton",
     "courseMenu", "existingCourse", "prototypeCourse", "undo", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
@@ -395,13 +396,16 @@ function reset(n) {
     ui.restart.disabled = false;
 
     ui.level.innerHTML = `Level ${level}<span>${courseMode === 'prototype' ? 'ロジハラコース' : 'ノーマルコース'}</span>`;
-    ui.next.textContent = 'NEXT STAGE →';
+    ui.next.textContent = 'ステージマップへ →';
+    ui.levelMap.hidden = true;
+    ui.wall.classList.toggle('map-open',false);
+    ui.mapButton.disabled = false;
 
     updateUI();
 }
 
 function updateUI() {
-    ui.undo.disabled = !undoSnapshot || !!drag || !!cameraIntro || state === 'choosing';
+    ui.undo.disabled = !undoSnapshot || !!drag || !!cameraIntro || !['playing','won','lost'].includes(state);
     ui.stamina.textContent = String(stamina);
     ui.stamina.setAttribute('aria-label',`スタミナ ${stamina} 手`);
     ui.stamina.style.color =
@@ -617,7 +621,7 @@ function release(cancel = false) {
 }
 
 function undoMove() {
-    if (!undoSnapshot || drag || cameraIntro || state === 'choosing') return false;
+    if (!undoSnapshot || drag || cameraIntro || !['playing','won','lost'].includes(state)) return false;
     const saved = undoSnapshot;
     undoSnapshot = moveSnapshot = null;
     body = {...saved.body}; committed = {...body};
@@ -637,7 +641,7 @@ function undoMove() {
 
 function finish(won) {
     state = won ? 'won' : 'lost';
-    if(won)startGoalHang();
+    if(won) { recordStageClear(); startGoalHang(); }
     ui.overlay.hidden = false;
     ui.next.hidden = !won;
 

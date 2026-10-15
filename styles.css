@@ -253,3 +253,35 @@ footer button { white-space: nowrap; }
 .help-dialog h3 { margin: 22px 0 8px; font-size: 15px; }
 .help-dialog p, .help-dialog li { font-size: 13px; line-height: 1.8; }
 .help-dialog ul { padding-left: 20px; }
+
+/* A winding, touchable trail, with separate progress for each course. */
+.wall.map-open { touch-action:pan-y; }
+.level-map { position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; background:#eef0e4; }
+.level-map[hidden] { display:none; }
+.map-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:20px 18px 8px; }
+.map-heading h1 { font-size:21px; margin:7px 0 0; letter-spacing:1px; }
+.map-heading .eyebrow { letter-spacing:1px; }
+.map-secondary { padding:11px 12px; background:#dde5d6; color:#3f5b47; min-width:44px; min-height:44px; }
+.map-status { margin:4px 18px 14px; color:#627864; font-size:12px; }
+.map-error { margin:0 18px 10px; color:#ae433d; font-size:12px; }
+.map-scroll { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; background:radial-gradient(ellipse at 15% 25%,#dce6cf 0 12%,transparent 12.5%),radial-gradient(ellipse at 88% 60%,#e1e8d2 0 16%,transparent 16.5%),#eef0e4; background-size:100% 560px; }
+.map-track { position:relative; margin:0 12px; }
+.map-road { position:absolute; inset:0; width:100%; height:100%; overflow:visible; fill:none; stroke-width:12; stroke-linecap:round; }
+.map-road-open { stroke:#8faa82; }
+.map-road-locked { stroke:#d3dac9; }
+.map-node { position:absolute; transform:translate(-50%,-50%); width:58px; height:58px; padding:0; border-radius:50%; border:4px solid #fffdf3; box-shadow:0 4px 0 #a4b597,0 6px 10px #465c3220; display:flex; flex-direction:column; align-items:center; justify-content:center; letter-spacing:0; }
+.map-node span { font-size:20px; line-height:23px; }
+.map-node small { font-size:9px; line-height:12px; }
+.map-node.is-cleared { background:#78916c; }
+.map-node.is-ready { background:#d4a63d; box-shadow:0 4px 0 #ad8533,0 0 0 6px #e9d9a4; color:#fffdf4; }
+.map-node.is-locked { background:#d9dfd0; color:#8d9b84; box-shadow:0 4px 0 #c3cdb9; }
+.map-node:disabled { opacity:1; }
+.map-node:disabled:hover { filter:none; }
+.map-node[aria-current] { outline:2px solid #3d694e; outline-offset:5px; }
+.map-marker { position:absolute; transform:translate(-50%,-100%); width:24px; height:32px; pointer-events:none; z-index:1; filter:drop-shadow(0 2px 1px #25372f30); }
+.map-marker i { position:absolute; top:0; left:6px; width:12px; height:12px; border-radius:50%; background:#dcad86; border:1px solid #fff7e9; }
+.map-marker b { position:absolute; left:3px; top:12px; width:18px; height:20px; border:2px solid #fff7e9; border-radius:5px 5px 3px 3px; background:#3c7657; }
+.map-navigation { display:flex; align-items:center; justify-content:space-between; padding:8px 18px 0; gap:12px; font-size:12px; color:#65755f; }
+.map-hint { text-align:center; font-size:10px; color:#76856b; margin:8px 8px 12px; }
+footer .legend { max-width:110px; flex:1; }
+footer button { padding:9px 8px; }

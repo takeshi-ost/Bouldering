@@ -9,7 +9,7 @@ if(!html.includes('id="existingCourse"') || !html.includes('id="prototypeCourse"
 console.log(vm.runInContext(`
 function check(v,m){if(!v)throw Error(m);}
 check(state==='choosing' && !cameraIntro && !ui.courseMenu.hidden,'Course menu startup failed');
-ui.existingCourse.onclick();
+ui.existingCourse.onclick();check(state==='map','Course should open map');selectStage(1);
 check(state==='playing' && !cameraIntro && level===1 && courseMode==='existing','One-screen stage should start immediately');
 reset(2);check(cameraIntro,'Tall stage needs a scroll');
 advanceCameraIntro(0);
@@ -94,6 +94,6 @@ check(pose && pose[0]===goal && pose[1]===goal && pose[2]===left && pose[3]===ri
 check(attachMoving({x:200,y:300},2)===null,'Single-support attachment still permitted');
 restartInput(1);const repeated=JSON.stringify({holds,route});
 ui.retry.onclick();check(JSON.stringify({holds,route})===repeated && !cameraIntro && playerPath.length===1,'Retry failed');
-state='won';ui.next.onclick();check(level===2 && cameraIntro,'Next stage failed');
+state='won';recordStageClear();ui.next.onclick();check(state==='map','Next should open map');advanceLevelMap(0);advanceLevelMap(650);selectStage(2);check(level===2 && cameraIntro,'Next stage failed');
 JSON.stringify(report);
 `,context));
