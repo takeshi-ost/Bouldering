@@ -16,6 +16,7 @@
     <script src="js/level-map.js" defer></script>
     <script src="js/input.js" defer></script>
     <script src="js/renderer.js" defer></script>
+    <script src="js/appearance.js" defer></script>
     <script src="js/main.js" defer></script>
 </head>
 <body>
@@ -41,10 +42,25 @@
                     <p class="game-summary">体をスワイプして、壁を登るクライミングパズル。<br>2本の手足を支えに、残りの2本を動かします。<br>スタミナが尽きる前に、両手で黄色いゴールをつかもう。</p>
                     <button id="existingCourse">ノーマルコース</button>
                     <button class="secondary" id="prototypeCourse">ロジハラコース</button>
+                    <button class="secondary" id="editCharacter">キャラエディット</button>
+                    <p id="appearanceStatus" role="status" hidden></p>
                     <p id="courseError" role="alert" hidden></p>
                     <button class="secondary help-button" id="showHelp" aria-haspopup="dialog" aria-controls="helpDialog">くわしい説明</button>
                 </div>
             </div>
+            <section id="characterEditor" class="character-editor" aria-labelledby="editorTitle" hidden>
+                <div class="editor-heading"><div class="eyebrow">YOUR CLIMBER</div><h1 id="editorTitle">キャラエディット</h1><p>ボディの塗り分けをタップして、色を選ぼう。</p></div>
+                <svg id="editorPreview" viewBox="0 0 320 370" class="editor-preview" role="group" aria-label="キャラクターの配色プレビュー"></svg>
+                <label class="stripe-slider" for="stripeCount">塗り分け <output id="stripeCountValue" for="stripeCount">1</output><span>1〜8</span></label>
+                <input id="stripeCount" type="range" min="1" max="8" step="1" value="1">
+                <div id="editorPalette" class="editor-palette" hidden>
+                    <p id="selectedStripeLabel"></p>
+                    <div id="paletteSwatches" class="palette-swatches" aria-label="カラーパレット"></div>
+                    <label class="custom-color" for="customColor">自由な色 <input id="customColor" type="color" value="#39785b"></label>
+                </div>
+                <p class="editor-hint">配色は「決定」で保存されます。</p>
+                <div class="editor-actions"><button id="editorCancel" class="secondary">戻る</button><button id="editorConfirm">決定</button></div>
+            </section>
             <section class="level-map" id="levelMap" aria-labelledby="mapTitle" hidden>
                 <div class="map-heading">
                     <div><div class="eyebrow" id="mapCourse"></div><h1 id="mapTitle">ステージマップ</h1></div>
@@ -96,6 +112,8 @@
         </footer>
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
             <div class="help-heading"><h2 id="helpTitle">くわしい説明</h2><button id="closeHelp" aria-label="説明を閉じる" autofocus>閉じる</button></div>
+            <h3>キャラエディット</h3>
+            <p>スタート画面からボディを1〜8段の横ストライプに塗り分けられます。各段をタップして色を選び、「決定」でゲーム中とマップへ反映・保存します。「戻る」では変更を破棄します。</p>
             <h3>登り方</h3>
             <p>壁のどこからでもスワイプして体を動かせます。移動方向に応じて2本の手足が支えに選ばれ、残りの2本が届くホールドへ自動で移ります。スワイプ中は支えの2本は変わりません。</p>
             <p>指を離したときに4本ともホールドを保持できていれば1手確定します。保持できない場合や、同じ4つの接触位置に戻った場合は手数を消費しません。両足を保持したまま、両手で黄色いゴールをつかむとクリアです。</p>

@@ -84,6 +84,7 @@ function renderLevelMap() {
     ui.mapNodes.innerHTML = nodes.join('');
     ui.mapMarker.hidden = mapSelected<first || mapSelected>last;
     if (!ui.mapMarker.hidden) positionMapMarker(mapPoint(mapSelected));
+    if(typeof updateMapAppearance==='function')updateMapAppearance();
     ui.mapCourse.textContent = courseMode==='prototype'?'ロジハラコース':'ノーマルコース';
     ui.mapStatus.textContent = mapTransition ? '次のレベルへ進んでいます…' : `クリア ${cleared} ステージ · 次は Level ${unlocked}`;
     ui.mapRange.textContent = `${first}–${last}`;
@@ -103,6 +104,7 @@ function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
     if (debugAttempt) { advanceFrom=null; target=unlockedLevel(); }
     debugAttempt=false;
     state='map';
+    ui.characterEditor.hidden=true;
     ui.wall.classList.toggle('map-open',true);
     const destination=clamp(advanceFrom===null?target:advanceFrom+1,1,unlockedLevel());
     mapSelected=advanceFrom===null?destination:advanceFrom;

@@ -22,6 +22,20 @@ function line(a, b, color, width) {
     ctx.stroke();
 }
 
+// Split one dimension only. The same saved palette is used by the editor and map.
+function drawBodyFill(x,y,width,height,pressed=false,warn=false) {
+    const colors=typeof playerColors==='undefined' ? ['#39785b'] : playerColors;
+    colors.forEach((color,i)=>{
+        if(color==='#39785b')ctx.fillStyle=pressed?'#5b9b72':warn?'#c56d57':color;
+        else if(pressed || warn) {
+            const tint=pressed?'#ffffff':'#c56d57',amount=pressed ? .25 : .45;
+            ctx.fillStyle='#'+[1,3,5].map(k=>Math.round(parseInt(color.slice(k,k+2),16)*(1-amount)+parseInt(tint.slice(k,k+2),16)*amount).toString(16).padStart(2,'0')).join('');
+        } else ctx.fillStyle=color;
+        const top=y+height*i/colors.length,bottom=y+height*(i+1)/colors.length;
+        ctx.fillRect(x,top,width,bottom-top);
+    });
+}
+
 // All rigid IK candidates share one pose cost; no early bend-direction filters.
 const jointHistory = [null, null, null, null];
 function drawLimbSegments(root, joint, tip, color) {
@@ -458,7 +472,7 @@ function drawStageIntro() {
 }
 
 function draw(now = 0) {
-    if (state === 'choosing' || state === 'map') {
+    if (state === 'choosing' || state === 'editing' || state === 'map') {
         if (state === 'map') advanceLevelMap(now);
         requestAnimationFrame(draw);
         return;
@@ -876,19 +890,7 @@ function draw(now = 0) {
         TORSO.height + 8
     );
 
-    ctx.fillStyle =
-        bodyTap
-            ? '#5b9b72'
-            : warning > 0
-            ? '#c56d57'
-            : '#39785b';
-
-    ctx.fillRect(
-        left,
-        top + pressOffset,
-        TORSO.width,
-        TORSO.height
-    );
+    drawBodyFill(left,top+pressOffset,TORSO.width,TORSO.height,!!bodyTap,warning>0);
 
     ctx.lineWidth = 2;
     ctx.strokeStyle =
