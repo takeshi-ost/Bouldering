@@ -4,7 +4,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "wall", "level", "stamina", "progress", "overlay", "resultTag",
-    "resultTitle", "resultText", "next", "retry", "restart", "showPath",
+    "resultTitle", "resultText", "resultStats", "next", "retry", "restart", "showPath",
     "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "mapDebug", "debugControls", "debugStage", "debugPlay",
     "courseMenu", "existingCourse", "prototypeCourse", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
@@ -35,6 +35,26 @@ let warning = 0;
 let densityStats = null;
 let undoSnapshot = null;
 let moveSnapshot = null;
+let runStartedAt = null;
+let runElapsedMs = 0;
+function runTimeMs(now=performance.now()) {
+    return runStartedAt===null ? runElapsedMs : Math.max(0,now-runStartedAt);
+}
+function formatClearTime(ms) {
+    const ticks=Math.floor(Math.max(0,ms)/10);
+    return [Math.floor(ticks/6000),Math.floor(ticks/100)%60,ticks%100]
+        .map(n=>String(n).padStart(2,'0')).join(':');
+}
+function formatStageRecord(record) { return `${record.moves}手 ${formatClearTime(record.timeMs)}`; }
+function hideResultModal() {
+    if(ui.overlay.open)ui.overlay.close?.();
+    ui.overlay.hidden=true;
+}
+function showResultModal() {
+    ui.overlay.hidden=false;
+    if(!ui.overlay.open)ui.overlay.showModal?.();
+}
+
 
 function generate(n) {
     ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n));
@@ -371,6 +391,7 @@ function restoreMoveStamina(saved) {
 }
 
 function reset(n) {
+    runStartedAt=null;runElapsedMs=0;
     undoSnapshot = moveSnapshot = null;
     bodyTap = null;
     resetCharacterAnimation();
@@ -421,7 +442,7 @@ function reset(n) {
     state = 'playing';
     warning = 0;
 
-    ui.overlay.hidden = true;
+    hideResultModal();
     ui.restart.disabled = false;
 
     ui.level.innerHTML = `Level ${level}<span>${courseMode === 'prototype' ? 'ロジハラコース' : 'ノーマルコース'}</span>`;
@@ -494,6 +515,7 @@ function down(e) {
     )
         return;
 
+    if(runStartedAt===null)runStartedAt=performance.now()-runElapsedMs;
     // Preserve the visible settled pose as well as the logical move origin.
     moveSnapshot = {
         body:{...body}, grips:[...grips], stamina, moveCount,
@@ -663,6 +685,7 @@ function undoMove() {
     if (!canUndoMove()) return false;
     hazardShakeStart = null;
     heartPopups = heartPopups.filter(p => p.kind !== 'hazard');
+    const elapsed=runTimeMs();
     const saved = undoSnapshot;
     undoSnapshot = moveSnapshot = null;
     body = {...saved.body}; committed = {...body};
@@ -671,20 +694,23 @@ function undoMove() {
     moveCount = saved.moveCount;
     playerPath = saved.playerPath.map(p=>({...p}));
     camera = saved.camera; inspecting = false; warning = 0; state = 'playing';
+    runElapsedMs=elapsed;runStartedAt=performance.now()-elapsed;
     resetCharacterAnimation();
     characterAnimation = {kind:'settle',start:performance.now(),
         origin:{...saved.visibleBody},target:{...saved.visibleBody}};
     saved.joints.forEach((p,i)=>jointHistory[i]=p && ({...p}));
-    ui.overlay.hidden = true; ui.next.hidden = true;
+    hideResultModal(); ui.next.hidden = true;
     updateUI();
     return true;
 }
 
 function finish(won) {
+    runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
     state = won ? 'won' : 'lost';
     if(won) { recordStageClear(); startGoalHang(); }
     else startFall();
-    ui.overlay.hidden = false;
+    ui.resultStats.hidden=!won;
+    ui.resultStats.textContent=won ? formatStageRecord({moves:moveCount,timeMs:runElapsedMs}) : '';
     ui.next.hidden = !won;
 
     ui.resultTag.textContent =
@@ -702,6 +728,7 @@ function finish(won) {
             ? 'ステージクリア！'
             : 'スタミナがなくなりました。同じ壁でルートを見直してみよう。';
 
+    showResultModal();
     (won ? ui.next : ui.retry).focus();
 }
 
@@ -717,6 +744,7 @@ function advanceCameraIntro(now) {
         Math.max(0,now-cameraIntro.start) * CAMERA_CONFIG.introSpeed / 1000);
     if (camera >= cameraIntro.to && now-cameraIntro.start >= CAMERA_CONFIG.introMinDuration) {
         cameraIntro = null;
+        runStartedAt=now;runElapsedMs=0;
         updateUI();
     }
 }

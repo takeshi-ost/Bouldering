@@ -466,11 +466,6 @@ function draw(now = 0) {
     advanceCameraIntro(now);
     if(characterAnimation?.kind==='fall')camera=characterAnimation.camera;
 
-    ui.overlay.classList.toggle(
-        'reviewing',
-        state === 'won' || state === 'lost'
-    );
-
     const desired = clamp(
         body.y - H * CAMERA_CONFIG.bodyScreenRatio,
         0,

@@ -230,11 +230,6 @@ footer button {
 
 
 /* Keep the body visible for tap-to-Undo after either outcome. */
-.overlay.reviewing { background: transparent; backdrop-filter: none; pointer-events: none; align-items: end; padding: 8px; }
-.overlay.reviewing .card { pointer-events: auto; padding: 10px; }
-.overlay.reviewing .eyebrow, .overlay.reviewing h1 { display: none; }
-.overlay.reviewing .card p { margin: 0 0 6px; font-size: 12px; }
-.overlay.reviewing button { padding: 8px; margin-top: 4px; }
 
 .course-picker { z-index: 2; }
 button:disabled { opacity: .45; cursor: default; }
@@ -293,3 +288,11 @@ footer button { padding:9px 8px; }
 .debug-controls[hidden] { display:none; }
 .debug-controls input { width:80px; min-width:0; padding:6px; border:1px solid #adb9ad; border-radius:6px; font:inherit; }
 .debug-controls small { flex-basis:100%; color:#657569; }
+
+#overlay { position:fixed; inset:0; margin:0; width:100%; height:100%; max-width:none; max-height:none; border:0; z-index:10; background:#23372d70; backdrop-filter:blur(1px); box-sizing:border-box; overflow:auto; }
+#overlay .card { max-width:360px; box-sizing:border-box; }
+#overlay::backdrop { background:transparent; }
+#overlay .result-stats { font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; color:#39785b; }
+.map-record { position:absolute; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; color:#3f5b47; background:#fffdf3e8; padding:5px 7px; border-radius:7px; pointer-events:none; }
+.map-record.record-left { transform:translate(calc(-100% - 36px),-50%); }
+.map-record.record-right { transform:translate(36px,-50%); }

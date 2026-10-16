@@ -3,10 +3,10 @@ let touchId = null;
 let pan = null;
 let ignoreTouches = false;
 function endPan() { pan = null; }
-function canScrollStage() { return ['playing','won','lost'].includes(state) && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT > H; }
+function canScrollStage() { return ['playing','won','lost'].includes(state) && ui.overlay.hidden && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT > H; }
 // Delay a body gesture until it becomes a drag, preserving the visible pose on tap.
 function beginPointer(e) {
-    if (bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
+    if (!ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
     const p=point(e),visible=characterPose(performance.now()).body;
     if (Math.abs(p.x-visible.x)<=TORSO.width/2+TORSO.hitPadding &&
         Math.abs(p.y-visible.y)<=TORSO.height/2+TORSO.hitPadding) {
@@ -131,7 +131,7 @@ function showCourseMenu() {
     ui.levelMap.hidden = true;
     ui.wall.classList.toggle('map-open',false);
     ui.mapButton.disabled = true;
-    ui.overlay.hidden = true;
+    hideResultModal();
     ui.courseMenu.hidden = false;
     ui.courseError.hidden = true;
     ui.restart.disabled = true;
@@ -158,3 +158,6 @@ ui.showHelp.onclick = () => {
 };
 ui.closeHelp.onclick = () => ui.helpDialog.close();
 ui.helpDialog.addEventListener('close', () => ui.showHelp.focus());
+
+// Results stay modal until Retry or Next is chosen. Native dialog traps focus.
+ui.overlay.addEventListener('cancel',e=>e.preventDefault());

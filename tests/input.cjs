@@ -64,16 +64,16 @@ HEIGHT=H*2;e=visibleEvent();touch('touchstart',[finger(7,e)]);touch('touchstart'
 touch('touchend',[finger(7,e)],[finger(8,e)]);touch('touchend',[],[finger(7,e)]);assert.equal(moveCount,1);
 // A normal touch tap works and preserves pickup semantics tested by rules.cjs.
 e=visibleEvent();touch('touchstart',[finger(7,e)]);clock+=100;touch('touchend',[],[finger(7,e)]);assert.equal(moveCount,0);
-// The moving goal-hang torso and a loss can both be tapped to Undo.
+// Central result modals block background body taps and scrolling.
 fixture();for(let i=2;i<route.length;i++)play(i);assert.equal(state,'won');clock+=1000;
-e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal(state,'playing');assert.equal(moveCount,route.length-2);
+e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal(state,'won');assert.equal(bodyTap,null);assert(!canScrollStage());
 fixture();stamina=1;play(2);assert.equal(state,'lost');assert.equal(characterAnimation.kind,'fall');
 const lossCamera=camera;HEIGHT=H*3;assert.equal(canScrollStage(),false);
 canvas.events.wheel({deltaY:100,deltaMode:0,preventDefault(){}});
 canvas.events.keydown({key:'End',preventDefault(){}});
 beginTouchPan([finger(1,eventAt(body)),finger(2,eventAt({x:body.x+30,y:body.y}))]);assert.equal(pan,null);
-draw(0);assert.equal(camera,lossCamera);assert(ui.overlay.classList.values.reviewing);
-e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal(state,'playing');assert.equal(moveCount,1);assert.equal(characterAnimation.kind,'settle');
+draw(0);assert.equal(camera,lossCamera);assert(!ui.overlay.hidden);assert(!ui.overlay.classList.values.reviewing);
+e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal(state,'lost');assert.equal(bodyTap,null);ui.retry.onclick();assert.equal(state,'playing');assert(ui.overlay.hidden);assert.equal(moveCount,0);
 // Every stage, including a one-screen stage, blocks input until its title has lasted 1s.
 reset(1);assert(cameraIntro);e=visibleEvent();mouse('mousedown',e);mouse('mouseup',e);assert.equal(bodyTap,null);assert.equal(drag,null);
 advanceCameraIntro(100);advanceCameraIntro(1099);assert(cameraIntro);assert.equal(camera,HEIGHT-H);
@@ -82,5 +82,5 @@ drawStageIntro();assert.deepEqual(labels.pop(),{text:'STAGE 001',x:W/2,y:H/2});
 advanceCameraIntro(1100);assert.equal(cameraIntro,null);drawStageIntro();assert.equal(labels.length,0);
 assert.equal(ui.next.textContent,'次のステージへ →');
 showLevelMap();e=visibleEvent();mouse('mousedown',e);mouse('mouseup',e);assert.equal(bodyTap,null);assert.equal(state,'map');
-console.log('PASS body-tap Undo: visible pose, jitter, mouse/touch, single use, drag/return, long press, cancel, blur, two fingers, win/loss; centered STAGE label and 1s input lock');
+console.log('PASS body-tap Undo: visible pose, jitter, mouse/touch, single use, drag/return, long press, cancel, blur, two fingers, result modal input guards; centered STAGE label and 1s input lock');
 `)(assert);

@@ -15,6 +15,26 @@ function readStageProgress() {
     } catch (_) { /* Storage may be disabled; keep progress for this session. */ }
     return result;
 }
+const RECORDS_KEY='ascent.records.v1';
+function readStageRecords() {
+    const result={existing:{},prototype:{}};
+    try {
+        const saved=JSON.parse(globalThis.localStorage?.getItem(RECORDS_KEY)||'null');
+        for(const mode of ['existing','prototype']) {
+            const records=saved?.[mode];
+            if(!records || typeof records!=='object' || Array.isArray(records))continue;
+            for(const [key,value] of Object.entries(records)) {
+                const n=Number(key);
+                if(!/^[1-9]\d*$/.test(key) || !Number.isSafeInteger(n) || n>=Number.MAX_SAFE_INTEGER)continue;
+                if(Number.isSafeInteger(value?.moves) && value.moves>0 &&
+                    Number.isSafeInteger(value?.timeMs) && value.timeMs>=0)
+                    result[mode][key]={moves:value.moves,timeMs:value.timeMs};
+            }
+        }
+    } catch(_) { /* Older saves or unavailable storage have no timed records. */ }
+    return result;
+}
+let stageRecords=readStageRecords();
 let stageProgress = readStageProgress();
 let mapPage = 0;
 let mapSelected = 1;
@@ -22,9 +42,12 @@ let mapTransition = null;
 let debugAttempt = false;
 function recordStageClear() {
     if (debugAttempt) return;
+    if(moveCount>0)stageRecords[courseMode][level]={moves:moveCount,timeMs:Math.floor(runElapsedMs)};
     stageProgress[courseMode].cleared = Math.max(stageProgress[courseMode].cleared,level);
     try { globalThis.localStorage?.setItem(PROGRESS_KEY,JSON.stringify(stageProgress)); }
     catch (_) { /* Completing a level must still work without storage. */ }
+    try {globalThis.localStorage?.setItem(RECORDS_KEY,JSON.stringify(stageRecords));}
+    catch(_) { /* Keep records in memory when storage is unavailable. */ }
 }
 function unlockedLevel() { return stageProgress[courseMode].cleared + 1; }
 function mapBounds() {
@@ -52,7 +75,10 @@ function renderLevelMap() {
             const q=mapPoint(n+1);
             roads.push(`<path d="M ${p.x*4} ${p.y} C ${p.x*4} ${p.y-46}, ${q.x*4} ${q.y+46}, ${q.x*4} ${q.y}" class="${n<unlocked?'map-road-open':'map-road-locked'}"/>`);
         }
-        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="レベル${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}><span>${n}</span><small>${done?'✓':locked?'未解放':'PLAY'}</small></button>`);
+        const record=done && stageRecords[courseMode][n];
+        const stats=record ? formatStageRecord(record) : '';
+        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="レベル${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'} ${stats}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}><span>${n}</span><small>${done?'✓':locked?'未解放':'PLAY'}</small></button>`);
+        if(record)nodes.push(`<span class="map-record ${p.x>=50?'record-left':'record-right'}" style="left:${p.x}%;top:${p.y}px">${stats}</span>`);
     }
     ui.mapRoad.innerHTML = roads.join('');
     ui.mapNodes.innerHTML = nodes.join('');
@@ -83,7 +109,7 @@ function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
     mapPage=Math.floor((destination-1)/MAP_PAGE_SIZE);
     mapTransition=advanceFrom!==null && destination!==advanceFrom
         ? {from:advanceFrom,to:destination,start:null} : null;
-    ui.overlay.hidden=true;ui.courseMenu.hidden=true;ui.levelMap.hidden=false;
+    hideResultModal();ui.courseMenu.hidden=true;ui.levelMap.hidden=false;
     ui.mapError.hidden=true;
     ui.restart.disabled=ui.mapButton.disabled=ui.showPath.disabled=true;
     canvas.setAttribute('tabindex','-1');
