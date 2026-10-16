@@ -69,7 +69,7 @@ function focusMapLevel() {
 }
 function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
     release(true);endPan();touchId=null;ignoreTouches=false;
-    drag=null;cameraIntro=null;heartPopups=[];
+    drag=null;bodyTap=null;cameraIntro=null;heartPopups=[];
     state='map';
     ui.wall.classList.toggle('map-open',true);
     const destination=clamp(advanceFrom===null?target:advanceFrom+1,1,unlockedLevel());
@@ -79,7 +79,7 @@ function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
         ? {from:advanceFrom,to:destination,start:null} : null;
     ui.overlay.hidden=true;ui.courseMenu.hidden=true;ui.levelMap.hidden=false;
     ui.mapError.hidden=true;
-    ui.undo.disabled=ui.restart.disabled=ui.mapButton.disabled=ui.showPath.disabled=true;
+    ui.restart.disabled=ui.mapButton.disabled=ui.showPath.disabled=true;
     canvas.setAttribute('tabindex','-1');
     ui.level.innerHTML=`ステージ選択<span>${courseMode==='prototype'?'ロジハラコース':'ノーマルコース'}</span>`;
     renderLevelMap();

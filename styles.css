@@ -229,7 +229,7 @@ footer button {
 .path-toggle input { width: 18px; height: 18px; accent-color: #39785b; }
 
 
-/* Leave the wall visible and scrollable while comparing the two paths. */
+/* Keep the body visible for tap-to-Undo after either outcome. */
 .overlay.reviewing { background: transparent; backdrop-filter: none; pointer-events: none; align-items: end; padding: 8px; }
 .overlay.reviewing .card { pointer-events: auto; padding: 10px; }
 .overlay.reviewing .eyebrow, .overlay.reviewing h1 { display: none; }

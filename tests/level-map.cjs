@@ -17,7 +17,7 @@ try {
 new Function('assert','storage','data',env+source+`
 assert.equal(state,'choosing');startCourse('existing');
 assert.equal(state,'map');assert.equal(unlockedLevel(),1);assert.equal(mapSelected,1);
-assert(ui.courseMenu.hidden && !ui.levelMap.hidden && ui.undo.disabled && ui.restart.disabled);
+assert(ui.courseMenu.hidden && !ui.levelMap.hidden && !canUndoMove() && ui.restart.disabled);
 assert(!canScrollStage());assert.equal(undoMove(),false);
 down({clientX:200,clientY:400});assert.equal(drag,null);
 for(const n of [0,-1,1.5,2,NaN])assert.equal(selectStage(n),false);

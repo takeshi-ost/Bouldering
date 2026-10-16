@@ -29,15 +29,16 @@ for(let n=1;n<=100;n++) {
 }
 for(let i=0;i<=heights.length-5;i++) assert(heights.slice(i,i+5).filter(h=>h>=2*H).length<=1);
 assert(heights.some(h=>h>2*H),'No extended stages generated');
-// Intro finishes by distance, including shorter travel and three-screen travel.
+// Intro lasts at least 1s, and longer scrolls must still reach the bottom first.
 state='playing';densityStats={prototype:true,total:0};
-for(const [from,to] of [[0,80],[0,700],[0,1400],[100,700]]) {
+for(const [from,to] of [[0,0],[0,80],[0,700],[0,1400],[100,700]]) {
  cameraIntro={from,to,start:null};camera=from;
  advanceCameraIntro(100);
- const duration=(to-from)/CAMERA_CONFIG.introSpeed*1000;
- advanceCameraIntro(100+duration/2);assert(cameraIntro);assert(Math.abs(camera-(from+to)/2)<1e-6);
+ const duration=Math.max(CAMERA_CONFIG.introMinDuration,(to-from)/CAMERA_CONFIG.introSpeed*1000);
+ advanceCameraIntro(100+duration/2);assert(cameraIntro);assert(Math.abs(camera-Math.min(to,from+duration/2*CAMERA_CONFIG.introSpeed/1000))<1e-6);
+ advanceCameraIntro(100+duration-1);assert(cameraIntro);
  advanceCameraIntro(101+duration);assert.equal(cameraIntro,null);assert.equal(camera,to);
 }
-console.log('PASS 100 starts: reachable lowest crouch, feet within 140px, clear starting triangle, long-stage frequency <= 1/5, 3-screen cap; distance-based intro');
+console.log('PASS 100 starts: reachable lowest crouch, feet within 140px, clear starting triangle, long-stage frequency <= 1/5, 3-screen cap; 1s minimum intro and bottom arrival');
 console.log('Heights 1-20:',heights.slice(0,20).join(','));
 `)(assert);

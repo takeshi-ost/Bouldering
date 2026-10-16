@@ -10,11 +10,13 @@ console.log(vm.runInContext(`
 function check(v,m){if(!v)throw Error(m);}
 check(state==='choosing' && !cameraIntro && !ui.courseMenu.hidden,'Course menu startup failed');
 ui.existingCourse.onclick();check(state==='map','Course should open map');selectStage(1);
-check(state==='playing' && !cameraIntro && level===1 && courseMode==='existing','One-screen stage should start immediately');
+check(state==='playing' && cameraIntro && level===1 && courseMode==='existing','One-screen stage needs its title intro');
+advanceCameraIntro(0);advanceCameraIntro(999);check(cameraIntro,'One-screen title vanished before 1s');
+advanceCameraIntro(1000);check(!cameraIntro,'One-screen intro did not finish at 1s');
 reset(2);check(cameraIntro,'Tall stage needs a scroll');
 advanceCameraIntro(0);
-const introEnd=(cameraIntro.to-cameraIntro.from)/CAMERA_CONFIG.introSpeed*1000;
-advanceCameraIntro(introEnd/2);check(cameraIntro && camera<HEIGHT-H,'Introduction ended too early');
+const introEnd=Math.max(CAMERA_CONFIG.introMinDuration,(cameraIntro.to-cameraIntro.from)/CAMERA_CONFIG.introSpeed*1000);
+advanceCameraIntro(introEnd/2);check(cameraIntro,'Introduction ended too early');
 down({clientX:200,clientY:400});check(!drag,'Input during introduction');
 advanceCameraIntro(introEnd+1);check(!cameraIntro && camera===HEIGHT-H,'Introduction did not finish at bottom');
 check(!isSupportPair(0) && !isSupportPair([0]) && !isSupportPair([0,0]) && !isSupportPair([0,1,1]),'Non-pair supports accepted');
@@ -93,7 +95,7 @@ const pose=attachMoving({x:200,y:300},[2,3]);
 check(pose && pose[0]===goal && pose[1]===goal && pose[2]===left && pose[3]===right,'Two-support goal sharing failed');
 check(attachMoving({x:200,y:300},2)===null,'Single-support attachment still permitted');
 restartInput(1);const repeated=JSON.stringify({holds,route});
-ui.retry.onclick();check(JSON.stringify({holds,route})===repeated && !cameraIntro && playerPath.length===1,'Retry failed');
+ui.retry.onclick();check(JSON.stringify({holds,route})===repeated && cameraIntro && playerPath.length===1,'Retry failed');
 state='won';recordStageClear();ui.next.onclick();check(state==='map','Next should open map');advanceLevelMap(0);advanceLevelMap(650);selectStage(2);check(level===2 && cameraIntro,'Next stage failed');
 JSON.stringify(report);
 `,context));

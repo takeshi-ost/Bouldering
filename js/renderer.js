@@ -405,6 +405,23 @@ function drawHeartPopups(now) {
     ctx.restore();
 }
 
+function drawStageIntro() {
+    if (!cameraIntro || state!=='playing') return;
+    ctx.save();
+    ctx.fillStyle='#f3f0e780';
+    ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#253f32';
+    ctx.strokeStyle='#fffdf4';
+    ctx.lineWidth=6;
+    ctx.font='800 40px system-ui';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    const title=`STAGE ${String(level).padStart(3,'0')}`;
+    ctx.strokeText(title,W/2,H/2);
+    ctx.fillText(title,W/2,H/2);
+    ctx.restore();
+}
+
 function draw(now = 0) {
     if (state === 'choosing' || state === 'map') {
         if (state === 'map') advanceLevelMap(now);
@@ -415,7 +432,7 @@ function draw(now = 0) {
 
     ui.overlay.classList.toggle(
         'reviewing',
-        state === 'won'
+        state === 'won' || state === 'lost'
     );
 
     const desired = clamp(
@@ -428,6 +445,7 @@ function draw(now = 0) {
     if (
         !cameraIntro &&
         !drag &&
+        !bodyTap &&
         !inspecting &&
         state === 'playing'
     ) {
@@ -879,6 +897,7 @@ function draw(now = 0) {
     ctx.restore();
     drawHeartPopups(performance.now());
     ctx.restore();
+    drawStageIntro();
 
     requestAnimationFrame(draw);
 }

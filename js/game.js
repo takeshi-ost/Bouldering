@@ -6,7 +6,7 @@ const ui = Object.fromEntries([
     "wall", "level", "stamina", "progress", "overlay", "resultTag",
     "resultTitle", "resultText", "next", "retry", "restart", "showPath",
     "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton",
-    "courseMenu", "existingCourse", "prototypeCourse", "undo", "courseError", "showHelp", "helpDialog", "closeHelp"
+    "courseMenu", "existingCourse", "prototypeCourse", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
 let courseMode = 'existing';
@@ -28,6 +28,7 @@ let cameraIntro = null;
 let playerPath = [];
 let inspecting = false;
 let drag = null;
+let bodyTap = null;
 let state = "choosing";
 let warning = 0;
 let densityStats = null;
@@ -344,6 +345,7 @@ function restoreMoveStamina(saved) {
 
 function reset(n) {
     undoSnapshot = moveSnapshot = null;
+    bodyTap = null;
     resetCharacterAnimation();
     jointHistory.fill(null);
     level = n;
@@ -383,9 +385,7 @@ function reset(n) {
     );
 
     const introTarget = HEIGHT - H;
-    cameraIntro = camera < introTarget
-        ? {from:camera,to:introTarget,start:null}
-        : null;
+    cameraIntro = {from:camera,to:introTarget,start:null};
 
     inspecting = false;
     drag = null;
@@ -396,7 +396,7 @@ function reset(n) {
     ui.restart.disabled = false;
 
     ui.level.innerHTML = `Level ${level}<span>${courseMode === 'prototype' ? 'ロジハラコース' : 'ノーマルコース'}</span>`;
-    ui.next.textContent = 'ステージマップへ →';
+    ui.next.textContent = '次のステージへ →';
     ui.levelMap.hidden = true;
     ui.wall.classList.toggle('map-open',false);
     ui.mapButton.disabled = false;
@@ -405,7 +405,6 @@ function reset(n) {
 }
 
 function updateUI() {
-    ui.undo.disabled = !undoSnapshot || !!drag || !!cameraIntro || !['playing','won','lost'].includes(state);
     ui.stamina.textContent = String(stamina);
     ui.stamina.setAttribute('aria-label',`スタミナ ${stamina} 手`);
     ui.stamina.style.color =
@@ -620,8 +619,11 @@ function release(cancel = false) {
     updateUI();
 }
 
+function canUndoMove() {
+    return !!undoSnapshot && !drag && !cameraIntro && ['playing','won','lost'].includes(state);
+}
 function undoMove() {
-    if (!undoSnapshot || drag || cameraIntro || !['playing','won','lost'].includes(state)) return false;
+    if (!canUndoMove()) return false;
     const saved = undoSnapshot;
     undoSnapshot = moveSnapshot = null;
     body = {...saved.body}; committed = {...body};
@@ -673,7 +675,7 @@ function advanceCameraIntro(now) {
 
     camera = Math.min(cameraIntro.to, cameraIntro.from +
         Math.max(0,now-cameraIntro.start) * CAMERA_CONFIG.introSpeed / 1000);
-    if (camera >= cameraIntro.to) {
+    if (camera >= cameraIntro.to && now-cameraIntro.start >= CAMERA_CONFIG.introMinDuration) {
         cameraIntro = null;
         updateUI();
     }

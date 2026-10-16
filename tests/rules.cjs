@@ -1,7 +1,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(html.includes('id="undo"') && !html.includes('id="changeCourse"'));
+assert(!html.includes('id="undo"') && !html.includes('id="changeCourse"'));
 const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const environment=`
 const elements={};const document={getElementById(id){return elements[id] ||= {
@@ -32,8 +32,9 @@ wide.wide=false;startGrips=[null,null,...feet];holds=[wide,...feet];
 attached=attachMoving(body,[2,3]);assert(attached.filter(h=>h===wide).length<=1);
 // Actual input / release path, including visual restoration and terminal states.
 startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert.equal(state,'playing');
-advanceCameraIntro(0);advanceCameraIntro(1650);assert.equal(ui.undo.disabled,true);
+advanceCameraIntro(0);advanceCameraIntro(1650);assert.equal(canUndoMove(),false);
 function playStep(step) {
+ advanceCameraIntro(0);advanceCameraIntro(1650);
  camera=clamp(body.y-H*.6,0,HEIGHT-H);
  const event=p=>({clientX:p.x,clientY:p.y-camera});
  down(event(body));const snapshot=moveSnapshot;
@@ -47,7 +48,7 @@ function checkUndo(snapshot) {
  assert.deepEqual(playerPath,snapshot.playerPath);
  assert.deepEqual(characterPose(performance.now()).body,snapshot.visibleBody);
  assert.equal(holds,stage);assert.equal(route,routeBefore);
- assert(ui.overlay.hidden);assert(ui.undo.disabled);assert.equal(undoMove(),false);
+ assert(ui.overlay.hidden);assert(!canUndoMove());assert.equal(undoMove(),false);
 }
 const first=playStep(route[1]);assert.equal(moveCount,1);checkUndo(first);
 // A new confirmed move replenishes Undo; canceled input must not replace it.
@@ -60,7 +61,7 @@ reset(1);assert.equal(undoSnapshot,null);advanceCameraIntro(0);advanceCameraIntr
 let winning;
 for(let i=1;i<route.length;i++)winning=playStep(route[i]);
 assert.equal(state,'won');checkUndo(winning);
-reset(2);assert.equal(undoSnapshot,null);assert.equal(ui.undo.disabled,true);
+reset(2);assert.equal(undoSnapshot,null);assert.equal(canUndoMove(),false);
 // Every stage starts with its own fixed budget; no carryover or bonus suffix.
 reset(1);const regular=stamina;
 for(let i=1;i<route.length;i++)playStep(route[i]);
