@@ -3,8 +3,8 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
-    "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultTag",
-    "resultTitle", "resultText", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
+    "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
+    "resultTitle", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
     "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
     "titleScreen", "existingCourse", "prototypeCourse", "courseError", "showHelp", "helpDialog", "closeHelp"
@@ -356,7 +356,7 @@ function attachMoving(p, anchor) {
 }
 
 function stageStamina(moves) {
-    return moves + Math.floor(moves / STAGE_CONFIG.staminaInterval);
+    return moves + (moves < STAGE_CONFIG.staminaInterval ? 2 : Math.floor(moves / STAGE_CONFIG.staminaInterval));
 }
 
 // Share the live per-limb contact rule with route budgeting.
@@ -771,20 +771,16 @@ function finish(won) {
     ui.resultStats.textContent=won ? formatStageRecord({moves:moveCount,timeMs:runElapsedMs}) : '';
     ui.next.hidden = !won;
 
-    ui.resultTag.textContent =
-        won
-            ? 'TOP OUT / WELL CLIMBED'
-            : 'TAKE A BREATH';
+    const expectedMoves=route.length-1;
+    const stars=moveCount<expectedMoves ? 3 : moveCount<=expectedMoves+2 ? 2 : 1;
+    ui.resultStars.hidden=!won;
+    ui.resultStars.textContent=won ? '⭐️'.repeat(stars) : '';
+    ui.resultStars.setAttribute('aria-label',won ? `${stars}つ星` : '');
 
     ui.resultTitle.textContent =
         won
             ? '登頂成功！'
             : 'あと、もう少し。';
-
-    ui.resultText.textContent =
-        won
-            ? 'ステージクリア！'
-            : 'スタミナがなくなりました。同じ壁でルートを見直してみよう。';
 
     hideSettings();
     updateUI();

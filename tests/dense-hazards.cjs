@@ -38,7 +38,7 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,80]) {
  assert(paid>0,'Dense stage must include penalties on the planned route');
  assert.equal(state,'won');assert.equal(pickups,hearts.length*2);
  assert.equal(starting,base+paid-hearts.length*2);
- assert.equal(stamina,Math.floor(moves/10));
+ assert.equal(stamina,stageStamina(moves)-moves);
  assert.equal(routeHazardCosts(route).at(-1),paid);
  ui.retry.onclick();assert.equal(JSON.stringify({holds,route,hearts}),saved);assert.equal(stamina,starting);
  report.push({mode,level:n,total:holds.length,blue:blue.length,moves,penalties:paid,starting});

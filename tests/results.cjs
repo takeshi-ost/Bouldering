@@ -1,5 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+assert(!html.includes('id="resultTag"') && !html.includes('id="resultText"'));
 const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
 let clock=100;const performance={now:()=>clock};
@@ -26,7 +27,7 @@ assert.equal(moveCount,0);assert.equal(runTimeMs(),6000,'Canceled drag must not 
 clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(runTimeMs(),usedTime,'Undo must not erase time');
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
 assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(!ui.next.hidden);
-assert.equal(ui.resultStats.hidden,false);
+assert.equal(ui.resultStats.hidden,false);assert(!ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️');
 const result={moves:moveCount,timeMs:Math.floor(clock-1100)};
 assert.deepEqual(stageRecords.existing[1],result);
 assert.equal(ui.resultStats.textContent,formatStageRecord(result));
@@ -42,7 +43,7 @@ assert(ui.mapNodes.innerHTML.includes(formatStageRecord(result)));assert(ui.mapN
 assert.deepEqual(readStageRecords(),stageRecords);
 const firstRecord=JSON.stringify(stageRecords.existing[1]);
 // Failing and retrying never overwrite a completed record.
-begin();stamina=1;clock+=500;play(1);assert.equal(state,'lost');assert(ui.overlay.open);assert(ui.resultStats.hidden);
+begin();stamina=1;clock+=500;play(1);assert.equal(state,'lost');assert(ui.overlay.open);assert(ui.resultStats.hidden);assert(ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'');
 clock+=5000;assert.equal(runTimeMs(),500);assert.equal(JSON.stringify(stageRecords.existing[1]),firstRecord);
 ui.retry.onclick();assert(!ui.overlay.open && ui.overlay.hidden);assert.equal(runStartedAt,null);assert.equal(runTimeMs(),0);
 advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);
@@ -68,6 +69,13 @@ assert(stageRecords.existing[1] && stageRecords.prototype[1]);
 startCourse('existing');assert(ui.mapNodes.innerHTML.includes(formatStageRecord(stageRecords.existing[1])));
 `)(assert);
 assert(html.includes('<dialog class="overlay" id="overlay"'));
+new Function('assert',env+source+`
+for(const [difference,stars] of [[-1,3],[0,2],[1,2],[2,2],[3,1],[8,1]]) {
+ reset(1);cameraIntro=null;debugAttempt=true;moveCount=route.length-1+difference;finish(true);
+ assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden);
+}
+finish(false);assert(ui.resultStars.hidden && ui.resultStars.textContent==='');
+`)(assert);
 console.log('PASS results: centered native modal, background guards, intro-excluded timer, cancel/Undo timing, frozen results, formatting, latest per-course records, map labels, reload, legacy/invalid/blocked storage, debug isolation');
 } finally {
  if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);

@@ -62,13 +62,13 @@ stamina=1;const losing=playStep(route[1]);assert.equal(state,'lost');checkUndo(l
 reset(1);assert.equal(undoSnapshot,null);advanceCameraIntro(0);advanceCameraIntro(1650);
 let winning;
 for(let i=1;i<route.length;i++)winning=playStep(route[i]);
-assert.equal(state,'won');assert.equal(stamina,0);assert.equal(characterAnimation.kind,'hang');checkUndo(winning);
+assert.equal(state,'won');assert.equal(stamina,2);assert.equal(characterAnimation.kind,'hang');checkUndo(winning);
 reset(2);assert.equal(undoSnapshot,null);assert.equal(canUndoMove(),false);
 // Every stage starts with its own fixed budget; no carryover or bonus suffix.
 reset(1);const regular=stamina;
 for(let i=1;i<route.length;i++)playStep(route[i]);
 assert.equal(state,'won');draw(2000);
-assert.equal(ui.resultText.textContent,'ステージクリア！');
+assert.equal(ui.resultStars.textContent,'⭐️⭐️');
 ui.next.onclick();assert.equal(state,'map');
 advanceLevelMap(0);advanceLevelMap(MAP_HOP_DURATION);assert.equal(mapSelected,2);assert(selectStage(2));assert.equal(level,2);
 const nextBudget=stageStamina(route.length-1)-hearts.length*2;
@@ -92,7 +92,7 @@ debugMode=true;state='won';drawPath();
 assert(drawnColors.includes('#527faa9c') && drawnColors.includes('#d14479'));
 debugMode=false;
 // Ten-move stamina boundaries, including the explicit 30 -> 33 example.
-for(const [moves,budget] of [[5,5],[9,9],[10,11],[19,20],[20,22],[29,31],[30,33],[39,42],[40,44]])
+for(const [moves,budget] of [[1,3],[5,7],[9,11],[10,11],[19,20],[20,22],[29,31],[30,33],[39,42],[40,44]])
  assert.equal(stageStamina(moves),budget);
 // Heart generation boundaries, seeded count and a playable recovery schedule.
 const samplePath=Array.from({length:6},(_,i)=>({x:200+i*20,y:600-i*40}));
@@ -109,7 +109,7 @@ for(let n=5;n<105;n++) {
   items.forEach(h=>{if(!picked.has(h.id)&&torsoTouchesHeart(samplePath[i-1],samplePath[i],h)){picked.add(h.id);budget+=2;}});
   budget--;
  }
- assert.equal(picked.size,items.length);assert.equal(budget,0);
+ assert.equal(picked.size,items.length);assert.equal(budget,2);
 }
 assert.deepEqual([...seenHeartCounts].sort(),[0,1,2]);
 // No near-goal recoveries: cover all supported route lengths and 100 stage seeds.
@@ -127,7 +127,7 @@ for(let moves=5;moves<=40;moves++)for(let n=5;n<105;n++) {
   if(moves>=10)assert(beforePickup>=2,'No reserve before recovery');
   budget=beforePickup+2-1;step=pickup;
  }
- assert.equal(budget-(moves-step),Math.floor(moves/10));
+ assert.equal(budget-(moves-step),stageStamina(moves)-moves);
 }
 // Lv14 regression: both recoveries must be reached before the final third.
 for(const mode of ['existing','prototype']) {
@@ -144,7 +144,7 @@ for(const mode of ['existing','prototype']) {
   if(i===schedule[1])assert(hearts.every(h=>h.collected) && stamina>0);
  }
  assert.equal(state,'won','Lv14 runs out before the late heart');
- assert.equal(stamina,Math.floor(count/10)-1);
+ assert.equal(stamina,stageStamina(count)-count-1);
  ui.retry.onclick();
  assert.equal(stamina,initial);assert(hearts.every(h=>!h.collected));
  assert.deepEqual(hearts.map(h=>route.findIndex(p=>p.x===h.x && p.y===h.y)),schedule);
