@@ -287,3 +287,9 @@ footer .legend { max-width:110px; flex:1; }
 footer button { padding:9px 8px; }
 
 .legend .dot.hazard { background:#6099cf; border-radius:0; clip-path:polygon(50% 0,65% 25%,100% 15%,85% 50%,100% 85%,65% 75%,50% 100%,35% 75%,0 85%,15% 50%,0 15%,35% 25%); }
+
+.map-debug-toggle { display:flex; gap:8px; align-items:center; font-size:12px; padding:6px 18px; }
+.debug-controls { padding:0 18px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:12px; }
+.debug-controls[hidden] { display:none; }
+.debug-controls input { width:80px; min-width:0; padding:6px; border:1px solid #adb9ad; border-radius:6px; font:inherit; }
+.debug-controls small { flex-basis:100%; color:#657569; }

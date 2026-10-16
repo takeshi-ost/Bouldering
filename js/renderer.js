@@ -386,6 +386,13 @@ function characterPose(now) {
     return pose;
 }
 
+function hazardShakeOffset(now) {
+    if (hazardShakeStart === null) return 0;
+    const t = clamp((now-hazardShakeStart)/HAZARD_CONFIG.shakeDuration,0,1);
+    if (t === 1) { hazardShakeStart = null; return 0; }
+    return Math.sin(t*Math.PI*6)*(1-t)*HAZARD_CONFIG.shakeAmplitude;
+}
+
 function drawHeartPopups(now) {
     heartPopups = heartPopups.filter(popup => now-popup.start < HEART_CONFIG.popupDuration);
     ctx.save();
@@ -399,8 +406,9 @@ function drawHeartPopups(now) {
         const t = clamp((now-popup.start)/HEART_CONFIG.popupDuration,0,1);
         const y = popup.y - HEART_CONFIG.popupRise*t;
         ctx.globalAlpha = 1-t;
-        ctx.strokeText('+2',popup.x,y);
-        ctx.fillText('+2',popup.x,y);
+        ctx.fillStyle = popup.color || '#c94661';
+        ctx.strokeText(popup.text || '+2',popup.x,y);
+        ctx.fillText(popup.text || '+2',popup.x,y);
     }
     ctx.restore();
 }
@@ -817,6 +825,8 @@ function draw(now = 0) {
         drawLimbSegments(root, joint, h, color);
     });
 
+    ctx.save();
+    ctx.translate(hazardShakeOffset(performance.now()),0);
     const left =
         visual.body.x -
         TORSO.width / 2;
@@ -915,6 +925,7 @@ function draw(now = 0) {
         }
     }
 
+    ctx.restore();
     ctx.restore();
     drawHeartPopups(performance.now());
     ctx.restore();

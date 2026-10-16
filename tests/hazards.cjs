@@ -33,7 +33,7 @@ for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
   down(eventAt(body));const snapshot=moveSnapshot;move(eventAt(option.to));
   assert(grips.includes(hazards[0]));const fresh=new Set(grips.filter(h=>h.type==='hazard' && !startGrips.includes(h)));
   const gains=hearts.filter((h,i)=>h.collected&&!snapshot.collectedHearts[i]).length*2;
-  release();assert.equal(stamina,Math.max(0,snapshot.stamina+gains-1-fresh.size*2));
+  release();assert.equal(stamina,Math.max(0,snapshot.stamina+gains-1-fresh.size*HAZARD_CONFIG.penalty));
   assert(undoMove());assert.equal(stamina,snapshot.stamina+gains);
   reset(n);cameraIntro=null;
  }
@@ -43,7 +43,7 @@ for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
  ui.retry.onclick();assert.equal(JSON.stringify({holds,route,hearts}),saved);
  report.push({mode,level:n,count:hazards.length});
 }
-// Focused new-contact costs: ordinary move +2 per hazard, not per support selection.
+// Focused new-contact costs: ordinary move +1 per hazard, not per support selection.
 function fixture(two=false) {
  reset(1);cameraIntro=null;resetCharacterAnimation();
  body={x:200,y:300};committed={...body};camera=0;stamina=10;moveCount=0;hearts=[];
@@ -56,16 +56,41 @@ function fixture(two=false) {
 function reach(pair,p){down(eventAt(body));drag.anchor=pair;move(eventAt(p));assert(grips.every(Boolean));}
 let targets=fixture();reach([0,1],{x:200,y:310});assert(grips.includes(targets[0]));release(true);assert.equal(stamina,10);
 reach([0,1],{x:200,y:310});grips[3]=null;release();assert.equal(stamina,10,'Invalid move charges penalty');
-reach([0,1],{x:200,y:310});release();assert.equal(stamina,7);assert(undoMove());assert.equal(stamina,10);
-targets=fixture(true);reach([0,1],{x:200,y:310});release();assert.equal(stamina,5,'Two hazards must cost 4 extra');
+reach([0,1],{x:200,y:310});release();assert.equal(stamina,8);assert(undoMove());assert.equal(stamina,10);
+targets=fixture(true);reach([0,1],{x:200,y:310});release();assert.equal(stamina,7,'Two hazards must cost 2 extra');
 holds.push({id:6,x:148,y:220,type:'normal'},{id:7,x:252,y:220,type:'normal'});
-reach([2,3],{x:200,y:288});release();assert.equal(stamina,4,'Keeping hazard contacts charges twice');
+reach([2,3],{x:200,y:288});release();assert.equal(stamina,6,'Keeping hazard contacts charges twice');
 holds.push({id:8,x:160,y:366,type:'normal'},{id:9,x:240,y:366,type:'normal'});
-reach([0,1],{x:200,y:286});release();assert.equal(stamina,3);
+reach([0,1],{x:200,y:286});release();assert.equal(stamina,5);
+stamina=1;
 reach([0,1],{x:200,y:310});release();assert.equal(stamina,0);assert.equal(state,'lost');
-assert(undoMove());assert.equal(stamina,3,'Undo does not refund the whole move');
-fixture();hearts=[{id:0,x:200,y:310,collected:false}];reach([0,1],{x:200,y:310});release();assert.equal(stamina,9);
+assert(undoMove());assert.equal(stamina,1,'Undo does not refund the whole move');
+fixture();hearts=[{id:0,x:200,y:310,collected:false}];reach([0,1],{x:200,y:310});release();assert.equal(stamina,10);
 assert(undoMove());assert(hearts[0].collected);assert.equal(stamina,12,'Hazard Undo loses permanent heart recovery');
+// Feedback only for committed new contacts; body motion stays visual.
+fixture();heartPopups=[];reach([0,1],{x:200,y:310});release(true);
+assert.equal(hazardShakeStart,null);assert.equal(heartPopups.length,0);
+reach([0,1],{x:200,y:310});release();
+assert.equal(HAZARD_CONFIG.penalty,1);
+assert.equal(heartPopups.length,1);assert.equal(heartPopups[0].text,'-1');
+const popup=heartPopups[0],shakeStart=hazardShakeStart,logicalBody={...body},contacts=[...grips];
+assert.equal(hazardShakeOffset(shakeStart),0);
+assert(Math.abs(hazardShakeOffset(shakeStart+30))>0);
+assert.deepEqual(body,logicalBody);assert.deepEqual(grips,contacts);
+const labels=[];ctx.fillText=(text,x,y)=>labels.push({text,x,y,color:ctx.fillStyle,alpha:ctx.globalAlpha});
+drawHeartPopups(popup.start+500);
+assert.equal(labels[0].text,'-1');assert.equal(labels[0].color,'#477fb7');
+assert.equal(labels[0].x,popup.x);assert(Math.abs(labels[0].y-(popup.y-15))<1e-8);
+assert(Math.abs(labels[0].alpha-.5)<1e-8);
+drawHeartPopups(popup.start+1001);assert.equal(heartPopups.length,0);
+assert.equal(hazardShakeOffset(shakeStart+281),0);assert.equal(hazardShakeStart,null);
+assert(undoMove());assert.equal(hazardShakeStart,null);
+// Maintaining existing hazards does not restart the burst or duplicate labels.
+fixture(true);reach([0,1],{x:200,y:310});release();
+assert.equal(heartPopups.length,2);const burstStart=hazardShakeStart;
+holds.push({id:6,x:148,y:220,type:'normal'},{id:7,x:252,y:220,type:'normal'});
+reach([2,3],{x:200,y:288});release();assert.equal(heartPopups.length,2);assert.equal(hazardShakeStart,burstStart);
+undoMove();assert.equal(hazardShakeStart,null);assert.equal(heartPopups.length,0);
 // Distinct small jagged geometry and blue fill, independent of emoji fonts.
 const points=[];ctx.moveTo=(x,y)=>points.push({x,y});ctx.lineTo=(x,y)=>points.push({x,y});
 drawJaggedHold(100,200,HAZARD_CONFIG.radius,'#6099cf');assert.equal(points.length,16);assert.equal(ctx.fillStyle,'#6099cf');

@@ -5,7 +5,7 @@ const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "wall", "level", "stamina", "progress", "overlay", "resultTag",
     "resultTitle", "resultText", "next", "retry", "restart", "showPath",
-    "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton",
+    "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "mapDebug", "debugControls", "debugStage", "debugPlay",
     "courseMenu", "existingCourse", "prototypeCourse", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
@@ -15,6 +15,7 @@ let holds = [];
 let route = [];
 let hearts = [];
 let heartPopups = [];
+let hazardShakeStart = null;
 let HEIGHT = H;
 let initialGrips = [];
 let body;
@@ -370,6 +371,7 @@ function reset(n) {
 
     hearts = createHearts(n,route);
     heartPopups = [];
+    hazardShakeStart = null;
     stamina = stageStamina(route.length - 1) - hearts.length * HEART_CONFIG.recovery;
 
     moveCount = 0;
@@ -604,6 +606,12 @@ function release(cancel = false) {
 
         const newHazards = new Set(grips.filter(h => h.type==='hazard' && !startGrips.includes(h)));
         stamina = Math.max(0,stamina-1-newHazards.size*HAZARD_CONFIG.penalty);
+        if (newHazards.size) {
+            const now = performance.now();
+            hazardShakeStart = now;
+            for (const h of newHazards) heartPopups.push({x:h.x,y:h.y,start:now,
+                kind:'hazard',text:`-${HAZARD_CONFIG.penalty}`,color:'#477fb7'});
+        }
         moveCount++;
 
         committed = { ...body };
@@ -626,6 +634,8 @@ function canUndoMove() {
 }
 function undoMove() {
     if (!canUndoMove()) return false;
+    hazardShakeStart = null;
+    heartPopups = heartPopups.filter(p => p.kind !== 'hazard');
     const saved = undoSnapshot;
     undoSnapshot = moveSnapshot = null;
     body = {...saved.body}; committed = {...body};

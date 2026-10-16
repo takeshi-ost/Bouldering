@@ -19,7 +19,9 @@ let stageProgress = readStageProgress();
 let mapPage = 0;
 let mapSelected = 1;
 let mapTransition = null;
+let debugAttempt = false;
 function recordStageClear() {
+    if (debugAttempt) return;
     stageProgress[courseMode].cleared = Math.max(stageProgress[courseMode].cleared,level);
     try { globalThis.localStorage?.setItem(PROGRESS_KEY,JSON.stringify(stageProgress)); }
     catch (_) { /* Completing a level must still work without storage. */ }
@@ -62,6 +64,8 @@ function renderLevelMap() {
     ui.mapPrev.disabled = mapPage===0 || !!mapTransition;
     ui.mapNext.disabled = last>=unlocked || !!mapTransition;
     ui.mapCourses.disabled = !!mapTransition;
+    ui.mapDebug.disabled = ui.debugStage.disabled = ui.debugPlay.disabled = !!mapTransition;
+    ui.debugControls.hidden = !ui.mapDebug.checked;
 }
 function focusMapLevel() {
     const button=ui.mapNodes.querySelector?.(`[data-level="${mapSelected}"]`);
@@ -69,7 +73,9 @@ function focusMapLevel() {
 }
 function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
     release(true);endPan();touchId=null;ignoreTouches=false;
-    drag=null;bodyTap=null;cameraIntro=null;heartPopups=[];
+    drag=null;bodyTap=null;cameraIntro=null;heartPopups=[];hazardShakeStart=null;
+    if (debugAttempt) { advanceFrom=null; target=unlockedLevel(); }
+    debugAttempt=false;
     state='map';
     ui.wall.classList.toggle('map-open',true);
     const destination=clamp(advanceFrom===null?target:advanceFrom+1,1,unlockedLevel());
@@ -97,9 +103,10 @@ function advanceLevelMap(now) {
         renderLevelMap();focusMapLevel();
     }
 }
-function selectStage(n) {
-    if (state!=='map' || mapTransition || !Number.isInteger(n) || n<1 || n>unlockedLevel()) return false;
+function selectStage(n,debug=false) {
+    if (state!=='map' || mapTransition || !Number.isSafeInteger(n) || n<1 || n>=Number.MAX_SAFE_INTEGER || (debug ? !ui.mapDebug.checked : n>unlockedLevel())) return false;
     try {
+        debugAttempt=debug;
         restartInput(n);
         ui.courseMenu.hidden=true;ui.levelMap.hidden=true;
         ui.showPath.disabled=false;
@@ -126,4 +133,16 @@ ui.mapPrev.onclick=()=>{
 ui.mapNext.onclick=()=>{
     if (state!=='map' || mapTransition || mapBounds().last>=unlockedLevel()) return;
     mapPage++;renderLevelMap();ui.mapScroll.scrollTop=ui.mapTrack.clientHeight;
+};
+
+ui.mapDebug.onchange=()=>{ if (state==='map' && !mapTransition) renderLevelMap(); };
+ui.debugControls.onsubmit=e=>{
+    e.preventDefault();
+    const n=Number(ui.debugStage.value);
+    if (!Number.isSafeInteger(n) || n<1 || n>=Number.MAX_SAFE_INTEGER) {
+        ui.mapError.textContent='ステージ番号は1以上の整数を入力してください。';
+        ui.mapError.hidden=false;
+        return;
+    }
+    selectStage(n,true);
 };
