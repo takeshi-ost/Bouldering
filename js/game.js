@@ -4,12 +4,18 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "wall", "level", "stamina", "progress", "overlay", "resultTag",
-    "resultTitle", "resultText", "resultStats", "next", "retry", "restart", "showPath",
-    "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "mapDebug", "debugControls", "debugStage", "debugPlay",
+    "resultTitle", "resultText", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
+    "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
-    "courseMenu", "existingCourse", "prototypeCourse", "courseError", "showHelp", "helpDialog", "closeHelp"
+    "titleScreen", "existingCourse", "prototypeCourse", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
+let debugMode = false;
+let settingsOpen = false;
+function hideSettings() {
+    settingsOpen=false;
+    if(ui.settingsDialog.open)ui.settingsDialog.close?.();
+}
 let courseMode = 'existing';
 let level = 1;
 let holds = [];
@@ -444,10 +450,13 @@ function reset(n) {
     warning = 0;
 
     hideResultModal();
+    hideSettings();
+    ui.hud.hidden=false;
+    ui.titleScreen.hidden=true;
     ui.characterEditor.hidden=true;
     ui.restart.disabled = false;
 
-    ui.level.innerHTML = `Level ${level}<span>${courseMode === 'prototype' ? 'ロジハラコース' : 'ノーマルコース'}</span>`;
+    ui.level.textContent = `LEVEL ${level}`;
     ui.next.textContent = '次のステージへ →';
     ui.levelMap.hidden = true;
     ui.wall.classList.toggle('map-open',false);
@@ -457,6 +466,7 @@ function reset(n) {
 }
 
 function updateUI() {
+    ui.settingsButton.disabled = !!cameraIntro || state!=='playing';
     ui.stamina.textContent = String(stamina);
     ui.stamina.setAttribute('aria-label',`スタミナ ${stamina} 手`);
     ui.stamina.style.color =
@@ -464,7 +474,7 @@ function updateUI() {
             ? '#bc5144'
             : '#25372f';
 
-    ui.progress.hidden=!ui.showPath.checked;
+    ui.progress.hidden=!debugMode;
     ui.progress.textContent =
         `${moveCount} 手 / 想定 ${route.length - 1} 手`;
 }
@@ -494,7 +504,7 @@ function limbRoot(p, index) {
 
 function down(e) {
     if (
-        state !== 'playing' ||
+        state !== 'playing' || settingsOpen ||
         cameraIntro ||
         drag
     )
@@ -682,7 +692,7 @@ function release(cancel = false) {
 }
 
 function canUndoMove() {
-    return !!undoSnapshot && !drag && !cameraIntro && ['playing','won','lost'].includes(state);
+    return !!undoSnapshot && !settingsOpen && !drag && !cameraIntro && ['playing','won','lost'].includes(state);
 }
 function undoMove() {
     if (!canUndoMove()) return false;
@@ -731,6 +741,8 @@ function finish(won) {
             ? 'ステージクリア！'
             : 'スタミナがなくなりました。同じ壁でルートを見直してみよう。';
 
+    hideSettings();
+    updateUI();
     showResultModal();
     (won ? ui.next : ui.retry).focus();
 }

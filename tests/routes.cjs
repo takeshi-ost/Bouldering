@@ -8,7 +8,7 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 if(!html.includes('id="existingCourse"') || !html.includes('id="prototypeCourse"'))throw Error('Course choice missing');
 console.log(vm.runInContext(`
 function check(v,m){if(!v)throw Error(m);}
-check(state==='choosing' && !cameraIntro && !ui.courseMenu.hidden,'Course menu startup failed');
+check(state==='choosing' && !cameraIntro && !ui.titleScreen.hidden,'Course menu startup failed');
 ui.existingCourse.onclick();check(state==='map','Course should open map');selectStage(1);
 check(state==='playing' && cameraIntro && level===1 && courseMode==='existing','One-screen stage needs its title intro');
 advanceCameraIntro(0);advanceCameraIntro(999);check(cameraIntro,'One-screen title vanished before 1s');

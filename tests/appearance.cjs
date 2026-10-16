@@ -27,7 +27,7 @@ playerColors=['#39785b'];playerHeadColor=DEFAULT_HEAD_COLOR;
 data[APPEARANCE_KEY]=JSON.stringify({colors:playerColors,headColor:playerHeadColor});
 const originalSave=data[APPEARANCE_KEY];
 const physics=JSON.stringify({body,holds,grips,route});
-ui.editCharacter.onclick();assert.equal(state,'editing');assert(!ui.characterEditor.hidden && ui.courseMenu.hidden);
+ui.editCharacter.onclick();assert.equal(state,'editing');assert(!ui.characterEditor.hidden && ui.titleScreen.hidden);
 assert(ui.editorPalette.hidden);assert.equal(ui.stripeCount.value,'1');
 for(const n of [0,-1,9,1.5,NaN])assert.equal(resizeEditorStripes(n),false);
 for(let n=1;n<=8;n++) {
@@ -80,7 +80,7 @@ paints=[];drawBodyFill(10,20,40,72,true);assert.equal(paints.length,3);assert(pa
 assert.equal(JSON.stringify({body,grips,route,stamina,moveCount}),savedPhysics);
 paints=[];drawBodyFill(10,20,40,72);assert.deepEqual(paints.map(p=>p.color),chosen);
 assert.equal(paints[0].y,20);assert.equal(paints.at(-1).y+paints.at(-1).h,92);
-showCourseMenu();showCharacterEditor();resizeEditorStripes(8);ui.editorConfirm.onclick();assert.equal(playerColors.length,8);
+showTitleScreen();showCharacterEditor();resizeEditorStripes(8);ui.editorConfirm.onclick();assert.equal(playerColors.length,8);
 showCharacterEditor();resizeEditorStripes(1);selectEditorStripe(0);paintEditorColor('#ffffff');selectEditorHead();paintEditorColor('#556677');ui.editorConfirm.onclick();assert.deepEqual(playerColors,['#ffffff']);
 // Legacy/malformed saves and blocked storage cannot corrupt rendering or stop play.
 const saved=data[APPEARANCE_KEY];

@@ -3,10 +3,10 @@ let touchId = null;
 let pan = null;
 let ignoreTouches = false;
 function endPan() { pan = null; }
-function canScrollStage() { return ['playing','won','lost'].includes(state) && ui.overlay.hidden && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT > H; }
+function canScrollStage() { return !settingsOpen && ['playing','won','lost'].includes(state) && ui.overlay.hidden && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT > H; }
 // Delay a body gesture until it becomes a drag, preserving the visible pose on tap.
 function beginPointer(e) {
-    if (!ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
+    if (settingsOpen || !ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
     const p=point(e),visible=characterPose(performance.now()).body;
     if (Math.abs(p.x-visible.x)<=TORSO.width/2+TORSO.hitPadding &&
         Math.abs(p.y-visible.y)<=TORSO.height/2+TORSO.hitPadding) {
@@ -119,7 +119,7 @@ ui.next.onclick = () => { if (state === 'won') showLevelMap({advanceFrom:level})
 ui.retry.onclick = ui.restart.onclick = () => { if (['playing','won','lost'].includes(state)) restartInput(level); };
 ui.mapButton.onclick = () => { if (['playing','won','lost'].includes(state)) showLevelMap({target:level}); };
 
-function showCourseMenu() {
+function showTitleScreen() {
     endPointer(null,true);
     endPan();
     touchId = null;
@@ -134,19 +134,19 @@ function showCourseMenu() {
     ui.wall.classList.toggle('map-open',false);
     ui.mapButton.disabled = true;
     hideResultModal();
-    ui.courseMenu.hidden = false;
+    ui.titleScreen.hidden = false;
     ui.courseError.hidden = true;
     ui.restart.disabled = true;
     bodyTap = null;
-    ui.showPath.disabled = true;
+    hideSettings();
+    ui.hud.hidden=true;
+    ui.debugMode.checked=debugMode;
     canvas.setAttribute('tabindex', '-1');
-    ui.level.textContent = 'コース選択';
     ui.existingCourse.focus();
 }
 function startCourse(mode) {
     if (mode !== 'existing' && mode !== 'prototype') return;
     courseMode = mode;
-    ui.showPath.checked = false;
     showLevelMap();
 }
 ui.existingCourse.onclick = () => startCourse('existing');
@@ -164,4 +164,17 @@ ui.helpDialog.addEventListener('close', () => ui.showHelp.focus());
 // Results stay modal until Retry or Next is chosen. Native dialog traps focus.
 ui.overlay.addEventListener('cancel',e=>e.preventDefault());
 
-ui.showPath.onchange=()=>updateUI();
+ui.debugMode.onchange=()=>{
+    if(state!=='choosing') {ui.debugMode.checked=debugMode;return;}
+    debugMode=ui.debugMode.checked;
+    updateUI();
+};
+ui.settingsButton.onclick=()=>{
+    if(state!=='playing' || cameraIntro || settingsOpen) return;
+    endPointer(null,true);endPan();touchId=null;ignoreTouches=false;
+    settingsOpen=true;
+    ui.settingsDialog.showModal?.();
+};
+ui.closeSettings.onclick=()=>{hideSettings();canvas.focus();};
+ui.settingsDialog.addEventListener('cancel',e=>{e.preventDefault();ui.closeSettings.onclick();});
+ui.settingsDialog.addEventListener('close',()=>{settingsOpen=false;});

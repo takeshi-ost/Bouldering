@@ -142,12 +142,12 @@ function danglingTip(p, index, time) {
 }
 
 function drawPath() {
-    if (!ui.showPath.checked && state !== 'won')
+    if (!debugMode && state !== 'won')
         return;
 
     ctx.save();
 
-    if (ui.showPath.checked) {
+    if (debugMode) {
         ctx.setLineDash([6, 5]);
 
         for (let i = 1; i < route.length; i++) {
@@ -491,7 +491,7 @@ function draw(now = 0) {
         !cameraIntro &&
         !drag &&
         !bodyTap &&
-        !inspecting &&
+        !inspecting && !settingsOpen &&
         state === 'playing'
     ) {
         camera +=

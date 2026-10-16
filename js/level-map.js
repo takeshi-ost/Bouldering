@@ -91,8 +91,8 @@ function renderLevelMap() {
     ui.mapPrev.disabled = mapPage===0 || !!mapTransition;
     ui.mapNext.disabled = last>=unlocked || !!mapTransition;
     ui.mapCourses.disabled = !!mapTransition;
-    ui.mapDebug.disabled = ui.debugStage.disabled = ui.debugPlay.disabled = !!mapTransition;
-    ui.debugControls.hidden = !ui.mapDebug.checked;
+    ui.debugStage.disabled = ui.debugPlay.disabled = !!mapTransition;
+    ui.debugControls.hidden = !debugMode;
 }
 function focusMapLevel() {
     const button=ui.mapNodes.querySelector?.(`[data-level="${mapSelected}"]`);
@@ -111,11 +111,11 @@ function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
     mapPage=Math.floor((destination-1)/MAP_PAGE_SIZE);
     mapTransition=advanceFrom!==null && destination!==advanceFrom
         ? {from:advanceFrom,to:destination,start:null} : null;
-    hideResultModal();ui.courseMenu.hidden=true;ui.levelMap.hidden=false;
+    hideResultModal();ui.titleScreen.hidden=true;ui.levelMap.hidden=false;
     ui.mapError.hidden=true;
-    ui.restart.disabled=ui.mapButton.disabled=ui.showPath.disabled=true;
+    hideSettings();ui.hud.hidden=true;
+    ui.restart.disabled=ui.mapButton.disabled=true;
     canvas.setAttribute('tabindex','-1');
-    ui.level.innerHTML=`ステージ選択<span>${courseMode==='prototype'?'ロジハラコース':'ノーマルコース'}</span>`;
     renderLevelMap();
     ui.mapScroll.scrollTop=Math.max(0,mapPoint(destination).y-(ui.mapScroll.clientHeight||H)/2);
     if (!mapTransition) focusMapLevel();
@@ -132,14 +132,13 @@ function advanceLevelMap(now) {
     }
 }
 function selectStage(n,debug=false) {
-    if (state!=='map' || mapTransition || !Number.isSafeInteger(n) || n<1 || n>=Number.MAX_SAFE_INTEGER || (debug ? !ui.mapDebug.checked : n>unlockedLevel())) return false;
+    if (state!=='map' || mapTransition || !Number.isSafeInteger(n) || n<1 || n>=Number.MAX_SAFE_INTEGER || (debug ? !debugMode : n>unlockedLevel())) return false;
     try {
         debugAttempt=debug;
         restartInput(n);
-        ui.courseMenu.hidden=true;ui.levelMap.hidden=true;
-        ui.showPath.disabled=false;
+        ui.titleScreen.hidden=true;ui.levelMap.hidden=true;
         canvas.setAttribute('tabindex','0');
-        ui.restart.focus();
+        canvas.focus();
         return true;
     } catch (error) {
         showLevelMap({target:n});
@@ -153,7 +152,7 @@ ui.mapNodes.onclick = e => {
     const button=e.target.closest('button[data-level]');
     if (button && ui.mapNodes.contains(button)) selectStage(Number(button.dataset.level));
 };
-ui.mapCourses.onclick=()=>{if(!mapTransition)showCourseMenu();};
+ui.mapCourses.onclick=()=>{if(!mapTransition)showTitleScreen();};
 ui.mapPrev.onclick=()=>{
     if (state!=='map' || mapTransition || mapPage===0) return;
     mapPage--;renderLevelMap();ui.mapScroll.scrollTop=0;
@@ -163,7 +162,6 @@ ui.mapNext.onclick=()=>{
     mapPage++;renderLevelMap();ui.mapScroll.scrollTop=ui.mapTrack.clientHeight;
 };
 
-ui.mapDebug.onchange=()=>{ if (state==='map' && !mapTransition) renderLevelMap(); };
 ui.debugControls.onsubmit=e=>{
     e.preventDefault();
     const n=Number(ui.debugStage.value);

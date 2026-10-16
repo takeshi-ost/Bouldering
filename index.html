@@ -21,25 +21,21 @@
 </head>
 <body>
     <main>
-        <header>
-            <div>
-                <div class="title-row"><div class="brand">ASCENT<span class="brand-dot">.</span></div><label class="path-toggle"><input id="showPath" type="checkbox"> パス表示</label></div>
-                <div class="tag">ONE MOVE CLOSER.</div>
-            </div>
-            <div class="level" id="level">Level 1<span>BOULDERING PUZZLE</span></div>
-        </header>
         <section class="wall" id="wall" aria-label="クライミングゲーム">
             <canvas id="game" tabindex="0" width="400" height="700" aria-label="1本指のスワイプで移動、ボディをタップしてUndo、2本指のスワイプでステージをスクロール"></canvas>
-            <div class="hud">
+            <div class="hud" id="hud" hidden>
                 <div class="pill"><span aria-hidden="true">❤️</span> <strong id="stamina">—</strong></div>
+                <div class="level" id="level">LEVEL 1</div>
+                <button id="settingsButton" class="settings-button" aria-label="設定を開く" aria-haspopup="dialog" aria-controls="settingsDialog">⚙</button>
                 <div class="progress" id="progress" hidden>0 手 / 準備中</div>
             </div>
 
-            <div class="overlay course-picker" id="courseMenu">
-                <div class="card">
-                    <div class="eyebrow">ASCENT</div>
-                    <h1>コースを選択</h1>
+            <div class="title-screen" id="titleScreen" aria-label="タイトル画面">
+                <div class="title-content">
+                    <h1 class="brand">ASCENT<span class="brand-dot">.</span></h1>
+                    <div class="tag">ONE MOVE CLOSER.</div>
                     <p class="game-summary">体をスワイプして、壁を登るクライミングパズル。<br>2本の手足を支えに、残りの2本を動かします。<br>スタミナが尽きる前に、両手で黄色いゴールをつかもう。</p>
+                    <label class="debug-toggle"><input id="debugMode" type="checkbox"> デバッグモード</label>
                     <button id="existingCourse">ノーマルコース</button>
                     <button class="secondary" id="prototypeCourse">ロジハラコース</button>
                     <button class="secondary" id="editCharacter">キャラエディット</button>
@@ -66,7 +62,7 @@
             <section class="level-map" id="levelMap" aria-labelledby="mapTitle" hidden>
                 <div class="map-heading">
                     <div><div class="eyebrow" id="mapCourse"></div><h1 id="mapTitle">ステージマップ</h1></div>
-                    <button id="mapCourses" class="map-secondary">コース選択</button>
+                    <button id="mapCourses" class="map-secondary">タイトル画面へ</button>
                 </div>
                 <p id="mapStatus" class="map-status" aria-live="polite"></p>
                 <p id="mapError" class="map-error" role="alert" hidden></p>
@@ -82,7 +78,6 @@
                     <span id="mapRange"></span>
                     <button id="mapNext" class="map-secondary" aria-label="次のレベル範囲">→</button>
                 </div>
-                <label class="map-debug-toggle"><input type="checkbox" id="mapDebug"> デバッグモード</label>
                 <form id="debugControls" class="debug-controls" hidden>
                     <label for="debugStage">ステージ番号</label>
                     <input id="debugStage" type="number" min="1" step="1" value="1" required inputmode="numeric">
@@ -102,20 +97,15 @@
                 </div>
             </dialog>
         </section>
-        <footer>
-            <div class="legend">
-                <span><i class="dot"></i>START</span>
-                <span><i class="dot gold"></i>GOAL</span>
-                <span><i class="dot wide"></i>両手／両足</span>
-                <span aria-label="青いホールドは追加スタミナ1消費"><i class="dot hazard"></i>−1</span>
-            </div>
-            <button id="mapButton" aria-label="ステージマップへ戻る" disabled>MAP</button>
-            <button id="restart" aria-label="現在のステージを最初からやり直す">↻ RESTART</button>
-        </footer>
+        <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
+            <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" aria-label="設定を閉じる" autofocus>閉じる</button></div>
+            <button id="restart">RESTART</button>
+            <button id="mapButton" class="secondary">MAPにもどる</button>
+        </dialog>
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
             <div class="help-heading"><h2 id="helpTitle">くわしい説明</h2><button id="closeHelp" aria-label="説明を閉じる" autofocus>閉じる</button></div>
             <h3>キャラエディット</h3>
-            <p>スタート画面からボディを1〜8段の横ストライプに塗り分けられます。頭は単色、ボディは各段をタップして色を選び、「決定」でゲーム中とマップへ反映・保存します。「戻る」では変更を破棄します。初回はボディの段数と色・頭の色がランダムに設定されます。</p>
+            <p>タイトル画面からボディを1〜8段の横ストライプに塗り分けられます。頭は単色、ボディは各段をタップして色を選び、「決定」でゲーム中とマップへ反映・保存します。「戻る」では変更を破棄します。初回はボディの段数と色・頭の色がランダムに設定されます。</p>
             <h3>登り方</h3>
             <p>壁のどこからでもスワイプして体を動かせます。移動方向に応じて2本の手足が支えに選ばれ、残りの2本が届くホールドへ自動で移ります。スワイプ中は支えの2本は変わりません。</p>
             <p>指を離したときに4本ともホールドを保持できていれば1手確定します。保持できない場合や、同じ4つの接触位置に戻った場合は手数を消費しません。両足を保持したまま、両手で黄色いゴールをつかむとクリアです。</p>
@@ -131,9 +121,9 @@
             <p>ボディは押している間だけ少し沈み、色が変わります。短くタップすると、直前の1手を取り消し、姿勢と消費したスタミナを戻せます。❤️の取得と回復分は維持します。連続では使えませんが、新しく1手進むと再び使えます。結果モーダル表示中は背景を操作できません。RESTARTは現在のステージをやり直し、スタミナと❤️をそのステージ開始時の状態に戻します。</p>
             <p>ステージ5以降、想定5手以上のステージではルート上に❤️が0〜2個現れます。手足ではなくボディで触れるとスタミナが2回復します。開始時の通常スタミナは❤️1個につき2少なくなるため、途中で回収しながら登りましょう。取得位置に「+2」が上昇しながら消えます。ボディが触れれば、移動が確定できなくても取得できます。キャンセル・Undoでも❤️と回復分は維持されます。</p>
             <h3>コースと便利な機能</h3>
-            <p>コースを選ぶとステージマップが開きます。挑戦できるレベルをタッチして開始し、クリアすると次のレベルが解放されます。クリア済みのレベルも何度でも遊べます。マップのデバッグモードでは番号を入力し、未解放のステージも試せます（クリア進捗は保存しません）。進行状況はコース別にこの端末へ保存します。プライベートブラウズではタブやセッションを閉じると記録が消える場合があります。MAPボタンでマップへ戻ると、進行中の挑戦は終了します。操作可能になった時点からタイムを計り、クリア時に「手数 分:秒:1/100秒」を表示します。記録はマップのステージ横に表示し、再クリア時は最新の記録に更新します。</p>
+            <p>コースを選ぶとステージマップが開きます。挑戦できるレベルをタッチして開始し、クリアすると次のレベルが解放されます。クリア済みのレベルも何度でも遊べます。タイトル画面のデバッグモードをONにすると、マップで番号を入力して未解放のステージも試せます（クリア進捗は保存しません）。進行状況はコース別にこの端末へ保存します。プライベートブラウズではタブやセッションを閉じると記録が消える場合があります。歯車の設定から「MAPにもどる」でマップへ戻ると、進行中の挑戦は終了します。操作可能になった時点からタイムを計り、クリア時に「手数 分:秒:1/100秒」を表示します。記録はマップのステージ横に表示し、再クリア時は最新の記録に更新します。</p>
             <p><strong>ノーマルコース：</strong>壁全体にホールド候補を配置し、ルートを確認して調整したコースです。<br><strong>ロジハラコース：</strong>通れるルートを保ちながら、必要なホールドまで絞ったコースです。</p>
-            <p>「パス表示」で想定ルートを確認できます。クリア時は実際に通ったルートを自動表示します。ステージ上を2本指で上下にスワイプすると壁をスクロールできます。1本指はキャラクターの移動です。開始時は中央にSTAGE番号を表示します。最下段へのスクロールと、最低1秒の表示が終わると操作可能です。</p>
+            <p>タイトル画面のデバッグモードをONにすると、ゲーム中に想定ルートと手数が表示されます。クリア時は実際に通ったルートを自動表示します。ステージ上を2本指で上下にスワイプすると壁をスクロールできます。1本指はキャラクターの移動です。開始時は中央にSTAGE番号を表示します。最下段へのスクロールと、最低1秒の表示が終わると操作可能です。</p>
         </dialog>
     </main>
 </body>

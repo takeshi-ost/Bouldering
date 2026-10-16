@@ -1,3 +1,3 @@
 "use strict";
-showCourseMenu();
+showTitleScreen();
 requestAnimationFrame(draw);

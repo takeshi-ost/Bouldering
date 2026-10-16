@@ -32,8 +32,8 @@ wide.wide=false;startGrips=[null,null,...feet];holds=[wide,...feet];
 attached=attachMoving(body,[2,3]);assert(attached.filter(h=>h===wide).length<=1);
 // Actual input / release path, including visual restoration and terminal states.
 startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert.equal(state,'playing');
-assert.equal(ui.progress.hidden,true);ui.showPath.checked=true;ui.showPath.onchange();assert.equal(ui.progress.hidden,false);
-assert(ui.progress.textContent.includes('想定'));ui.showPath.checked=false;ui.showPath.onchange();assert.equal(ui.progress.hidden,true);
+assert.equal(ui.progress.hidden,true);debugMode=true;updateUI();assert.equal(ui.progress.hidden,false);
+assert(ui.progress.textContent.includes('想定'));debugMode=false;updateUI();assert.equal(ui.progress.hidden,true);
 advanceCameraIntro(0);advanceCameraIntro(1650);assert.equal(canUndoMove(),false);
 function playStep(step) {
  advanceCameraIntro(0);advanceCameraIntro(1650);
@@ -77,20 +77,20 @@ ui.next.onclick();assert.equal(level,2,'Repeated Next advances twice');
 advanceCameraIntro(0);advanceCameraIntro(1650);playStep(route[1]);
 ui.retry.onclick();assert.equal(stamina,nextBudget);
 startCourse('prototype');assert.equal(state,'map');assert(selectStage(1));assert.equal(stamina,stageStamina(route.length-1));
-assert(ui.level.innerHTML.includes('ロジハラコース'));
-startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert(ui.level.innerHTML.includes('ノーマルコース'));
+assert.equal(courseMode,'prototype');assert.equal(ui.level.textContent,'LEVEL 1');
+startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert.equal(courseMode,'existing');assert.equal(ui.level.textContent,'LEVEL 1');
 assert.equal(ui.stamina.textContent,String(stamina));
 // Actual route is automatic after winning; planned route still follows the checkbox.
 const drawnColors=[],drawnLabels=[];
 ctx.stroke=()=>drawnColors.push(ctx.strokeStyle);
 ctx.fillText=text=>drawnLabels.push(text);
-ui.showPath.checked=false;state='won';playerPath=[{x:100,y:300},{x:150,y:250}];
+debugMode=false;state='won';playerPath=[{x:100,y:300},{x:150,y:250}];
 drawPath();assert(drawnColors.includes('#d14479'));assert(!drawnColors.includes('#527faa9c'));
 assert(drawnLabels.includes('実際のルート'));
 drawnColors.length=0;state='playing';drawPath();assert.equal(drawnColors.length,0);
-ui.showPath.checked=true;state='won';drawPath();
+debugMode=true;state='won';drawPath();
 assert(drawnColors.includes('#527faa9c') && drawnColors.includes('#d14479'));
-ui.showPath.checked=false;
+debugMode=false;
 // Ten-move stamina boundaries, including the explicit 30 -> 33 example.
 for(const [moves,budget] of [[5,5],[9,9],[10,11],[19,20],[20,22],[29,31],[30,33],[39,42],[40,44]])
  assert.equal(stageStamina(moves),budget);
@@ -231,9 +231,9 @@ cameraIntro={from:0,to:HEIGHT-H,start:null};
 emit('touchstart',[finger(1,100),finger(2,200)]);assert.equal(pan,null);
 emit('touchend',[],[finger(1,100),finger(2,200)]);
 assert(!html.includes('id="scrollRail"') && !html.includes('id="density"'));
-assert(!ui.level.innerHTML.includes('2点固定'));
+assert.equal(ui.level.textContent,'LEVEL '+level);
 console.log('PASS two-finger scrolling: cancel movement, scale, bounds, finger release, third finger, cancel, intro guard');
-showCourseMenu();
+showTitleScreen();
 ui.helpDialog.showModal=function(){this.open=true;};ui.helpDialog.close=function(){this.open=false;};
 ui.showHelp.onclick();assert.equal(ui.helpDialog.open,true);assert.equal(state,'choosing');
 ui.closeHelp.onclick();assert.equal(ui.helpDialog.open,false);

@@ -82,9 +82,9 @@ function renderCharacterEditor() {
 function showCharacterEditor() {
     if(state!=='choosing')return false;
     draftColors=[...playerColors];draftHeadColor=playerHeadColor;draftStripeCount=playerColors.length;selectedStripe=null;selectedPart=null;
-    state='editing';ui.courseMenu.hidden=true;ui.characterEditor.hidden=false;
+    state='editing';ui.titleScreen.hidden=true;ui.characterEditor.hidden=false;
     ui.appearanceStatus.hidden=true;
-    ui.level.textContent='キャラエディット';
+    ui.hud.hidden=true;
     renderCharacterEditor();ui.stripeCount.focus();
     return true;
 }
@@ -114,7 +114,7 @@ function confirmCharacterEditor() {
     playerColors=draftColors.slice(0,draftStripeCount);
     playerHeadColor=draftHeadColor;
     const saved=saveAppearance({colors:playerColors,headColor:playerHeadColor});
-    updateMapAppearance();showCourseMenu();ui.editCharacter.focus();
+    updateMapAppearance();showTitleScreen();ui.editCharacter.focus();
     ui.appearanceStatus.textContent=saved?'配色を保存しました。':'配色を適用しました。この端末への保存はできませんでした。';
     ui.appearanceStatus.hidden=false;
     return true;
@@ -143,5 +143,5 @@ ui.paletteSwatches.onclick=e=>{
 ui.customColor.oninput=()=>paintEditorColor(ui.customColor.value);
 ui.editorConfirm.onclick=confirmCharacterEditor;
 ui.editorCancel.onclick=()=>{
-    if(state==='editing'){showCourseMenu();ui.editCharacter.focus();}
+    if(state==='editing'){showTitleScreen();ui.editCharacter.focus();}
 };

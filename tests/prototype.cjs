@@ -69,11 +69,11 @@ for (let n=1;n<=20;n++) {
 }
 assert(report.some(p=>p.wide>0),'Wide holds never survive pruning');
 state='won';ui.next.onclick();assert.equal(state,'map');advanceLevelMap(0);advanceLevelMap(650);assert.equal(mapSelected,21);assert(selectStage(21));assert.equal(level,21);assert.equal(courseMode,'prototype');
-showCourseMenu();assert.equal(state,'choosing');assert.equal(drag,null);
+showTitleScreen();assert.equal(state,'choosing');assert.equal(drag,null);
 ui.existingCourse.onclick();assert.equal(state,'map');assert(selectStage(1));assert.equal(courseMode,'existing');assert.equal(level,1);
 const original=JSON.stringify({holds,route});
-showCourseMenu();ui.prototypeCourse.onclick();assert(selectStage(1));
-showCourseMenu();ui.existingCourse.onclick();assert(selectStage(1));
+showTitleScreen();ui.prototypeCourse.onclick();assert(selectStage(1));
+showTitleScreen();ui.existingCourse.onclick();assert(selectStage(1));
 assert.equal(JSON.stringify({holds,route}),original,'Prototype contaminated existing course');
 // Guide-only generation returns the exact same pre-search guide and start/goal.
 for(let n=1;n<=20;n++) {
