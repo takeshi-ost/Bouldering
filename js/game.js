@@ -6,7 +6,7 @@ const ui = Object.fromEntries([
     "wall", "level", "stamina", "progress", "overlay", "resultTag",
     "resultTitle", "resultText", "resultStats", "next", "retry", "restart", "showPath",
     "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "mapDebug", "debugControls", "debugStage", "debugPlay",
-    "characterEditor", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
+    "characterEditor", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
     "courseMenu", "existingCourse", "prototypeCourse", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 

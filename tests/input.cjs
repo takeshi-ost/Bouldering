@@ -10,6 +10,8 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
 };}};const window={events:{},addEventListener(name,fn){this.events[name]=fn;},devicePixelRatio:1};function requestAnimationFrame(){}
 `;
 new Function('assert',env+source+`
+// A fixed palette isolates press feedback from randomized first-run appearance.
+playerColors=['#39785b'];
 function eventAt(p) {const r=canvas.getBoundingClientRect();return {clientX:r.left+p.x*r.width/W,clientY:r.top+(p.y-camera)*r.height/H,button:0,preventDefault(){}};}
 function visibleEvent(){return eventAt(characterPose(clock).body);}
 function mouse(name,e){(name==='mousedown'?canvas.events:window.events)[name](e);}

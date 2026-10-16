@@ -274,7 +274,7 @@ footer button { white-space: nowrap; }
 .map-node:disabled:hover { filter:none; }
 .map-node[aria-current] { outline:2px solid #3d694e; outline-offset:5px; }
 .map-marker { position:absolute; transform:translate(-50%,-100%); width:24px; height:32px; pointer-events:none; z-index:1; filter:drop-shadow(0 2px 1px #25372f30); }
-.map-marker i { position:absolute; top:0; left:6px; width:12px; height:12px; border-radius:50%; background:#dcad86; border:1px solid #fff7e9; }
+.map-marker i { position:absolute; top:0; left:6px; width:12px; height:12px; border-radius:50%; background:var(--head-color,#e0b99b); border:1px solid #fff7e9; }
 .map-marker b { position:absolute; left:3px; top:12px; width:18px; height:20px; border:2px solid #fff7e9; border-radius:5px 5px 3px 3px; background:var(--body-stripes,#39785b); }
 .map-navigation { display:flex; align-items:center; justify-content:space-between; padding:8px 18px 0; gap:12px; font-size:12px; color:#65755f; }
 .map-hint { text-align:center; font-size:10px; color:#76856b; margin:8px 8px 12px; }
@@ -303,8 +303,8 @@ footer button { padding:9px 8px; }
 .editor-heading h1 { font-size:22px; margin:7px 0; }
 .editor-heading p,.editor-hint { color:#637267; font-size:11px; margin:0; text-align:center; }
 .editor-preview { display:block; width:100%; height:clamp(220px,38vh,350px); flex-shrink:0; background:radial-gradient(ellipse,#e2e8dc 0,transparent 65%); }
-.editor-preview [data-stripe] { cursor:pointer; }
-.editor-preview [data-stripe]:focus-visible { outline:2px solid #d4a63d; }
+.editor-preview [data-stripe],.editor-preview [data-part="head"] { cursor:pointer; }
+.editor-preview [data-stripe]:focus-visible,.editor-preview [data-part="head"]:focus-visible { outline:2px solid #d4a63d; }
 .stripe-slider { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; }
 .stripe-slider output { color:#39785b; font-size:18px; }
 .stripe-slider span { margin-left:auto; font-size:11px; color:#637267; }
@@ -320,3 +320,5 @@ footer button { padding:9px 8px; }
 .editor-actions button { flex:1; min-height:44px; }
 .editor-actions .secondary { background:#dde5d6; color:#3f5b47; }
 #appearanceStatus { font-size:12px; color:#39785b; }
+
+#bodyStripeControls[hidden] { display:none; }

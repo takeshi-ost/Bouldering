@@ -876,7 +876,7 @@ function draw(now = 0) {
         visual.body.x,
         top - 13,
         10,
-        '#e0b99b'
+        typeof playerHeadColor==='undefined' ? '#e0b99b' : playerHeadColor
     );
 
     const pressOffset=bodyTap ? 3 : 0;
