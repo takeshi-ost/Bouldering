@@ -136,7 +136,8 @@ button:disabled { opacity: .45; cursor: default; }
 .map-hint { text-align:center; font-size:10px; color:#76856b; margin:8px 8px 12px; }
 .debug-controls { padding:0 18px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:12px; }
 .debug-controls[hidden] { display:none; }
-.debug-controls input { width:80px; min-width:0; padding:6px; border:1px solid #adb9ad; border-radius:6px; font:inherit; }
+/* 16px prevents iOS Safari from zooming when the stage field receives focus. */
+.debug-controls input { width:80px; min-width:0; min-height:44px; padding:6px; border:1px solid #adb9ad; border-radius:6px; font:inherit; font-size:16px; }
 .debug-controls small { flex-basis:100%; color:#657569; }
 
 #overlay { position:fixed; inset:0; margin:0; width:100%; height:100%; max-width:none; max-height:none; border:0; z-index:10; background:#23372d70; backdrop-filter:blur(1px); box-sizing:border-box; overflow:auto; }

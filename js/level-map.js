@@ -133,6 +133,8 @@ function advanceLevelMap(now) {
 }
 function selectStage(n,debug=false) {
     if (state!=='map' || mapTransition || !Number.isSafeInteger(n) || n<1 || n>=Number.MAX_SAFE_INTEGER || (debug ? !debugMode : n>unlockedLevel())) return false;
+    // Dismiss the numeric keyboard before generating and opening the stage.
+    if(debug)ui.debugStage.blur?.();
     try {
         debugAttempt=debug;
         restartInput(n);
