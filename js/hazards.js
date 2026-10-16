@@ -29,6 +29,10 @@ function findHazardMove(hold,path=route) {
 }
 function addHazardHolds() {
     if (level<HAZARD_CONFIG.firstLevel) return;
+    if (level>=HAZARD_CONFIG.denseFirstLevel) {
+        convertDenseHazards();
+        return;
+    }
     const random=mulberry32(level ^ 0x3C61D52A);
     const target=Math.floor(random()*(HAZARD_CONFIG.maxCount+1));
     let count=0,nextId=Math.max(...holds.map(h=>h.id))+1;
@@ -51,6 +55,23 @@ function addHazardHolds() {
             count++;nextId++;
         } else holds.pop();
     }
+    densityStats.hazardCount=count;
+    updateStageDensity();
+}
+
+// Type changes preserve reach, support selection and snapping. Keep wide holds,
+// the start stance and goal intact; no extra geometry or route search is needed.
+function convertDenseHazards() {
+    const random=mulberry32(level ^ 0x3C61D52A);
+    const protectedIds=new Set(initialGrips.map(h=>h.id));
+    const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !protectedIds.has(h.id))
+        .map(h=>({h,key:random()})).sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
+    const min=Math.ceil(holds.length*HAZARD_CONFIG.minRatio);
+    const max=Math.min(candidates.length,Math.floor(holds.length*HAZARD_CONFIG.maxRatio));
+    if(max<min)throw new Error('Not enough ordinary holds for dense hazards');
+    const count=min+Math.floor(random()*(max-min+1));
+    for(const {h} of candidates.slice(0,count))h.type='hazard';
+    if(!samePairRoute(route,replayRoute(route)))throw new Error('Dense hazard route replay failed');
     densityStats.hazardCount=count;
     updateStageDensity();
 }

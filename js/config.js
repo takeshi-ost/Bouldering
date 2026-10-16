@@ -61,8 +61,8 @@ const DENSITY_CONFIG = {
 };
 // ルート上の回復アイテム。取得分を開始スタミナから先に差し引きます。
 const HEART_CONFIG = { firstLevel: 5, minMoves: 5, maxCount: 2, recovery: 2, radius: 10, popupDuration: 1000, popupRise: 30 };
-// Optional stamina-draining holds, added only after validating the free route.
-const HAZARD_CONFIG = { firstLevel: 20, maxCount: 5, penalty: 1, shakeDuration: 280, shakeAmplitude: 4, radius: 6, attempts: 140, spacing: 24 };
+// Optional hazards at Lv20-39; convert 30-50% of all holds at Lv40+.
+const HAZARD_CONFIG = { firstLevel: 20, denseFirstLevel: 40, minRatio: .3, maxRatio: .5, maxCount: 5, penalty: 1, shakeDuration: 280, shakeAmplitude: 4, radius: 6, attempts: 140, spacing: 24 };
 // 操作と描画。
 const INPUT_CONFIG = { dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24, tapMaxDuration: 400 };
 const CAMERA_CONFIG = { bodyScreenRatio: 0.6, followRate: 0.08, introSpeed: H * 1.5, introMinDuration: 1000 };

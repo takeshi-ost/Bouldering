@@ -288,21 +288,47 @@ function stageStamina(moves) {
     return moves + Math.floor(moves / STAGE_CONFIG.staminaInterval);
 }
 
+// Share the live per-limb contact rule with route budgeting.
+function newHazardContacts(stance,previous) {
+    return new Set(stance.filter((h,i)=>h?.type==='hazard' && h!==previous[i]));
+}
+function routeHazardCosts(path) {
+    const byId=new Map(holds.map(h=>[h.id,h]));
+    let previous=[...initialGrips],total=0;
+    for(const pair of [[0,1],[2,3]]) {
+        const sorted=pair.map(i=>previous[i]).sort((a,b)=>(a?.x||0)-(b?.x||0));
+        pair.forEach((i,j)=>previous[i]=sorted[j]);
+    }
+    return path.map((p,step)=>{
+        if(step) {
+            const stance=(p.grips||[]).map(id=>byId.get(id));
+            total+=newHazardContacts(stance,previous).size*HAZARD_CONFIG.penalty;
+            previous=stance;
+        }
+        return total;
+    });
+}
+function routeStamina(path) {
+    return stageStamina(path.length-1)+(routeHazardCosts(path).at(-1)||0);
+}
+
 // Use an independent stream: retries preserve both holds and items.
 function createHearts(n, path) {
     const moves = path.length - 1;
     if (n < HEART_CONFIG.firstLevel || moves < HEART_CONFIG.minMoves) return [];
     const random = mulberry32(n ^ 0x48EA27B1);
     const count = Math.floor(random() * (HEART_CONFIG.maxCount + 1));
-    const initialBudget = stageStamina(moves) - count * HEART_CONFIG.recovery;
+    const costs = routeHazardCosts(path);
+    const initialBudget = routeStamina(path) - count * HEART_CONFIG.recovery;
     let previousStep = 0;
     return Array.from({length:count}, (_,id) => {
         // Recover before the late climb: one item by halfway, or two by 1/3 and 2/3.
         // Also reserve stamina before pickup where the short-stage budget permits it.
         const routeDeadline = Math.floor(moves * (id + 1) / (count + 1));
         const budgetDeadline = initialBudget + id * HEART_CONFIG.recovery - 1;
-        const latest = Math.max(previousStep + 1,
+        let latest = Math.max(previousStep + 1,
             Math.min(routeDeadline,budgetDeadline,moves - (count - id)));
+        while(latest>previousStep+1 && latest+costs[latest]>budgetDeadline)latest--;
         const step = previousStep + 1 + Math.floor(random() * (latest - previousStep));
         previousStep = step;
         return {id, x:path[step].x, y:path[step].y, collected:false};
@@ -372,7 +398,7 @@ function reset(n) {
     hearts = createHearts(n,route);
     heartPopups = [];
     hazardShakeStart = null;
-    stamina = stageStamina(route.length - 1) - hearts.length * HEART_CONFIG.recovery;
+    stamina = routeStamina(route) - hearts.length * HEART_CONFIG.recovery;
 
     moveCount = 0;
 
@@ -591,7 +617,7 @@ function release(cancel = false) {
     drag = null;
 
     // Continuity belongs to a limb/hold pair, not just an occupied hold.
-    const newHazards = new Set(grips.filter((h,i) => h?.type==='hazard' && h!==startGrips[i]));
+    const newHazards = newHazardContacts(grips,startGrips);
     if (
         cancel ||
         invalid ||
