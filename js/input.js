@@ -3,7 +3,7 @@ let touchId = null;
 let pan = null;
 let ignoreTouches = false;
 function endPan() { pan = null; }
-function canScrollStage() { return ['playing','won','lost'].includes(state) && !cameraIntro && HEIGHT > H; }
+function canScrollStage() { return ['playing','won','lost'].includes(state) && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT > H; }
 // Delay a body gesture until it becomes a drag, preserving the visible pose on tap.
 function beginPointer(e) {
     if (bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;

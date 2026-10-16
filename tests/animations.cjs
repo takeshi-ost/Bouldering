@@ -82,6 +82,29 @@ assert(Math.abs(thighAngle-calfAngle)>.01,'Knee segment moves rigidly with thigh
 const nextHang=characterPose(began+1200);
 assert(distance(nextHang.joints[2],knee)>1,'Knee does not follow the swing');
 assert(JSON.stringify({body,grips,playerPath})===wonPose,'Hang modified actual contacts');
+// Loss detaches the entire visible skeleton and accelerates it out of the
+// current viewport, even at the very bottom of a multi-screen wall.
+resetCharacterAnimation();camera=1400;HEIGHT=2100;body={x:200,y:1950};committed={...body};
+grips=limbs.map(p=>({x:body.x+p.x,y:body.y+p.y}));
+const lossBefore=JSON.stringify({body,committed,grips,playerPath});
+startPoseSettle();const released=characterPose(performance.now());startFall();const fallStart=characterAnimation.start;
+const firstFall=characterPose(fallStart);
+assert(distance(firstFall.body,released.body)<1,'Fall jumps at release');
+for(const ms of [0,100,250,500,1000,2000,60000]) {
+ const v=characterPose(fallStart+ms),drop=v.body.y-firstFall.body.y;
+ assert(drop>=0 && v.body.x===firstFall.body.x,'Fall moves upward or sideways');
+ v.contacts.forEach((h,i)=>{
+  assert(Math.abs(h.y-firstFall.contacts[i].y-drop)<1e-6,'A limb stays on the wall');
+  const root=limbRoot(v.body,i),joint=v.joints[i],half=LIMB_LENGTHS[i]/2;
+  assert(Math.abs(distance(root,joint)-half)<1e-5 && Math.abs(distance(joint,h)-half)<1e-5,'Fall changes bone length');
+ });
+ assert(camera===1400,'Fall changes camera');
+}
+const fall100=characterPose(fallStart+100),fall200=characterPose(fallStart+200);
+assert(Math.abs((fall200.body.y-firstFall.body.y)/(fall100.body.y-firstFall.body.y)-4)<1e-6,'Fall does not accelerate');
+const gone=characterPose(fallStart+2000);
+assert(gone.body.y-TORSO.height/2-25>camera+H && gone.contacts.every(h=>h.y>camera+H),'Character remains on screen');
+assert(JSON.stringify({body,committed,grips,playerPath})===lossBefore,'Fall changes saved gameplay state');
 resetCharacterAnimation();assert(characterAnimation===null && characterPose(0).body.y===body.y,'Animation reset failed');
 `,context);
-console.log('PASS pose settling, reach limits, goal hanging, unchanged physics');
+console.log('PASS pose settling, reach limits, goal hanging, accelerating off-screen fall, fixed bones, unchanged physics');

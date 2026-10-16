@@ -683,6 +683,7 @@ function undoMove() {
 function finish(won) {
     state = won ? 'won' : 'lost';
     if(won) { recordStageClear(); startGoalHang(); }
+    else startFall();
     ui.overlay.hidden = false;
     ui.next.hidden = !won;
 

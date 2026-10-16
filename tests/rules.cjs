@@ -60,7 +60,7 @@ stamina=1;const losing=playStep(route[1]);assert.equal(state,'lost');checkUndo(l
 reset(1);assert.equal(undoSnapshot,null);advanceCameraIntro(0);advanceCameraIntro(1650);
 let winning;
 for(let i=1;i<route.length;i++)winning=playStep(route[i]);
-assert.equal(state,'won');checkUndo(winning);
+assert.equal(state,'won');assert.equal(stamina,0);assert.equal(characterAnimation.kind,'hang');checkUndo(winning);
 reset(2);assert.equal(undoSnapshot,null);assert.equal(canUndoMove(),false);
 // Every stage starts with its own fixed budget; no carryover or bonus suffix.
 reset(1);const regular=stamina;

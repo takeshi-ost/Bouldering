@@ -352,6 +352,15 @@ function startGoalHang() {
     characterAnimation={kind:'hang',start:performance.now(),origin:{x:body.x,y:body.y},
         contacts:grips.map(h=>({x:h.x,y:h.y})),goal:{x:grips[0].x,y:grips[0].y},legAngles};
 }
+function startFall() {
+    const now=performance.now(),visible=characterPose(now);
+    const contacts=visible.contacts.map((h,i)=>({...(h || danglingTip(visible.body,i,now/1000))}));
+    const joints=contacts.map((h,i)=>visible.joints?.[i] ||
+        limbJoint(limbRoot(visible.body,i),h,i,jointHistory[i]));
+    const top=Math.min(visible.body.y-TORSO.height/2-25,...contacts.map(h=>h.y),...joints.map(j=>j.y));
+    characterAnimation={kind:'fall',start:now,origin:{...visible.body},contacts,joints,
+        camera,maxDrop:Math.max(0,camera+H+FALL_CONFIG.clearance-top)};
+}
 function characterPose(now) {
     const pose={body:{x:body.x,y:body.y},contacts:grips,angle:0,pivot:null};
     const a=characterAnimation;
@@ -362,6 +371,11 @@ function characterPose(now) {
         const ease=1-Math.pow(1-t,3);
         pose.body={x:a.origin.x+(a.target.x-a.origin.x)*ease,
             y:a.origin.y+(a.target.y-a.origin.y)*ease};
+    } else if(a.kind==='fall') {
+        const drop=Math.min(a.maxDrop,FALL_CONFIG.gravity*(elapsed/1000)**2/2);
+        pose.body={x:a.origin.x,y:a.origin.y+drop};
+        pose.contacts=a.contacts.map(h=>({x:h.x,y:h.y+drop}));
+        pose.joints=a.joints.map(j=>({x:j.x,y:j.y+drop}));
     } else {
         const t=clamp(elapsed/650,0,1),ease=t*t*(3-2*t);
         const seconds=elapsed/1000, damping=Math.exp(-seconds/6);
@@ -450,6 +464,7 @@ function draw(now = 0) {
         return;
     }
     advanceCameraIntro(now);
+    if(characterAnimation?.kind==='fall')camera=characterAnimation.camera;
 
     ui.overlay.classList.toggle(
         'reviewing',
@@ -683,7 +698,7 @@ function draw(now = 0) {
             continue;
 
         const active =
-            grips.includes(h);
+            characterAnimation?.kind!=='fall' && grips.includes(h);
 
         const gold =
             h.type === 'goal';

@@ -67,8 +67,13 @@ e=visibleEvent();touch('touchstart',[finger(7,e)]);clock+=100;touch('touchend',[
 // The moving goal-hang torso and a loss can both be tapped to Undo.
 fixture();for(let i=2;i<route.length;i++)play(i);assert.equal(state,'won');clock+=1000;
 e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal(state,'playing');assert.equal(moveCount,route.length-2);
-fixture();stamina=1;play(2);assert.equal(state,'lost');draw(0);assert(ui.overlay.classList.values.reviewing);
-e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal(state,'playing');assert.equal(moveCount,1);
+fixture();stamina=1;play(2);assert.equal(state,'lost');assert.equal(characterAnimation.kind,'fall');
+const lossCamera=camera;HEIGHT=H*3;assert.equal(canScrollStage(),false);
+canvas.events.wheel({deltaY:100,deltaMode:0,preventDefault(){}});
+canvas.events.keydown({key:'End',preventDefault(){}});
+beginTouchPan([finger(1,eventAt(body)),finger(2,eventAt({x:body.x+30,y:body.y}))]);assert.equal(pan,null);
+draw(0);assert.equal(camera,lossCamera);assert(ui.overlay.classList.values.reviewing);
+e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal(state,'playing');assert.equal(moveCount,1);assert.equal(characterAnimation.kind,'settle');
 // Every stage, including a one-screen stage, blocks input until its title has lasted 1s.
 reset(1);assert(cameraIntro);e=visibleEvent();mouse('mousedown',e);mouse('mouseup',e);assert.equal(bodyTap,null);assert.equal(drag,null);
 advanceCameraIntro(100);advanceCameraIntro(1099);assert(cameraIntro);assert.equal(camera,HEIGHT-H);
