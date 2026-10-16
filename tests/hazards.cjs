@@ -31,7 +31,7 @@ for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
   for(let i=1;i<=option.step;i++)play(i);
   camera=clamp(body.y-H*.6,0,HEIGHT-H);
   down(eventAt(body));const snapshot=moveSnapshot;move(eventAt(option.to));
-  assert(grips.includes(hazards[0]));const fresh=new Set(grips.filter(h=>h.type==='hazard' && !startGrips.includes(h)));
+  assert(grips.includes(hazards[0]));const fresh=new Set(grips.filter((h,i)=>h.type==='hazard' && h!==startGrips[i]));
   const gains=hearts.filter((h,i)=>h.collected&&!snapshot.collectedHearts[i]).length*2;
   release();assert.equal(stamina,Math.max(0,snapshot.stamina+gains-1-fresh.size*HAZARD_CONFIG.penalty));
   assert(undoMove());assert.equal(stamina,snapshot.stamina+gains);
@@ -91,6 +91,26 @@ assert.equal(heartPopups.length,2);const burstStart=hazardShakeStart;
 holds.push({id:6,x:148,y:220,type:'normal'},{id:7,x:252,y:220,type:'normal'});
 reach([2,3],{x:200,y:288});release();assert.equal(heartPopups.length,2);assert.equal(hazardShakeStart,burstStart);
 undoMove();assert.equal(hazardShakeStart,null);assert.equal(heartPopups.length,0);
+// A different limb taking the same occupied hazard pays again, even if
+// the set of contact positions is unchanged (the old no-op shortcut).
+fixture();reach([0,1],{x:200,y:310});release();assert.equal(stamina,8);
+const beforeTransfer=[...grips];
+function transferFeet(cancel=false,invalid=false) {
+    reach([0,1],{...body});
+    [grips[2],grips[3]]=[startGrips[3],startGrips[2]];
+    assert(grips.every((h,i)=>limbReachable(body,h,i)));
+    assert(sameContacts(grips,startGrips));
+    if(invalid)grips[0]=null;
+    release(cancel);
+}
+heartPopups=[];hazardShakeStart=null;
+transferFeet(true);assert.equal(stamina,8);assert.deepEqual(grips,beforeTransfer);assert.equal(heartPopups.length,0);
+transferFeet(false,true);assert.equal(stamina,8);assert.deepEqual(grips,beforeTransfer);assert.equal(hazardShakeStart,null);
+transferFeet();assert.equal(stamina,6);assert.equal(moveCount,2);
+assert.equal(grips[3],beforeTransfer[2]);assert.equal(heartPopups.length,1);assert.notEqual(hazardShakeStart,null);
+assert(undoMove());assert.equal(stamina,8);assert.deepEqual(grips,beforeTransfer);
+transferFeet();assert.equal(stamina,6);transferFeet();assert.equal(stamina,4);
+assert.equal(heartPopups.length,2,'Each limb handoff must show a fresh penalty');
 // Distinct small jagged geometry and blue fill, independent of emoji fonts.
 const points=[];ctx.moveTo=(x,y)=>points.push({x,y});ctx.lineTo=(x,y)=>points.push({x,y});
 drawJaggedHold(100,200,HAZARD_CONFIG.radius,'#6099cf');assert.equal(points.length,16);assert.equal(ctx.fillStyle,'#6099cf');

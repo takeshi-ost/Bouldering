@@ -590,10 +590,12 @@ function release(cancel = false) {
 
     drag = null;
 
+    // Continuity belongs to a limb/hold pair, not just an occupied hold.
+    const newHazards = new Set(grips.filter((h,i) => h?.type==='hazard' && h!==startGrips[i]));
     if (
         cancel ||
         invalid ||
-        sameContacts(grips, startGrips)
+        (sameContacts(grips, startGrips) && !newHazards.size)
     ) {
         body = { ...committed };
         grips = [...startGrips];
@@ -604,7 +606,6 @@ function release(cancel = false) {
             y: body.y
         });
 
-        const newHazards = new Set(grips.filter(h => h.type==='hazard' && !startGrips.includes(h)));
         stamina = Math.max(0,stamina-1-newHazards.size*HAZARD_CONFIG.penalty);
         if (newHazards.size) {
             const now = performance.now();
