@@ -455,7 +455,7 @@ function drawJaggedHold(x,y,r,fill,stroke) {
 }
 
 function drawStageIntro() {
-    if (!cameraIntro || state!=='playing') return;
+    if (featureHelpOpen || !cameraIntro || state!=='playing') return;
     ctx.save();
     ctx.fillStyle='#f3f0e780';
     ctx.fillRect(0,0,W,H);

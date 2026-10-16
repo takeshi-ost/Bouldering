@@ -3,7 +3,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
-    "wall", "level", "stamina", "progress", "overlay", "resultTag",
+    "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultTag",
     "resultTitle", "resultText", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
     "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
@@ -15,6 +15,44 @@ let settingsOpen = false;
 function hideSettings() {
     settingsOpen=false;
     if(ui.settingsDialog.open)ui.settingsDialog.close?.();
+}
+// First encounters are shared by both courses and retained across launches.
+const FEATURE_HELP_KEY='ascent.feature-help.v1';
+function readFeatureHelpSeen() {
+    try {
+        const saved=JSON.parse(globalThis.localStorage?.getItem(FEATURE_HELP_KEY)||'null');
+        return {heart:saved?.heart===true,hazard:saved?.hazard===true};
+    } catch(_) {return {heart:false,hazard:false};}
+}
+let featureHelpSeen=readFeatureHelpSeen();
+let featureHelpOpen=false;
+let pendingFeatureHelp=[];
+function hideStageHelp() {
+    featureHelpOpen=false;pendingFeatureHelp=[];
+    if(ui.featureHelpDialog.open)ui.featureHelpDialog.close?.();
+}
+function showStageHelp() {
+    if(state!=='playing' || featureHelpOpen)return;
+    const features=[];
+    if(hearts.length && !featureHelpSeen.heart)features.push('heart');
+    if(holds.some(h=>h.type==='hazard') && !featureHelpSeen.hazard)features.push('hazard');
+    if(!features.length)return;
+    pendingFeatureHelp=features;featureHelpOpen=true;
+    ui.featureHelpContent.innerHTML=features.map(feature=>feature==='heart'
+        ? '<p class="feature-help-row"><span class="feature-help-icon" aria-hidden="true">❤️</span><span>スタミナが2回復する<small>ボディで触れると取得できます。</small></span></p>'
+        : '<p class="feature-help-row"><svg class="feature-help-icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 25 10 36 7 32 19 38 28 26 29 20 38 14 29 3 31 8 20 3 10 15 11Z" fill="#6099cf" stroke="#3873a7" stroke-width="2"/></svg><span>青ホールドはスタミナを追加で1消費する<small>新しく手足を固定した時に消費します。同じ手足で保持し続ける間は追加消費しません。</small></span></p>'
+    ).join('');
+    ui.featureHelpDialog.showModal?.();
+}
+function dismissStageHelp() {
+    if(!featureHelpOpen)return;
+    for(const feature of pendingFeatureHelp)featureHelpSeen[feature]=true;
+    try {globalThis.localStorage?.setItem(FEATURE_HELP_KEY,JSON.stringify(featureHelpSeen));}
+    catch(_) { /* Remember for this session if storage is unavailable. */ }
+    hideStageHelp();
+    // Start the full opening sequence on the next frame, excluding reading time.
+    if(cameraIntro)cameraIntro.start=null;
+    canvas.focus();
 }
 let courseMode = 'existing';
 let level = 1;
@@ -398,6 +436,7 @@ function restoreMoveStamina(saved) {
 }
 
 function reset(n) {
+    hideStageHelp();
     runStartedAt=null;runElapsedMs=0;
     undoSnapshot = moveSnapshot = null;
     bodyTap = null;
@@ -504,7 +543,7 @@ function limbRoot(p, index) {
 
 function down(e) {
     if (
-        state !== 'playing' || settingsOpen ||
+        state !== 'playing' || settingsOpen || featureHelpOpen ||
         cameraIntro ||
         drag
     )
@@ -692,7 +731,7 @@ function release(cancel = false) {
 }
 
 function canUndoMove() {
-    return !!undoSnapshot && !settingsOpen && !drag && !cameraIntro && ['playing','won','lost'].includes(state);
+    return !!undoSnapshot && !featureHelpOpen && !settingsOpen && !drag && !cameraIntro && ['playing','won','lost'].includes(state);
 }
 function undoMove() {
     if (!canUndoMove()) return false;
@@ -749,7 +788,7 @@ function finish(won) {
 
 // RAF time is injected so tests can advance the opening without real waits.
 function advanceCameraIntro(now) {
-    if (!cameraIntro || state !== 'playing')
+    if (featureHelpOpen || !cameraIntro || state !== 'playing')
         return;
 
     if (cameraIntro.start === null)

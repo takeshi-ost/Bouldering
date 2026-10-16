@@ -201,3 +201,12 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .settings-dialog { width:min(360px,calc(100% - 32px)); max-height:calc(100dvh - 40px); overflow:auto; border:0; border-radius:18px; padding:0 22px 22px; color:#25372f; background:#f8f6ee; }
 .settings-dialog::backdrop { background:#23372dbd; }
 .settings-dialog > button { display:block; width:100%; min-height:44px; margin-top:14px; }
+
+/* First-encounter explanations precede the stage title and camera intro. */
+.feature-help { position:fixed; inset:0; margin:0; width:100%; height:100%; max-width:none; max-height:none; border:0; overflow:auto; color:#25372f; }
+.feature-help:not([open]) { display:none; }
+.feature-help::backdrop { background:transparent; }
+.feature-help .card { max-width:380px; }
+.feature-help .feature-help-row { display:flex; align-items:center; gap:14px; text-align:left; color:#25372f; font-size:16px; font-weight:700; }
+.feature-help-icon { width:40px; height:40px; flex-shrink:0; font-size:30px; }
+.feature-help-row small { display:block; font-size:12px; font-weight:400; color:#637267; margin-top:6px; }

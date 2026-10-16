@@ -70,6 +70,7 @@ node tests/poses.cjs
 node tests/rules.cjs
 node tests/level-map.cjs
 node tests/input.cjs
+node tests/feature-help.cjs
 node tests/results.cjs
 node tests/appearance.cjs
 node tests/hazards.cjs

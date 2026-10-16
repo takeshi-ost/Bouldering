@@ -103,6 +103,7 @@ function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
     drag=null;bodyTap=null;cameraIntro=null;heartPopups=[];hazardShakeStart=null;
     if (debugAttempt) { advanceFrom=null; target=unlockedLevel(); }
     debugAttempt=false;
+    hideStageHelp();
     state='map';
     ui.characterEditor.hidden=true;
     ui.wall.classList.toggle('map-open',true);
@@ -140,7 +141,7 @@ function selectStage(n,debug=false) {
         restartInput(n);
         ui.titleScreen.hidden=true;ui.levelMap.hidden=true;
         canvas.setAttribute('tabindex','0');
-        canvas.focus();
+        if(!featureHelpOpen)canvas.focus();
         return true;
     } catch (error) {
         showLevelMap({target:n});

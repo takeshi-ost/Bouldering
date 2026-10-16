@@ -3,10 +3,10 @@ let touchId = null;
 let pan = null;
 let ignoreTouches = false;
 function endPan() { pan = null; }
-function canScrollStage() { return !settingsOpen && ['playing','won','lost'].includes(state) && ui.overlay.hidden && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT > H; }
+function canScrollStage() { return !featureHelpOpen && !settingsOpen && ['playing','won','lost'].includes(state) && ui.overlay.hidden && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT > H; }
 // Delay a body gesture until it becomes a drag, preserving the visible pose on tap.
 function beginPointer(e) {
-    if (settingsOpen || !ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
+    if (featureHelpOpen || settingsOpen || !ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
     const p=point(e),visible=characterPose(performance.now()).body;
     if (Math.abs(p.x-visible.x)<=TORSO.width/2+TORSO.hitPadding &&
         Math.abs(p.y-visible.y)<=TORSO.height/2+TORSO.hitPadding) {
@@ -113,7 +113,7 @@ function touchEnd(e, cancel) {
 canvas.addEventListener('touchend', e => touchEnd(e, false));
 canvas.addEventListener('touchcancel', e => touchEnd(e, true));
 function restartInput(n) {
-    bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n);
+    bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n);showStageHelp();
 }
 ui.next.onclick = () => { if (state === 'won') showLevelMap({advanceFrom:level}); };
 ui.retry.onclick = ui.restart.onclick = () => { if (['playing','won','lost'].includes(state)) restartInput(level); };
@@ -126,6 +126,7 @@ function showTitleScreen() {
     ignoreTouches = false;
     drag = null;
     cameraIntro = null;
+    hideStageHelp();
     state = 'choosing';
     ui.characterEditor.hidden=true;
     ui.appearanceStatus.hidden=true;
@@ -170,7 +171,7 @@ ui.debugMode.onchange=()=>{
     updateUI();
 };
 ui.settingsButton.onclick=()=>{
-    if(state!=='playing' || cameraIntro || settingsOpen) return;
+    if(state!=='playing' || cameraIntro || settingsOpen || featureHelpOpen) return;
     endPointer(null,true);endPan();touchId=null;ignoreTouches=false;
     settingsOpen=true;
     ui.settingsDialog.showModal?.();
@@ -178,3 +179,7 @@ ui.settingsButton.onclick=()=>{
 ui.closeSettings.onclick=()=>{hideSettings();canvas.focus();};
 ui.settingsDialog.addEventListener('cancel',e=>{e.preventDefault();ui.closeSettings.onclick();});
 ui.settingsDialog.addEventListener('close',()=>{settingsOpen=false;});
+
+// The dialog fills the viewport so tapping the card or its surrounding area continues.
+ui.featureHelpDialog.onclick=dismissStageHelp;
+ui.featureHelpDialog.addEventListener('cancel',e=>{e.preventDefault();dismissStageHelp();});
