@@ -351,6 +351,7 @@ function reset(n) {
     level = n;
     if (courseMode === 'prototype') preparePrototypeStage();
     else prepareStage();
+    addHazardHolds();
 
     body = { ...route[0] };
     committed = { ...body };
@@ -601,7 +602,8 @@ function release(cancel = false) {
             y: body.y
         });
 
-        stamina--;
+        const newHazards = new Set(grips.filter(h => h.type==='hazard' && !startGrips.includes(h)));
+        stamina = Math.max(0,stamina-1-newHazards.size*HAZARD_CONFIG.penalty);
         moveCount++;
 
         committed = { ...body };

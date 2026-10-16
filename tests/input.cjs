@@ -25,6 +25,17 @@ function fixture() {
  play(1);clock+=250;
  assert(canUndoMove());return {stamina,moveCount,undo:undoSnapshot};
 }
+// Press feedback changes only rendered torso position/color, then immediately returns.
+fixture();const paints=[];ctx.fillRect=(x,y,w,h)=>paints.push({x,y,w,h,color:ctx.fillStyle});
+const physics=JSON.stringify({body,grips});draw(0);
+const normalTorso=paints.find(p=>p.color==='#39785b' && p.w===TORSO.width);
+assert(normalTorso);paints.length=0;
+let pressEvent=visibleEvent();mouse('mousedown',pressEvent);draw(0);
+const pressedTorso=paints.find(p=>p.color==='#5b9b72' && p.w===TORSO.width);
+assert(pressedTorso);assert.equal(pressedTorso.y,normalTorso.y+3);
+assert.equal(JSON.stringify({body,grips}),physics,'Press feedback changes physics');
+window.events.blur();paints.length=0;draw(0);
+assert(paints.some(p=>p.color==='#39785b' && p.y===normalTorso.y));
 // Tap visible settled torso: no snap on press, then exactly one Undo on release.
 let before=fixture(),e=visibleEvent(),pose=characterAnimation;
 mouse('mousedown',e);assert(bodyTap && !drag);assert.equal(characterAnimation,pose);

@@ -35,9 +35,11 @@ for (let n=1;n<=20;n++) {
     const bodyPath=route.map(p=>({x:p.x,y:p.y}));
     assert(replayRoute(route));
     const complete=holds;
-    for (const hold of complete) {
+    // Optional paid shortcuts may replace contacts; check pruning on the free base graph.
+    const ordinary=complete.filter(h=>h.type!=='hazard');
+    for (const hold of ordinary) {
         if (hold.type !== 'normal') continue;
-        holds=complete.filter(h=>h!==hold);
+        holds=ordinary.filter(h=>h!==hold);
         const replayed=replayRoute(route);
         assert(!replayed || replayed.length!==route.length, 'Redundant hold '+n+'/'+hold.id);
     }

@@ -33,8 +33,10 @@ for(let n=1;n<=20;n++){
     advanceCameraIntro(0);advanceCameraIntro(1650);
     check(samePairRoute(route,replayRoute(route)),'Support selection changed after pruning '+n);
     const finalHolds=holds;
+    // Optional paid shortcuts may replace contacts; check pruning on the free base graph.
+    const ordinary=finalHolds.filter(h=>h.type!=='hazard');
     for(const id of densityStats.selectionHoldIds) {
-        holds=finalHolds.filter(h=>h.id!==id);
+        holds=ordinary.filter(h=>h.id!==id);
         check(!samePairRoute(route,replayRoute(route)),'Unnecessary selection hold retained '+n+'/'+id);
     }
     holds=finalHolds;

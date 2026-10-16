@@ -285,3 +285,5 @@ footer button { white-space: nowrap; }
 .map-hint { text-align:center; font-size:10px; color:#76856b; margin:8px 8px 12px; }
 footer .legend { max-width:110px; flex:1; }
 footer button { padding:9px 8px; }
+
+.legend .dot.hazard { background:#6099cf; border-radius:0; clip-path:polygon(50% 0,65% 25%,100% 15%,85% 50%,100% 85%,65% 75%,50% 100%,35% 75%,0 85%,15% 50%,0 15%,35% 25%); }

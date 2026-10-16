@@ -405,6 +405,19 @@ function drawHeartPopups(now) {
     ctx.restore();
 }
 
+function drawJaggedHold(x,y,r,fill,stroke) {
+    ctx.beginPath();
+    for (let i=0;i<16;i++) {
+        const angle=i*Math.PI/8-Math.PI/2;
+        const radius=r*(i%2 ? .66 : 1);
+        const px=x+Math.cos(angle)*radius,py=y+Math.sin(angle)*radius;
+        if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    if (fill) {ctx.fillStyle=fill;ctx.fill();}
+    if (stroke) {ctx.strokeStyle=stroke;ctx.stroke();}
+}
+
 function drawStageIntro() {
     if (!cameraIntro || state!=='playing') return;
     ctx.save();
@@ -669,10 +682,13 @@ function draw(now = 0) {
 
         const green =
             h.type === 'start';
+        const hazard = h.type === 'hazard';
+        const radius = hazard ? HAZARD_CONFIG.radius : gold ? 10 : 8;
 
         ctx.lineWidth = 1.5;
         // Wide holds have a rectangular silhouette, with unchanged contact geometry.
         const holdShape = (x,y,r,fill,stroke) => {
+            if (hazard) {drawJaggedHold(x,y,r,fill,stroke);return;}
             if (!h.wide) { circle(x,y,r,fill,stroke); return; }
             ctx.beginPath();
             ctx.rect(x-r*2,y-r,r*4,r*2);
@@ -684,26 +700,28 @@ function draw(now = 0) {
             holdShape(
                 h.x,
                 h.y,
-                14,
-                '#70987920',
+                hazard ? 11 : 14,
+                hazard ? '#6099cf20' : '#70987920',
                 gold
                     ? '#cfaa48'
-                    : '#84a78c'
+                    : hazard ? '#6099cf' : '#84a78c'
             );
         }
 
         holdShape(
             h.x,
             h.y + 2,
-            gold ? 10 : 8,
+            radius,
             '#293c3020'
         );
 
         holdShape(
             h.x,
             h.y,
-            gold ? 10 : 8,
-            gold
+            radius,
+            hazard
+                ? active ? '#477fb7' : '#6099cf'
+                : gold
                 ? '#e4be58'
                 : green
                     ? '#7ca486'
@@ -712,7 +730,7 @@ function draw(now = 0) {
                         : '#b2b6aa'
         );
 
-        holdShape(
+        (hazard ? circle : holdShape)(
             h.x - 2,
             h.y - 2,
             2,
@@ -827,24 +845,27 @@ function draw(now = 0) {
         '#e0b99b'
     );
 
+    const pressOffset=bodyTap ? 3 : 0;
     ctx.fillStyle =
         '#ffffff70';
 
     ctx.fillRect(
         left - 4,
-        top - 4,
+        top - 4 + pressOffset,
         TORSO.width + 8,
         TORSO.height + 8
     );
 
     ctx.fillStyle =
-        warning > 0
+        bodyTap
+            ? '#5b9b72'
+            : warning > 0
             ? '#c56d57'
             : '#39785b';
 
     ctx.fillRect(
         left,
-        top,
+        top + pressOffset,
         TORSO.width,
         TORSO.height
     );
@@ -855,7 +876,7 @@ function draw(now = 0) {
 
     ctx.strokeRect(
         left,
-        top,
+        top + pressOffset,
         TORSO.width,
         TORSO.height
     );
@@ -887,7 +908,7 @@ function draw(now = 0) {
         for (const y of [-6, 0, 6]) {
             circle(
                 visual.body.x + x,
-                visual.body.y + y,
+                visual.body.y + y + pressOffset,
                 1.3,
                 '#d9e9db'
             );
