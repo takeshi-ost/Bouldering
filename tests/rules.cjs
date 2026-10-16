@@ -32,6 +32,8 @@ wide.wide=false;startGrips=[null,null,...feet];holds=[wide,...feet];
 attached=attachMoving(body,[2,3]);assert(attached.filter(h=>h===wide).length<=1);
 // Actual input / release path, including visual restoration and terminal states.
 startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert.equal(state,'playing');
+assert.equal(ui.progress.hidden,true);ui.showPath.checked=true;ui.showPath.onchange();assert.equal(ui.progress.hidden,false);
+assert(ui.progress.textContent.includes('想定'));ui.showPath.checked=false;ui.showPath.onchange();assert.equal(ui.progress.hidden,true);
 advanceCameraIntro(0);advanceCameraIntro(1650);assert.equal(canUndoMove(),false);
 function playStep(step) {
  advanceCameraIntro(0);advanceCameraIntro(1650);

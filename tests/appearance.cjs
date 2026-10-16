@@ -74,6 +74,7 @@ assert.equal(showCharacterEditor(),false,'Editor may only open from the start sc
 assert(selectStage(1));cameraIntro=null;
 const fills=[];ctx.fill=()=>fills.push(ctx.fillStyle);
 paints=[];draw(0);assert(fills.includes('#334455'));chosen.forEach(c=>assert(paints.some(p=>p.color===c && p.w===TORSO.width && Math.abs(p.h-TORSO.height/3)<1e-8)));
+warning=1;paints=[];draw(0);chosen.forEach(c=>assert(paints.some(p=>p.color===c && p.w===TORSO.width),'Blocked movement must keep saved body colors'));warning=0;
 const savedPhysics=JSON.stringify({body,grips,route,stamina,moveCount});
 paints=[];drawBodyFill(10,20,40,72,true);assert.equal(paints.length,3);assert(paints.every((p,i)=>p.color!==chosen[i]));
 assert.equal(JSON.stringify({body,grips,route,stamina,moveCount}),savedPhysics);

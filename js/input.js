@@ -163,3 +163,5 @@ ui.helpDialog.addEventListener('close', () => ui.showHelp.focus());
 
 // Results stay modal until Retry or Next is chosen. Native dialog traps focus.
 ui.overlay.addEventListener('cancel',e=>e.preventDefault());
+
+ui.showPath.onchange=()=>updateUI();

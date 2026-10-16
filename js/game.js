@@ -464,6 +464,7 @@ function updateUI() {
             ? '#bc5144'
             : '#25372f';
 
+    ui.progress.hidden=!ui.showPath.checked;
     ui.progress.textContent =
         `${moveCount} 手 / 想定 ${route.length - 1} 手`;
 }

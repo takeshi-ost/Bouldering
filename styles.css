@@ -322,3 +322,5 @@ footer button { padding:9px 8px; }
 #appearanceStatus { font-size:12px; color:#39785b; }
 
 #bodyStripeControls[hidden] { display:none; }
+
+.progress[hidden] { display:none; }
