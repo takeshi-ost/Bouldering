@@ -183,3 +183,7 @@ ui.settingsDialog.addEventListener('close',()=>{settingsOpen=false;});
 // The dialog fills the viewport so tapping the card or its surrounding area continues.
 ui.featureHelpDialog.onclick=dismissStageHelp;
 ui.featureHelpDialog.addEventListener('cancel',e=>{e.preventDefault();dismissStageHelp();});
+
+ui.featureHelpDialog.addEventListener('keydown',e=>{
+    if(e.key==='Enter' || e.key===' ') {e.preventDefault();dismissStageHelp();}
+});

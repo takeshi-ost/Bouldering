@@ -38,17 +38,23 @@ function showStageHelp() {
     if(holds.some(h=>h.type==='hazard') && !featureHelpSeen.hazard)features.push('hazard');
     if(!features.length)return;
     pendingFeatureHelp=features;featureHelpOpen=true;
-    ui.featureHelpContent.innerHTML=features.map(feature=>feature==='heart'
-        ? '<p class="feature-help-row"><span class="feature-help-icon" aria-hidden="true">❤️</span><span>スタミナが2回復する<small>ボディで触れると取得できます。</small></span></p>'
-        : '<p class="feature-help-row"><svg class="feature-help-icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 25 10 36 7 32 19 38 28 26 29 20 38 14 29 3 31 8 20 3 10 15 11Z" fill="#6099cf" stroke="#3873a7" stroke-width="2"/></svg><span>青ホールドはスタミナを追加で1消費する<small>新しく手足を固定した時に消費します。同じ手足で保持し続ける間は追加消費しません。</small></span></p>'
-    ).join('');
+    renderStageHelp();
     ui.featureHelpDialog.showModal?.();
+}
+function renderStageHelp() {
+    const heart=pendingFeatureHelp[0]==='heart';
+    const icon=heart ? '❤️' : '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 25 10 36 7 32 19 38 28 26 29 20 38 14 29 3 31 8 20 3 10 15 11Z" fill="#6099cf" stroke="#3873a7" stroke-width="2"/></svg>';
+    ui.featureHelpContent.innerHTML=`<div class="feature-help-icon" aria-hidden="true">${icon}</div><h1 id="featureHelpTitle">${heart?'回復ハート':'青ホールド'}</h1><p>${heart?'ボディで触れるとスタミナが2回復する':'新しく手足を固定するとスタミナを追加で1消費する'}</p>`;
 }
 function dismissStageHelp() {
     if(!featureHelpOpen)return;
-    for(const feature of pendingFeatureHelp)featureHelpSeen[feature]=true;
+    featureHelpSeen[pendingFeatureHelp.shift()]=true;
     try {globalThis.localStorage?.setItem(FEATURE_HELP_KEY,JSON.stringify(featureHelpSeen));}
     catch(_) { /* Remember for this session if storage is unavailable. */ }
+    if(pendingFeatureHelp.length) {
+        renderStageHelp();
+        return;
+    }
     hideStageHelp();
     // Start the full opening sequence on the next frame, excluding reading time.
     if(cameraIntro)cameraIntro.start=null;

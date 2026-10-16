@@ -98,12 +98,7 @@
             </dialog>
         </section>
         <dialog id="featureHelpDialog" class="overlay feature-help" aria-labelledby="featureHelpTitle" aria-describedby="featureHelpContent">
-            <div class="card">
-                <h1 id="featureHelpTitle">新しいアイテム</h1>
-                <div id="featureHelpContent"></div>
-                <button autofocus>タップしてつづける</button>
-                <p>画面のどこをタップしても進めます</p>
-            </div>
+            <div class="card" id="featureHelpContent" aria-live="polite"></div>
         </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
             <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" aria-label="設定を閉じる" autofocus>閉じる</button></div>

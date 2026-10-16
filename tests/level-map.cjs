@@ -25,7 +25,7 @@ ui.mapNodes.onclick({target:{closest(){return {dataset:{level:'2'}};}}});assert.
 ui.mapNodes.onclick({target:{closest(){return {dataset:{level:'1'}};}}});assert.equal(state,'playing');
 assert(ui.levelMap.hidden);assert(!ui.mapButton.disabled);
 function complete() {
- dismissStageHelp();
+ while(featureHelpOpen)dismissStageHelp();
  cameraIntro=null;
  for(let i=1;i<route.length;i++) {
   camera=clamp(body.y-H*.6,0,HEIGHT-H);

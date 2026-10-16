@@ -28,12 +28,17 @@ advanceCameraIntro(clock);drawStageIntro();assert(labels.some(t=>t.startsWith('S
 clock+=999;advanceCameraIntro(clock);assert(cameraIntro);clock++;advanceCameraIntro(clock);assert(!cameraIntro);assert.equal(runTimeMs(),0);
 showStageHelp();assert(!featureHelpOpen,'Do not repeat a heart explanation');
 reset(1);holds.push({type:'hazard'});showStageHelp();assert.deepEqual(pendingFeatureHelp,['hazard']);
-assert(ui.featureHelpContent.innerHTML.includes('追加で1消費'));assert(ui.featureHelpContent.innerHTML.includes('保持し続ける'));
+assert(ui.featureHelpContent.innerHTML.includes('追加で1消費'));assert(!ui.featureHelpContent.innerHTML.includes('<small>'));
 ui.featureHelpDialog.events.cancel({preventDefault(){}});assert(!featureHelpOpen);assert(readFeatureHelpSeen().hazard);
 courseMode='prototype';reset(1);hearts=[{}];holds.push({type:'hazard'});showStageHelp();assert(!featureHelpOpen,'Seen items shared across courses');
 featureHelpSeen={heart:false,hazard:false};showStageHelp();assert.deepEqual(pendingFeatureHelp,['heart','hazard']);
 showLevelMap();assert(!featureHelpOpen && !ui.featureHelpDialog.open);assert(!featureHelpSeen.heart,'Leaving without acknowledging does not mark seen');
 reset(1);hearts=[{}];holds.push({type:'hazard'});showStageHelp();
+assert(!ui.featureHelpContent.innerHTML.includes('青ホールド'));
+ui.featureHelpDialog.onclick();assert(featureHelpOpen && ui.featureHelpDialog.open);
+assert(featureHelpSeen.heart && !featureHelpSeen.hazard);assert.deepEqual(pendingFeatureHelp,['hazard']);
+assert(ui.featureHelpContent.innerHTML.includes('青ホールド'));assert.equal(cameraIntro.start,null);assert.equal(runTimeMs(),0);
+assert.deepEqual(readFeatureHelpSeen(),{heart:true,hazard:false});
 const savedSet=storage.setItem;storage.setItem=()=>{throw Error('blocked');};assert.doesNotThrow(dismissStageHelp);assert(featureHelpSeen.heart && featureHelpSeen.hazard);storage.setItem=savedSet;
 showStageHelp();assert(!featureHelpOpen,'Remember within session when storage blocked');
 data[FEATURE_HELP_KEY]='bad json';assert.deepEqual(readFeatureHelpSeen(),{heart:false,hazard:false});
@@ -44,7 +49,7 @@ data[FEATURE_HELP_KEY]=JSON.stringify({heart:true,hazard:true});
 new Function('assert',env+source+`
 assert.deepEqual(featureHelpSeen,{heart:true,hazard:true});reset(1);hearts=[{}];holds.push({type:'hazard'});showStageHelp();assert(!featureHelpOpen,'Seen state survives a fresh launch');
 `)(assert);
-console.log('PASS first encounters: actual presence, combined/separate items, input/camera/title/timer pause, tap/Escape continuation, full intro, cross-course persistence, interrupted flow, reload and blocked/invalid storage');
+console.log('PASS first encounters: actual presence, sequential/separate items, input/camera/title/timer pause, tap/Escape continuation, full intro, cross-course persistence, interrupted flow, reload and blocked/invalid storage');
 } finally {
  if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;
 }
