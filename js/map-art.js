@@ -1,19 +1,20 @@
 "use strict";
-// Shared stage asset. Wall base and mat rear share the exact edge (23,55) -> (75,75).
-function mapWallMarkup(n) {
-    return `<svg class="map-wall" viewBox="0 0 100 100" aria-hidden="true">
-        <path d="M23 59 75 79 55 93 3 73Z" fill="#727d76"/>
-        <path d="M23 55 75 75 55 89 3 69Z" fill="var(--mat-color,#929d92)"/>
-        <path d="M3 69 55 89V93L3 73Z" fill="#65716a"/>
-        <path d="M75 75 55 89V93L75 79Z" fill="#727d76"/>
-        <path d="M23 14 75 34 75 75 23 55Z" fill="var(--wall-color,#eeeee5)"/>
-        <path d="M75 34 81 31 81 73 75 75Z" fill="#9da9a4"/>
-        <path d="M23 14 29 11 81 31 75 34Z" fill="#faf8ef"/>
-        <g fill="#91a7af"><path d="m33 26 5-2 4 4-2 5-6-2Z"/><path d="m61 52 5-1 4 5-3 4-5-2Z"/></g>
-        <g fill="#c4a569"><path d="m54 33 5-2 4 5-3 4-6-2Z"/><path d="m32 45 5-2 3 4-1 4-6-1Z"/></g>
-        <path d="m49 45 5-1 4 4-3 5-5-2Z" fill="#bc9077"/>
-        <text x="39" y="79" transform="rotate(21 39 79)" text-anchor="middle" fill="var(--number-color,#fffdf3)" font-size="20" font-weight="800" font-family="system-ui,sans-serif">${n}</text>
-    </svg>`;
+// Approved raster artwork; mirror the art only, keeping the live stage number upright.
+const MAP_ICON_ASSETS={"active-100":{"width":512,"height":512,"renderWidth":73.306,"renderHeight":73.306,"left":-5.011,"top":-15.209},"active-125":{"width":512,"height":512,"renderWidth":72.98,"renderHeight":72.98,"left":-4.704,"top":-18.624},"active-150":{"width":512,"height":512,"renderWidth":76.028,"renderHeight":76.028,"left":-6.088,"top":-23.572},"cleared-100":{"width":512,"height":512,"renderWidth":73.143,"renderHeight":73.143,"left":-4.857,"top":-15.206},"cleared-125":{"width":512,"height":512,"renderWidth":74.642,"renderHeight":74.642,"left":-5.54,"top":-21.355},"unplayed-100":{"width":512,"height":512,"renderWidth":72.98,"renderHeight":72.98,"left":-4.704,"top":-14.918},"unplayed-125":{"width":512,"height":512,"renderWidth":74.813,"renderHeight":74.813,"left":-5.553,"top":-20.349},"unplayed-150":{"width":512,"height":512,"renderWidth":76.92,"renderHeight":76.92,"left":-6.61,"top":-24.737},"cleared-150":{"width":512,"height":512,"renderWidth":77.649,"renderHeight":77.649,"left":-7.28,"top":-23.929}};
+function mapStageVariant(n) {
+    const index=(n-1)%6;
+    return {height:['100','125','150'][Math.floor(index/2)],mirrored:index%2===1};
+}
+function mapWallMarkup(n,status='active') {
+    const variant=mapStageVariant(n),key=`${status}-${variant.height}`;
+    const asset=MAP_ICON_ASSETS[key];
+    if(!asset)return '';
+    return `<span class="map-wall" data-variant="${variant.height}-${variant.mirrored?'right':'left'}" data-status="${status}" aria-hidden="true">
+        <span class="map-icon-art"${variant.mirrored?' style="transform:scaleX(-1)"':''}>
+            <img class="map-icon-image" src="assets/stage-icons/${key}.webp" alt="" draggable="false" width="${asset.width}" height="${asset.height}" style="width:${asset.renderWidth}px;height:${asset.renderHeight}px;left:${asset.left}px;top:${asset.top}px">
+        </span>
+        <span class="map-node-number" style="font-size:${n<1000?18:14}px">${n}</span>
+    </span>`;
 }
 // Approved 20-clearing wallpaper. One or two equal steps between deep turns.
 const MAP_IMAGE_WIDTH=739, MAP_IMAGE_HEIGHT=2129;

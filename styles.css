@@ -123,12 +123,12 @@ button:disabled { opacity: .45; cursor: default; }
 .map-road path { vector-effect:non-scaling-stroke; }
 .map-road-outline { stroke:#a5af9b; stroke-width:15; }
 .map-road-open,.map-road-locked { stroke:#eee9d8; }
-.map-node { position:absolute; transform:translate(-50%,-62%); width:64px; height:72px; padding:0; border:0; border-radius:8px; background:transparent; box-shadow:none; letter-spacing:0; overflow:visible; }
-.map-wall { display:block; width:64px; height:64px; pointer-events:none; filter:drop-shadow(0 3px 1px #35463d25); }
+.map-node { position:absolute; transform:translate(-50%,-50%); width:64px; height:72px; padding:0; border:0; border-radius:8px; background:transparent; box-shadow:none; letter-spacing:0; overflow:visible; }
+.map-wall { position:absolute; inset:0; display:block; width:64px; height:72px; pointer-events:none; }
+.map-icon-art { position:absolute; inset:0; transform-origin:50% 50%; }
+.map-icon-image { position:absolute; max-width:none; object-fit:fill; }
+.map-wall .map-node-number { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); color:#294339; font-weight:800; line-height:1; letter-spacing:0; text-shadow:0 1px 1px #ffffff50; }
 .map-node small { display:none; position:absolute; top:64px; left:0; right:0; font-size:9px; line-height:12px; color:#475e52; }
-.map-node.is-cleared { --mat-color:#748d7b; }
-.map-node.is-ready { --mat-color:#c4a05e; --wall-color:#faf6e9; }
-.map-node.is-locked { --mat-color:#a5afa2; --wall-color:#dce0d5; --number-color:#f9f8f0; }
 .map-node:disabled { opacity:1; }
 .map-node:disabled:hover { filter:none; }
 .map-node[aria-current] { outline:none; }

@@ -17,6 +17,15 @@ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
 Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {
 new Function('assert','storage','data',env+source+`
+// All six forms are stable across page changes, and status does not mirror live labels.
+assert.equal(new Set(Array.from({length:6},(_,i)=>JSON.stringify(mapStageVariant(i+1)))).size,6);
+for(let i=1;i<=6;i++)assert.deepEqual(mapStageVariant(i),mapStageVariant(i+6));
+for(const status of ['active','cleared','unplayed'])for(let n=1;n<=6;n++) {
+ const markup=mapWallMarkup(n,status);
+ assert(markup.includes('assets/stage-icons/'+status+'-'+mapStageVariant(n).height+'.webp'));
+ assert(markup.includes('class="map-node-number"'));
+ assert(!markup.includes('<text')&&!markup.includes('rotate('));
+}
 assert.equal(MAP_TRAIL.length,20);
 const step=Math.hypot(MAP_TRAIL[1][0]-MAP_TRAIL[0][0],MAP_TRAIL[1][1]-MAP_TRAIL[0][1]);
 for(let i=1;i<MAP_TRAIL.length;i++)assert(Math.abs(Math.hypot(MAP_TRAIL[i][0]-MAP_TRAIL[i-1][0],MAP_TRAIL[i][1]-MAP_TRAIL[i-1][1])-step)<1e-8);
