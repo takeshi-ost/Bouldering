@@ -17,6 +17,15 @@ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
 Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {
 new Function('assert','storage','data',env+source+`
+assert.equal(MAP_TRAIL.length,20);
+const step=Math.hypot(MAP_TRAIL[1][0]-MAP_TRAIL[0][0],MAP_TRAIL[1][1]-MAP_TRAIL[0][1]);
+for(let i=1;i<MAP_TRAIL.length;i++)assert(Math.abs(Math.hypot(MAP_TRAIL[i][0]-MAP_TRAIL[i-1][0],MAP_TRAIL[i][1]-MAP_TRAIL[i-1][1])-step)<1e-8);
+let run=1;const runs=[];
+for(let i=2;i<MAP_TRAIL.length;i++) {
+ const prev=Math.sign(MAP_TRAIL[i-1][0]-MAP_TRAIL[i-2][0]),next=Math.sign(MAP_TRAIL[i][0]-MAP_TRAIL[i-1][0]);
+ if(prev===next)run++;else{runs.push(run);run=1;}
+}
+runs.push(run);assert(runs.includes(1)&&runs.includes(2)&&runs.every(n=>n===1||n===2));
 assert.equal(state,'choosing');startCourse('existing');
 assert.equal(state,'map');assert.equal(unlockedLevel(),1);assert.equal(mapSelected,1);
 assert(ui.mapPrev.hidden && ui.mapNext.hidden);

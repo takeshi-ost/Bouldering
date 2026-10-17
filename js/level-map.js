@@ -61,12 +61,12 @@ function mapBounds() {
     return {first:Math.max(1,mapPage*MAP_PAGE_SIZE),last:(mapPage+1)*MAP_PAGE_SIZE};
 }
 function mapHeight() {
-    return (ui.mapTrack.clientWidth||400)*MAP_IMAGE_HEIGHT/MAP_IMAGE_WIDTH;
+    return (ui.mapTrack.clientWidth||400)*MAP_IMAGE_HEIGHT/MAP_IMAGE_WIDTH+MAP_EDGE_SPACE+MAP_BOTTOM_SPACE;
 }
 function mapPoint(n) {
-    if(n===mapPage*MAP_PAGE_SIZE)return {x:42,y:mapHeight()-38};
+    if(n===mapPage*MAP_PAGE_SIZE)return {x:8.5,y:mapHeight()-MAP_BOTTOM_SPACE-12};
     const point=mapTrailPoint((n-mapPage*MAP_PAGE_SIZE-1)/(MAP_PAGE_SIZE-1));
-    return {x:point.x/MAP_IMAGE_WIDTH*100,y:point.y/MAP_IMAGE_WIDTH*(ui.mapTrack.clientWidth||400)};
+    return {x:point.x/MAP_IMAGE_WIDTH*100,y:MAP_EDGE_SPACE+point.y/MAP_IMAGE_WIDTH*(ui.mapTrack.clientWidth||400)};
 }
 function positionMapMarker(point) {
     ui.mapMarker.style.left = `calc(${point.x}% + 22px)`;
@@ -142,7 +142,7 @@ function advanceLevelMap(now) {
     const from=mapPoint(mapTransition.from),to=mapPoint(mapTransition.to);
     if(mapTransition.from>mapPage*MAP_PAGE_SIZE) {
         const point=mapTrailPoint((mapTransition.from-mapPage*MAP_PAGE_SIZE-1+s)/(MAP_PAGE_SIZE-1));
-        positionMapMarker({x:point.x/MAP_IMAGE_WIDTH*100,y:point.y/MAP_IMAGE_WIDTH*(ui.mapTrack.clientWidth||400)});
+        positionMapMarker({x:point.x/MAP_IMAGE_WIDTH*100,y:MAP_EDGE_SPACE+point.y/MAP_IMAGE_WIDTH*(ui.mapTrack.clientWidth||400)});
     } else positionMapMarker({x:from.x+(to.x-from.x)*s,y:from.y+(to.y-from.y)*s});
     if (t===1) {
         mapSelected=mapTransition.to;mapTransition=null;
