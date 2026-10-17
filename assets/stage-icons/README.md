@@ -5,7 +5,8 @@ The approved rounded-mat climbing icon is supplied as transparent WebP artwork.
 - `active-*`: gold mat; `cleared-*`: sage mat; `unplayed-*`: gray-blue mat.
 - Suffixes `100`, `125`, `150` identify wall height variants.
 - The six forms combine these three heights with CSS horizontal mirroring.
-  Orientation follows the outgoing trail, including at corners.
+  Only the left/right facing follows the outgoing trail, including at corners;
+  the artwork itself is never rotated.
 - Stage numbers are upright white DOM text with a black outline, outside the mirrored artwork.
 - Image placement uses alpha bounds to align mat size and floor position across variants.
 

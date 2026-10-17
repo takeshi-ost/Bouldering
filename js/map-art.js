@@ -8,18 +8,15 @@ function mapStageVariant(n) {
     const from=MAP_TRAIL[pointIndex];
     // At a corner use the outgoing segment; the final node leads out of the image.
     const to=pointIndex===19?[400,0]:MAP_TRAIL[pointIndex+1];
-    const roadAngle=Math.atan((to[1]-from[1])/(to[0]-from[0]))*180/Math.PI;
-    const mirrored=roadAngle<0;
-    // The approved wall base is inclined by about 22 degrees in the source art.
-    const rotation=roadAngle-(mirrored?-22:22);
-    return {height:['100','125','150'][Math.floor(index/2)],mirrored,rotation};
+    const mirrored=to[0]>from[0];
+    return {height:['100','125','150'][Math.floor(index/2)],mirrored};
 }
 function mapWallMarkup(n,status='active') {
     const variant=mapStageVariant(n),key=`${status}-${variant.height}`;
     const asset=MAP_ICON_ASSETS[key];
     if(!asset)return '';
     return `<span class="map-wall" data-variant="${variant.height}-${variant.mirrored?'right':'left'}" data-status="${status}" aria-hidden="true">
-        <span class="map-icon-art" style="transform:rotate(${variant.rotation.toFixed(3)}deg) scaleX(${variant.mirrored?-1:1})">
+        <span class="map-icon-art" style="transform:scaleX(${variant.mirrored?-1:1})">
             <img class="map-icon-image" src="assets/stage-icons/${key}.webp?v=${MAP_ART_VERSION}" alt="" draggable="false" width="${asset.width}" height="${asset.height}" style="width:${asset.renderWidth}px;height:${asset.renderHeight}px;left:${asset.left}px;top:${asset.top}px">
         </span>
         <span class="map-node-number" style="font-size:${n<1000?18:14}px">${n}</span>

@@ -25,13 +25,13 @@ for(const status of ['active','cleared','unplayed'])for(let n=1;n<=6;n++) {
  assert(markup.includes('assets/stage-icons/'+status+'-'+mapStageVariant(n).height+'.webp'));
  assert(markup.includes('class="map-node-number"'));
  assert(!markup.includes('<text'));
- assert(markup.includes('transform:rotate('));
+ assert(!markup.includes('rotate('));
+ assert(markup.includes('transform:scaleX('));
 }
 for(let n=1;n<=20;n++) {
  const a=MAP_TRAIL[n-1],b=n===20?[400,0]:MAP_TRAIL[n],v=mapStageVariant(n);
- const angle=Math.atan((b[1]-a[1])/(b[0]-a[0]))*180/Math.PI;
- assert.equal(v.mirrored,angle<0);
- assert(Math.abs(v.rotation+(v.mirrored?-22:22)-angle)<1e-8);
+ assert.equal(v.mirrored,b[0]>a[0]);
+ assert(!('rotation' in v));
 }
 assert.equal(MAP_TRAIL.length,20);
 const step=Math.hypot(MAP_TRAIL[1][0]-MAP_TRAIL[0][0],MAP_TRAIL[1][1]-MAP_TRAIL[0][1]);
