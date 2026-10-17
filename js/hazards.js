@@ -28,8 +28,9 @@ function findHazardMove(hold,path=route) {
     } finally {committed=saved.committed;startGrips=saved.startGrips;}
 }
 function addHazardHolds() {
-    if (level<HAZARD_CONFIG.firstLevel) return;
-    if (level>=HAZARD_CONFIG.denseFirstLevel) {
+    const mode=DIFFICULTY_RULES[difficulty].hazards;
+    if (mode==='none') return;
+    if (mode==='dense') {
         convertDenseHazards();
         return;
     }

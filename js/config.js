@@ -40,6 +40,25 @@ const STAGE_CONFIG = {
     longStageClimbHeight: 600,
     holdOffset: 8,
 };
+// Four independent rule sets. Array position is the difficulty number (0–3).
+// referenceStage supplies a representative course shape for daily challenges only.
+const DIFFICULTY_RULES = [
+    {hearts:false,hazards:'none',referenceStage:4},
+    {hearts:true,hazards:'none',referenceStage:5},
+    {hearts:true,hazards:'optional',referenceStage:20},
+    {hearts:true,hazards:'dense',referenceStage:40},
+];
+// Weights are [difficulty 0, 1, 2, 3]; they are normalized, so need not sum to 100.
+// Each band starts inclusively and ends at the next fromStage (exclusively).
+const DIFFICULTY_CONFIG = {
+    stageBands:[
+        {fromStage:0,weights:[100,0,0,0]},
+        {fromStage:5,weights:[0,100,0,0]},
+        {fromStage:20,weights:[0,0,100,0]},
+        {fromStage:40,weights:[0,0,0,100]},
+    ],
+    dailyWeights:[25,25,25,25],
+};
 // 追加ホールドの候補配置。
 const HOLD_SPACING = 52;
 const HOLD_CONFIG = {
@@ -60,9 +79,9 @@ const DENSITY_CONFIG = {
     crowdWeight: 8,
 };
 // ルート上の回復アイテム。取得分を開始スタミナから先に差し引きます。
-const HEART_CONFIG = { firstLevel: 5, minMoves: 5, maxCount: 2, recovery: 2, radius: 10, popupDuration: 1000, popupRise: 30 };
-// Optional hazards at Lv20-39; convert 30-50% of all holds at Lv40+.
-const HAZARD_CONFIG = { firstLevel: 20, denseFirstLevel: 40, minRatio: .3, maxRatio: .5, maxCount: 5, penalty: 1, shakeDuration: 280, shakeAmplitude: 4, radius: 6, attempts: 140, spacing: 24 };
+const HEART_CONFIG = { minMoves: 5, maxCount: 2, recovery: 2, radius: 10, popupDuration: 1000, popupRise: 30 };
+// Difficulty 2 adds optional hazards; difficulty 3 converts 30–50% of holds.
+const HAZARD_CONFIG = { minRatio: .3, maxRatio: .5, maxCount: 5, penalty: 1, shakeDuration: 280, shakeAmplitude: 4, radius: 6, attempts: 140, spacing: 24 };
 // 操作と描画。
 const INPUT_CONFIG = { dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24, tapMaxDuration: 400 };
 const CAMERA_CONFIG = { bodyScreenRatio: 0.6, followRate: 0.08, introSpeed: H * 1.5, introMinDuration: 1000 };

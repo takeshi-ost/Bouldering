@@ -9,8 +9,8 @@ function validDailyDate(key) {
 function dailyProfile(key) {
     if(!validDailyDate(key))throw new Error('Invalid daily date');
     const baseSeed=Number(key.replaceAll('-',''));
-    const random=mulberry32(baseSeed ^ 0x44A17C39);
-    return {date:key,baseSeed,seed:baseSeed,tier:[5,20,40][Math.floor(random()*3)]};
+    const difficulty=weightedDifficulty(DIFFICULTY_CONFIG.dailyWeights,baseSeed ^ 0x44A17C39);
+    return {date:key,baseSeed,seed:baseSeed,difficulty,referenceStage:DIFFICULTY_RULES[difficulty].referenceStage};
 }
 function readDailyRecords() {
     const records={};
@@ -89,11 +89,11 @@ function showDailyCalendar({openFromMap=false}={}) {
 }
 function selectDailyDate(key) {
     if(state!=='daily' || !validDailyDate(key) || key>utcToday())return false;
-    const profile=dailyProfile(key);
     try {
+        const profile=dailyProfile(key);
         dailyRun={...profile,returnCourse:dailyReturnCourse};
         courseMode='existing';debugAttempt=false;
-        restartInput(profile.tier);
+        restartInput(profile.referenceStage);
         canvas.setAttribute('tabindex','0');
         if(!featureHelpOpen)canvas.focus();
         return true;

@@ -67,6 +67,7 @@ function leaveDailyRun() {
 }
 let courseMode = 'existing';
 let level = 1;
+let difficulty = 0;
 let holds = [];
 let route = [];
 let hearts = [];
@@ -392,9 +393,9 @@ function routeStamina(path) {
 }
 
 // Use an independent stream: retries preserve both holds and items.
-function createHearts(n, path) {
+function createHearts(n, path, selectedDifficulty=dailyRun?.difficulty ?? difficultyForStage(n)) {
     const moves = path.length - 1;
-    if (n < HEART_CONFIG.firstLevel || moves < HEART_CONFIG.minMoves) return [];
+    if (!DIFFICULTY_RULES[selectedDifficulty].hearts || moves < HEART_CONFIG.minMoves) return [];
     const random = mulberry32(courseSeed(n) ^ 0x48EA27B1);
     const count = Math.floor(random() * (HEART_CONFIG.maxCount + 1));
     const costs = routeHazardCosts(path);
@@ -470,6 +471,7 @@ function reset(n) {
     resetCharacterAnimation();
     jointHistory.fill(null);
     level = n;
+    difficulty=dailyRun ? dailyRun.difficulty : difficultyForStage(n);
     prepareCurrentStage();
 
     body = { ...route[0] };
@@ -487,7 +489,7 @@ function reset(n) {
     startGrips = [...grips];
     startInitialPose();
 
-    hearts = createHearts(n,route);
+    hearts = createHearts(n,route,difficulty);
     heartPopups = [];
     hazardShakeStart = null;
     stamina = routeStamina(route) - hearts.length * HEART_CONFIG.recovery;
@@ -543,7 +545,7 @@ function updateUI() {
 
     ui.progress.hidden=!debugMode;
     ui.progress.textContent =
-        `${moveCount} 手 / 想定 ${route.length - 1} 手`;
+        `${moveCount} 手 / 想定 ${route.length - 1} 手 / 難易度 ${difficulty}`;
 }
 
 function point(e) {
