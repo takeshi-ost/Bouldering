@@ -58,7 +58,7 @@ showDailyCalendar();ui.dailyBack.onclick();assert.equal(state,'map');assert.equa
 // The calendar always generates the public course, then returns to its original map.
 startCourse('prototype');ui.openDaily.onclick();assert(selectDailyDate(key));finishAds();assert.equal(courseMode,'existing');showDailyCalendar();ui.dailyBack.onclick();assert.equal(courseMode,'prototype');assert.equal(state,'map');
 // An interrupted generation reports an error on the calendar, without normal progress changes.
-ui.openDaily.onclick();const originalReset=reset;reset=()=>{throw Error('fixture failure');};const oldError=console.error;console.error=()=>{};dailyAttempts[key]=2;assert(!selectDailyDate(key));console.error=oldError;reset=originalReset;assert.equal(state,'daily');assert(!ui.dailyError.hidden && !dailyRun);
+ui.openDaily.onclick();const originalReset=reset;reset=()=>{throw Error('fixture failure');};const oldError=console.error;console.error=()=>{};setDailyEntryAdPending(false);dailyAttempts[key]=2;assert(!selectDailyDate(key));console.error=oldError;reset=originalReset;assert.equal(state,'daily');assert(!ui.dailyError.hidden && !dailyRun);
 const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]='{bad';assert.deepEqual(readDailyRecords(),{});
 data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-02-30':{moves:1,timeMs:2,stars:3},'2026-01-01':{moves:0,timeMs:2,stars:3},'2026-01-02':{moves:1,timeMs:-1,stars:3},'2026-01-03':{moves:1,timeMs:2,stars:4}});assert.deepEqual(readDailyRecords(),{});data[DAILY_RECORDS_KEY]=saved;
 const savedGet=storage.getItem;storage.getItem=()=>{throw Error('blocked');};assert.deepEqual(readDailyRecords(),{});storage.getItem=savedGet;

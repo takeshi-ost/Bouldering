@@ -132,7 +132,9 @@ ui.retry.onclick=()=>{
 ui.restart.onclick=()=>{if(['playing','won','lost'].includes(state))restartInput(level);};
 ui.mapButton.onclick = () => {
     if(!['playing','won','lost'].includes(state))return;
-    if(dailyRun)showDailyCalendar();else showLevelMap({target:level});
+    if(dailyRun) {
+        if(state==='won')continueDailyResult();else returnDailyWithoutClear();
+    } else showLevelMap({target:level});
 };
 
 function showTitleScreen() {

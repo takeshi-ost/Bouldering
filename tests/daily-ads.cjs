@@ -27,7 +27,7 @@ for(let attempt=2;attempt<=6;attempt++) {
  if(attempt%2===0){assert.equal(state,'ad');assert.equal(dailyAttempts[key],attempt-1);assert(!selectDailyDate(key));done();}
  assert.equal(state,'playing');assert.equal(dailyRun.attempt,attempt);assert.equal(dailyRun.seed,seed);
  restartInput(level);assert.equal(dailyAttempts[key],attempt,'Settings restart keeps the same attempt');
- finish(false);assert(!ui.retry.hidden);ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd);
+ finish(true);ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd);
 }
 assert.equal(clearsSinceAd,normal,'Daily ads cannot change normal ad cadence');
 // A first failed run followed by Retry shows exactly one ad, then launches #2.
@@ -37,10 +37,15 @@ finish(false);ui.retry.onclick();assert.equal(state,'ad');done();assert.equal(da
 showDailyCalendar();
 // Failed generation does not consume an attempt, including after an entry ad.
 const resetOriginal=reset,logOriginal=console.error;console.error=()=>{};reset=()=>{throw Error('no course');};dailyAttempts[other]=5;
-assert(selectDailyDate(other));done();assert.equal(state,'daily');assert(!ui.dailyError.hidden);assert.equal(dailyAttempts[other],5);reset=resetOriginal;console.error=logOriginal;
+assert(selectDailyDate(other));done();assert.equal(state,'daily');assert(!ui.dailyError.hidden);assert.equal(dailyAttempts[other],5);reset=resetOriginal;console.error=logOriginal;dailyAttempts[other]=4;
 const saved=data[DAILY_ATTEMPTS_KEY];data[DAILY_ATTEMPTS_KEY]=JSON.stringify({'bad':1,'2026-02-30':2,'2026-01-03':-1,'2026-01-04':'2','2026-01-05':3});assert.deepEqual(readDailyAttempts(),{'2026-01-05':3});data[DAILY_ATTEMPTS_KEY]=saved;
-const set=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(saveDailyAttempts);storage.setItem=set;
+// Leaving a failed run defers the ad to the next date tap, even a different first-time date.
+assert(selectDailyDate('2026-01-03'));assert.equal(state,'playing');finish(false);ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd);assert(dailyEntryAdPending);
+assert(selectDailyDate('2026-01-04'));assert.equal(state,'ad');assert(dailyEntryAdPending);assert(!completeDummyAd());done();assert.equal(state,'playing');assert.equal(dailyRun.date,'2026-01-04');assert.equal(dailyRun.attempt,1);assert(!dailyEntryAdPending);
+// The in-game Calendar action also defers, and survives reloads.
+ui.mapButton.onclick();assert.equal(state,'daily');assert(dailyEntryAdPending);assert(!dummyAd);assert(readDailyEntryAdPending());
+const set=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(saveDailyAttempts);assert.doesNotThrow(()=>setDailyEntryAdPending(true));storage.setItem=set;
 `)(assert,data,storage);
-new Function('assert',env+source+`assert.equal(dailyAttempts['2026-01-01'],6);assert.equal(dailyAttempts['2026-01-02'],4);`)(assert);
+new Function('assert',env+source+`assert.equal(dailyAttempts['2026-01-01'],6);assert.equal(dailyAttempts['2026-01-02'],4);assert(dailyEntryAdPending);`)(assert);
 console.log('PASS daily ads: real first clear -> result ad, attempts 2/4/6 entry ads, per-date counts, failed-run retry without back-to-back ads, restart determinism, save/reload, generation failures and blocked storage, normal ad isolation');
 }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}

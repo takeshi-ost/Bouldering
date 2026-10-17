@@ -1,6 +1,7 @@
 "use strict";
 const DAILY_RECORDS_KEY='ascent.daily-records.v1';
 const DAILY_ATTEMPTS_KEY='ascent.daily-attempts.v1';
+const DAILY_ENTRY_AD_KEY='ascent.daily-entry-ad.v1';
 function utcToday(now=new Date()) {return now.toISOString().slice(0,10);}
 function localToday(now=new Date()) {
     return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -25,6 +26,20 @@ let dailyAttempts=readDailyAttempts();
 function saveDailyAttempts() {
     try {globalThis.localStorage?.setItem(DAILY_ATTEMPTS_KEY,JSON.stringify(dailyAttempts));}
     catch(_) { /* Use session-local attempt counts if persistence fails. */ }
+}
+function readDailyEntryAdPending() {
+    try {return JSON.parse(globalThis.localStorage?.getItem(DAILY_ENTRY_AD_KEY)||'false')===true;}
+    catch(_) {return false;}
+}
+let dailyEntryAdPending=readDailyEntryAdPending();
+function setDailyEntryAdPending(pending) {
+    dailyEntryAdPending=pending;
+    try {globalThis.localStorage?.setItem(DAILY_ENTRY_AD_KEY,JSON.stringify(pending));}
+    catch(_) { /* Keep the deferred ad within this session. */ }
+}
+function returnDailyWithoutClear() {
+    if(!dailyRun || !['playing','lost'].includes(state))return;
+    setDailyEntryAdPending(true);showDailyCalendar();
 }
 function dailyProfile(key) {
     if(!validDailyDate(key))throw new Error('Invalid daily date');
@@ -130,13 +145,14 @@ function selectDailyDate(key,{adAlreadyShown=false}={}) {
     try {
         const profile=dailyProfile(key);
         const attempt=(dailyAttempts[key]||0)+1;
-        if(attempt%2===0 && !adAlreadyShown)
-            return startDummyAd({onReturn:()=>launchDailyAttempt(profile,attempt)});
+        if((dailyEntryAdPending || attempt%2===0) && !adAlreadyShown)
+            return startDummyAd({onComplete:()=>setDailyEntryAdPending(false),onReturn:()=>launchDailyAttempt(profile,attempt)});
         return launchDailyAttempt(profile,attempt);
     } catch(error) {return reportDailyGenerationError(error);}
 }
 function continueDailyResult(retry=false) {
     if(!dailyRun || !['won','lost'].includes(state))return;
+    if(!retry && state==='lost'){returnDailyWithoutClear();return;}
     const run=dailyRun;
     const needsAd=run.attempt===1 && !run.resultAdCompleted;
     const resume=()=>{
