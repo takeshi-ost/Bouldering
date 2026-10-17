@@ -94,8 +94,10 @@ function renderLevelMap() {
     if(typeof updateMapAppearance==='function')updateMapAppearance();
     ui.mapCourse.hidden=courseMode!=='prototype';
     ui.mapCourse.textContent=courseMode==='prototype'?'ロジハラ（検証用）':'';
-    ui.mapPrev.disabled = mapPage===0 || !!mapTransition;
-    ui.mapNext.disabled = last>=unlocked || !!mapTransition;
+    ui.mapPrev.hidden=mapPage===0;
+    ui.mapNext.hidden=last>=unlocked;
+    ui.mapPrev.disabled = ui.mapPrev.hidden || !!mapTransition;
+    ui.mapNext.disabled = ui.mapNext.hidden || !!mapTransition;
     ui.mapCourses.disabled = !!mapTransition;
     ui.openDaily.disabled=!!mapTransition;
     ui.debugStage.disabled = ui.debugPlay.disabled = !!mapTransition;

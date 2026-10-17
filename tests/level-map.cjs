@@ -19,6 +19,7 @@ try {
 new Function('assert','storage','data',env+source+`
 assert.equal(state,'choosing');startCourse('existing');
 assert.equal(state,'map');assert.equal(unlockedLevel(),1);assert.equal(mapSelected,1);
+assert(ui.mapPrev.hidden && ui.mapNext.hidden);
 assert(ui.titleScreen.hidden && !ui.levelMap.hidden && !canUndoMove() && ui.restart.disabled);
 assert(!canScrollStage());assert.equal(undoMove(),false);
 down({clientX:200,clientY:400});assert.equal(drag,null);
@@ -68,12 +69,13 @@ assert.deepEqual(readStageProgress(),{existing:{cleared:0},prototype:{cleared:0}
 const set=storage.setItem;storage.setItem=()=>{throw Error('Storage full');};
 level=2;assert.doesNotThrow(()=>recordStageClear());assert.equal(unlockedLevel(),3);storage.setItem=set;
 // Crossing page boundaries keeps a visible single-step 20 -> 21 hop.
-stageProgress.existing.cleared=20;level=20;state='won';ui.next.onclick();
+stageProgress.existing.cleared=19;mapPage=0;renderLevelMap();assert(ui.mapNext.hidden && ui.mapPrev.hidden);
+stageProgress.existing.cleared=20;renderLevelMap();assert(!ui.mapNext.hidden && ui.mapPrev.hidden);level=20;state='won';ui.next.onclick();
 assert.deepEqual(mapBounds(),{first:20,last:40});assert.equal(ui.mapMarker.hidden,false);
 assert.deepEqual([mapTransition.from,mapTransition.to],[20,21]);
-advanceLevelMap(2000);advanceLevelMap(2650);assert.equal(mapSelected,21);
-ui.mapPrev.onclick();assert.equal(mapPage,0);assert.equal(ui.mapMarker.hidden,true);assert(ui.mapPrev.disabled);ui.mapPrev.onclick();assert.equal(mapPage,0);
-ui.mapNext.onclick();assert.equal(mapPage,1);assert.equal(ui.mapMarker.hidden,false);assert(ui.mapNext.disabled);ui.mapNext.onclick();assert.equal(mapPage,1);
+advanceLevelMap(2000);advanceLevelMap(2650);assert.equal(mapSelected,21);assert(!ui.mapPrev.hidden && ui.mapNext.hidden);
+ui.mapPrev.onclick();assert.equal(mapPage,0);assert.equal(ui.mapMarker.hidden,true);assert(ui.mapPrev.disabled && ui.mapPrev.hidden && !ui.mapNext.hidden);ui.mapPrev.onclick();assert.equal(mapPage,0);
+ui.mapNext.onclick();assert.equal(mapPage,1);assert.equal(ui.mapMarker.hidden,false);assert(ui.mapNext.disabled && ui.mapNext.hidden && !ui.mapPrev.hidden);ui.mapNext.onclick();assert.equal(mapPage,1);
 assert.equal(selectStage(22),false);
 level=1;recordStageClear();assert.equal(stageProgress.existing.cleared,20);
 // Explicit debug play can jump beyond unlocks without changing saved progress.

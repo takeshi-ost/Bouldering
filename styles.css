@@ -236,6 +236,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 #overlay .result-difficulty {margin:8px 0;font-size:16px;font-weight:700;letter-spacing:.12em;color:#526b59;}
 
 .map-page { position:absolute; z-index:3; left:50%; transform:translateX(-50%); width:44px; height:44px; padding:0; font-size:28px; line-height:1; background:#fffdf3ed; color:#3f5b47; border:1px solid #c7d2bf; border-radius:50%; }
+.map-page[hidden] { display:none; }
 .map-page-next { top:72px; }
 .map-page-prev { bottom:40px; transform:translateX(-50%) rotate(180deg); }
 .map-title-button { position:absolute; z-index:3; right:max(14px,env(safe-area-inset-right,0px)); bottom:calc(env(safe-area-inset-bottom,0px) + 16px); font-size:11px; padding:10px; }
