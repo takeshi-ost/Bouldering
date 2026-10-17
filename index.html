@@ -14,6 +14,7 @@
     <script src="js/route.js" defer></script>
     <script src="js/prototype.js" defer></script>
     <script src="js/hazards.js" defer></script>
+    <script src="js/map-art.js" defer></script>
     <script src="js/level-map.js" defer></script>
     <script src="js/daily.js" defer></script>
     <script src="js/ads.js" defer></script>
@@ -75,6 +76,7 @@
                 <p id="mapError" class="map-error" role="alert" hidden></p>
                 <div class="map-scroll" id="mapScroll" tabindex="0" aria-label="ステージ一覧。上下にスクロールできます">
                     <div class="map-track" id="mapTrack">
+                        <svg id="mapScenery" class="map-scenery" aria-hidden="true" preserveAspectRatio="none"></svg>
                         <svg id="mapRoad" class="map-road" aria-hidden="true" preserveAspectRatio="none"></svg>
                         <button id="mapNext" class="map-page map-page-next" aria-label="次の20STAGEへ">△</button>
                         <button id="mapPrev" class="map-page map-page-prev" aria-label="前の20STAGEへ">△</button>
