@@ -101,6 +101,22 @@ ui.editorCancel.onclick();startCourse('prototype');assert(ui.mapMarker.style['--
 const savedAppearance=data['ascent.appearance.v1'];data['ascent.appearance.v1']=JSON.stringify({colors:['#cc1122','#334455']});
 new Function('assert','Math',env+source+`assert.deepEqual(playerColors,['#cc1122','#334455']);assert.equal(playerHeadColor,'#e0b99b');`)(assert,Object.assign(Object.create(Math),{random(){throw Error('Legacy appearance must not rerandomize');}}));
 data['ascent.appearance.v1']=savedAppearance;
+new Function('assert','data','storage',env+source+`
+assert.equal(playerName,JSON.parse(data[PLAYER_NAME_KEY]));assert.equal(nameCharacters(playerName).length,8);
+showCharacterEditor();const savedName=playerName;
+ui.playerName.value='  ';assert(!confirmCharacterEditor());assert(!ui.playerNameError.hidden);assert.equal(state,'editing');assert.equal(playerName,savedName);
+ui.playerName.value='岳志1234567890';ui.playerName.oninput({isComposing:false});assert.equal(ui.playerName.value,'岳志12345678');
+ui.playerName.value='新しい名前';ui.editorCancel.onclick();assert.equal(playerName,savedName);
+showCharacterEditor();assert.equal(ui.playerName.value,savedName);
+ui.playerName.value='👨‍👩‍👧‍👦'.repeat(11);ui.playerName.oninput({isComposing:true});assert.equal(nameCharacters(ui.playerName.value).length,11);
+ui.playerName.oncompositionend();assert.equal(nameCharacters(ui.playerName.value).length,10);
+assert(confirmCharacterEditor());assert.equal(playerName,'👨‍👩‍👧‍👦'.repeat(10));assert.equal(readPlayerName(),playerName);
+showCharacterEditor();ui.playerName.value='  岳志  ';assert(confirmCharacterEditor());assert.equal(playerName,'岳志');
+const old=data[PLAYER_NAME_KEY];data[PLAYER_NAME_KEY]='{bad';assert.equal(readPlayerName(),'');data[PLAYER_NAME_KEY]=old;
+const set=storage.setItem;storage.setItem=()=>{throw Error('full');};showCharacterEditor();ui.playerName.value='Guest';assert(confirmCharacterEditor());assert.equal(playerName,'Guest');assert(!ui.appearanceStatus.hidden);storage.setItem=set;
+assert.equal(readPlayerName(),'岳志');
+`)(assert,data,storage);
+new Function('assert',env+source+`assert.equal(playerName,'岳志');showCharacterEditor();assert.equal(ui.playerName.value,'岳志');`)(assert);
 console.log('PASS character editor: randomized saved first run, single head color, legacy body migration, start-only entry, 1-8 equal stripes, mouse/keyboard palette and custom colors, hidden slot retention, draft/cancel/confirm, game and map fills, press feedback, reload, malformed/blocked storage, unchanged physics');
 } finally {
  if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);

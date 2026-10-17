@@ -48,6 +48,9 @@
             </div>
             <section id="characterEditor" class="character-editor" aria-labelledby="editorTitle" hidden>
                 <div class="editor-heading"><div class="eyebrow">YOUR CLIMBER</div><h1 id="editorTitle">キャラエディット</h1><p>頭やボディをタップして、色を選ぼう。</p></div>
+                <label class="player-name-label" for="playerName">プレイヤー名 <span>最大10文字</span></label>
+                <input id="playerName" type="text" autocomplete="off" spellcheck="false" aria-describedby="playerNameError" enterkeyhint="done">
+                <p id="playerNameError" class="player-name-error" hidden>プレイヤー名を入力してください。</p>
                 <svg id="editorPreview" viewBox="0 0 320 370" class="editor-preview" role="group" aria-label="キャラクターの配色プレビュー"></svg>
                 <div id="bodyStripeControls">
                 <label class="stripe-slider" for="stripeCount">ボディの塗り分け <output id="stripeCountValue" for="stripeCount">1</output><span>1〜8</span></label>

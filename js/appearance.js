@@ -32,6 +32,32 @@ function randomAppearance(random=Math.random) {
     }
     return {colors,headColor:EDITOR_COLORS[Math.floor(random()*EDITOR_COLORS.length)]};
 }
+const PLAYER_NAME_KEY='ascent.player-name.v1';
+function nameCharacters(value) {
+    return Array.from(new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(value),part=>part.segment);
+}
+function normalizedPlayerName(value) {
+    return typeof value==='string' ? nameCharacters(value.replace(/[\u0000-\u001f\u007f]/g,'').trim()).slice(0,10).join('') : '';
+}
+function randomPlayerName() {
+    const letters='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    return Array.from({length:8},()=>letters[Math.floor(Math.random()*letters.length)]).join('');
+}
+function readPlayerName() {
+    try {return normalizedPlayerName(JSON.parse(globalThis.localStorage?.getItem(PLAYER_NAME_KEY)||'null'));}
+    catch(_) {return '';}
+}
+function savePlayerName(name) {
+    try {if(globalThis.localStorage){globalThis.localStorage.setItem(PLAYER_NAME_KEY,JSON.stringify(name));return true;}}
+    catch(_) { /* Keep the name in memory when storage is unavailable. */ }
+    return false;
+}
+let playerName=readPlayerName();
+if(!playerName){playerName=randomPlayerName();savePlayerName(playerName);}
+function limitPlayerNameInput() {
+    ui.playerName.value=nameCharacters(ui.playerName.value).slice(0,10).join('');
+    ui.playerNameError.hidden=true;
+}
 let initialAppearance=readAppearance();
 if(!initialAppearance) {initialAppearance=randomAppearance();saveAppearance(initialAppearance);}
 let playerColors=initialAppearance.colors;
@@ -82,6 +108,7 @@ function renderCharacterEditor() {
 function showCharacterEditor() {
     if(state!=='choosing')return false;
     draftColors=[...playerColors];draftHeadColor=playerHeadColor;draftStripeCount=playerColors.length;selectedStripe=null;selectedPart=null;
+    ui.playerName.value=playerName;ui.playerNameError.hidden=true;
     state='editing';ui.titleScreen.hidden=true;ui.characterEditor.hidden=false;
     ui.appearanceStatus.hidden=true;
     ui.hud.hidden=true;
@@ -111,11 +138,16 @@ function paintEditorColor(color) {
 }
 function confirmCharacterEditor() {
     if(state!=='editing')return false;
+    const name=normalizedPlayerName(ui.playerName.value);
+    if(!name){ui.playerNameError.hidden=false;ui.playerName.focus();return false;}
+    ui.playerName.blur?.();playerName=name;
+    const nameSaved=savePlayerName(playerName);
     playerColors=draftColors.slice(0,draftStripeCount);
     playerHeadColor=draftHeadColor;
-    const saved=saveAppearance({colors:playerColors,headColor:playerHeadColor});
+    const appearanceSaved=saveAppearance({colors:playerColors,headColor:playerHeadColor});
+    const saved=appearanceSaved && nameSaved;
     updateMapAppearance();showTitleScreen();ui.editCharacter.focus();
-    ui.appearanceStatus.textContent=saved?'配色を保存しました。':'配色を適用しました。この端末への保存はできませんでした。';
+    ui.appearanceStatus.textContent=saved?'名前と配色を保存しました。':'名前と配色を適用しました。この端末への保存はできませんでした。';
     ui.appearanceStatus.hidden=false;
     return true;
 }
@@ -141,6 +173,8 @@ ui.paletteSwatches.onclick=e=>{
     if(swatch && ui.paletteSwatches.contains(swatch))paintEditorColor(swatch.dataset.color);
 };
 ui.customColor.oninput=()=>paintEditorColor(ui.customColor.value);
+ui.playerName.oninput=e=>{if(!e.isComposing)limitPlayerNameInput();};
+ui.playerName.oncompositionend=limitPlayerNameInput;
 ui.editorConfirm.onclick=confirmCharacterEditor;
 ui.editorCancel.onclick=()=>{
     if(state==='editing'){showTitleScreen();ui.editCharacter.focus();}

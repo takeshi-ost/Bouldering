@@ -1,3 +1,4 @@
+const originalTimezone=process.env.TZ;process.env.TZ='UTC';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
@@ -68,7 +69,25 @@ prepareCurrentStage();const accepted=dailyRun.seed;assert.equal(attempts.length,
 attempts=[];prepareCurrentStage();assert.equal(dailyRun.seed,accepted);assert.equal(attempts.length,2);
 attempts=[];prepareStage=()=>{attempts.push(dailyRun.seed);throw Error('no route');};assert.throws(prepareCurrentStage);assert.equal(attempts.length,16);
 prepareStage=originalPrepare;addHazardHolds=originalHazards;leaveDailyRun();
-console.log('PASS daily calendar: UTC midnight/year/leap boundaries, past/future cells, equal difficulty draw, real difficulty 0–3 date-seeded replay/clear, retry determinism, no normal-progress pollution, result/calendar returns, records/stars/storage errors');
+console.log('PASS daily calendar: local midnight/year/leap boundaries, past/future cells, equal difficulty draw, real difficulty 0–3 date-seeded replay/clear, retry determinism, no normal-progress pollution, result/calendar returns, records/stars/storage errors');
 `)(assert,storage,data);
+// Local unlock dates never alter the selected date's UTC course seed.
+for(const [zone,before,after] of [
+ ['Asia/Tokyo','2026-10-31T14:59:59Z','2026-10-31T15:00:00Z'],
+ ['America/Los_Angeles','2026-11-01T06:59:59Z','2026-11-01T07:00:00Z']
+]) {
+ process.env.TZ=zone;
+ new Function('assert','before','after',env+source+`
+ nowIso=before;startCourse('existing');showDailyCalendar({openFromMap:true});
+ assert.equal(localToday(),'2026-10-31');assert.equal(dailyMonth,'2026-10');
+ const seed=dailyProfile('2026-11-01');assert.equal(seed.baseSeed,20261101);
+ nowIso=after;refreshDailyCalendar();assert.equal(localToday(),'2026-11-01');assert.equal(dailyMonth,'2026-11');
+ assert(ui.dailyGrid.innerHTML.includes('data-date="2026-11-01"'));
+ assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-11-02"'));
+ assert.deepEqual(dailyProfile('2026-11-01'),seed);
+ assert(!ui.dailyToday.textContent.includes('UTC'));
+ `)(assert,before,after);
+}
+process.env.TZ='UTC';
 new Function('assert',env+source+`assert(Object.keys(dailyRecords).length===4);assert(Object.values(dailyRecords).some(r=>r.stars===3));`)(assert);
 }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}

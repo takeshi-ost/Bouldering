@@ -1,6 +1,9 @@
 "use strict";
 const DAILY_RECORDS_KEY='ascent.daily-records.v1';
 function utcToday(now=new Date()) {return now.toISOString().slice(0,10);}
+function localToday(now=new Date()) {
+    return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+}
 function validDailyDate(key) {
     if(typeof key!=='string' || !/^[1-9]\d{3}-\d{2}-\d{2}$/.test(key))return false;
     const date=new Date(key+'T00:00:00Z');
@@ -27,7 +30,7 @@ function readDailyRecords() {
     return records;
 }
 let dailyRecords=readDailyRecords();
-let dailyMonth=utcToday().slice(0,7);
+let dailyMonth=localToday().slice(0,7);
 let dailyCalendarToday=null;
 let dailyReturnCourse='existing';
 function recordDailyClear() {
@@ -44,7 +47,7 @@ function shiftedDailyMonth(delta) {
     return new Date(Date.UTC(year,month-1+delta,1)).toISOString().slice(0,7);
 }
 function renderDailyCalendar() {
-    const today=utcToday();dailyCalendarToday=today;
+    const today=localToday();dailyCalendarToday=today;
     const [year,month]=monthParts();
     const firstDay=new Date(Date.UTC(year,month-1,1)).getUTCDay();
     const days=new Date(Date.UTC(year,month,0)).getUTCDate();
@@ -53,18 +56,18 @@ function renderDailyCalendar() {
         const key=dailyMonth+'-'+String(day).padStart(2,'0');
         if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${year}年${month}月${day}日">${day}</div>`);continue;}
         const record=dailyRecords[key];
-        cells.push(`<button class="daily-day ${record?'is-cleared':''} ${key===today?'is-today':''}" data-date="${key}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星':'プレイできます'}" ${key===today?'aria-current="date"':''}><span>${day}</span>${record?`<span class="daily-stars" aria-hidden="true">${'⭐️'.repeat(record.stars)}</span>`:''}</button>`);
+        cells.push(`<div class="daily-cell daily-playable"><button class="daily-day ${record?'is-cleared':''} ${key===today?'is-today':''}" data-date="${key}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星':'プレイできます'}" ${key===today?'aria-current="date"':''}><span>${day}</span>${record?`<span class="daily-stars" aria-hidden="true">${'⭐️'.repeat(record.stars)}</span>`:''}</button></div>`);
     }
     while(cells.length%7)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');
     ui.dailyMonthTitle.textContent=`${year}年 ${month}月`;
-    ui.dailyToday.textContent=`今日：${today.replaceAll('-','/')}（UTC）`;
+    ui.dailyToday.textContent=`今日：${today.replaceAll('-','/')}（端末時刻）`;
     ui.dailyPrev.disabled=dailyMonth<='1000-01';
     ui.dailyNext.disabled=dailyMonth>=today.slice(0,7);
 }
 function refreshDailyCalendar() {
     if(state!=='daily')return;
-    const today=utcToday();
+    const today=localToday();
     if(today===dailyCalendarToday)return;
     if(dailyMonth===dailyCalendarToday?.slice(0,7))dailyMonth=today.slice(0,7);
     renderDailyCalendar();
@@ -72,7 +75,7 @@ function refreshDailyCalendar() {
 function showDailyCalendar({openFromMap=false}={}) {
     if(openFromMap) {
         if(state!=='map' || mapTransition)return;
-        dailyReturnCourse=courseMode;dailyMonth=utcToday().slice(0,7);
+        dailyReturnCourse=courseMode;dailyMonth=localToday().slice(0,7);
     }
     release(true);endPan();touchId=null;ignoreTouches=false;
     drag=null;bodyTap=null;cameraIntro=null;heartPopups=[];hazardShakeStart=null;
@@ -85,10 +88,10 @@ function showDailyCalendar({openFromMap=false}={}) {
     ui.restart.disabled=ui.mapButton.disabled=true;
     canvas.setAttribute('tabindex','-1');
     renderDailyCalendar();
-    (ui.dailyGrid.querySelector?.(`[data-date="${utcToday()}"]`)||ui.dailyBack).focus();
+    (ui.dailyGrid.querySelector?.(`[data-date="${localToday()}"]`)||ui.dailyBack).focus();
 }
 function selectDailyDate(key) {
-    if(state!=='daily' || !validDailyDate(key) || key>utcToday())return false;
+    if(state!=='daily' || !validDailyDate(key) || key>localToday())return false;
     try {
         const profile=dailyProfile(key);
         dailyRun={...profile,returnCourse:dailyReturnCourse};
@@ -115,7 +118,7 @@ ui.dailyPrev.onclick=()=>{
     dailyMonth=shiftedDailyMonth(-1);renderDailyCalendar();
 };
 ui.dailyNext.onclick=()=>{
-    if(state!=='daily' || dailyMonth>=utcToday().slice(0,7))return;
+    if(state!=='daily' || dailyMonth>=localToday().slice(0,7))return;
     dailyMonth=shiftedDailyMonth(1);renderDailyCalendar();
 };
 ui.dailyGrid.onclick=e=>{

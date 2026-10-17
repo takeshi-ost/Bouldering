@@ -6,7 +6,7 @@ const ui = Object.fromEntries([
     "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
     "dailyCalendar", "openDaily", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyToday", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
-    "characterEditor", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
+    "characterEditor", "playerName", "playerNameError", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
     "titleScreen", "existingCourse", "prototypeCourse", "prototypeDescription", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
