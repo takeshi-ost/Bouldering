@@ -74,25 +74,43 @@ function updateMapAppearance() {
     ui.mapMarker.style.setProperty?.('--body-stripes',bodyStripeGradient());
     ui.mapMarker.style.setProperty?.('--head-color',playerHeadColor);
 }
-function previewLimb(i) {
-    const root=limbRoot({x:0,y:0},i),side=i%2?-1:1;
-    const tip=i<2 ? {x:-side*52,y:55} : {x:-side*44,y:138};
-    const joint=limbJoint(root,tip,i);
-    return `<path d="M${root.x} ${root.y} L${joint.x} ${joint.y} L${tip.x} ${tip.y}" fill="none" stroke="#435c50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="${joint.x}" cy="${joint.y}" r="3.5" fill="#f3f0e7"/><circle cx="${tip.x}" cy="${tip.y}" r="4" fill="#2f5d46"/>`;
+// Editor-only fashion poses, inspired by the reference sheet; gameplay IK is unchanged.
+// Each limb stores [elbow/knee x, y, hand/foot x, y] in preview coordinates.
+const EDITOR_POSES=[
+    {name:'自然に立つ',tilt:0,limbs:[[-30,10,-30,60],[30,10,30,60],[-23,85,-32,136],[23,85,32,136]]},
+    {name:'片足に重心をかける',tilt:-7,limbs:[[-27,10,-20,61],[27,12,29,62],[-37,80,-20,135],[29,80,14,135]]},
+    {name:'腰に手を当てる',tilt:6,limbs:[[-59,-5,-20,22],[35,14,30,64],[-25,83,-30,136],[27,86,38,136]]},
+    {name:'前で手を組む',tilt:0,frontArms:[0,1],limbs:[[-43,3,-4,26],[44,4,4,26],[-27,87,-44,136],[20,86,19,136]]},
+    {name:'頭に手を添える',tilt:10,frontArms:[0],limbs:[[-48,-18,-4,-53],[45,11,35,60],[-13,83,-18,134],[36,80,23,135]]},
+    {name:'脚を交差して立つ',tilt:-4,limbs:[[-36,6,-10,22],[36,5,10,22],[-9,87,18,136],[34,84,-3,136]]},
+    {name:'腕を組む',tilt:0,frontArms:[0,1],limbs:[[-37,6,19,-14],[37,7,-19,-9],[-23,86,-32,136],[23,86,35,136]]},
+    {name:'脚を広げて胸に手を添える',tilt:-8,frontArms:[0],limbs:[[-47,11,-1,-2],[30,12,26,61],[-37,83,-67,133],[40,84,57,136]]}
+];
+function editorPoseRoot(i,pose) {
+    const root=limbRoot({x:0,y:0},i),angle=pose.tilt*Math.PI/180;
+    return {x:root.x*Math.cos(angle)-root.y*Math.sin(angle),y:root.x*Math.sin(angle)+root.y*Math.cos(angle)};
+}
+function previewLimb(i,pose,front=false) {
+    const root=editorPoseRoot(i,pose),[x,y,tx,ty]=pose.limbs[i];
+    return `<g pointer-events="none"><path d="${front?'M'+x+' '+y:'M'+root.x+' '+root.y+' L'+x+' '+y} L${tx} ${ty}" fill="none" stroke="#435c50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="${x}" cy="${y}" r="3.5" fill="#f3f0e7"/><circle cx="${tx}" cy="${ty}" r="4" fill="#2f5d46"/></g>`;
 }
 function renderCharacterEditor() {
-    const w=TORSO.width,h=TORSO.height;
+    const w=TORSO.width,h=TORSO.height,pose=EDITOR_POSES[draftStripeCount-1];
     const bands=draftColors.slice(0,draftStripeCount).map((color,i)=>{
         const selected=selectedPart==='body' && i===selectedStripe;
         return `<rect data-stripe="${i}" x="${-w/2}" y="${-h/2+h*i/draftStripeCount}" width="${w}" height="${h/draftStripeCount}" fill="${color}" stroke="${selected?'#d4a63d':'#fff9ed'}" stroke-width="${selected?1.5:.5}" role="button" tabindex="0" aria-label="上から${i+1}番目の色 ${color}" aria-pressed="${selected}"/>`;
     }).join('');
-    ui.editorPreview.innerHTML=`<g transform="translate(160 140) scale(1.5)">
-        ${[0,1,2,3].map(previewLimb).join('')}
+    ui.editorPreview.setAttribute('aria-label',`${draftStripeCount}色・${pose.name}のキャラクター配色プレビュー`);
+    ui.editorPreview.innerHTML=`<g data-pose="${draftStripeCount}" transform="translate(160 140) scale(1.5)">
+        ${[2,3,0,1].map(i=>previewLimb(i,pose)).join('')}
+        <g transform="rotate(${pose.tilt})">
         <path d="M0 ${-h/2} V${-h/2-9}" stroke="#435c50" stroke-width="5"/>
         <circle data-part="head" cx="0" cy="${-h/2-13}" r="10" fill="${draftHeadColor}" stroke="${selectedPart==='head'?'#d4a63d':'none'}" stroke-width="1.5" role="button" tabindex="0" aria-label="頭の色 ${draftHeadColor}" aria-pressed="${selectedPart==='head'}"/>
         ${bands}<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" fill="none" stroke="#fff9ed" stroke-width="1.5" pointer-events="none"/>
         ${[-4,4].flatMap(x=>[-6,0,6].map(y=>`<circle cx="${x}" cy="${y}" r="1.3" fill="#d9e9db" pointer-events="none"/>`)).join('')}
+        </g>
+        ${(pose.frontArms||[]).map(i=>previewLimb(i,pose,true)).join('')}
         </g>`;
     ui.stripeCount.value=String(draftStripeCount);
     ui.stripeCountValue.textContent=String(draftStripeCount);

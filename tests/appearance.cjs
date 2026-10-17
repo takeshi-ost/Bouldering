@@ -38,6 +38,18 @@ for(let n=1;n<=8;n++) {
  assert(!/NaN|Infinity/.test(ui.editorPreview.innerHTML));
  assert.equal(Number(bands[0][2]),-TORSO.height/2);
 }
+assert.equal(EDITOR_POSES.length,8);assert.equal(new Set(EDITOR_POSES.map(p=>p.name)).size,8);
+assert.equal(new Set(EDITOR_POSES.map(p=>JSON.stringify(p))).size,8);
+for(let n=1;n<=8;n++) {
+ resizeEditorStripes(n);assert(ui.editorPreview.innerHTML.includes('data-pose="'+n+'"'));
+ const pose=EDITOR_POSES[n-1];
+ for(let i=0;i<4;i++) {
+  const root=editorPoseRoot(i,pose),[x,y,tx,ty]=pose.limbs[i];
+  for(const p of [root,{x,y},{x:tx,y:ty}])assert(p.x*1.5+160>6 && p.x*1.5+160<314 && p.y*1.5+140>6 && p.y*1.5+140<364,'Pose clipped by preview');
+ }
+ selectEditorHead();paintEditorColor('#765432');assert(ui.editorPreview.innerHTML.includes('data-pose="'+n+'"'));
+}
+resizeEditorStripes(8);
 assert.deepEqual(playerColors,['#39785b']);
 ui.editorPreview.onclick({target:{closest(){return {dataset:{stripe:'3'}};}}});
 assert.equal(selectedStripe,3);assert(!ui.editorPalette.hidden);
