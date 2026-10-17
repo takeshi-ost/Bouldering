@@ -22,13 +22,15 @@ const seed=dailyRun.seed;
 while(featureHelpOpen)dismissStageHelp();cameraIntro=null;
 for(let i=1;i<route.length;i++){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();}
 assert.equal(state,'won');assert(!dummyAd);ui.next.onclick();assert.equal(state,'ad');ui.next.onclick();done();assert.equal(state,'daily');
-for(let attempt=2;attempt<=6;attempt++) {
- assert(selectDailyDate(key));
- if(attempt%2===0){assert.equal(state,'ad');assert.equal(dailyAttempts[key],attempt-1);assert(!selectDailyDate(key));done();}
- assert.equal(state,'playing');assert.equal(dailyRun.attempt,attempt);assert.equal(dailyRun.seed,seed);
- restartInput(level);assert.equal(dailyAttempts[key],attempt,'Settings restart keeps the same attempt');
- finish(true);ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd);
+const attemptsBefore=dailyAttempts[key];assert(!selectDailyDate(key));assert.equal(state,'daily');assert(!dummyAd);assert.equal(dailyAttempts[key],attemptsBefore);
+const repeatKey='2026-01-10';assert(selectDailyDate(repeatKey));
+for(let attempt=1;attempt<=6;attempt++) {
+ assert.equal(state,'playing');assert.equal(dailyRun.attempt,attempt);
+ restartInput(level);assert.equal(dailyAttempts[repeatKey],attempt,'Settings restart keeps the same attempt');
+ finish(false);assert(!ui.retry.hidden);
+ if(attempt<6){ui.retry.onclick();if(attempt===1 || (attempt+1)%2===0){assert.equal(state,'ad');done();}}
 }
+showDailyCalendar();
 assert.equal(clearsSinceAd,normal,'Daily ads cannot change normal ad cadence');
 // A first failed run followed by Retry shows exactly one ad, then launches #2.
 assert(selectDailyDate(other));finish(false);ui.retry.onclick();assert.equal(state,'ad');done();assert.equal(state,'playing');assert.equal(dailyRun.attempt,2);assert(!dummyAd);assert.equal(dailyAttempts[other],2);
@@ -46,6 +48,6 @@ assert(selectDailyDate('2026-01-04'));assert.equal(state,'ad');assert(dailyEntry
 ui.mapButton.onclick();assert.equal(state,'daily');assert(dailyEntryAdPending);assert(!dummyAd);assert(readDailyEntryAdPending());
 const set=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(saveDailyAttempts);assert.doesNotThrow(()=>setDailyEntryAdPending(true));storage.setItem=set;
 `)(assert,data,storage);
-new Function('assert',env+source+`assert.equal(dailyAttempts['2026-01-01'],6);assert.equal(dailyAttempts['2026-01-02'],4);assert(dailyEntryAdPending);`)(assert);
+new Function('assert',env+source+`assert.equal(dailyAttempts['2026-01-01'],1);assert.equal(dailyAttempts['2026-01-10'],6);assert.equal(dailyAttempts['2026-01-02'],4);assert(dailyEntryAdPending);`)(assert);
 console.log('PASS daily ads: real first clear -> result ad, attempts 2/4/6 entry ads, per-date counts, failed-run retry without back-to-back ads, restart determinism, save/reload, generation failures and blocked storage, normal ad isolation');
 }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}

@@ -48,17 +48,18 @@ for(const [rating,key] of dates){
  assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore,'Daily clear polluted normal progress');
  assert.equal(dailyRecords[key].moves,moveCount);assert(ui.overlay.open);
  ui.next.onclick();finishAds();assert.equal(state,'daily');assert(!dailyRun && ui.overlay.hidden && !ui.dailyCalendar.hidden);assert(ui.dailyGrid.innerHTML.includes('daily-stars'));
- assert(selectDailyDate(key));finishAds();assert.equal(snapshot(),first,'Re-entering changed the daily course');while(featureHelpOpen)dismissStageHelp();
- finish(false);assert(!ui.retry.hidden && !ui.next.hidden);ui.next.onclick();finishAds();assert.equal(state,'daily');assert.equal(dailyRecords[key].stars,2);
+ const count=dailyAttempts[key],pending=dailyEntryAdPending;assert(!selectDailyDate(key));assert.equal(state,'daily');assert(!dummyAd);assert.equal(dailyAttempts[key],count);assert.equal(dailyEntryAdPending,pending);
+ assert(ui.dailyGrid.innerHTML.includes('disabled'));assert.equal(dailyRecords[key].stars,2);
 }
 assert.deepEqual(readDailyRecords(),dailyRecords);
-const key=dates.get(0);assert(selectDailyDate(key));finishAds();moveCount=route.length-2;runElapsedMs=100;recordDailyClear();assert.equal(dailyRecords[key].stars,3);moveCount=route.length+2;recordDailyClear();assert.equal(dailyRecords[key].stars,3);
+const key=dates.get(0),originalRecord=JSON.stringify(dailyRecords[key]);dailyRun={...dailyProfile(key),returnCourse:'existing'};moveCount=1;runElapsedMs=100;recordDailyClear();assert.equal(JSON.stringify(dailyRecords[key]),originalRecord,'Completed daily record must remain unchanged');
 const savedSet=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(recordDailyClear);storage.setItem=savedSet;
 showDailyCalendar();ui.dailyBack.onclick();assert.equal(state,'map');assert.equal(courseMode,'existing');assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore);
 // The calendar always generates the public course, then returns to its original map.
-startCourse('prototype');ui.openDaily.onclick();assert(selectDailyDate(key));finishAds();assert.equal(courseMode,'existing');showDailyCalendar();ui.dailyBack.onclick();assert.equal(courseMode,'prototype');assert.equal(state,'map');
+const fresh=Array.from({length:31},(_,i)=>'2026-01-'+String(i+1).padStart(2,'0')).find(k=>!dailyRecords[k] && dailyProfile(k).difficulty===0);
+startCourse('prototype');ui.openDaily.onclick();assert(selectDailyDate(fresh));finishAds();assert.equal(courseMode,'existing');showDailyCalendar();ui.dailyBack.onclick();assert.equal(courseMode,'prototype');assert.equal(state,'map');
 // An interrupted generation reports an error on the calendar, without normal progress changes.
-ui.openDaily.onclick();const originalReset=reset;reset=()=>{throw Error('fixture failure');};const oldError=console.error;console.error=()=>{};setDailyEntryAdPending(false);dailyAttempts[key]=2;assert(!selectDailyDate(key));console.error=oldError;reset=originalReset;assert.equal(state,'daily');assert(!ui.dailyError.hidden && !dailyRun);
+ui.openDaily.onclick();const originalReset=reset;reset=()=>{throw Error('fixture failure');};const oldError=console.error;console.error=()=>{};setDailyEntryAdPending(false);dailyAttempts[fresh]=2;assert(!selectDailyDate(fresh));console.error=oldError;reset=originalReset;assert.equal(state,'daily');assert(!ui.dailyError.hidden && !dailyRun);
 const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]='{bad';assert.deepEqual(readDailyRecords(),{});
 data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-02-30':{moves:1,timeMs:2,stars:3},'2026-01-01':{moves:0,timeMs:2,stars:3},'2026-01-02':{moves:1,timeMs:-1,stars:3},'2026-01-03':{moves:1,timeMs:2,stars:4}});assert.deepEqual(readDailyRecords(),{});data[DAILY_RECORDS_KEY]=saved;
 const savedGet=storage.getItem;storage.getItem=()=>{throw Error('blocked');};assert.deepEqual(readDailyRecords(),{});storage.getItem=savedGet;
@@ -70,7 +71,11 @@ prepareCurrentStage();const accepted=dailyRun.seed;assert.equal(attempts.length,
 attempts=[];prepareCurrentStage();assert.equal(dailyRun.seed,accepted);assert.equal(attempts.length,2);
 attempts=[];prepareStage=()=>{attempts.push(dailyRun.seed);throw Error('no route');};assert.throws(prepareCurrentStage);assert.equal(attempts.length,16);
 prepareStage=originalPrepare;addHazardHolds=originalHazards;leaveDailyRun();
-console.log('PASS daily calendar: local midnight/year/leap boundaries, past/future cells, equal difficulty draw, real difficulty 0–3 date-seeded replay/clear, retry determinism, no normal-progress pollution, result/calendar returns, records/stars/storage errors');
+// Even a blocked save locks a newly cleared date within the current session.
+dailyRun={...dailyProfile('2026-01-31'),returnCourse:'existing'};moveCount=1;runElapsedMs=100;
+const finalSet=storage.setItem;storage.setItem=()=>{throw Error('full');};recordDailyClear();storage.setItem=finalSet;
+assert(dailyRecords['2026-01-31']);showDailyCalendar();assert(!selectDailyDate('2026-01-31'));assert.equal(state,'daily');assert(!dummyAd);
+console.log('PASS daily calendar: local midnight/year/leap boundaries, past/future cells, equal difficulty draw, real difficulty 0–3 date-seeded retry/clear and cleared-date lock, retry determinism, no normal-progress pollution, result/calendar returns, records/stars/storage errors');
 `)(assert,storage,data);
 // Local unlock dates never alter the selected date's UTC course seed.
 for(const [zone,before,after] of [
@@ -90,5 +95,5 @@ for(const [zone,before,after] of [
  `)(assert,before,after);
 }
 process.env.TZ='UTC';
-new Function('assert',env+source+`assert(Object.keys(dailyRecords).length===4);assert(Object.values(dailyRecords).some(r=>r.stars===3));`)(assert);
+new Function('assert',env+source+`assert(Object.keys(dailyRecords).length===4);assert(Object.values(dailyRecords).every(r=>r.stars===2));`)(assert);
 }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}

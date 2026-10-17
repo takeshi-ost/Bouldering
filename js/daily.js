@@ -66,9 +66,9 @@ let dailyMonth=localToday().slice(0,7);
 let dailyCalendarToday=null;
 let dailyReturnCourse='existing';
 function recordDailyClear() {
-    if(!dailyRun || moveCount<1)return;
+    if(!dailyRun || moveCount<1 || dailyRecords[dailyRun.date])return;
     const date=dailyRun.date;
-    const stars=Math.max(dailyRecords[date]?.stars||0,clearStars(moveCount,route.length-1));
+    const stars=clearStars(moveCount,route.length-1);
     dailyRecords[date]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars};
     try {globalThis.localStorage?.setItem(DAILY_RECORDS_KEY,JSON.stringify(dailyRecords));}
     catch(_) { /* Preserve the earned stars within this session. */ }
@@ -88,7 +88,7 @@ function renderDailyCalendar() {
         const key=dailyMonth+'-'+String(day).padStart(2,'0');
         if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${year}年${month}月${day}日">${day}</div>`);continue;}
         const record=dailyRecords[key];
-        cells.push(`<div class="daily-cell daily-playable"><button class="daily-day ${record?'is-cleared':''} ${key===today?'is-today':''}" data-date="${key}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星':'プレイできます'}" ${key===today?'aria-current="date"':''}><span>${day}</span>${record?`<span class="daily-stars" aria-hidden="true">${'⭐️'.repeat(record.stars)}</span>`:''}</button></div>`);
+        cells.push(`<div class="daily-cell daily-playable"><button class="daily-day ${record?'is-cleared':''} ${key===today?'is-today':''}" data-date="${key}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星・再挑戦できません':'プレイできます'}" ${record?'disabled':''} ${key===today?'aria-current="date"':''}><span>${day}</span>${record?`<span class="daily-stars" aria-hidden="true">${'⭐️'.repeat(record.stars)}</span>`:''}</button></div>`);
     }
     while(cells.length%7)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');
@@ -120,7 +120,7 @@ function showDailyCalendar({openFromMap=false}={}) {
     ui.restart.disabled=ui.mapButton.disabled=true;
     canvas.setAttribute('tabindex','-1');
     renderDailyCalendar();
-    (ui.dailyGrid.querySelector?.(`[data-date="${localToday()}"]`)||ui.dailyBack).focus();
+    (ui.dailyGrid.querySelector?.(`[data-date="${localToday()}"]:not(:disabled)`)||ui.dailyBack).focus();
 }
 function reportDailyGenerationError(error) {
     showDailyCalendar();
@@ -130,6 +130,7 @@ function reportDailyGenerationError(error) {
     return false;
 }
 function launchDailyAttempt(profile,attempt) {
+    if(dailyRecords[profile.date]){showDailyCalendar();return false;}
     try {
         dailyRun={...profile,returnCourse:dailyReturnCourse,attempt,resultAdCompleted:false};
         courseMode='existing';debugAttempt=false;
@@ -141,7 +142,7 @@ function launchDailyAttempt(profile,attempt) {
     } catch(error) {return reportDailyGenerationError(error);}
 }
 function selectDailyDate(key,{adAlreadyShown=false}={}) {
-    if(state!=='daily' || !validDailyDate(key) || key>localToday())return false;
+    if(state!=='daily' || !validDailyDate(key) || key>localToday() || dailyRecords[key])return false;
     try {
         const profile=dailyProfile(key);
         const attempt=(dailyAttempts[key]||0)+1;
@@ -152,6 +153,7 @@ function selectDailyDate(key,{adAlreadyShown=false}={}) {
 }
 function continueDailyResult(retry=false) {
     if(!dailyRun || !['won','lost'].includes(state))return;
+    if(retry && (state==='won' || dailyRecords[dailyRun.date]))return;
     if(!retry && state==='lost'){returnDailyWithoutClear();return;}
     const run=dailyRun;
     const needsAd=run.attempt===1 && !run.resultAdCompleted;

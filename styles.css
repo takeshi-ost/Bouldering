@@ -266,3 +266,5 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .life-dialog button { width:100%; margin-top:8px; min-height:44px; }
 
 .life-status.title-lives { top:calc(env(safe-area-inset-top,0px) + 16px); }
+
+.daily-day.is-cleared:disabled { opacity:1; cursor:default; }

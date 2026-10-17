@@ -131,7 +131,7 @@ ui.retry.onclick=()=>{
 };
 ui.restart.onclick=()=>{
     if(!['playing','won','lost'].includes(state))return;
-    if(dailyRun)restartInput(level);else restartNormalStage();
+    if(dailyRun) {if(!dailyRecords[dailyRun.date])restartInput(level);}else restartNormalStage();
 };
 ui.mapButton.onclick = () => {
     if(!['playing','won','lost'].includes(state))return;
