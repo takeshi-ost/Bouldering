@@ -18,13 +18,20 @@ Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true
 try {
 new Function('assert','storage','data',env+source+`
 // All six forms are stable across page changes, and status does not mirror live labels.
-assert.equal(new Set(Array.from({length:6},(_,i)=>JSON.stringify(mapStageVariant(i+1)))).size,6);
-for(let i=1;i<=6;i++)assert.deepEqual(mapStageVariant(i),mapStageVariant(i+6));
+assert.equal(new Set(Array.from({length:60},(_,i)=>{const v=mapStageVariant(i+1);return v.height+'-'+v.mirrored;})).size,6);
+for(let i=1;i<=6;i++)assert.deepEqual(mapStageVariant(i),mapStageVariant(i+60));
 for(const status of ['active','cleared','unplayed'])for(let n=1;n<=6;n++) {
  const markup=mapWallMarkup(n,status);
  assert(markup.includes('assets/stage-icons/'+status+'-'+mapStageVariant(n).height+'.webp'));
  assert(markup.includes('class="map-node-number"'));
- assert(!markup.includes('<text')&&!markup.includes('rotate('));
+ assert(!markup.includes('<text'));
+ assert(markup.includes('transform:rotate('));
+}
+for(let n=1;n<=20;n++) {
+ const a=MAP_TRAIL[n-1],b=n===20?[400,0]:MAP_TRAIL[n],v=mapStageVariant(n);
+ const angle=Math.atan((b[1]-a[1])/(b[0]-a[0]))*180/Math.PI;
+ assert.equal(v.mirrored,angle<0);
+ assert(Math.abs(v.rotation+(v.mirrored?-22:22)-angle)<1e-8);
 }
 assert.equal(MAP_TRAIL.length,20);
 const step=Math.hypot(MAP_TRAIL[1][0]-MAP_TRAIL[0][0],MAP_TRAIL[1][1]-MAP_TRAIL[0][1]);
