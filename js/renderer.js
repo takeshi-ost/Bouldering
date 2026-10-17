@@ -486,7 +486,7 @@ function draw(now = 0) {
 
     const desired = clamp(
         body.y - H * CAMERA_CONFIG.bodyScreenRatio,
-        0,
+        cameraTop(),
         HEIGHT - H
     );
 
@@ -545,7 +545,7 @@ function draw(now = 0) {
         x += 40
     ) {
         ctx.beginPath();
-        ctx.moveTo(x, 0);
+        ctx.moveTo(x, cameraTop());
         ctx.lineTo(x, HEIGHT);
         ctx.stroke();
     }
@@ -553,12 +553,7 @@ function draw(now = 0) {
     for (
         let y =
             10 +
-            Math.max(
-                0,
-                Math.floor(
-                    (camera - 10) / 40
-                )
-            ) * 40;
+            Math.floor((camera - 10) / 40) * 40;
         y <
         Math.min(
             HEIGHT,

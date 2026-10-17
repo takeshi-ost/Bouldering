@@ -3,7 +3,7 @@ let touchId = null;
 let pan = null;
 let ignoreTouches = false;
 function endPan() { pan = null; }
-function canScrollStage() { return !featureHelpOpen && !settingsOpen && ['playing','won','lost'].includes(state) && ui.overlay.hidden && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT > H; }
+function canScrollStage() { return !featureHelpOpen && !settingsOpen && ['playing','won','lost'].includes(state) && ui.overlay.hidden && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT-H > cameraTop(); }
 // Delay a body gesture until it becomes a drag, preserving the visible pose on tap.
 function beginPointer(e) {
     if (featureHelpOpen || settingsOpen || !ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
@@ -44,16 +44,16 @@ function beginTouchPan(touches) {
 canvas.addEventListener('keydown', e => {
     if (!canScrollStage()) return;
     const max=HEIGHT-H;
-    const positions={ArrowUp:camera-40,ArrowDown:camera+40,PageUp:camera-H,PageDown:camera+H,Home:0,End:max};
+    const positions={ArrowUp:camera-40,ArrowDown:camera+40,PageUp:camera-H,PageDown:camera+H,Home:cameraTop(),End:max};
     if (!(e.key in positions)) return;
     e.preventDefault();endPointer(null,true);inspecting=true;
-    camera=clamp(positions[e.key],0,max);
+    camera=clamp(positions[e.key],cameraTop(),max);
 });
 canvas.addEventListener('wheel', e => {
     if (!canScrollStage() || pan) return;
     e.preventDefault();endPointer(null,true);inspecting=true;
     const scale=e.deltaMode===1 ? 16 : e.deltaMode===2 ? H : H/canvas.getBoundingClientRect().height;
-    camera=clamp(camera+e.deltaY*scale,0,HEIGHT-H);
+    camera=clamp(camera+e.deltaY*scale,cameraTop(),HEIGHT-H);
 }, {passive:false});
 canvas.addEventListener('mousedown', e => {
     if (e.button === 0 && !pan) { e.preventDefault(); beginPointer(e); }
@@ -87,7 +87,7 @@ canvas.addEventListener('touchmove', e => {
         const fingers=pan.ids.map(id=>Array.from(e.touches).find(t=>t.identifier===id));
         if (e.touches.length!==2 || fingers.some(t=>!t)) { endPan(); return; }
         const y=(fingers[0].clientY+fingers[1].clientY)/2;
-        camera=clamp(pan.camera-(y-pan.y)*H/canvas.getBoundingClientRect().height,0,HEIGHT-H);
+        camera=clamp(pan.camera-(y-pan.y)*H/canvas.getBoundingClientRect().height,cameraTop(),HEIGHT-H);
         return;
     }
     if (ignoreTouches) return;

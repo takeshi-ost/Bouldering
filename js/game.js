@@ -74,6 +74,11 @@ let hearts = [];
 let heartPopups = [];
 let hazardShakeStart = null;
 let HEIGHT = H;
+// Extra space above high goals belongs to the camera, preserving course geometry.
+function cameraTop() {
+    const goal=holds.find(h=>h.type==='goal');
+    return goal ? Math.min(0,goal.y-CAMERA_CONFIG.goalTopPadding) : 0;
+}
 let initialGrips = [];
 let body;
 let committed;
@@ -506,8 +511,8 @@ function reset(n) {
     }];
 
     camera = clamp(
-        holds.find(h => h.type === 'goal').y - H * .2,
-        0,
+        holds.find(h => h.type === 'goal').y - CAMERA_CONFIG.goalTopPadding,
+        cameraTop(),
         HEIGHT - H
     );
 
@@ -585,13 +590,14 @@ function down(e) {
 
     inspecting = false;
 
+    // Read the world point before camera recentering changes its screen mapping.
+    const p = point(e);
+
     camera = clamp(
         body.y - H * CAMERA_CONFIG.bodyScreenRatio,
-        0,
+        cameraTop(),
         HEIGHT - H
     );
-
-    const p = point(e);
 
     if (
         p.x < 0 ||

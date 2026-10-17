@@ -84,6 +84,6 @@ const HEART_CONFIG = { minMoves: 5, maxCount: 2, recovery: 2, radius: 10, popupD
 const HAZARD_CONFIG = { minRatio: .3, maxRatio: .5, maxCount: 5, penalty: 1, shakeDuration: 280, shakeAmplitude: 4, radius: 6, attempts: 140, spacing: 24 };
 // 操作と描画。
 const INPUT_CONFIG = { dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24, tapMaxDuration: 400 };
-const CAMERA_CONFIG = { bodyScreenRatio: 0.6, followRate: 0.08, introSpeed: H * 1.5, introMinDuration: 1000 };
+const CAMERA_CONFIG = { goalTopPadding: 180, bodyScreenRatio: 0.6, followRate: 0.08, introSpeed: H * 1.5, introMinDuration: 1000 };
 const FALL_CONFIG = { gravity: 1400, clearance: 180 };
 const RENDER_CONFIG = { maxPixelRatio: 2 };
