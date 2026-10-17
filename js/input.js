@@ -127,9 +127,12 @@ ui.next.onclick = () => {
 };
 ui.retry.onclick=()=>{
     if(dailyRun)continueDailyResult(true);
-    else if(['playing','won','lost'].includes(state))restartInput(level);
+    else restartNormalStage();
 };
-ui.restart.onclick=()=>{if(['playing','won','lost'].includes(state))restartInput(level);};
+ui.restart.onclick=()=>{
+    if(!['playing','won','lost'].includes(state))return;
+    if(dailyRun)restartInput(level);else restartNormalStage();
+};
 ui.mapButton.onclick = () => {
     if(!['playing','won','lost'].includes(state))return;
     if(dailyRun) {
@@ -138,6 +141,7 @@ ui.mapButton.onclick = () => {
 };
 
 function showTitleScreen() {
+    settleLifeAttempt(false);
     leaveDailyRun();ui.dailyCalendar.hidden=true;
     endPointer(null,true);
     endPan();

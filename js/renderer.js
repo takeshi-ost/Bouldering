@@ -472,6 +472,8 @@ function drawStageIntro() {
 }
 
 function draw(now = 0) {
+    if(typeof refreshLives==='function')refreshLives();
+    if(state==='life-prompt'){requestAnimationFrame(draw);return;}
     if(state==='ad') {advanceDummyAd(now);requestAnimationFrame(draw);return;}
     if (state === 'choosing' || state === 'editing' || state === 'map' || state === 'daily') {
         if (state === 'map') advanceLevelMap(now);

@@ -106,6 +106,7 @@ function focusMapLevel() {
     button?.focus({preventScroll:true});
 }
 function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
+    settleLifeAttempt(false);
     leaveDailyRun();ui.dailyCalendar.hidden=true;
     release(true);endPan();touchId=null;ignoreTouches=false;
     drag=null;bodyTap=null;cameraIntro=null;heartPopups=[];hazardShakeStart=null;
@@ -144,20 +145,24 @@ function selectStage(n,debug=false) {
     if (state!=='map' || mapTransition || !Number.isSafeInteger(n) || n<1 || n>=Number.MAX_SAFE_INTEGER || (debug ? !debugMode : n>unlockedLevel())) return false;
     // Dismiss the numeric keyboard before generating and opening the stage.
     if(debug)ui.debugStage.blur?.();
-    try {
-        debugAttempt=debug;
-        restartInput(n);
-        ui.titleScreen.hidden=true;ui.levelMap.hidden=true;
-        canvas.setAttribute('tabindex','0');
-        if(!featureHelpOpen)canvas.focus();
-        return true;
-    } catch (error) {
-        showLevelMap({target:n});
-        ui.mapError.textContent='ステージを生成できませんでした。もう一度選んでください。';
-        ui.mapError.hidden=false;
-        console.error(error);
-        return false;
-    }
+    const launch=()=>{
+        try {
+            debugAttempt=debug;
+            restartInput(n);
+            beginLifeAttempt();
+            ui.titleScreen.hidden=true;ui.levelMap.hidden=true;
+            canvas.setAttribute('tabindex','0');
+            if(!featureHelpOpen)canvas.focus();
+            return true;
+        } catch (error) {
+            showLevelMap({target:n});
+            ui.mapError.textContent='ステージを生成できませんでした。もう一度選んでください。';
+            ui.mapError.hidden=false;
+            console.error(error);
+            return false;
+        }
+    };
+    return requestLifeStart(launch,{enabled:courseMode==='existing' && !debug});
 }
 ui.mapNodes.onclick = e => {
     const button=e.target.closest('button[data-level]');

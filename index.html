@@ -17,6 +17,7 @@
     <script src="js/level-map.js" defer></script>
     <script src="js/daily.js" defer></script>
     <script src="js/ads.js" defer></script>
+    <script src="js/lives.js" defer></script>
     <script src="js/input.js" defer></script>
     <script src="js/renderer.js" defer></script>
     <script src="js/appearance.js" defer></script>
@@ -26,6 +27,7 @@
     <main>
         <section class="wall" id="wall" aria-label="クライミングゲーム">
             <canvas id="game" tabindex="0" width="400" height="700" aria-label="1本指のスワイプで移動、ボディをタップしてUndo、2本指のスワイプでステージをスクロール"></canvas>
+            <div id="lifeStatus" class="life-status" aria-label="ライフ" hidden></div>
             <div class="hud" id="hud" hidden>
                 <div class="pill"><span aria-hidden="true">❤️</span> <strong id="stamina">—</strong></div>
                 <div class="level" id="level">STAGE 1</div>
@@ -96,6 +98,13 @@
                 <div id="dailyGrid" class="daily-grid" aria-label="日付を選んでプレイ"></div>
                 <p id="dailyError" class="map-error" role="alert" hidden></p>
             </section>
+            <dialog id="lifeDialog" class="life-dialog" aria-modal="true" aria-labelledby="lifeQuestion" hidden>
+                <div class="card">
+                    <p id="lifeQuestion">ライフがありません。広告を見てライフを増やしますか？</p>
+                    <button id="lifeWatchAd">広告を見る</button>
+                    <button id="lifeCancel" class="secondary">キャンセル</button>
+                </div>
+            </dialog>
             <dialog id="dummyAd" class="dummy-ad" aria-modal="true" aria-labelledby="adTitle" hidden>
                 <div class="ad-content">
                     <h1 id="adTitle">広告</h1>
