@@ -1,5 +1,14 @@
 "use strict";
 // Canvas描画。ゲーム状態は読み取り、カメラだけを追従更新します。
+// One background spans the world, so upward scrolling reveals its whiter upper end.
+const gameWallImage=typeof Image==='function'?new Image():null;
+if(gameWallImage)gameWallImage.src='assets/game-wall.webp';
+function drawWallBackground() {
+    if(!gameWallImage?.complete || !gameWallImage.naturalWidth)return;
+    const top=cameraTop();
+    ctx.drawImage(gameWallImage,0,top,W,HEIGHT-top);
+}
+
 function circle(x, y, r, fill, stroke) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -522,7 +531,7 @@ function draw(now = 0) {
         0
     );
 
-    ctx.fillStyle = '#f3f0e7';
+    ctx.fillStyle = '#deddda';
     ctx.fillRect(
         0,
         0,
@@ -536,36 +545,8 @@ function draw(now = 0) {
         -camera
     );
 
+    drawWallBackground();
     ctx.lineWidth = 1;
-    ctx.strokeStyle = '#dfe1d6';
-
-    for (
-        let x = 20;
-        x < W;
-        x += 40
-    ) {
-        ctx.beginPath();
-        ctx.moveTo(x, cameraTop());
-        ctx.lineTo(x, HEIGHT);
-        ctx.stroke();
-    }
-
-    for (
-        let y =
-            10 +
-            Math.floor((camera - 10) / 40) * 40;
-        y <
-        Math.min(
-            HEIGHT,
-            camera + H + 40
-        );
-        y += 40
-    ) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(W, y);
-        ctx.stroke();
-    }
 
     ctx.fillStyle = '#a6aea0';
     ctx.font = '9px system-ui';
