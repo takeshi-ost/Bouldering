@@ -15,55 +15,24 @@ function mapWallMarkup(n) {
         <text x="53" y="82" transform="rotate(-21 53 82)" text-anchor="middle" fill="var(--number-color,#fffdf3)" font-size="22" font-weight="800" font-family="system-ui,sans-serif">${n}</text>
     </svg>`;
 }
+// Approved wallpaper, with its painted route traced in original 739 x 2129 coordinates.
+const MAP_IMAGE_WIDTH=739, MAP_IMAGE_HEIGHT=2129;
+const MAP_TRAIL=[[437.0,2030],[402.0,2018],[364.0,2006],[326.5,1994],[290.5,1982],[261.5,1970],[259.5,1958],[272.0,1946],[293.0,1934],[316.0,1922],[337.5,1910],[359.0,1898],[380.5,1886],[401.0,1874],[423.0,1862],[444.0,1850],[452.5,1838],[450.0,1826],[432.0,1814],[412.0,1802],[391.5,1790],[371.5,1778],[351.5,1766],[331.0,1754],[310.5,1742],[290.5,1730],[270.5,1718],[257.0,1706],[255.5,1694],[260.0,1682],[287.0,1670],[321.5,1658],[356.5,1646],[391.0,1634],[426.5,1622],[460.0,1610],[480.0,1598],[482.5,1586],[482.0,1574],[477.5,1562],[457.5,1550],[435.5,1538],[413.5,1526],[391.5,1514],[369.5,1502],[348.0,1490],[326.5,1478],[304.5,1466],[282.5,1454],[260.5,1442],[239.0,1430],[217.0,1418],[206.0,1406],[207.0,1394],[223.0,1382],[252.5,1370],[282.5,1358],[310.5,1346],[338.5,1334],[364.0,1322],[390.0,1310],[417.0,1298],[441.5,1286],[468.0,1274],[499.0,1262],[534.5,1250],[568.5,1238],[587.0,1226],[589.0,1214],[585.5,1202],[572.0,1190],[552.0,1178],[529.0,1166],[504.5,1154],[477.5,1142],[447.5,1130],[416.0,1118],[383.5,1106],[351.5,1094],[319.0,1082],[287.0,1070],[276.5,1058],[285.5,1046],[309.0,1034],[332.5,1022],[355.5,1010],[379.0,998],[402.5,986],[426.0,974],[446.5,962],[434.0,950],[398.5,938],[363.5,926],[331.0,914],[326.5,902],[340.5,890],[363.5,878],[385.0,866],[410.5,854],[434.0,842],[457.0,830],[479.0,818],[499.5,806],[520.0,794],[540.5,782],[549.5,770],[546.5,758],[525.5,746],[494.0,734],[461.0,722],[442.0,710],[438.5,698],[437.0,686],[435.5,674],[420.0,662],[388.0,650],[356.0,638],[324.0,626],[292.5,614],[262.0,602],[241.0,590],[239.5,578],[248.5,566],[280.0,554],[311.5,542],[342.5,530],[373.0,518],[402.0,506],[430.0,494],[456.0,482],[485.5,470],[513.5,458],[541.0,446],[566.5,434],[568.0,422],[548.0,410],[520.0,398],[491.5,386],[463.5,374],[437.0,362],[411.5,350],[387.0,338],[363.0,326],[339.0,314],[315.0,302],[291.5,290],[282.0,278],[283.5,266],[300.0,254],[329.0,242],[359.0,230],[387.5,218],[420.0,206],[452.0,194],[483.0,182],[500.0,170],[500.0,170]];
+const MAP_TRAIL_LENGTHS=[0];
+for(let i=1;i<MAP_TRAIL.length;i++) {
+    const a=MAP_TRAIL[i-1],b=MAP_TRAIL[i];
+    MAP_TRAIL_LENGTHS.push(MAP_TRAIL_LENGTHS[i-1]+Math.hypot(b[0]-a[0],b[1]-a[1]));
+}
+function mapTrailPoint(t) {
+    const distance=clamp(t,0,1)*MAP_TRAIL_LENGTHS[MAP_TRAIL_LENGTHS.length-1];
+    let i=1;
+    while(i<MAP_TRAIL.length-1 && MAP_TRAIL_LENGTHS[i]<distance)i++;
+    const a=MAP_TRAIL[i-1],b=MAP_TRAIL[i];
+    const f=(distance-MAP_TRAIL_LENGTHS[i-1])/(MAP_TRAIL_LENGTHS[i]-MAP_TRAIL_LENGTHS[i-1]||1);
+    return {x:a[0]+(b[0]-a[0])*f,y:a[1]+(b[1]-a[1])*f};
+}
 function mapSceneryMarkup(height) {
-    const art=[];
-    // All pages share the same continuous rhythm: no summit or end cap at STAGE 20.
-    for(let y=-120,band=0;y<height;y+=440,band++) {
-        art.push(`<g transform="translate(0 ${y})">
-            <path d="M0 0H400V440H0Z" fill="#c8cdb6"/>
-            <path d="M0 0 185 80 0 260Z" fill="#b3bda6"/>
-            <path d="M185 80 400 0 400 225Z" fill="#d5d7c2"/>
-            <path d="M0 260 185 80 260 300 110 440H0Z" fill="#d1d3bc"/>
-            <path d="M400 225 260 300 400 440Z" fill="#aebba5"/>
-            <path d="M110 440 260 300 400 440Z" fill="#bdc6af"/>
-            <path d="M0 42 36 9 86 141 0 192Z" fill="#98aaa0"/>
-            <path d="M36 9 39 118 86 141Z" fill="#7f9690"/>
-            <path d="M400 245 358 198 320 354 400 399Z" fill="#9baea2"/>
-            <path d="M358 198 363 337 400 399Z" fill="#82988e"/>
-            <use href="#map-art-rock" x="8" y="194" width="44" height="33"/>
-            <use href="#map-art-rock" x="350" y="92" width="39" height="31"/>
-            <use href="#map-art-pine" x="9" y="54" width="28" height="68"/>
-            <use href="#map-art-pine" x="41" y="104" width="23" height="56"/>
-            <use href="#map-art-pine" x="5" y="132" width="21" height="51"/>
-            <use href="#map-art-pine" x="355" y="262" width="28" height="68"/>
-            <use href="#map-art-pine" x="326" y="322" width="22" height="53"/>
-            <use href="#map-art-pine" x="380" y="351" width="25" height="61"/>
-            <use href="#map-art-pine" x="53" y="342" width="26" height="63"/>
-            <use href="#map-art-rock" x="17" y="393" width="36" height="27"/>
-            <use href="#map-art-rock" x="371" y="173" width="31" height="24"/>
-            <path d="m83 249-3-10 7 4 3-9 2 14Z M302 76l-4-8 6 2 4-6-1 12Z M288 398l-4-9 7 3 3-8 2 14Z" fill="#8f9f86"/>
-            ${band%2===0?'<use href="#map-art-tent" x="316" y="125" width="57" height="43"/>':'<use href="#map-art-tent" x="14" y="278" width="57" height="43"/>'}
-        </g>`);
-    }
-    return `<defs>
-        <symbol id="map-art-pine" viewBox="0 0 32 78">
-            <path d="m16 68 16 7-15 3L0 71Z" fill="#8b9d8970"/>
-            <path d="M14 48H19V74H14Z" fill="#8a8271"/>
-            <path d="M16 0 1 55 16 66 31 55Z" fill="#6e8574"/>
-            <path d="M16 0V66L31 55Z" fill="#4f6b61"/>
-            <path d="M16 0 4 43 14 36Z" fill="#93a28a"/>
-        </symbol>
-        <symbol id="map-art-rock" viewBox="0 0 50 36">
-            <path d="M1 29 9 9 28 1 46 13 49 31 27 36Z" fill="#a3ada8"/>
-            <path d="M9 9 28 1 46 13 29 18Z" fill="#d8dcd5"/>
-            <path d="M9 9 29 18 27 36 1 29Z" fill="#bec6bf"/>
-            <path d="M29 18 46 13 49 31 27 36Z" fill="#899b98"/>
-        </symbol>
-        <symbol id="map-art-tent" viewBox="0 0 64 48">
-            <path d="m0 35 34-12 30 17-34 8Z" fill="#a1ad96"/>
-            <path d="M5 33 26 3 44 10 60 37 33 45Z" fill="#c5af7c"/>
-            <path d="M26 3 33 45 5 33Z" fill="#e0c78e"/>
-            <path d="m26 14 4 26-17-8Z" fill="#75867b"/>
-        </symbol>
-    </defs>${art.join('')}`;
+    const width=ui.mapTrack.clientWidth||400;
+    const imageHeight=width*MAP_IMAGE_HEIGHT/MAP_IMAGE_WIDTH;
+    return `<image href="assets/stage-map.webp" x="0" y="0" width="400" height="${imageHeight}" preserveAspectRatio="none"/>`;
 }

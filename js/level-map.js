@@ -1,7 +1,6 @@
 "use strict";
 const PROGRESS_KEY = 'ascent.progress.v1';
 const MAP_PAGE_SIZE = 20;
-const MAP_STEP = 132;
 const MAP_HOP_DURATION = 650;
 function readStageProgress() {
     const result = {existing:{cleared:0},prototype:{cleared:0}};
@@ -61,48 +60,37 @@ function mapBounds() {
     // Include the previous page's final node so 20 -> 21 is also a single hop.
     return {first:Math.max(1,mapPage*MAP_PAGE_SIZE),last:(mapPage+1)*MAP_PAGE_SIZE};
 }
+function mapHeight() {
+    return (ui.mapTrack.clientWidth||400)*MAP_IMAGE_HEIGHT/MAP_IMAGE_WIDTH;
+}
 function mapPoint(n) {
-    return {x:50+26*Math.sin((n-1)*Math.PI/2),y:(mapBounds().last-n)*MAP_STEP+140};
+    if(n===mapPage*MAP_PAGE_SIZE)return {x:42,y:mapHeight()-38};
+    const point=mapTrailPoint((n-mapPage*MAP_PAGE_SIZE-1)/(MAP_PAGE_SIZE-1));
+    return {x:point.x/MAP_IMAGE_WIDTH*100,y:point.y/MAP_IMAGE_WIDTH*(ui.mapTrack.clientWidth||400)};
 }
 function positionMapMarker(point) {
-    ui.mapMarker.style.left = `calc(${point.x}% + 26px)`;
-    ui.mapMarker.style.top = (point.y+18)+'px';
+    ui.mapMarker.style.left = `calc(${point.x}% + 22px)`;
+    ui.mapMarker.style.top = (point.y+12)+'px';
 }
 function renderLevelMap() {
     const {first,last} = mapBounds();
     const cleared = stageProgress[courseMode].cleared;
     const unlocked = unlockedLevel();
-    const height = (last-first)*MAP_STEP+280;
+    const height = mapHeight();
     ui.mapTrack.style.height = height+'px';
     ui.mapScenery.setAttribute('viewBox',`0 0 400 ${height}`);
     ui.mapScenery.innerHTML=mapSceneryMarkup(height);
     ui.mapRoad.setAttribute('viewBox',`0 0 400 ${height}`);
-    const roads=[],outlines=[],nodes=[];
-    // Continue the trail past the final node toward the next page, even while locked.
-    const end=mapPoint(last);
-    const continuation=`M ${end.x*4} ${end.y} C ${end.x*4} 80, 200 65, 200 -15`;
-    outlines.push(`<path d="${continuation}" class="map-road-outline"/>`);
-    roads.push(`<path d="${continuation}" class="map-road-locked map-road-continuation"/>`);
-    if(first>1) {
-        const start=mapPoint(first);
-        const entry=`M ${start.x*4} ${start.y} C ${start.x*4} ${height-80}, 200 ${height-65}, 200 ${height+15}`;
-        outlines.push(`<path d="${entry}" class="map-road-outline"/>`);
-        roads.push(`<path d="${entry}" class="map-road-open"/>`);
-    }
+    const nodes=[];
+    // The route is painted into the approved wallpaper; never draw a replacement road.
     for (let n=first;n<=last;n++) {
         const p=mapPoint(n),locked=n>unlocked,done=n<=cleared;
-        if (n<last) {
-            const q=mapPoint(n+1);
-            const d=`M ${p.x*4} ${p.y} C ${p.x*4} ${p.y-46}, ${q.x*4} ${q.y+46}, ${q.x*4} ${q.y}`;
-            outlines.push(`<path d="${d}" class="map-road-outline"/>`);
-            roads.push(`<path d="${d}" class="${n<unlocked?'map-road-open':'map-road-locked'}"/>`);
-        }
         const record=done && stageRecords[courseMode][n];
         const stars=record?.stars || 0;
         const rating=stars ? `<span class="map-node-stars" aria-hidden="true">${'⭐️'.repeat(stars)}</span>` : '';
         nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="STAGE ${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'}${stars?' '+stars+'つ星':''}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}>${mapWallMarkup(n)}<small>${done?'✓':locked?'未解放':'PLAY'}</small>${rating}</button>`);
     }
-    ui.mapRoad.innerHTML = outlines.join('')+roads.join('');
+    ui.mapRoad.innerHTML = '';
     ui.mapNodes.innerHTML = nodes.join('');
     ui.mapMarker.hidden = mapSelected<first || mapSelected>last;
     if (!ui.mapMarker.hidden) positionMapMarker(mapPoint(mapSelected));
@@ -152,7 +140,10 @@ function advanceLevelMap(now) {
     if (mapTransition.start===null) {mapTransition.start=now;return;}
     const t=clamp((now-mapTransition.start)/MAP_HOP_DURATION,0,1),s=t*t*(3-2*t);
     const from=mapPoint(mapTransition.from),to=mapPoint(mapTransition.to);
-    positionMapMarker({x:from.x+(to.x-from.x)*s,y:from.y+(to.y-from.y)*s});
+    if(mapTransition.from>mapPage*MAP_PAGE_SIZE) {
+        const point=mapTrailPoint((mapTransition.from-mapPage*MAP_PAGE_SIZE-1+s)/(MAP_PAGE_SIZE-1));
+        positionMapMarker({x:point.x/MAP_IMAGE_WIDTH*100,y:point.y/MAP_IMAGE_WIDTH*(ui.mapTrack.clientWidth||400)});
+    } else positionMapMarker({x:from.x+(to.x-from.x)*s,y:from.y+(to.y-from.y)*s});
     if (t===1) {
         mapSelected=mapTransition.to;mapTransition=null;
         renderLevelMap();focusMapLevel();
@@ -205,3 +196,6 @@ ui.debugControls.onsubmit=e=>{
     }
     selectStage(n,true);
 };
+
+// Recalculate both artwork height and hit targets when the viewport changes.
+window.addEventListener('resize',()=>{if(state==='map')renderLevelMap();});
