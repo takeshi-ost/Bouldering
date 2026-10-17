@@ -21,6 +21,12 @@ ui.retry.onclick();assert.equal(state,'playing');assert.equal(lives.count,2);fin
 ui.retry.onclick();assert.equal(state,'playing');assert.equal(lives.count,1);ui.restart.onclick();assert.equal(lives.count,0);assert.equal(state,'life-prompt');assert(ui.lifeDialog.open);
 assert(!canScrollStage() && !canUndoMove());ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
 assert(!selectStage(1));assert.equal(state,'life-prompt');assert(!ui.lifeDialog.hidden);ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
+// Canceling the recovery offer after Retry goes to the map, including Escape.
+for(const escape of [false,true]) {
+ finish(false);assert(ui.overlay.open);ui.retry.onclick();assert.equal(state,'life-prompt');
+ if(escape){let prevented=false;ui.lifeDialog.events.cancel({preventDefault(){prevented=true;}});assert(prevented);}else ui.lifeCancel.onclick();
+ assert.equal(state,'map');assert(ui.overlay.hidden && !ui.overlay.open);assert(ui.lifeDialog.hidden && !ui.lifeDialog.open);assert.equal(lives.count,0);assert(!dummyAd);
+}
 assert(!selectStage(1));ui.lifeWatchAd.onclick();assert.equal(state,'ad');assert.equal(lives.count,0);assert(!completeDummyAd());ad();assert.equal(lives.count,1);assert.equal(state,'playing');assert(lives.inProgress);
 moveCount=1;finish(true);assert.equal(lives.count,1);map();assert.equal(lives.count,1);assert(selectStage(1));ui.mapButton.onclick();assert.equal(state,'map');assert.equal(lives.count,0);ui.mapButton.onclick();assert.equal(lives.count,0);
 // Recovery keeps its fractional progress across additional failures and stops at 3.

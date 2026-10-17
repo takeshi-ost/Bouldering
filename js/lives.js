@@ -90,7 +90,7 @@ function cancelLifePrompt() {
 }
 function restartNormalStage() {
     if(!['playing','won','lost'].includes(state))return false;
-    const wasPlaying=state==='playing',n=level;
+    const n=level;
     settleLifeAttempt(state==='won');
     return requestLifeStart(()=>{
         try {restartInput(n);beginLifeAttempt();return true;}
@@ -100,7 +100,7 @@ function restartNormalStage() {
         }
     },{
         enabled:courseMode==='existing' && !debugAttempt,
-        onCancel:wasPlaying?()=>showLevelMap({target:n}):null
+        onCancel:()=>showLevelMap({target:n})
     });
 }
 ui.lifeCancel.onclick=cancelLifePrompt;
