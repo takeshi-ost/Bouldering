@@ -28,7 +28,7 @@ clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(ru
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
 assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(!ui.next.hidden);
 assert.equal(ui.resultStats.hidden,false);assert(!ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️');
-const result={moves:moveCount,timeMs:Math.floor(clock-1100)};
+const result={moves:moveCount,timeMs:Math.floor(clock-1100),stars:2};
 assert.deepEqual(stageRecords.existing[1],result);
 assert.equal(ui.resultStats.textContent,formatStageRecord(result));
 assert.equal(formatClearTime(0),'00:00:00');assert.equal(formatClearTime(999),'00:00:99');
@@ -39,7 +39,7 @@ let canceled=false;ui.overlay.events.cancel({preventDefault(){canceled=true;}});
 beginPointer({clientX:body.x,clientY:body.y-camera});assert.equal(bodyTap,null);assert.equal(canScrollStage(),false);
 ui.next.onclick();assert.equal(state,'map');assert(!ui.overlay.open && ui.overlay.hidden);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);
-assert(ui.mapNodes.innerHTML.includes(formatStageRecord(result)));assert(ui.mapNodes.innerHTML.includes('map-record'));
+assert(ui.mapNodes.innerHTML.includes(formatStageRecord(result)));assert(ui.mapNodes.innerHTML.includes('map-record'));assert(ui.mapNodes.innerHTML.includes('map-node-stars'));assert(ui.mapNodes.innerHTML.includes('⭐️⭐️'));
 assert.deepEqual(readStageRecords(),stageRecords);
 const firstRecord=JSON.stringify(stageRecords.existing[1]);
 // Failing and retrying never overwrite a completed record.
@@ -69,13 +69,24 @@ assert(stageRecords.existing[1] && stageRecords.prototype[1]);
 startCourse('existing');assert(ui.mapNodes.innerHTML.includes(formatStageRecord(stageRecords.existing[1])));
 `)(assert);
 assert(html.includes('<dialog class="overlay" id="overlay"'));
-new Function('assert',env+source+`
+new Function('assert','data',env+source+`
 for(const [difference,stars] of [[-1,3],[0,2],[1,2],[2,2],[3,1],[8,1]]) {
  reset(1);cameraIntro=null;debugAttempt=true;moveCount=route.length-1+difference;finish(true);
  assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden);
 }
 finish(false);assert(ui.resultStars.hidden && ui.resultStars.textContent==='');
-`)(assert);
+// Map stars retain the highest earned rating while moves/time remain the latest run.
+debugAttempt=false;reset(1);moveCount=route.length-2;finish(true);assert.equal(stageRecords.existing[1].stars,3);
+moveCount=route.length+2;finish(true);assert.equal(stageRecords.existing[1].stars,3);assert.equal(stageRecords.existing[1].moves,moveCount);
+assert.equal(readStageRecords().existing[1].stars,3);
+showLevelMap();assert(ui.mapNodes.innerHTML.includes('⭐️⭐️⭐️'));assert(ui.mapNodes.innerHTML.includes('3つ星'));
+const savedRecords=data[RECORDS_KEY];
+for(const stars of [0,4,1.5,'3',null]) {
+ data[RECORDS_KEY]=JSON.stringify({existing:{'1':{moves:2,timeMs:100,stars}}});
+ assert.deepEqual(readStageRecords().existing[1],{moves:2,timeMs:100});
+}
+data[RECORDS_KEY]=savedRecords;
+`)(assert,data);
 console.log('PASS results: centered native modal, background guards, intro-excluded timer, cancel/Undo timing, frozen results, formatting, latest per-course records, map labels, reload, legacy/invalid/blocked storage, debug isolation');
 } finally {
  if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);

@@ -35,7 +35,7 @@ function createStageGenerator() {
         };
     }
     function generate(n, guideOnly = false) {
-        // Calibrate from Level 1 even when a debug tool opens another level first.
+        // Calibrate from STAGE 1 even when a debug tool opens another level first.
         // This uses its unchanged seeded layout, rather than a hard-coded count.
         if (!guideOnly && n !== 1 && !densityReference)
             generate(1);

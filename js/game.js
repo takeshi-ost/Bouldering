@@ -355,6 +355,9 @@ function attachMoving(p, anchor) {
     return bestCount < 0 ? null : best;
 }
 
+function clearStars(moves,expectedMoves) {
+    return moves<expectedMoves ? 3 : moves<=expectedMoves+2 ? 2 : 1;
+}
 function stageStamina(moves) {
     return moves + (moves < STAGE_CONFIG.staminaInterval ? 2 : Math.floor(moves / STAGE_CONFIG.staminaInterval));
 }
@@ -501,7 +504,7 @@ function reset(n) {
     ui.characterEditor.hidden=true;
     ui.restart.disabled = false;
 
-    ui.level.textContent = `LEVEL ${level}`;
+    ui.level.textContent = `STAGE ${level}`;
     ui.next.textContent = '次のステージへ →';
     ui.levelMap.hidden = true;
     ui.wall.classList.toggle('map-open',false);
@@ -772,7 +775,7 @@ function finish(won) {
     ui.next.hidden = !won;
 
     const expectedMoves=route.length-1;
-    const stars=moveCount<expectedMoves ? 3 : moveCount<=expectedMoves+2 ? 2 : 1;
+    const stars=clearStars(moveCount,expectedMoves);
     ui.resultStars.hidden=!won;
     ui.resultStars.textContent=won ? '⭐️'.repeat(stars) : '';
     ui.resultStars.setAttribute('aria-label',won ? `${stars}つ星` : '');

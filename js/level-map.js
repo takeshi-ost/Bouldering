@@ -27,8 +27,11 @@ function readStageRecords() {
                 const n=Number(key);
                 if(!/^[1-9]\d*$/.test(key) || !Number.isSafeInteger(n) || n>=Number.MAX_SAFE_INTEGER)continue;
                 if(Number.isSafeInteger(value?.moves) && value.moves>0 &&
-                    Number.isSafeInteger(value?.timeMs) && value.timeMs>=0)
+                    Number.isSafeInteger(value?.timeMs) && value.timeMs>=0) {
                     result[mode][key]={moves:value.moves,timeMs:value.timeMs};
+                    if(Number.isInteger(value.stars) && value.stars>=1 && value.stars<=3)
+                        result[mode][key].stars=value.stars;
+                }
             }
         }
     } catch(_) { /* Older saves or unavailable storage have no timed records. */ }
@@ -42,7 +45,10 @@ let mapTransition = null;
 let debugAttempt = false;
 function recordStageClear() {
     if (debugAttempt) return;
-    if(moveCount>0)stageRecords[courseMode][level]={moves:moveCount,timeMs:Math.floor(runElapsedMs)};
+    if(moveCount>0) {
+        const stars=Math.max(stageRecords[courseMode][level]?.stars||0,clearStars(moveCount,route.length-1));
+        stageRecords[courseMode][level]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars};
+    }
     stageProgress[courseMode].cleared = Math.max(stageProgress[courseMode].cleared,level);
     try { globalThis.localStorage?.setItem(PROGRESS_KEY,JSON.stringify(stageProgress)); }
     catch (_) { /* Completing a level must still work without storage. */ }
@@ -77,7 +83,9 @@ function renderLevelMap() {
         }
         const record=done && stageRecords[courseMode][n];
         const stats=record ? formatStageRecord(record) : '';
-        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="レベル${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'} ${stats}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}><span>${n}</span><small>${done?'✓':locked?'未解放':'PLAY'}</small></button>`);
+        const stars=record?.stars || 0;
+        const rating=stars ? `<span class="map-node-stars" aria-hidden="true">${'⭐️'.repeat(stars)}</span>` : '';
+        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="STAGE ${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'} ${stats}${stars?' '+stars+'つ星':''}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}><span>${n}</span><small>${done?'✓':locked?'未解放':'PLAY'}</small>${rating}</button>`);
         if(record)nodes.push(`<span class="map-record ${p.x>=50?'record-left':'record-right'}" style="left:${p.x}%;top:${p.y}px">${stats}</span>`);
     }
     ui.mapRoad.innerHTML = roads.join('');
@@ -86,7 +94,7 @@ function renderLevelMap() {
     if (!ui.mapMarker.hidden) positionMapMarker(mapPoint(mapSelected));
     if(typeof updateMapAppearance==='function')updateMapAppearance();
     ui.mapCourse.textContent = courseMode==='prototype'?'ロジハラコース':'ノーマルコース';
-    ui.mapStatus.textContent = mapTransition ? '次のレベルへ進んでいます…' : `クリア ${cleared} ステージ · 次は Level ${unlocked}`;
+    ui.mapStatus.textContent = mapTransition ? '次のSTAGEへ進んでいます…' : `クリア ${cleared} ステージ · 次は STAGE ${unlocked}`;
     ui.mapRange.textContent = `${first}–${last}`;
     ui.mapPrev.disabled = mapPage===0 || !!mapTransition;
     ui.mapNext.disabled = last>=unlocked || !!mapTransition;

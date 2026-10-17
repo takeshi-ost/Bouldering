@@ -22,7 +22,7 @@ advanceCameraIntro(introEnd+1);check(!cameraIntro && camera===HEIGHT-H,'Introduc
 check(!isSupportPair(0) && !isSupportPair([0]) && !isSupportPair([0,0]) && !isSupportPair([0,1,1]),'Non-pair supports accepted');
 const report=[];
 for(let n=1;n<=20;n++){
-    try { reset(n); } catch(error) { throw Error('Level '+n+': '+error.message); }
+    try { reset(n); } catch(error) { throw Error('STAGE '+n+': '+error.message); }
     check(grips[0]===grips[1] && grips[0].wide,'Hands must share starting bar');
     check(grips[2]!==grips[3] && grips[2].y===grips[3].y,'Feet must have separate bottom holds');
     check(grips[2].y===HEIGHT-HOLD_CONFIG.bottomMargin,'Feet not on bottom row');
