@@ -33,11 +33,13 @@ function fixture() {
 }
 // Only the title checkbox controls debug tools and planned-path rendering.
 assert.equal(state,'choosing');assert.equal(debugMode,false);assert(ui.hud.hidden);
-ui.debugMode.checked=true;ui.debugMode.onchange();
-startCourse('existing');assert(!ui.debugControls.hidden && ui.hud.hidden);
+assert(ui.prototypeCourse.hidden && ui.prototypeDescription.hidden);ui.prototypeCourse.onclick();assert.equal(state,'choosing');
+ui.debugMode.checked=true;ui.debugMode.onchange();assert(!ui.prototypeCourse.hidden && !ui.prototypeDescription.hidden);
+startCourse('existing');assert(!ui.debugControls.hidden && ui.hud.hidden);assert(ui.mapCourse.hidden && ui.mapCourse.textContent==='');
 assert(selectStage(1));assert(!ui.hud.hidden && !ui.progress.hidden);
 ui.debugMode.checked=false;ui.debugMode.onchange();assert(debugMode && ui.debugMode.checked);
 showTitleScreen();assert(ui.debugMode.checked);ui.debugMode.checked=false;ui.debugMode.onchange();
+assert(ui.prototypeCourse.hidden && ui.prototypeDescription.hidden);
 startCourse('existing');assert(ui.debugControls.hidden);assert(selectStage(1));assert(ui.progress.hidden);
 // Settings cancel an in-flight gesture, block movement/scroll/Undo, and close on navigation.
 ui.settingsButton.onclick();assert(!settingsOpen,'Cannot open settings during intro');

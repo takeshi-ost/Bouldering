@@ -142,6 +142,7 @@ function showTitleScreen() {
     hideSettings();
     ui.hud.hidden=true;
     ui.debugMode.checked=debugMode;
+    syncTitleDebugControls();
     canvas.setAttribute('tabindex', '-1');
     ui.existingCourse.focus();
 }
@@ -151,7 +152,11 @@ function startCourse(mode) {
     showLevelMap();
 }
 ui.existingCourse.onclick = () => startCourse('existing');
-ui.prototypeCourse.onclick = () => startCourse('prototype');
+ui.prototypeCourse.onclick = () => {if(debugMode)startCourse('prototype');};
+function syncTitleDebugControls() {
+    ui.prototypeCourse.hidden=!debugMode;
+    ui.prototypeDescription.hidden=!debugMode;
+}
 
 
 ui.showHelp.onclick = () => {
@@ -168,6 +173,7 @@ ui.overlay.addEventListener('cancel',e=>e.preventDefault());
 ui.debugMode.onchange=()=>{
     if(state!=='choosing') {ui.debugMode.checked=debugMode;return;}
     debugMode=ui.debugMode.checked;
+    syncTitleDebugControls();
     updateUI();
 };
 ui.settingsButton.onclick=()=>{

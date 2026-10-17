@@ -93,7 +93,8 @@ function renderLevelMap() {
     ui.mapMarker.hidden = mapSelected<first || mapSelected>last;
     if (!ui.mapMarker.hidden) positionMapMarker(mapPoint(mapSelected));
     if(typeof updateMapAppearance==='function')updateMapAppearance();
-    ui.mapCourse.textContent = courseMode==='prototype'?'ロジハラコース':'ノーマルコース';
+    ui.mapCourse.hidden=courseMode!=='prototype';
+    ui.mapCourse.textContent=courseMode==='prototype'?'ロジハラ（検証用）':'';
     ui.mapStatus.textContent = mapTransition ? '次のSTAGEへ進んでいます…' : `クリア ${cleared} ステージ · 次は STAGE ${unlocked}`;
     ui.mapRange.textContent = `${first}–${last}`;
     ui.mapPrev.disabled = mapPage===0 || !!mapTransition;

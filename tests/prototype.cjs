@@ -18,7 +18,7 @@ function requestAnimationFrame(){}
 new Function('assert', environment + source + `
 assert.equal(state, 'choosing');
 draw(0); down({clientX:200,clientY:400}); assert.equal(drag,null);
-ui.prototypeCourse.onclick();assert.equal(state,'map');assert(selectStage(1));
+ui.debugMode.checked=true;ui.debugMode.onchange();ui.prototypeCourse.onclick();assert.equal(state,'map');assert(selectStage(1));
 assert.equal(courseMode,'prototype'); assert.equal(state,'playing');
 const report=[];
 for (let n=1;n<=20;n++) {

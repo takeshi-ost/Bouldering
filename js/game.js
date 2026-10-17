@@ -7,7 +7,7 @@ const ui = Object.fromEntries([
     "resultTitle", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
     "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
-    "titleScreen", "existingCourse", "prototypeCourse", "courseError", "showHelp", "helpDialog", "closeHelp"
+    "titleScreen", "existingCourse", "prototypeCourse", "prototypeDescription", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
 let debugMode = false;
