@@ -1,6 +1,7 @@
 "use strict";
 // Approved raster artwork; mirror the art only, keeping the live stage number upright.
-const MAP_ICON_ASSETS={"active-100":{"width":512,"height":512,"renderWidth":73.306,"renderHeight":73.306,"left":-5.011,"top":-15.209},"active-125":{"width":512,"height":512,"renderWidth":72.98,"renderHeight":72.98,"left":-4.704,"top":-18.624},"active-150":{"width":512,"height":512,"renderWidth":76.028,"renderHeight":76.028,"left":-6.088,"top":-23.572},"cleared-100":{"width":512,"height":512,"renderWidth":73.143,"renderHeight":73.143,"left":-4.857,"top":-15.206},"cleared-125":{"width":512,"height":512,"renderWidth":74.642,"renderHeight":74.642,"left":-5.54,"top":-21.355},"unplayed-100":{"width":512,"height":512,"renderWidth":72.98,"renderHeight":72.98,"left":-4.704,"top":-14.918},"unplayed-125":{"width":512,"height":512,"renderWidth":74.813,"renderHeight":74.813,"left":-5.553,"top":-20.349},"unplayed-150":{"width":512,"height":512,"renderWidth":76.92,"renderHeight":76.92,"left":-6.61,"top":-24.737},"cleared-150":{"width":512,"height":512,"renderWidth":77.649,"renderHeight":77.649,"left":-7.28,"top":-23.929}};
+const MAP_ART_VERSION='two-tone-v1';
+const MAP_ICON_ASSETS={"active-100":{"width":512,"height":512,"renderWidth":72.818,"renderHeight":72.818,"left":-4.693,"top":-14.916},"active-125":{"width":512,"height":512,"renderWidth":72.656,"renderHeight":72.656,"left":-4.541,"top":-18.603},"active-150":{"width":512,"height":512,"renderWidth":75.502,"renderHeight":75.502,"left":-5.751,"top":-23.358},"cleared-100":{"width":512,"height":512,"renderWidth":72.496,"renderHeight":72.496,"left":-4.531,"top":-14.77},"cleared-125":{"width":512,"height":512,"renderWidth":74.136,"renderHeight":74.136,"left":-5.213,"top":-21.015},"cleared-150":{"width":512,"height":512,"renderWidth":77.283,"renderHeight":77.283,"left":-7.094,"top":-24.033},"unplayed-100":{"width":512,"height":512,"renderWidth":72.496,"renderHeight":72.496,"left":-4.531,"top":-14.628},"unplayed-125":{"width":512,"height":512,"renderWidth":74.473,"renderHeight":74.473,"left":-5.382,"top":-20.32},"unplayed-150":{"width":512,"height":512,"renderWidth":76.561,"renderHeight":76.561,"left":-6.28,"top":-24.238}};
 function mapStageVariant(n) {
     const index=(n-1)%6;
     return {height:['100','125','150'][Math.floor(index/2)],mirrored:index%2===1};
@@ -11,7 +12,7 @@ function mapWallMarkup(n,status='active') {
     if(!asset)return '';
     return `<span class="map-wall" data-variant="${variant.height}-${variant.mirrored?'right':'left'}" data-status="${status}" aria-hidden="true">
         <span class="map-icon-art"${variant.mirrored?' style="transform:scaleX(-1)"':''}>
-            <img class="map-icon-image" src="assets/stage-icons/${key}.webp" alt="" draggable="false" width="${asset.width}" height="${asset.height}" style="width:${asset.renderWidth}px;height:${asset.renderHeight}px;left:${asset.left}px;top:${asset.top}px">
+            <img class="map-icon-image" src="assets/stage-icons/${key}.webp?v=${MAP_ART_VERSION}" alt="" draggable="false" width="${asset.width}" height="${asset.height}" style="width:${asset.renderWidth}px;height:${asset.renderHeight}px;left:${asset.left}px;top:${asset.top}px">
         </span>
         <span class="map-node-number" style="font-size:${n<1000?18:14}px">${n}</span>
     </span>`;
@@ -37,7 +38,7 @@ function mapSceneryMarkup() {
     const width=ui.mapTrack.clientWidth||400;
     const imageHeight=width*MAP_IMAGE_HEIGHT/MAP_IMAGE_WIDTH;
     // Extend the image edges behind controls without duplicating stage clearings.
-    return `<defs><image id="map-artwork" href="assets/stage-map.webp" x="0" y="0" width="400" height="${imageHeight}" preserveAspectRatio="none"/></defs>
+    return `<defs><image id="map-artwork" href="assets/stage-map.webp?v=${MAP_ART_VERSION}" x="0" y="0" width="400" height="${imageHeight}" preserveAspectRatio="none"/></defs>
         <use href="#map-artwork" transform="translate(0 ${MAP_EDGE_SPACE}) scale(1 -4)"/>
         <use href="#map-artwork" transform="translate(0 ${MAP_EDGE_SPACE+imageHeight*2}) scale(1 -1)"/>
         <use href="#map-artwork" transform="translate(0 ${MAP_EDGE_SPACE})"/>`;
