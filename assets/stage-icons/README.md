@@ -22,4 +22,5 @@ gradients or texture. Geometry, six variants and progress palettes are retained.
 
 The final exports use the explicit light/dark pairs in `palette.json` and lossless
 WebP compression. Intermediate texture colors are removed at export; transparent
-edge alpha remains available for smooth compositing. The background uses the previous approved illustration. Asset URLs include a revision to refresh older cached art.
+edge alpha remains available for smooth compositing. The background keeps the approved shaded illustration and includes tents, bunting,
+picnic props, signposts and flowers beside the unchanged twenty-stage trail. Asset URLs include a revision to refresh older cached art.
