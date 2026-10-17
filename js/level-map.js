@@ -62,7 +62,7 @@ function mapBounds() {
     return {first:Math.max(1,mapPage*MAP_PAGE_SIZE),last:(mapPage+1)*MAP_PAGE_SIZE};
 }
 function mapPoint(n) {
-    return {x:50+26*Math.sin((n-1)*Math.PI/2),y:(mapBounds().last-n)*MAP_STEP+64};
+    return {x:50+26*Math.sin((n-1)*Math.PI/2),y:(mapBounds().last-n)*MAP_STEP+140};
 }
 function positionMapMarker(point) {
     ui.mapMarker.style.left = point.x+'%';
@@ -72,7 +72,7 @@ function renderLevelMap() {
     const {first,last} = mapBounds();
     const cleared = stageProgress[courseMode].cleared;
     const unlocked = unlockedLevel();
-    const height = (last-first)*MAP_STEP+150;
+    const height = (last-first)*MAP_STEP+280;
     ui.mapTrack.style.height = height+'px';
     ui.mapRoad.setAttribute('viewBox',`0 0 400 ${height}`);
     const roads=[],nodes=[];
@@ -83,11 +83,9 @@ function renderLevelMap() {
             roads.push(`<path d="M ${p.x*4} ${p.y} C ${p.x*4} ${p.y-46}, ${q.x*4} ${q.y+46}, ${q.x*4} ${q.y}" class="${n<unlocked?'map-road-open':'map-road-locked'}"/>`);
         }
         const record=done && stageRecords[courseMode][n];
-        const stats=record ? formatStageRecord(record) : '';
         const stars=record?.stars || 0;
         const rating=stars ? `<span class="map-node-stars" aria-hidden="true">${'⭐️'.repeat(stars)}</span>` : '';
-        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="STAGE ${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'} ${stats}${stars?' '+stars+'つ星':''}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}><span>${n}</span><small>${done?'✓':locked?'未解放':'PLAY'}</small>${rating}</button>`);
-        if(record)nodes.push(`<span class="map-record ${p.x>=50?'record-left':'record-right'}" style="left:${p.x}%;top:${p.y}px">${stats}</span>`);
+        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="STAGE ${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'}${stars?' '+stars+'つ星':''}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}><span>${n}</span><small>${done?'✓':locked?'未解放':'PLAY'}</small>${rating}</button>`);
     }
     ui.mapRoad.innerHTML = roads.join('');
     ui.mapNodes.innerHTML = nodes.join('');
@@ -96,8 +94,6 @@ function renderLevelMap() {
     if(typeof updateMapAppearance==='function')updateMapAppearance();
     ui.mapCourse.hidden=courseMode!=='prototype';
     ui.mapCourse.textContent=courseMode==='prototype'?'ロジハラ（検証用）':'';
-    ui.mapStatus.textContent = mapTransition ? '次のSTAGEへ進んでいます…' : `クリア ${cleared} ステージ · 次は STAGE ${unlocked}`;
-    ui.mapRange.textContent = `${first}–${last}`;
     ui.mapPrev.disabled = mapPage===0 || !!mapTransition;
     ui.mapNext.disabled = last>=unlocked || !!mapTransition;
     ui.mapCourses.disabled = !!mapTransition;

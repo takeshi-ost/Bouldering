@@ -107,15 +107,16 @@ button:disabled { opacity: .45; cursor: default; }
 
 /* A winding, touchable trail, with separate progress for each course. */
 .wall.map-open { touch-action:pan-y; }
-.level-map { position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; background:#eef0e4; }
+.level-map { position:absolute; inset:0; z-index:2; background:#eef0e4; }
 .level-map[hidden] { display:none; }
-.map-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:20px 18px 8px; }
-.map-heading h1 { font-size:21px; margin:7px 0 0; letter-spacing:1px; }
-.map-heading .eyebrow { letter-spacing:1px; }
+.map-heading { position:absolute; top:calc(env(safe-area-inset-top,0px) + 16px); left:max(14px,env(safe-area-inset-left,0px)); right:max(14px,env(safe-area-inset-right,0px)); z-index:3; display:flex; align-items:center; justify-content:space-between; gap:8px; pointer-events:none; }
+.map-heading > * { pointer-events:auto; }
+.map-heading #openDaily { font-size:11px; padding:10px; }
+.map-heading h1 { font-size:18px; margin:0; letter-spacing:1px; }
+.map-heading .eyebrow { letter-spacing:1px; font-size:10px; }
 .map-secondary { padding:11px 12px; background:#dde5d6; color:#3f5b47; min-width:44px; min-height:44px; }
-.map-status { margin:4px 18px 14px; color:#627864; font-size:12px; }
 .map-error { margin:0 18px 10px; color:#ae433d; font-size:12px; }
-.map-scroll { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; background:radial-gradient(ellipse at 15% 25%,#dce6cf 0 12%,transparent 12.5%),radial-gradient(ellipse at 88% 60%,#e1e8d2 0 16%,transparent 16.5%),#eef0e4; background-size:100% 560px; }
+.map-scroll { position:absolute; inset:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; background:radial-gradient(ellipse at 15% 25%,#dce6cf 0 12%,transparent 12.5%),radial-gradient(ellipse at 88% 60%,#e1e8d2 0 16%,transparent 16.5%),#eef0e4; background-size:100% 560px; }
 .map-track { position:relative; margin:0 12px; }
 .map-road { position:absolute; inset:0; width:100%; height:100%; overflow:visible; fill:none; stroke-width:12; stroke-linecap:round; }
 .map-road-open { stroke:#8faa82; }
@@ -132,9 +133,7 @@ button:disabled { opacity: .45; cursor: default; }
 .map-marker { position:absolute; transform:translate(-50%,-100%); width:24px; height:32px; pointer-events:none; z-index:1; filter:drop-shadow(0 2px 1px #25372f30); }
 .map-marker i { position:absolute; top:0; left:6px; width:12px; height:12px; border-radius:50%; background:var(--head-color,#e0b99b); border:1px solid #fff7e9; }
 .map-marker b { position:absolute; left:3px; top:12px; width:18px; height:20px; border:2px solid #fff7e9; border-radius:5px 5px 3px 3px; background:var(--body-stripes,#39785b); }
-.map-navigation { display:flex; align-items:center; justify-content:space-between; padding:8px 18px 0; gap:12px; font-size:12px; color:#65755f; }
-.map-hint { text-align:center; font-size:10px; color:#76856b; margin:8px 8px 12px; }
-.debug-controls { padding:0 18px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:12px; }
+.debug-controls { position:absolute; z-index:3; left:14px; right:14px; bottom:calc(env(safe-area-inset-bottom,0px) + 76px); padding:8px; border-radius:10px; background:#fffdf3ed; display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:12px; }
 .debug-controls[hidden] { display:none; }
 /* 16px prevents iOS Safari from zooming when the stage field receives focus. */
 .debug-controls input { width:80px; min-width:0; min-height:44px; padding:6px; border:1px solid #adb9ad; border-radius:6px; font:inherit; font-size:16px; }
@@ -144,9 +143,6 @@ button:disabled { opacity: .45; cursor: default; }
 #overlay .card { max-width:360px; box-sizing:border-box; }
 #overlay::backdrop { background:transparent; }
 #overlay .result-stats { font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; color:#39785b; }
-.map-record { position:absolute; font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; color:#3f5b47; background:#fffdf3e8; padding:5px 7px; border-radius:7px; pointer-events:none; }
-.map-record.record-left { transform:translate(calc(-100% - 36px),-50%); }
-.map-record.record-right { transform:translate(36px,-50%); }
 
 .character-editor { position:absolute; inset:0; z-index:3; background:#f8f6ee; padding:20px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; touch-action:pan-y; }
 .character-editor[hidden],.editor-palette[hidden] { display:none; }
@@ -218,7 +214,6 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 
 .title-content [hidden] { display:none; }
 
-.map-heading-actions { display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
 .daily-calendar { position:absolute; inset:0; z-index:2; display:flex; flex-direction:column; overflow-y:auto; touch-action:pan-y; background:#eef0e4; padding:calc(env(safe-area-inset-top,0px) + 20px) max(14px,calc((100% - 560px)/2)) calc(env(safe-area-inset-bottom,0px) + 20px); }
 .daily-calendar[hidden] { display:none; }
 .daily-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
@@ -238,3 +233,9 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .daily-calendar .map-error { margin:18px 0 0; }
 
 #overlay .result-difficulty {margin:8px 0;font-size:16px;font-weight:700;letter-spacing:.12em;color:#526b59;}
+
+.map-page { position:absolute; z-index:3; left:50%; transform:translateX(-50%); width:44px; height:44px; padding:0; font-size:28px; line-height:1; background:#fffdf3ed; color:#3f5b47; border:1px solid #c7d2bf; border-radius:50%; }
+.map-page-next { top:calc(env(safe-area-inset-top,0px) + 72px); }
+.map-page-prev { bottom:calc(env(safe-area-inset-bottom,0px) + 16px); transform:translateX(-50%) rotate(180deg); }
+.map-title-button { position:absolute; z-index:3; right:max(14px,env(safe-area-inset-right,0px)); bottom:calc(env(safe-area-inset-bottom,0px) + 16px); font-size:11px; padding:10px; }
+.level-map > .map-error { position:absolute; z-index:4; top:116px; left:14px; right:14px; margin:0; padding:8px; border-radius:8px; background:#fffdf3ed; }

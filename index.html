@@ -64,9 +64,8 @@
             <section class="level-map" id="levelMap" aria-labelledby="mapTitle" hidden>
                 <div class="map-heading">
                     <div><div class="eyebrow" id="mapCourse"></div><h1 id="mapTitle">ステージマップ</h1></div>
-                    <div class="map-heading-actions"><button id="openDaily" class="map-secondary">デイリーチャレンジ</button><button id="mapCourses" class="map-secondary">タイトル画面へ</button></div>
+                    <button id="openDaily" class="map-secondary">デイリーチャレンジ</button>
                 </div>
-                <p id="mapStatus" class="map-status" aria-live="polite"></p>
                 <p id="mapError" class="map-error" role="alert" hidden></p>
                 <div class="map-scroll" id="mapScroll" tabindex="0" aria-label="ステージ一覧。上下にスクロールできます">
                     <div class="map-track" id="mapTrack">
@@ -75,18 +74,15 @@
                         <div id="mapMarker" class="map-marker" aria-hidden="true"><i></i><b></b></div>
                     </div>
                 </div>
-                <div class="map-navigation">
-                    <button id="mapPrev" class="map-secondary" aria-label="前のSTAGE範囲">←</button>
-                    <span id="mapRange"></span>
-                    <button id="mapNext" class="map-secondary" aria-label="次のSTAGE範囲">→</button>
-                </div>
+                <button id="mapNext" class="map-page map-page-next" aria-label="次の20STAGEへ">△</button>
+                <button id="mapPrev" class="map-page map-page-prev" aria-label="前の20STAGEへ">△</button>
+                <button id="mapCourses" class="map-secondary map-title-button">タイトル画面へ</button>
                 <form id="debugControls" class="debug-controls" hidden>
                     <label for="debugStage">ステージ番号</label>
                     <input id="debugStage" type="number" min="1" step="1" value="1" required inputmode="numeric">
                     <button id="debugPlay" class="map-secondary" type="submit">プレイ</button>
                     <small>未解放も選択可能・クリア進捗は保存しません</small>
                 </form>
-                <p class="map-hint">✓ クリア済みもタッチでもう一度遊べます</p>
             </section>
             <section id="dailyCalendar" class="daily-calendar" aria-labelledby="dailyTitle" hidden>
                 <div class="daily-heading"><h1 id="dailyTitle">デイリーチャレンジ</h1><button id="dailyBack" class="map-secondary">マップへ</button></div>

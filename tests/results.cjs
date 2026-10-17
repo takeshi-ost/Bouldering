@@ -39,7 +39,7 @@ let canceled=false;ui.overlay.events.cancel({preventDefault(){canceled=true;}});
 beginPointer({clientX:body.x,clientY:body.y-camera});assert.equal(bodyTap,null);assert.equal(canScrollStage(),false);
 ui.next.onclick();assert.equal(state,'map');assert(!ui.overlay.open && ui.overlay.hidden);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);
-assert(ui.mapNodes.innerHTML.includes(formatStageRecord(result)));assert(ui.mapNodes.innerHTML.includes('map-record'));assert(ui.mapNodes.innerHTML.includes('map-node-stars'));assert(ui.mapNodes.innerHTML.includes('⭐️⭐️'));
+assert(!ui.mapNodes.innerHTML.includes(formatStageRecord(result)));assert(!ui.mapNodes.innerHTML.includes('map-record'));assert(ui.mapNodes.innerHTML.includes('map-node-stars'));assert(ui.mapNodes.innerHTML.includes('⭐️⭐️'));
 assert.deepEqual(readStageRecords(),stageRecords);
 const firstRecord=JSON.stringify(stageRecords.existing[1]);
 // Failing and retrying never overwrite a completed record.
@@ -66,7 +66,7 @@ assert.deepEqual(readStageRecords(),JSON.parse(saved),'Previously saved records 
 `)(assert,data,storage);
 new Function('assert',env+source+`
 assert(stageRecords.existing[1] && stageRecords.prototype[1]);
-startCourse('existing');assert(ui.mapNodes.innerHTML.includes(formatStageRecord(stageRecords.existing[1])));
+startCourse('existing');assert(ui.mapNodes.innerHTML.includes('map-node-stars'));assert(!ui.mapNodes.innerHTML.includes('map-record'));
 `)(assert);
 assert(html.includes('<dialog class="overlay" id="overlay"'));
 new Function('assert','data',env+source+`
