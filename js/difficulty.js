@@ -1,4 +1,7 @@
 "use strict";
+function difficultyLabel(value) {
+    return ['EASY','NORMAL','NORMAL','HARD'][value];
+}
 function weightedDifficulty(weights,seed) {
     if(!Array.isArray(weights) || weights.length!==DIFFICULTY_RULES.length ||
         Array.from(weights).some(weight=>typeof weight!=='number' || !Number.isFinite(weight) || weight<0))

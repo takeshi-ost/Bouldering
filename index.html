@@ -96,9 +96,10 @@
                 <div id="dailyGrid" class="daily-grid" aria-label="日付を選んでプレイ"></div>
                 <p id="dailyError" class="map-error" role="alert" hidden></p>
             </section>
-            <dialog class="overlay" id="overlay" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultStars resultStats" hidden>
+            <dialog class="overlay" id="overlay" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultDifficulty resultStars resultStats" hidden>
                 <div class="card">
                     <h1 id="resultTitle"></h1>
+                    <div id="resultDifficulty" class="result-difficulty" hidden></div>
                     <div id="resultStars" class="result-stars" hidden></div>
                     <p id="resultStats" class="result-stats" hidden></p>
                     <button id="next">次のステージへ →</button>

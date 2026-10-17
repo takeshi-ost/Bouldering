@@ -236,3 +236,5 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .daily-day.is-cleared { background:#78916c; color:#fffdf4; border-color:#78916c; }
 .daily-day .daily-stars { font-size:10px; line-height:14px; white-space:nowrap; }
 .daily-calendar .map-error { margin:18px 0 0; }
+
+#overlay .result-difficulty {margin:8px 0;font-size:16px;font-weight:700;letter-spacing:.12em;color:#526b59;}

@@ -4,7 +4,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
-    "resultTitle", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
+    "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
     "dailyCalendar", "openDaily", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyToday", "dailyError", "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
     "titleScreen", "existingCourse", "prototypeCourse", "prototypeDescription", "courseError", "showHelp", "helpDialog", "closeHelp"
@@ -545,7 +545,7 @@ function updateUI() {
 
     ui.progress.hidden=!debugMode;
     ui.progress.textContent =
-        `${moveCount} 手 / 想定 ${route.length - 1} 手 / 難易度 ${difficulty}`;
+        `${moveCount} 手 / 想定 ${route.length - 1} 手 / ${difficultyLabel(difficulty)}`;
 }
 
 function point(e) {
@@ -791,6 +791,8 @@ function finish(won) {
     state = won ? 'won' : 'lost';
     if(won) { recordStageClear(); startGoalHang(); }
     else startFall();
+    ui.resultDifficulty.hidden=!won;
+    ui.resultDifficulty.textContent=won ? difficultyLabel(difficulty) : '';
     ui.resultStats.hidden=!won;
     ui.resultStats.textContent=won ? formatStageRecord({moves:moveCount,timeMs:runElapsedMs}) : '';
     ui.next.hidden = dailyRun ? false : !won;

@@ -74,7 +74,19 @@ for(const [difference,stars] of [[-1,3],[0,2],[1,2],[2,2],[3,1],[8,1]]) {
  reset(1);cameraIntro=null;debugAttempt=true;moveCount=route.length-1+difference;finish(true);
  assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden);
 }
+// Display labels use the selected rule profile, including daily runs.
+for(const [value,label] of [[0,'EASY'],[1,'NORMAL'],[2,'NORMAL'],[3,'HARD']]) {
+ difficulty=value;finish(true);
+ assert.equal(difficultyLabel(value),label);
+ assert.equal(ui.resultDifficulty.textContent,label);assert(!ui.resultDifficulty.hidden);
+ debugMode=true;updateUI();assert(ui.progress.textContent.endsWith('/ '+label));
+ dailyRun={...dailyProfile('2026-10-17'),difficulty:value,returnCourse:'existing'};
+ finish(true);assert.equal(ui.resultDifficulty.textContent,label);assert(!ui.resultDifficulty.hidden);
+ dailyRun=null;
+}
 finish(false);assert(ui.resultStars.hidden && ui.resultStars.textContent==='');
+assert(ui.resultDifficulty.hidden);assert.equal(ui.resultDifficulty.textContent,'');
+debugMode=false;
 // Map stars retain the highest earned rating while moves/time remain the latest run.
 debugAttempt=false;reset(1);moveCount=route.length-2;finish(true);assert.equal(stageRecords.existing[1].stars,3);
 moveCount=route.length+2;finish(true);assert.equal(stageRecords.existing[1].stars,3);assert.equal(stageRecords.existing[1].moves,moveCount);
