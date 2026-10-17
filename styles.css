@@ -228,9 +228,11 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .daily-month-navigation h2 { font-size:20px; margin:0; }
 .daily-weekdays,.daily-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; }
 .daily-weekdays { text-align:center; font-size:12px; color:#627864; margin-bottom:8px; }
-.daily-cell { min-height:64px; }
-.daily-day { width:100%; min-height:64px; padding:8px 2px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; font-size:16px; letter-spacing:0; border-radius:9px; background:#fffdf3; color:#3f5b47; border:1px solid #d3dac9; }
-.daily-day.is-today { outline:2px solid #d4a63d; outline-offset:0; }
+.daily-grid { gap:1px; background:#c8d1bf; border:1px solid #c8d1bf; }
+.daily-cell { min-height:64px; background:#e7ebdf; }
+.daily-future { display:flex; align-items:center; justify-content:center; color:#929d8a; font-size:16px; }
+.daily-day { width:100%; min-height:64px; padding:8px 2px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; font-size:16px; letter-spacing:0; border-radius:0; background:#fffdf3; color:#3f5b47; border:0; }
+.daily-day.is-today { outline:2px solid #d4a63d; outline-offset:-2px; }
 .daily-day.is-cleared { background:#78916c; color:#fffdf4; border-color:#78916c; }
 .daily-day .daily-stars { font-size:10px; line-height:14px; white-space:nowrap; }
 .daily-calendar .map-error { margin:18px 0 0; }

@@ -51,7 +51,7 @@ function renderDailyCalendar() {
     const cells=Array.from({length:firstDay},()=>'<div class="daily-cell" aria-hidden="true"></div>');
     for(let day=1;day<=days;day++) {
         const key=dailyMonth+'-'+String(day).padStart(2,'0');
-        if(key>today) {cells.push('<div class="daily-cell" aria-hidden="true"></div>');continue;}
+        if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${year}年${month}月${day}日">${day}</div>`);continue;}
         const record=dailyRecords[key];
         cells.push(`<button class="daily-day ${record?'is-cleared':''} ${key===today?'is-today':''}" data-date="${key}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星':'プレイできます'}" ${key===today?'aria-current="date"':''}><span>${day}</span>${record?`<span class="daily-stars" aria-hidden="true">${'⭐️'.repeat(record.stars)}</span>`:''}</button>`);
     }

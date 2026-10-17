@@ -23,9 +23,9 @@ assert(validDailyDate('2024-02-29'));assert.deepEqual(dailyProfile('2026-10-17')
 const counts={5:0,20:0,40:0};for(let i=0;i<366;i++){const key=utcToday(new Date(Date.UTC(2024,0,1+i)));counts[dailyProfile(key).tier]++;}
 for(const count of Object.values(counts))assert(count>90 && count<155,'Unbalanced daily categories');
 startCourse('existing');ui.openDaily.onclick();assert.equal(state,'daily');assert(ui.levelMap.hidden && !ui.dailyCalendar.hidden && ui.hud.hidden);assert(!canScrollStage());
-assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-17"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(ui.dailyNext.disabled);
+assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-17"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(ui.dailyNext.disabled);assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
 assert(!selectDailyDate('2026-10-18'));assert(!selectDailyDate('2026-02-30'));assert.equal(state,'daily');
-nowIso='2026-10-18T00:00:00Z';refreshDailyCalendar();assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-19"'));
+nowIso='2026-10-18T00:00:00Z';refreshDailyCalendar();assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-19"'));assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-19"'));assert(!ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
 dailyMonth='2024-02';renderDailyCalendar();assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,29);
 ui.dailyPrev.onclick();assert.equal(dailyMonth,'2024-01');ui.dailyNext.onclick();assert.equal(dailyMonth,'2024-02');
 nowIso='2026-12-31T23:59:59Z';dailyMonth='2026-12';renderDailyCalendar();nowIso='2027-01-01T00:00:00Z';refreshDailyCalendar();assert.equal(dailyMonth,'2027-01');assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,1);
