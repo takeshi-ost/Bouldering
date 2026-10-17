@@ -246,3 +246,11 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 #playerName { width:100%; min-height:44px; padding:9px 12px; border:1px solid #adb9ad; border-radius:8px; font:inherit; font-size:16px; color:#263e32; background:#fffdf3; }
 .player-name-error { margin:0; color:#ae433d; font-size:12px; }
 .player-name-error[hidden] { display:none; }
+
+.dummy-ad { position:fixed; inset:0; margin:0; width:100%; height:100%; max-width:none; max-height:none; border:0; padding:24px; background:#dce5da; color:#263e32; display:grid; place-items:center; z-index:30; }
+.dummy-ad[hidden],.dummy-ad [hidden] { display:none; }
+.dummy-ad::backdrop { background:#dce5da; }
+.ad-content { text-align:center; }
+.ad-content h1 { margin:0 0 24px; font-size:64px; }
+.ad-counter { font-size:40px; font-weight:700; font-variant-numeric:tabular-nums; margin-bottom:24px; }
+#adComplete { min-width:160px; min-height:48px; }

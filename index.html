@@ -16,6 +16,7 @@
     <script src="js/hazards.js" defer></script>
     <script src="js/level-map.js" defer></script>
     <script src="js/daily.js" defer></script>
+    <script src="js/ads.js" defer></script>
     <script src="js/input.js" defer></script>
     <script src="js/renderer.js" defer></script>
     <script src="js/appearance.js" defer></script>
@@ -95,6 +96,13 @@
                 <div id="dailyGrid" class="daily-grid" aria-label="日付を選んでプレイ"></div>
                 <p id="dailyError" class="map-error" role="alert" hidden></p>
             </section>
+            <dialog id="dummyAd" class="dummy-ad" aria-modal="true" aria-labelledby="adTitle" hidden>
+                <div class="ad-content">
+                    <h1 id="adTitle">広告</h1>
+                    <div id="adCounter" class="ad-counter" role="timer" aria-label="広告の残り秒数">10</div>
+                    <button id="adComplete" hidden>完了</button>
+                </div>
+            </dialog>
             <dialog class="overlay" id="overlay" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultDifficulty resultStars resultStats" hidden>
                 <div class="card">
                     <h1 id="resultTitle"></h1>

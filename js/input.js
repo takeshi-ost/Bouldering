@@ -117,7 +117,13 @@ function restartInput(n) {
 }
 ui.next.onclick = () => {
     if(dailyRun && ['won','lost'].includes(state))showDailyCalendar();
-    else if(state==='won')showLevelMap({advanceFrom:level});
+    else if(state==='won') {
+        const advanceFrom=level;
+        const resume=()=>showLevelMap({advanceFrom});
+        if(courseMode==='existing' && !debugAttempt && clearsSinceAd>=5)
+            startDummyAd({onComplete:resetAdClearCount,onReturn:resume});
+        else resume();
+    }
 };
 ui.retry.onclick = ui.restart.onclick = () => { if (['playing','won','lost'].includes(state)) restartInput(level); };
 ui.mapButton.onclick = () => {

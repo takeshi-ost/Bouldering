@@ -3,7 +3,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
-    "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
+    "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
     "dailyCalendar", "openDaily", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyToday", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
@@ -92,6 +92,7 @@ let warning = 0;
 let densityStats = null;
 let undoSnapshot = null;
 let moveSnapshot = null;
+let adClearRecorded=false;
 let runStartedAt = null;
 let runElapsedMs = 0;
 function runTimeMs(now=performance.now()) {
@@ -464,6 +465,7 @@ function prepareCurrentStage() {
     throw failure;
 }
 function reset(n) {
+    adClearRecorded=false;
     hideStageHelp();
     runStartedAt=null;runElapsedMs=0;
     undoSnapshot = moveSnapshot = null;
@@ -789,7 +791,7 @@ function undoMove() {
 function finish(won) {
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
     state = won ? 'won' : 'lost';
-    if(won) { recordStageClear(); startGoalHang(); }
+    if(won) { recordStageClear(); recordAdClear(); startGoalHang(); }
     else startFall();
     ui.resultDifficulty.hidden=!won;
     ui.resultDifficulty.textContent=won ? difficultyLabel(difficulty) : '';
