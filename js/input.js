@@ -116,7 +116,7 @@ function restartInput(n) {
     bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n);showStageHelp();
 }
 ui.next.onclick = () => {
-    if(dailyRun && ['won','lost'].includes(state))showDailyCalendar();
+    if(dailyRun && ['won','lost'].includes(state))continueDailyResult();
     else if(state==='won') {
         const advanceFrom=level;
         const resume=()=>showLevelMap({advanceFrom});
@@ -125,7 +125,11 @@ ui.next.onclick = () => {
         else resume();
     }
 };
-ui.retry.onclick = ui.restart.onclick = () => { if (['playing','won','lost'].includes(state)) restartInput(level); };
+ui.retry.onclick=()=>{
+    if(dailyRun)continueDailyResult(true);
+    else if(['playing','won','lost'].includes(state))restartInput(level);
+};
+ui.restart.onclick=()=>{if(['playing','won','lost'].includes(state))restartInput(level);};
 ui.mapButton.onclick = () => {
     if(!['playing','won','lost'].includes(state))return;
     if(dailyRun)showDailyCalendar();else showLevelMap({target:level});

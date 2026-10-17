@@ -31,13 +31,14 @@ dailyMonth='2024-02';renderDailyCalendar();assert.equal((ui.dailyGrid.innerHTML.
 ui.dailyPrev.onclick();assert.equal(dailyMonth,'2024-01');ui.dailyNext.onclick();assert.equal(dailyMonth,'2024-02');
 nowIso='2026-12-31T23:59:59Z';dailyMonth='2026-12';renderDailyCalendar();nowIso='2027-01-01T00:00:00Z';refreshDailyCalendar();assert.equal(dailyMonth,'2027-01');assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,1);
 nowIso='2026-10-17T12:00:00Z';dailyMonth='2026-01';renderDailyCalendar();
+function finishAds(){if(state==='ad'){clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());}}
 const normalBefore=JSON.stringify({stageProgress,stageRecords});
 const dates=new Map();for(let day=1;day<=31;day++){const key='2026-01-'+String(day).padStart(2,'0');if(!dates.has(dailyProfile(key).difficulty))dates.set(dailyProfile(key).difficulty,key);}
 assert.equal(dates.size,4);
 const snapshot=()=>JSON.stringify({holds,route,hearts,HEIGHT,initialGrips,stamina,seed:dailyRun.seed});
 function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);}
 for(const [rating,key] of dates){
- assert(selectDailyDate(key));assert.equal(level,DIFFICULTY_RULES[rating].referenceStage);assert.equal(difficulty,rating);assert.equal(courseMode,'existing');assert(dailyRun && ui.dailyCalendar.hidden);assert(ui.level.textContent.startsWith('DAILY'));
+ assert(selectDailyDate(key));finishAds();assert.equal(level,DIFFICULTY_RULES[rating].referenceStage);assert.equal(difficulty,rating);assert.equal(courseMode,'existing');assert(dailyRun && ui.dailyCalendar.hidden);assert(ui.level.textContent.startsWith('DAILY'));
  const first=snapshot();restartInput(level);assert.equal(snapshot(),first,'Daily retry changed the date seed');
  while(featureHelpOpen)dismissStageHelp();advanceCameraIntro(clock);clock+=10000;advanceCameraIntro(clock);assert(!cameraIntro);
  if(rating<2)assert(!holds.some(h=>h.type==='hazard'));
@@ -46,18 +47,18 @@ for(const [rating,key] of dates){
  assert.equal(state,'won');assert.equal(dailyRecords[key].stars,2);assert(!ui.next.hidden && ui.retry.hidden);assert.equal(ui.next.textContent,'カレンダーへ');
  assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore,'Daily clear polluted normal progress');
  assert.equal(dailyRecords[key].moves,moveCount);assert(ui.overlay.open);
- ui.next.onclick();assert.equal(state,'daily');assert(!dailyRun && ui.overlay.hidden && !ui.dailyCalendar.hidden);assert(ui.dailyGrid.innerHTML.includes('daily-stars'));
- assert(selectDailyDate(key));assert.equal(snapshot(),first,'Re-entering changed the daily course');while(featureHelpOpen)dismissStageHelp();
- finish(false);assert(ui.retry.hidden && !ui.next.hidden);ui.next.onclick();assert.equal(state,'daily');assert.equal(dailyRecords[key].stars,2);
+ ui.next.onclick();finishAds();assert.equal(state,'daily');assert(!dailyRun && ui.overlay.hidden && !ui.dailyCalendar.hidden);assert(ui.dailyGrid.innerHTML.includes('daily-stars'));
+ assert(selectDailyDate(key));finishAds();assert.equal(snapshot(),first,'Re-entering changed the daily course');while(featureHelpOpen)dismissStageHelp();
+ finish(false);assert(!ui.retry.hidden && !ui.next.hidden);ui.next.onclick();finishAds();assert.equal(state,'daily');assert.equal(dailyRecords[key].stars,2);
 }
 assert.deepEqual(readDailyRecords(),dailyRecords);
-const key=dates.get(0);assert(selectDailyDate(key));moveCount=route.length-2;runElapsedMs=100;recordDailyClear();assert.equal(dailyRecords[key].stars,3);moveCount=route.length+2;recordDailyClear();assert.equal(dailyRecords[key].stars,3);
+const key=dates.get(0);assert(selectDailyDate(key));finishAds();moveCount=route.length-2;runElapsedMs=100;recordDailyClear();assert.equal(dailyRecords[key].stars,3);moveCount=route.length+2;recordDailyClear();assert.equal(dailyRecords[key].stars,3);
 const savedSet=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(recordDailyClear);storage.setItem=savedSet;
 showDailyCalendar();ui.dailyBack.onclick();assert.equal(state,'map');assert.equal(courseMode,'existing');assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore);
 // The calendar always generates the public course, then returns to its original map.
-startCourse('prototype');ui.openDaily.onclick();assert(selectDailyDate(key));assert.equal(courseMode,'existing');showDailyCalendar();ui.dailyBack.onclick();assert.equal(courseMode,'prototype');assert.equal(state,'map');
+startCourse('prototype');ui.openDaily.onclick();assert(selectDailyDate(key));finishAds();assert.equal(courseMode,'existing');showDailyCalendar();ui.dailyBack.onclick();assert.equal(courseMode,'prototype');assert.equal(state,'map');
 // An interrupted generation reports an error on the calendar, without normal progress changes.
-ui.openDaily.onclick();const originalReset=reset;reset=()=>{throw Error('fixture failure');};const oldError=console.error;console.error=()=>{};assert(!selectDailyDate(key));console.error=oldError;reset=originalReset;assert.equal(state,'daily');assert(!ui.dailyError.hidden && !dailyRun);
+ui.openDaily.onclick();const originalReset=reset;reset=()=>{throw Error('fixture failure');};const oldError=console.error;console.error=()=>{};dailyAttempts[key]=2;assert(!selectDailyDate(key));console.error=oldError;reset=originalReset;assert.equal(state,'daily');assert(!ui.dailyError.hidden && !dailyRun);
 const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]='{bad';assert.deepEqual(readDailyRecords(),{});
 data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-02-30':{moves:1,timeMs:2,stars:3},'2026-01-01':{moves:0,timeMs:2,stars:3},'2026-01-02':{moves:1,timeMs:-1,stars:3},'2026-01-03':{moves:1,timeMs:2,stars:4}});assert.deepEqual(readDailyRecords(),{});data[DAILY_RECORDS_KEY]=saved;
 const savedGet=storage.getItem;storage.getItem=()=>{throw Error('blocked');};assert.deepEqual(readDailyRecords(),{});storage.getItem=savedGet;

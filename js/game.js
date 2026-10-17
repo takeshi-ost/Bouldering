@@ -799,7 +799,8 @@ function finish(won) {
     ui.resultStats.textContent=won ? formatStageRecord({moves:moveCount,timeMs:runElapsedMs}) : '';
     ui.next.hidden = dailyRun ? false : !won;
     ui.next.textContent = dailyRun ? 'カレンダーへ' : '次のステージへ →';
-    ui.retry.hidden=!!dailyRun;
+    ui.retry.hidden=!!dailyRun && won;
+    ui.retry.textContent=dailyRun?'リトライ':'RETRY';
 
     const expectedMoves=route.length-1;
     const stars=clearStars(moveCount,expectedMoves);

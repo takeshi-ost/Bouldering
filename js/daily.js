@@ -1,5 +1,6 @@
 "use strict";
 const DAILY_RECORDS_KEY='ascent.daily-records.v1';
+const DAILY_ATTEMPTS_KEY='ascent.daily-attempts.v1';
 function utcToday(now=new Date()) {return now.toISOString().slice(0,10);}
 function localToday(now=new Date()) {
     return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -8,6 +9,22 @@ function validDailyDate(key) {
     if(typeof key!=='string' || !/^[1-9]\d{3}-\d{2}-\d{2}$/.test(key))return false;
     const date=new Date(key+'T00:00:00Z');
     return Number.isFinite(date.getTime()) && utcToday(date)===key;
+}
+function readDailyAttempts() {
+    const attempts={};
+    try {
+        const saved=JSON.parse(globalThis.localStorage?.getItem(DAILY_ATTEMPTS_KEY)||'null');
+        if(saved && typeof saved==='object' && !Array.isArray(saved))
+            for(const [key,count] of Object.entries(saved))
+                if(validDailyDate(key) && Number.isSafeInteger(count) && count>0 && count<Number.MAX_SAFE_INTEGER)
+                    attempts[key]=count;
+    } catch(_) { /* Keep daily ads available when storage is unavailable. */ }
+    return attempts;
+}
+let dailyAttempts=readDailyAttempts();
+function saveDailyAttempts() {
+    try {globalThis.localStorage?.setItem(DAILY_ATTEMPTS_KEY,JSON.stringify(dailyAttempts));}
+    catch(_) { /* Use session-local attempt counts if persistence fails. */ }
 }
 function dailyProfile(key) {
     if(!validDailyDate(key))throw new Error('Invalid daily date');
@@ -90,23 +107,44 @@ function showDailyCalendar({openFromMap=false}={}) {
     renderDailyCalendar();
     (ui.dailyGrid.querySelector?.(`[data-date="${localToday()}"]`)||ui.dailyBack).focus();
 }
-function selectDailyDate(key) {
-    if(state!=='daily' || !validDailyDate(key) || key>localToday())return false;
+function reportDailyGenerationError(error) {
+    showDailyCalendar();
+    ui.dailyError.textContent='コースを生成できませんでした。もう一度日付を選んでください。';
+    ui.dailyError.hidden=false;
+    console.error(error);
+    return false;
+}
+function launchDailyAttempt(profile,attempt) {
     try {
-        const profile=dailyProfile(key);
-        dailyRun={...profile,returnCourse:dailyReturnCourse};
+        dailyRun={...profile,returnCourse:dailyReturnCourse,attempt,resultAdCompleted:false};
         courseMode='existing';debugAttempt=false;
         restartInput(profile.referenceStage);
+        dailyAttempts[profile.date]=attempt;saveDailyAttempts();
         canvas.setAttribute('tabindex','0');
         if(!featureHelpOpen)canvas.focus();
         return true;
-    } catch(error) {
+    } catch(error) {return reportDailyGenerationError(error);}
+}
+function selectDailyDate(key,{adAlreadyShown=false}={}) {
+    if(state!=='daily' || !validDailyDate(key) || key>localToday())return false;
+    try {
+        const profile=dailyProfile(key);
+        const attempt=(dailyAttempts[key]||0)+1;
+        if(attempt%2===0 && !adAlreadyShown)
+            return startDummyAd({onReturn:()=>launchDailyAttempt(profile,attempt)});
+        return launchDailyAttempt(profile,attempt);
+    } catch(error) {return reportDailyGenerationError(error);}
+}
+function continueDailyResult(retry=false) {
+    if(!dailyRun || !['won','lost'].includes(state))return;
+    const run=dailyRun;
+    const needsAd=run.attempt===1 && !run.resultAdCompleted;
+    const resume=()=>{
         showDailyCalendar();
-        ui.dailyError.textContent='コースを生成できませんでした。もう一度日付を選んでください。';
-        ui.dailyError.hidden=false;
-        console.error(error);
-        return false;
-    }
+        if(retry)selectDailyDate(run.date,{adAlreadyShown:needsAd});
+    };
+    if(needsAd)startDummyAd({onComplete:()=>{run.resultAdCompleted=true;},onReturn:resume});
+    else resume();
 }
 ui.openDaily.onclick=()=>showDailyCalendar({openFromMap:true});
 ui.dailyBack.onclick=()=>{
