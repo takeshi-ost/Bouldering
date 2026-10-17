@@ -1,10 +1,10 @@
 "use strict";
 // Share only the initial guide. No wall filling or density convergence is used.
 function preparePrototypeStage() {
-    ({ holds, route, HEIGHT, initialGrips } = stageGenerator.generate(level, true));
+    ({ holds, route, HEIGHT, initialGrips } = stageGenerator.generate(level, true, courseSeed()));
     const guide = route.map(p => ({ x: p.x, y: p.y }));
     // A separate seeded stream keeps retries identical and leaves the shared guide alone.
-    const random = mulberry32(level ^ 0x51A7C0DE);
+    const random = mulberry32(courseSeed() ^ 0x51A7C0DE);
     const jitter = (value, radius, low, high) => {
         const center = clamp(value, low, high);
         const from = Math.max(low, center - radius);

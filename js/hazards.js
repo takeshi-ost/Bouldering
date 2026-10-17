@@ -33,7 +33,7 @@ function addHazardHolds() {
         convertDenseHazards();
         return;
     }
-    const random=mulberry32(level ^ 0x3C61D52A);
+    const random=mulberry32(courseSeed() ^ 0x3C61D52A);
     const target=Math.floor(random()*(HAZARD_CONFIG.maxCount+1));
     let count=0,nextId=Math.max(...holds.map(h=>h.id))+1;
     for (let attempt=0;attempt<HAZARD_CONFIG.attempts && count<target;attempt++) {
@@ -62,7 +62,7 @@ function addHazardHolds() {
 // Type changes preserve reach, support selection and snapping. Keep wide holds,
 // the start stance and goal intact; no extra geometry or route search is needed.
 function convertDenseHazards() {
-    const random=mulberry32(level ^ 0x3C61D52A);
+    const random=mulberry32(courseSeed() ^ 0x3C61D52A);
     const protectedIds=new Set(initialGrips.map(h=>h.id));
     const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !protectedIds.has(h.id))
         .map(h=>({h,key:random()})).sort((a,b)=>a.key-b.key || a.h.id-b.h.id);

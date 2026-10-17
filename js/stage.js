@@ -34,12 +34,12 @@ function createStageGenerator() {
             return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, nx: -(b.y - a.y) / d, ny: (b.x - a.x) / d };
         };
     }
-    function generate(n, guideOnly = false) {
+    function generate(n, guideOnly = false, seed = n) {
         // Calibrate from STAGE 1 even when a debug tool opens another level first.
         // This uses its unchanged seeded layout, rather than a hard-coded count.
         if (!guideOnly && n !== 1 && !densityReference)
             generate(1);
-        const random = mulberry32(n);
+        const random = mulberry32(seed);
         holds = [];
         route = [];
         let nextHoldId = 0;

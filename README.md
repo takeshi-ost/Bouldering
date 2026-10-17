@@ -50,6 +50,7 @@
 | `js/prototype.js` | 初期ガイドを共有する試作生成・全通常ホールドの削減検証 |
 | `js/hazards.js` | 任意で使える消費ホールドの配置と無料ルートの維持 |
 | `js/level-map.js` | スゴロクマップ・STAGE解放・コース別の進行保存 |
+| `js/daily.js` | UTCカレンダー・日付シード・デイリー専用記録 |
 | `js/input.js` | マウス・タッチ・スクロール・再開始 |
 | `js/renderer.js` | プレイヤー・可動域・想定／実走パスの描画 |
 | `js/main.js` | タイトル画面と描画ループの開始 |
@@ -72,6 +73,7 @@ node tests/level-map.cjs
 node tests/input.cjs
 node tests/feature-help.cjs
 node tests/results.cjs
+node tests/daily.cjs
 node tests/appearance.cjs
 node tests/hazards.cjs
 node tests/dense-hazards.cjs
@@ -102,3 +104,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-routes.ps1
 マップのクリア済みSTAGEアイコン下部に獲得した星を小さく表示します。星はコース・STAGE別の最高評価を保存し、再プレイで減りません。星の保存前のクリア記録には、再クリア時に星が追加されます。
 
 本仕様のプレイ入口はタイトル画面のPLAYに統一します。ロジハラは検証用としてデバッグモードON時のみ入口と説明を表示します。通常プレイではモード名を表示しません。既存の進行・配色・記録・星は維持します。
+
+## デイリーチャレンジ
+
+マップ右上の「デイリーチャレンジ」から月単位のカレンダーを開きます。UTCの今日までの日付を何度でもプレイでき、未来は空欄です。前の月にも移動できます。UTC午前0時をまたぐとカレンダーを更新します。
+
+日付から等確率でSTAGE 5・20・40相当の条件を選び、配置・横長ホールド・ハート・青ホールドを日付のシードで生成します。同じ日付はリトライや再起動でも同じコースです。クリア・失敗の結果モーダルからカレンダーへ戻り、設定からも戻れます。デイリーのクリア記録と最高獲得星は通常進行と分けて保存し、クリア済みの日は色と星を表示します。

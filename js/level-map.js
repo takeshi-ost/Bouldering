@@ -44,6 +44,7 @@ let mapSelected = 1;
 let mapTransition = null;
 let debugAttempt = false;
 function recordStageClear() {
+    if(dailyRun) {recordDailyClear();return;}
     if (debugAttempt) return;
     if(moveCount>0) {
         const stars=Math.max(stageRecords[courseMode][level]?.stars||0,clearStars(moveCount,route.length-1));
@@ -100,6 +101,7 @@ function renderLevelMap() {
     ui.mapPrev.disabled = mapPage===0 || !!mapTransition;
     ui.mapNext.disabled = last>=unlocked || !!mapTransition;
     ui.mapCourses.disabled = !!mapTransition;
+    ui.openDaily.disabled=!!mapTransition;
     ui.debugStage.disabled = ui.debugPlay.disabled = !!mapTransition;
     ui.debugControls.hidden = !debugMode;
 }
@@ -108,6 +110,7 @@ function focusMapLevel() {
     button?.focus({preventScroll:true});
 }
 function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
+    leaveDailyRun();ui.dailyCalendar.hidden=true;
     release(true);endPan();touchId=null;ignoreTouches=false;
     drag=null;bodyTap=null;cameraIntro=null;heartPopups=[];hazardShakeStart=null;
     if (debugAttempt) { advanceFrom=null; target=unlockedLevel(); }

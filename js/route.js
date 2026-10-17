@@ -143,7 +143,7 @@ function updateStageDensity() {
 // Upgrade existing candidates before solving. Separate RNG preserves guide layout.
 // Wide holds remain normal holds for density and pruning; removed ones stay removed.
 function assignWideHolds(guide) {
-    const random = mulberry32(level ^ 0x6B1D2F43);
+    const random = mulberry32(courseSeed() ^ 0x6B1D2F43);
     const available = Math.max(0,3-holds.filter(h=>h.wide).length);
     const count = Math.floor(random() * (available+1));
     const candidates = holds.filter(h => h.type === 'normal').map(h => ({h,key:random()}));

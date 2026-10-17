@@ -5,7 +5,7 @@ const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "resultTitle", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
-    "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
+    "dailyCalendar", "openDaily", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyToday", "dailyError", "levelMap", "mapCourse", "mapStatus", "mapError", "mapScroll", "mapTrack", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapRange", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
     "titleScreen", "existingCourse", "prototypeCourse", "prototypeDescription", "courseError", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
@@ -60,6 +60,11 @@ function dismissStageHelp() {
     if(cameraIntro)cameraIntro.start=null;
     canvas.focus();
 }
+let dailyRun=null;
+function courseSeed(n=level) {return dailyRun ? dailyRun.seed : n;}
+function leaveDailyRun() {
+    if(dailyRun) {courseMode=dailyRun.returnCourse;dailyRun=null;}
+}
 let courseMode = 'existing';
 let level = 1;
 let holds = [];
@@ -108,7 +113,7 @@ function showResultModal() {
 
 
 function generate(n) {
-    ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n));
+    ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n,false,courseSeed(n)));
 }
 
 // Anatomical reach is measured from the shoulder/hip, not the torso center.
@@ -390,7 +395,7 @@ function routeStamina(path) {
 function createHearts(n, path) {
     const moves = path.length - 1;
     if (n < HEART_CONFIG.firstLevel || moves < HEART_CONFIG.minMoves) return [];
-    const random = mulberry32(n ^ 0x48EA27B1);
+    const random = mulberry32(courseSeed(n) ^ 0x48EA27B1);
     const count = Math.floor(random() * (HEART_CONFIG.maxCount + 1));
     const costs = routeHazardCosts(path);
     const initialBudget = routeStamina(path) - count * HEART_CONFIG.recovery;
@@ -444,6 +449,19 @@ function restoreMoveStamina(saved) {
     stamina = saved.stamina + newPickups * HEART_CONFIG.recovery;
 }
 
+// A date keeps its difficulty even if a layout needs a deterministic retry.
+function prepareCurrentStage() {
+    if(!dailyRun) {
+        if(courseMode==='prototype')preparePrototypeStage();else prepareStage();
+        addHazardHolds();return;
+    }
+    let failure;
+    for(let attempt=0;attempt<16;attempt++) {
+        dailyRun.seed=(dailyRun.baseSeed+Math.imul(attempt,0x9E3779B9))>>>0;
+        try {prepareStage();addHazardHolds();return;}catch(error){failure=error;}
+    }
+    throw failure;
+}
 function reset(n) {
     hideStageHelp();
     runStartedAt=null;runElapsedMs=0;
@@ -452,9 +470,7 @@ function reset(n) {
     resetCharacterAnimation();
     jointHistory.fill(null);
     level = n;
-    if (courseMode === 'prototype') preparePrototypeStage();
-    else prepareStage();
-    addHazardHolds();
+    prepareCurrentStage();
 
     body = { ...route[0] };
     committed = { ...body };
@@ -504,7 +520,10 @@ function reset(n) {
     ui.characterEditor.hidden=true;
     ui.restart.disabled = false;
 
-    ui.level.textContent = `STAGE ${level}`;
+    ui.level.textContent = dailyRun ? `DAILY ${dailyRun.date.slice(5).replace('-','/')}` : `STAGE ${level}`;
+    ui.mapButton.textContent=dailyRun?'カレンダーにもどる':'MAPにもどる';
+    ui.retry.hidden=false;
+    ui.dailyCalendar.hidden=true;
     ui.next.textContent = '次のステージへ →';
     ui.levelMap.hidden = true;
     ui.wall.classList.toggle('map-open',false);
@@ -772,7 +791,9 @@ function finish(won) {
     else startFall();
     ui.resultStats.hidden=!won;
     ui.resultStats.textContent=won ? formatStageRecord({moves:moveCount,timeMs:runElapsedMs}) : '';
-    ui.next.hidden = !won;
+    ui.next.hidden = dailyRun ? false : !won;
+    ui.next.textContent = dailyRun ? 'カレンダーへ' : '次のステージへ →';
+    ui.retry.hidden=!!dailyRun;
 
     const expectedMoves=route.length-1;
     const stars=clearStars(moveCount,expectedMoves);
@@ -788,7 +809,7 @@ function finish(won) {
     hideSettings();
     updateUI();
     showResultModal();
-    (won ? ui.next : ui.retry).focus();
+    (won || dailyRun ? ui.next : ui.retry).focus();
 }
 
 // RAF time is injected so tests can advance the opening without real waits.

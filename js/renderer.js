@@ -465,15 +465,16 @@ function drawStageIntro() {
     ctx.font='800 40px system-ui';
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    const title=`STAGE ${String(level).padStart(3,'0')}`;
+    const title=dailyRun ? `DAILY ${dailyRun.date.slice(5).replace('-','/')}` : `STAGE ${String(level).padStart(3,'0')}`;
     ctx.strokeText(title,W/2,H/2);
     ctx.fillText(title,W/2,H/2);
     ctx.restore();
 }
 
 function draw(now = 0) {
-    if (state === 'choosing' || state === 'editing' || state === 'map') {
+    if (state === 'choosing' || state === 'editing' || state === 'map' || state === 'daily') {
         if (state === 'map') advanceLevelMap(now);
+        if (state === 'daily') refreshDailyCalendar();
         requestAnimationFrame(draw);
         return;
     }

@@ -115,11 +115,18 @@ canvas.addEventListener('touchcancel', e => touchEnd(e, true));
 function restartInput(n) {
     bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n);showStageHelp();
 }
-ui.next.onclick = () => { if (state === 'won') showLevelMap({advanceFrom:level}); };
+ui.next.onclick = () => {
+    if(dailyRun && ['won','lost'].includes(state))showDailyCalendar();
+    else if(state==='won')showLevelMap({advanceFrom:level});
+};
 ui.retry.onclick = ui.restart.onclick = () => { if (['playing','won','lost'].includes(state)) restartInput(level); };
-ui.mapButton.onclick = () => { if (['playing','won','lost'].includes(state)) showLevelMap({target:level}); };
+ui.mapButton.onclick = () => {
+    if(!['playing','won','lost'].includes(state))return;
+    if(dailyRun)showDailyCalendar();else showLevelMap({target:level});
+};
 
 function showTitleScreen() {
+    leaveDailyRun();ui.dailyCalendar.hidden=true;
     endPointer(null,true);
     endPan();
     touchId = null;
