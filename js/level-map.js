@@ -1,7 +1,7 @@
 "use strict";
 const PROGRESS_KEY = 'ascent.progress.v1';
 const MAP_PAGE_SIZE = 20;
-const MAP_STEP = 92;
+const MAP_STEP = 132;
 const MAP_HOP_DURATION = 650;
 function readStageProgress() {
     const result = {existing:{cleared:0},prototype:{cleared:0}};
@@ -65,8 +65,8 @@ function mapPoint(n) {
     return {x:50+26*Math.sin((n-1)*Math.PI/2),y:(mapBounds().last-n)*MAP_STEP+140};
 }
 function positionMapMarker(point) {
-    ui.mapMarker.style.left = point.x+'%';
-    ui.mapMarker.style.top = (point.y-37)+'px';
+    ui.mapMarker.style.left = `calc(${point.x}% + 26px)`;
+    ui.mapMarker.style.top = (point.y+18)+'px';
 }
 function renderLevelMap() {
     const {first,last} = mapBounds();
@@ -78,6 +78,17 @@ function renderLevelMap() {
     ui.mapScenery.innerHTML=mapSceneryMarkup(height);
     ui.mapRoad.setAttribute('viewBox',`0 0 400 ${height}`);
     const roads=[],outlines=[],nodes=[];
+    // Continue the trail past the final node toward the next page, even while locked.
+    const end=mapPoint(last);
+    const continuation=`M ${end.x*4} ${end.y} C ${end.x*4} 80, 200 65, 200 -15`;
+    outlines.push(`<path d="${continuation}" class="map-road-outline"/>`);
+    roads.push(`<path d="${continuation}" class="map-road-locked map-road-continuation"/>`);
+    if(first>1) {
+        const start=mapPoint(first);
+        const entry=`M ${start.x*4} ${start.y} C ${start.x*4} ${height-80}, 200 ${height-65}, 200 ${height+15}`;
+        outlines.push(`<path d="${entry}" class="map-road-outline"/>`);
+        roads.push(`<path d="${entry}" class="map-road-open"/>`);
+    }
     for (let n=first;n<=last;n++) {
         const p=mapPoint(n),locked=n>unlocked,done=n<=cleared;
         if (n<last) {
@@ -89,7 +100,7 @@ function renderLevelMap() {
         const record=done && stageRecords[courseMode][n];
         const stars=record?.stars || 0;
         const rating=stars ? `<span class="map-node-stars" aria-hidden="true">${'⭐️'.repeat(stars)}</span>` : '';
-        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="STAGE ${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'}${stars?' '+stars+'つ星':''}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}><span>${n}</span><small>${done?'✓':locked?'未解放':'PLAY'}</small>${rating}</button>`);
+        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="STAGE ${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'}${stars?' '+stars+'つ星':''}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}>${mapWallMarkup(n)}<small>${done?'✓':locked?'未解放':'PLAY'}</small>${rating}</button>`);
     }
     ui.mapRoad.innerHTML = outlines.join('')+roads.join('');
     ui.mapNodes.innerHTML = nodes.join('');
