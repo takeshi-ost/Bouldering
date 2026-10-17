@@ -42,6 +42,8 @@ assert.equal(EDITOR_POSES.length,8);assert.equal(new Set(EDITOR_POSES.map(p=>p.n
 assert.equal(new Set(EDITOR_POSES.map(p=>JSON.stringify(p))).size,8);
 for(let n=1;n<=8;n++) {
  resizeEditorStripes(n);assert(ui.editorPreview.innerHTML.includes('data-pose="'+n+'"'));
+ assert.equal((ui.editorPreview.innerHTML.match(/<path d="M/g)||[]).length,5,'Four limbs and neck only; no foreground limb duplicates');
+ assert(ui.editorPreview.innerHTML.lastIndexOf('pointer-events="none"><path')<ui.editorPreview.innerHTML.indexOf('data-stripe="0"'),'Every limb must be behind the body');
  const pose=EDITOR_POSES[n-1];
  for(let i=0;i<4;i++) {
   const root=editorPoseRoot(i,pose),[x,y,tx,ty]=pose.limbs[i];
