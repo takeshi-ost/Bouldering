@@ -34,6 +34,9 @@ for(let n=1;n<=20;n++) {
  assert(!('rotation' in v));
 }
 assert.equal(MAP_TRAIL.length,20);
+assert(!mapSceneryMarkup().includes('scale(1 -'),'No reflected background copies');
+assert(mapSceneryMarkup().includes('values="1.2"'));
+assert(Math.hypot(MAP_TRAIL[1][0]-MAP_TRAIL[0][0],MAP_TRAIL[1][1]-MAP_TRAIL[0][1])>200,'Start stage spacing must match the rest of the map');
 for(let i=0;i<MAP_TRAIL.length;i++) {
  const point=mapTrailPoint(i/19);
  assert(Math.abs(point.x-MAP_TRAIL[i][0])<1e-8 && Math.abs(point.y-MAP_TRAIL[i][1])<1e-8,'Stage must match its painted clearing');

@@ -1,7 +1,7 @@
 "use strict";
 // Approved raster artwork; mirror the art only, keeping the live stage number upright.
 const MAP_ART_VERSION='white-outline-road-v1';
-const MAP_BACKGROUND_VERSION='pale-sage-v1';
+const MAP_BACKGROUND_VERSION='sage-extended-v2';
 const MAP_ICON_ASSETS={"active-100":{"width":512,"height":512,"renderWidth":72.818,"renderHeight":72.818,"left":-4.693,"top":-14.916},"active-125":{"width":512,"height":512,"renderWidth":72.656,"renderHeight":72.656,"left":-4.541,"top":-18.603},"active-150":{"width":512,"height":512,"renderWidth":75.502,"renderHeight":75.502,"left":-5.751,"top":-23.358},"cleared-100":{"width":512,"height":512,"renderWidth":72.496,"renderHeight":72.496,"left":-4.531,"top":-14.77},"cleared-125":{"width":512,"height":512,"renderWidth":74.136,"renderHeight":74.136,"left":-5.213,"top":-21.015},"cleared-150":{"width":512,"height":512,"renderWidth":77.283,"renderHeight":77.283,"left":-7.094,"top":-24.033},"unplayed-100":{"width":512,"height":512,"renderWidth":72.496,"renderHeight":72.496,"left":-4.531,"top":-14.628},"unplayed-125":{"width":512,"height":512,"renderWidth":74.473,"renderHeight":74.473,"left":-5.382,"top":-20.32},"unplayed-150":{"width":512,"height":512,"renderWidth":76.561,"renderHeight":76.561,"left":-6.28,"top":-24.238}};
 function mapStageVariant(n) {
     const index=(n-1)%6,pointIndex=(n-1)%20;
@@ -23,13 +23,13 @@ function mapWallMarkup(n,status='active') {
     </span>`;
 }
 // Twenty clearings measured from the approved pale-sage wallpaper, bottom to top.
-const MAP_IMAGE_WIDTH=724, MAP_IMAGE_HEIGHT=2172;
-const MAP_EDGE_SPACE=88, MAP_BOTTOM_SPACE=88;
-const MAP_ENTRY_X=136;
-const MAP_TRAIL=[[192,2116],[285.5,2056],[458.5,1957],[297.5,1861],[466.5,1754],
-    [311.5,1651],[125.5,1544],[302.5,1429],[492,1297],[316.5,1192],
-    [481.5,1071],[303.5,977],[131.5,884.4],[282.5,757],[442.1,636.9],
-    [283,539],[434.5,422],[575,308],[424,208],[283.5,106]];
+const MAP_IMAGE_WIDTH=724, MAP_IMAGE_HEIGHT=2650;
+const MAP_EDGE_SPACE=0, MAP_BOTTOM_SPACE=0;
+const MAP_ENTRY_X=75, MAP_ENTRY_Y=2580;
+const MAP_TRAIL=[[143,2489],[296,2318],[452.5,2164],[297.5,2061],[466.5,1954],
+    [311.5,1851],[125.5,1744],[302.5,1629],[492,1497],[316.5,1392],
+    [481.5,1271],[303.5,1177],[131.5,1084.4],[282.5,957],[442.1,836.9],
+    [283,739],[434.5,622],[575,508],[424,408],[283.5,306]];
 function mapTrailPoint(t) {
     // Each integer stage stays on its painted clearing, even with variable segment lengths.
     const index=clamp(t,0,1)*(MAP_TRAIL.length-1),i=Math.min(Math.floor(index),MAP_TRAIL.length-2);
@@ -40,8 +40,9 @@ function mapTrailPoint(t) {
 function mapSceneryMarkup() {
     const width=ui.mapTrack.clientWidth||400;
     const imageHeight=width*MAP_IMAGE_HEIGHT/MAP_IMAGE_WIDTH;
-    // Extend the image edges behind controls without duplicating stage clearings.
+    // The asset includes drawn top/bottom scenery; never reflect or stretch edge copies.
     return `<defs>
+        <filter id="map-palette" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="1.2"/></filter>
         <filter id="map-icon-white-outline" x="-100%" y="-200%" width="300%" height="500%" color-interpolation-filters="sRGB">
             <feComponentTransfer in="SourceGraphic" result="dark-channels">
                 <feFuncR type="discrete" tableValues="1 0 0 0"/><feFuncG type="discrete" tableValues="1 0 0 0"/><feFuncB type="discrete" tableValues="1 0 0 0"/>
@@ -53,7 +54,5 @@ function mapSceneryMarkup() {
             <feMerge><feMergeNode in="fill-only"/><feMergeNode in="white-outline"/></feMerge>
         </filter>
         <image id="map-artwork" href="assets/stage-map.webp?v=${MAP_BACKGROUND_VERSION}" x="0" y="0" width="400" height="${imageHeight}" preserveAspectRatio="none"/></defs>
-        <use href="#map-artwork" transform="translate(0 ${MAP_EDGE_SPACE}) scale(1 -4)"/>
-        <use href="#map-artwork" transform="translate(0 ${MAP_EDGE_SPACE+imageHeight*5}) scale(1 -4)"/>
-        <use href="#map-artwork" transform="translate(0 ${MAP_EDGE_SPACE})"/>`;
+        <use href="#map-artwork" filter="url(#map-palette)"/>`;
 }
