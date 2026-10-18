@@ -46,6 +46,12 @@ lives.count=0;selectStage(1);ui.lifeWatchAd.onclick();ad();assert.equal(state,'m
 // Persistence rejects malformed state and continues in memory when writes fail.
 const saved=data[LIVES_KEY];for(const bad of ['null','{bad','{}','{"count":-1}','{"count":6}','{"count":"3"}']){data[LIVES_KEY]=bad;assert.equal(readLives().count,3);}data[LIVES_KEY]=saved;
 const set=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(consumeLife);assert.equal(lives.count,0);storage.setItem=set;
+// Map uses the same avatars as gameplay; only zero lives reveals the countdown.
+showLevelMap();lives.count=2;lives.recoveryAt=wallNow;refreshLives();
+assert.equal((ui.lifeStatus.innerHTML.match(/class="life-player"/g)||[]).length,2);assert(!ui.lifeStatus.innerHTML.includes('life-countdown'));assert(!ui.lifeStatus.innerHTML.includes('回復まで'));
+lives.count=0;refreshLives();assert(ui.lifeStatus.innerHTML.includes('30:00'));assert(ui.lifeStatus.innerHTML.includes('🕐'));assert(!ui.lifeStatus.innerHTML.includes('class="life-player"'));
+wallNow+=65000;refreshLives();assert(ui.lifeStatus.innerHTML.includes('28:55'));
+wallNow+=LIFE_RECOVERY_MS;refreshLives();assert.equal(lives.count,1);assert(!ui.lifeStatus.innerHTML.includes('life-countdown'));assert.equal((ui.lifeStatus.innerHTML.match(/class="life-player"/g)||[]).length,1);
 `)(assert,data,storage);
 // An interrupted run is charged once at exit time, then offline time recovers naturally.
 data['ascent.lives.v1']=JSON.stringify({count:3,recoveryAt:null,inProgress:true,attemptAt:Date.now()-3*30*60*1000});

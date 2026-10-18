@@ -111,8 +111,7 @@ button:disabled { opacity: .45; cursor: default; }
 .level-map[hidden] { display:none; }
 .map-heading { position:absolute; top:calc(env(safe-area-inset-top,0px) + 16px); left:max(14px,env(safe-area-inset-left,0px)); right:max(14px,env(safe-area-inset-right,0px)); z-index:3; display:flex; align-items:center; justify-content:space-between; gap:8px; pointer-events:none; }
 .map-heading > * { pointer-events:auto; }
-.map-heading #openDaily { font-size:11px; padding:10px; }
-.map-heading h1 { padding:5px 8px; border-radius:8px; background:#fffdf3db; font-size:18px; margin:0; letter-spacing:1px; }
+.map-heading #openDaily { margin-left:auto; font-size:11px; padding:10px; }
 .map-heading .eyebrow { letter-spacing:1px; font-size:10px; }
 .map-secondary { padding:11px 12px; background:#dde5d6; color:#3f5b47; min-width:44px; min-height:44px; }
 .map-error { margin:0 18px 10px; color:#ae433d; font-size:12px; }
@@ -270,6 +269,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 /* Three 18px icons plus two 2px gaps center on the 64px stamina heart. */
 .life-players { display:flex; align-items:flex-start; gap:2px; margin-left:3px; }
 .life-player { position:relative; display:block; width:18px; height:24px; }
+.life-countdown { display:flex; align-items:center; gap:3px; height:24px; margin-left:3px; font-size:16px; font-weight:800; font-variant-numeric:tabular-nums; -webkit-text-stroke:3px #fff; paint-order:stroke fill; }
 .life-player .map-marker { left:0; top:0; transform:scale(.75); transform-origin:0 0; }
 @media (max-width:360px) { .hud .level { font-size:16px; letter-spacing:.8px; } }
 .life-status[hidden] { display:none; }

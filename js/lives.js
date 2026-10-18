@@ -58,11 +58,16 @@ function refreshLives() {
     recoverLives();
     ui.lifeStatus.classList.toggle('title-lives',state==='choosing');
     const inGame=['playing','won','lost'].includes(state);
-    ui.lifeStatus.classList.toggle('game-lives',inGame);
+    const inMap=state==='map';
+    ui.lifeStatus.classList.toggle('game-lives',inGame || inMap);
     ui.lifeStatus.setAttribute('aria-label',`ライフ ${lives.count} / ${LIFE_MAX}`);
     ui.lifeStatus.hidden=!!dailyRun || !['choosing','map','playing','won','lost'].includes(state) || courseMode==='prototype' || debugAttempt;
     const seconds=lives.recoveryAt===null ? null : Math.max(0,Math.ceil((LIFE_RECOVERY_MS-(Date.now()-lives.recoveryAt))/1000));
-    const text=inGame
+    const recoveryTime=`${String(Math.floor((seconds??0)/60)).padStart(2,'0')}:${String((seconds??0)%60).padStart(2,'0')}`;
+    if(inMap && lives.count===0)ui.lifeStatus.setAttribute('aria-label',`ライフ0、回復まで ${recoveryTime}`);
+    const text=inMap && lives.count===0
+        ? `<span class="life-countdown" role="timer" aria-live="off"><span aria-hidden="true">🕐</span><span>${recoveryTime}</span></span>`
+        : inGame || inMap
         ? `<span class="life-players" aria-hidden="true" style="--head-color:${playerHeadColor};--body-stripes:${bodyStripeGradient()}">${Array.from({length:lives.count},()=>'<span class="life-player"><span class="map-marker"><i></i><b></b></span></span>').join('')}</span>`
         : `LIFE ${lives.count}/${LIFE_MAX}`+(seconds===null?'':`<small>回復まで ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}</small>`);
     if(ui.lifeStatus.innerHTML!==text)ui.lifeStatus.innerHTML=text;
