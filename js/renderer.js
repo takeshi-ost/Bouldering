@@ -12,8 +12,8 @@ function drawWallBackground() {
 // A stable visual variant uses coordinates only; gameplay geometry is unchanged.
 const holdShapesImage=typeof Image==='function'?new Image():null;
 if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray.webp';
-// Direct multiply RGB: retain primary channels and reduce the others to 80.
-const HOLD_TINT_RGB=[[80,80,251],[244,80,249],[251,80,80],[251,248,80]];
+// Midpoint between the original subtle tints and the stronger 80-channel palette.
+const HOLD_TINT_RGB=[[158,161,251],[244,159,249],[251,159,159],[251,248,158]];
 let holdTintAtlases=null;
 function multiplyHoldChannel(channel,tint) {
     return Math.round(channel*tint/255);
