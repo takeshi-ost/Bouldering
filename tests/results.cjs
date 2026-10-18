@@ -35,9 +35,9 @@ assert.equal(formatClearTime(0),'00:00:00');assert.equal(formatClearTime(999),'0
 assert.equal(formatClearTime(60000),'01:00:00');assert.equal(formatClearTime(61029),'01:01:02');
 assert.equal(formatClearTime(3600010),'60:00:01');
 clock+=30000;assert.equal(runTimeMs(),result.timeMs,'Result wait must not count');
-let canceled=false;ui.overlay.events.cancel({preventDefault(){canceled=true;}});assert(canceled && ui.overlay.open);
+
 beginPointer({clientX:body.x,clientY:body.y-camera});assert.equal(bodyTap,null);assert.equal(canScrollStage(),false);
-ui.next.onclick();assert.equal(state,'map');assert(!ui.overlay.open && ui.overlay.hidden);
+let canceled=false;ui.overlay.events.cancel({preventDefault(){canceled=true;}});assert(canceled);assert.equal(state,'map');assert(!ui.overlay.open && ui.overlay.hidden);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);
 assert(!ui.mapNodes.innerHTML.includes(formatStageRecord(result)));assert(!ui.mapNodes.innerHTML.includes('map-record'));assert(ui.mapNodes.innerHTML.includes('map-node-stars'));assert(ui.mapNodes.innerHTML.includes('⭐️⭐️'));
 assert.deepEqual(readStageRecords(),stageRecords);

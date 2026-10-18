@@ -119,6 +119,7 @@
             </section>
             <dialog id="lifeDialog" class="life-dialog" aria-modal="true" aria-labelledby="lifeQuestion" hidden>
                 <div class="card">
+                    <button id="closeLife" class="modal-close" aria-label="閉じる">✕</button>
                     <p id="lifeQuestion">ライフがありません。広告を見てライフを増やしますか？</p>
                     <button id="lifeWatchAd">広告を見る</button>
                     <button id="lifeCancel" class="secondary">キャンセル</button>
@@ -133,6 +134,7 @@
             </dialog>
             <dialog class="overlay" id="overlay" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultDifficulty resultStars resultStats" hidden>
                 <div class="card">
+                    <button id="closeResult" class="modal-close" aria-label="閉じて戻る">✕</button>
                     <h1 id="resultTitle"></h1>
                     <div id="resultDifficulty" class="result-difficulty" hidden></div>
                     <div id="resultStars" class="result-stars" hidden></div>
@@ -146,7 +148,7 @@
             <div class="card" id="featureHelpContent" aria-live="polite"></div>
         </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
-            <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" aria-label="設定を閉じる" autofocus>閉じる</button></div>
+            <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" class="modal-close" aria-label="設定を閉じる" autofocus>✕</button></div>
             <button id="restart">RESTART</button>
             <button id="mapButton" class="secondary">MAPにもどる</button>
             <div id="mapSettingsControls" class="map-settings-controls" hidden>
@@ -158,7 +160,7 @@
             </div>
         </dialog>
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
-            <div class="help-heading"><h2 id="helpTitle">くわしい説明</h2><button id="closeHelp" aria-label="説明を閉じる" autofocus>閉じる</button></div>
+            <div class="help-heading"><h2 id="helpTitle">くわしい説明</h2></div>
             <h3>キャラエディット</h3>
             <p>タイトル画面からボディを1〜8段の横ストライプに塗り分けられます。頭は単色、ボディは各段をタップして色を選び、「決定」でゲーム中とマップへ反映・保存します。「戻る」では変更を破棄します。初回はボディの段数と色・頭の色がランダムに設定されます。</p>
             <h3>登り方</h3>
@@ -180,6 +182,7 @@
             <p>壁全体にホールド候補を配置し、ルートを確認して調整したステージを遊べます。</p>
             <p id="prototypeDescription" hidden><strong>ロジハラ（検証用）：</strong>デバッグモード時だけ選べます。通れるルートを保ちながら、必要なホールドまで絞った検証用のモードです。</p>
             <p>タイトル画面のデバッグモードをONにすると、ゲーム中に想定ルートと手数が表示されます。クリア時は実際に通ったルートを自動表示します。ステージ上を2本指で上下にスワイプすると壁をスクロールできます。1本指はキャラクターの移動です。開始時は中央にSTAGE番号を表示します。最下段へのスクロールと、最低1秒の表示が終わると操作可能です。</p>
+            <button id="closeHelp" class="modal-tap" aria-label="説明を閉じる">TAP</button>
         </dialog>
     </main>
 </body>

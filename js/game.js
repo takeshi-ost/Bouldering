@@ -3,7 +3,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
-    "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
+    "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
     "dailyCalendar", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyToday", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
@@ -44,7 +44,7 @@ function showStageHelp() {
 function renderStageHelp() {
     const heart=pendingFeatureHelp[0]==='heart';
     const icon=heart ? '❤️' : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
-    ui.featureHelpContent.innerHTML=`<div class="feature-help-icon" aria-hidden="true">${icon}</div><h1 id="featureHelpTitle">${heart?'回復ハート':'紫ホールド'}</h1><p>${heart?'ボディで触れるとスタミナが2回復する':'新しく手足を固定するとスタミナを追加で1消費する'}</p>`;
+    ui.featureHelpContent.innerHTML=`<div class="feature-help-icon" aria-hidden="true">${icon}</div><h1 id="featureHelpTitle">${heart?'回復ハート':'紫ホールド'}</h1><p>${heart?'ボディで触れるとスタミナが2回復する':'新しく手足を固定するとスタミナを追加で1消費する'}</p><div class="modal-tap">TAP</div>`;
     if(!heart)paintHazardHelpIcon(ui.featureHelpContent.querySelector?.('.feature-hold-image'));
 }
 function dismissStageHelp() {

@@ -188,10 +188,25 @@ ui.showHelp.onclick = () => {
     ui.helpDialog.scrollTop = 0;
 };
 ui.closeHelp.onclick = () => ui.helpDialog.close();
+ui.helpDialog.onclick = () => {if(ui.helpDialog.open)ui.helpDialog.close();};
 ui.helpDialog.addEventListener('close', () => ui.showHelp.focus());
 
-// Results stay modal until Retry or Next is chosen. Native dialog traps focus.
-ui.overlay.addEventListener('cancel',e=>e.preventDefault());
+// Full-screen dialogs use a card; compact dialogs use their own bounds.
+function dismissOutside(dialog,close,card=false) {
+    dialog.addEventListener('click',e=>{
+        if(e.target!==dialog)return;
+        if(!card) {
+            const r=dialog.getBoundingClientRect();
+            if(e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom)return;
+        }
+        close();
+    });
+}
+ui.closeResult.onclick=()=>ui.mapButton.onclick();
+ui.overlay.addEventListener('cancel',e=>{e.preventDefault();ui.closeResult.onclick();});
+dismissOutside(ui.overlay,()=>ui.closeResult.onclick(),true);
+ui.closeLife.onclick=cancelLifePrompt;
+dismissOutside(ui.lifeDialog,cancelLifePrompt,true);
 
 ui.debugMode.onchange=()=>{
     if(state!=='choosing') {ui.debugMode.checked=debugMode;return;}
@@ -224,6 +239,7 @@ ui.mapEditCharacter.onclick=()=>{if(state==='map' && settingsOpen)showCharacterE
 ui.closeSettings.onclick=()=>{hideSettings();if(state==='map')ui.mapSettingsButton.focus({preventScroll:true});else canvas.focus();};
 ui.settingsDialog.addEventListener('cancel',e=>{e.preventDefault();ui.closeSettings.onclick();});
 ui.settingsDialog.addEventListener('close',()=>{settingsOpen=false;});
+dismissOutside(ui.settingsDialog,()=>ui.closeSettings.onclick());
 
 // The dialog fills the viewport so tapping the card or its surrounding area continues.
 ui.featureHelpDialog.onclick=dismissStageHelp;

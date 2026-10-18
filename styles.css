@@ -297,3 +297,19 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .life-status.title-lives { top:calc(env(safe-area-inset-top,0px) + 16px); }
 
 .daily-day.is-cleared:disabled { opacity:1; cursor:default; }
+
+/* Shared modal dismissal: controls stay inside; read-only cards accept any tap. */
+.settings-dialog, #overlay .card, .life-dialog .card { position:relative; }
+#overlay .card, .life-dialog .card { padding-top:44px; }
+.help-heading { padding-right:40px; }
+.modal-close, .card .modal-close, .life-dialog .modal-close, .help-heading .modal-close {
+    position:absolute; top:4px; right:4px; width:44px; height:44px;
+    min-height:44px; margin:0; padding:0; border:0; border-radius:50%;
+    background:transparent; color:#25372f; font-size:24px; line-height:1;
+    box-shadow:none;
+}
+.modal-close:hover { background:#25372f10; }
+.modal-tap { display:block; width:100%; margin:12px 0 0; padding:4px 0;
+    background:transparent; color:#637267; font-size:12px; font-weight:700;
+    text-align:center; letter-spacing:.18em; box-shadow:none; }
+.feature-help .modal-tap { grid-column:1 / -1; margin-top:4px; }
