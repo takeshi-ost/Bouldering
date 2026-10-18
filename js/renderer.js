@@ -13,7 +13,7 @@ function drawWallBackground() {
 const holdShapesImage=typeof Image==='function'?new Image():null;
 if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray-contrast.webp';
 const wideHoldImage=typeof Image==='function'?new Image():null;
-if(wideHoldImage)wideHoldImage.src='assets/hold-wide-gray.webp';
+if(wideHoldImage)wideHoldImage.src='assets/hold-wide-flat.webp';
 // Midpoint between the previous palette and the original subtle multiply tints.
 const HOLD_TINT_RGB=[[217,222,251],[244,219,249],[251,219,219],[251,248,217]];
 // Three warm-gray tones retain the source artwork's opaque darkest/lightest values.
@@ -65,7 +65,7 @@ function getHoldTintAtlases() {
 function drawWideHoldSprite(h) {
     if(!wideHoldImage?.complete || !wideHoldImage.naturalWidth)return false;
     wideHoldTintAtlases ??= createHoldTintAtlases(wideHoldImage);
-    ctx.drawImage(wideHoldTintAtlases[holdTintIndex(h)],h.x-24,h.y-12,48,24);
+    ctx.drawImage(wideHoldTintAtlases[holdTintIndex(h)],h.x-30,h.y-18,60,36);
     return true;
 }
 
@@ -781,7 +781,7 @@ function draw(now = 0) {
             holdShape(
                 h.x,
                 h.y,
-                hazard ? 11 : 14,
+                hazard ? 11 : h.wide ? 17 : 14,
                 hazard ? '#6099cf20' : '#70987920',
                 gold
                     ? '#cfaa48'
