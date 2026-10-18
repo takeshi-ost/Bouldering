@@ -147,24 +147,40 @@ function drawGoalHoldSprite(h) {
     if(!holdShapesImage?.complete || !holdShapesImage.naturalWidth)return false;
     goalHoldTintAtlas ??= createMetallicGoalAtlas();
     ctx.drawImage(goalHoldTintAtlas,0,0,128,128,h.x-15,h.y-15,30,30);
-    // Small alternating glints make the goal readable against the pale wall.
-    ctx.save();
-    const time=performance.now()/650;
-    for(const [dx,dy,phase] of [[-11,-9,0],[12,5,Math.PI]]) {
-        const pulse=(Math.sin(time+phase)+1)/2,r=2+2*pulse;
-        ctx.globalAlpha=.45+.55*pulse;
-        ctx.fillStyle='#fffbd7';
-        ctx.beginPath();
-        for(let i=0;i<8;i++) {
-            const a=i*Math.PI/4,reach=i%2 ? r*.22 : r;
-            const x=h.x+dx+Math.cos(a)*reach,y=h.y+dy+Math.sin(a)*reach;
-            if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);
-        }
-        ctx.closePath();ctx.fill();
-    }
-    ctx.restore();
     return true;
 }
+// World-space effects follow the wall camera, without changing hit areas.
+function drawGoalSparkles(h,now) {
+    ctx.save();ctx.fillStyle='#fffbe0';ctx.strokeStyle='#d3aa4a';ctx.lineWidth=.65;
+    for(let i=0;i<7;i++) {
+        const phase=(now/1800+i*.173)%1;
+        const pulse=Math.pow(Math.sin(Math.PI*phase),3);
+        const angle=i*2.39996, radius=21+(i%3)*6;
+        const x=h.x+Math.cos(angle)*radius,y=h.y+Math.sin(angle)*radius-phase*5;
+        const size=(3+i%3)*pulse;
+        ctx.globalAlpha=.9*pulse;ctx.beginPath();
+        for(let j=0;j<8;j++) {
+            const a=j*Math.PI/4,r=j%2?size*.23:size;
+            const px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;
+            if(j)ctx.lineTo(px,py);else ctx.moveTo(px,py);
+        }
+        ctx.closePath();ctx.fill();ctx.stroke();
+    }
+    ctx.restore();
+}
+function drawAnchorRings(now) {
+    anchorRings=anchorRings.filter(r=>now-r.start<300);
+    ctx.save();
+    for(const ring of anchorRings) {
+        const t=clamp((now-ring.start)/300,0,1),radius=5+23*(1-(1-t)*(1-t));
+        ctx.globalAlpha=(1-t)*.9;
+        ctx.beginPath();ctx.arc(ring.x,ring.y,radius,0,Math.PI*2);
+        ctx.lineWidth=3;ctx.strokeStyle='#fffdf0';ctx.stroke();
+        ctx.lineWidth=1;ctx.strokeStyle='#78ac99';ctx.stroke();
+    }
+    ctx.restore();
+}
+
 function drawDebugHoldNumbers() {
     if(!debugMode)return;
     ctx.save();
@@ -951,6 +967,7 @@ function draw(now = 0) {
             );
         }
 
+        if(gold)drawGoalSparkles(h,now);
         if (gold || (green && h.wide)) {
             ctx.fillStyle = gold ? '#9e7b2c' : '#526659';
 
@@ -1107,6 +1124,7 @@ function draw(now = 0) {
     ctx.restore();
     ctx.restore();
     drawDebugHoldNumbers();
+    drawAnchorRings(now);
     drawHeartPopups(performance.now());
     ctx.restore();
     drawStageIntro();

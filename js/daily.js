@@ -68,6 +68,7 @@ let dailyEntryToday=null;
 let dailyReturnCourse='existing';
 function refreshDailyEntry() {
     const today=localToday();
+    ui.openDaily.classList.toggle('is-unfinished',!dailyRecords[today]);
     if(today===dailyEntryToday)return;
     dailyEntryToday=today;
     ui.dailyEntryDate.textContent=today.slice(5).replace('-','/');

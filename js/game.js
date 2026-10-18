@@ -73,6 +73,7 @@ let holds = [];
 let route = [];
 let hearts = [];
 let heartPopups = [];
+let anchorRings = [];
 let hazardShakeStart = null;
 let HEIGHT = H;
 // Extra space above high goals belongs to the camera, preserving course geometry.
@@ -504,6 +505,7 @@ function reset(n) {
 
     hearts = createHearts(n,route,difficulty);
     heartPopups = [];
+    anchorRings = [];
     hazardShakeStart = null;
     stamina = routeStamina(route);
 
@@ -657,6 +659,8 @@ function move(e) {
             raw.x - committed.x,
             raw.y - committed.y
         );
+        const now=performance.now();
+        anchorRings=drag.anchor.map(i=>({x:grips[i].x,y:grips[i].y,start:now}));
     }
 
     const previousBody = { ...body };
@@ -778,6 +782,7 @@ function canUndoMove() {
 function undoMove() {
     if (!canUndoMove()) return false;
     hazardShakeStart = null;
+    anchorRings = [];
     heartPopups = heartPopups.filter(p => p.kind !== 'hazard');
     const elapsed=runTimeMs();
     const saved = undoSnapshot;
