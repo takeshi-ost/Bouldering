@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 assert(!/<(?:header|footer)[ >]/.test(html));
 assert(!/id="(?:showPath|mapDebug|courseMenu)"/.test(html));
-assert.equal((html.match(/type="checkbox"/g)||[]).length,1);
+assert.equal((html.match(/type="checkbox"/g)||[]).length,3);
 assert(/<dialog id="settingsDialog"[\s\S]*id="restart"[\s\S]*id="mapButton"[\s\S]*?<\/dialog>/.test(html));
 const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
@@ -31,7 +31,7 @@ function fixture() {
  play(1);clock+=250;
  assert(canUndoMove());return {stamina,moveCount,undo:undoSnapshot};
 }
-// Only the title checkbox controls debug tools and planned-path rendering.
+// Title and map settings share the debug state and planned-path rendering.
 assert.equal(state,'choosing');assert.equal(debugMode,false);assert(ui.hud.hidden);
 assert(ui.prototypeCourse.hidden && ui.prototypeDescription.hidden);ui.prototypeCourse.onclick();assert.equal(state,'choosing');
 ui.debugMode.checked=true;ui.debugMode.onchange();assert(!ui.prototypeCourse.hidden && !ui.prototypeDescription.hidden);
@@ -54,6 +54,11 @@ ui.settingsDialog.events.cancel({preventDefault(){}});assert(!settingsOpen && !u
 assert(canUndoMove());
 ui.settingsButton.onclick();ui.restart.onclick();assert(!settingsOpen && !ui.settingsDialog.open && cameraIntro && moveCount===0);
 fixture();ui.settingsButton.onclick();ui.mapButton.onclick();assert(!settingsOpen && !ui.settingsDialog.open && state==='map' && ui.hud.hidden);
+showLevelMap();ui.mapSettingsButton.onclick();assert(settingsOpen && !ui.mapSettingsControls.hidden && ui.restart.hidden && ui.mapButton.hidden);
+ui.mapDebugMode.checked=true;ui.mapDebugMode.onchange();assert(debugMode && ui.debugMode.checked && !ui.debugControls.hidden);
+ui.mapDebugMode.checked=false;ui.mapDebugMode.onchange();assert(!debugMode && !ui.debugMode.checked && ui.debugControls.hidden);
+ui.closeSettings.onclick();assert(!settingsOpen && !ui.settingsDialog.open);
+ui.mapSettingsButton.onclick();ui.mapCourses.onclick();assert.equal(state,'choosing');assert(!settingsOpen && !ui.settingsDialog.open);
 showTitleScreen();assert(ui.hud.hidden);
 // Press feedback changes only rendered torso position/color, then immediately returns.
 fixture();const paints=[];ctx.fillRect=(x,y,w,h)=>paints.push({x,y,w,h,color:ctx.fillStyle});
@@ -112,5 +117,5 @@ drawStageIntro();assert.deepEqual(labels.pop(),{text:'STAGE 001',x:W/2,y:H/2});
 advanceCameraIntro(1100);assert.equal(cameraIntro,null);drawStageIntro();assert.equal(labels.length,0);
 assert.equal(ui.next.textContent,'次のステージへ →');
 showLevelMap();e=visibleEvent();mouse('mousedown',e);mouse('mouseup',e);assert.equal(bodyTap,null);assert.equal(state,'map');
-console.log('PASS title-only debug controls, settings modal cancellation/navigation/input guards and timer; body-tap Undo: visible pose, jitter, mouse/touch, single use, drag/return, long press, cancel, blur, two fingers, result modal input guards; centered STAGE label and 1s input lock');
+console.log('PASS shared title/map debug controls, settings modal cancellation/navigation/input guards and timer; body-tap Undo: visible pose, jitter, mouse/touch, single use, drag/return, long press, cancel, blur, two fingers, result modal input guards; centered STAGE label and 1s input lock');
 `)(assert,html);

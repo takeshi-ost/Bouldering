@@ -122,8 +122,11 @@ function renderCharacterEditor() {
         ui.paletteSwatches.innerHTML=EDITOR_COLORS.map(c=>`<button type="button" data-color="${c}" style="background:${c}" aria-label="色 ${c}" aria-pressed="${c===color}"></button>`).join('');
     }
 }
+let editorMapReturn=null;
 function showCharacterEditor() {
-    if(state!=='choosing')return false;
+    if(state!=='choosing' && (state!=='map' || mapTransition))return false;
+    editorMapReturn=state==='map'?{page:mapPage,selected:mapSelected,scrollTop:ui.mapScroll.scrollTop}:null;
+    hideSettings();ui.levelMap.hidden=true;ui.wall.classList.toggle('map-open',false);
     draftColors=[...playerColors];draftHeadColor=playerHeadColor;draftStripeCount=playerColors.length;selectedStripe=null;selectedPart=null;
     ui.playerName.value=playerName;ui.playerNameError.hidden=true;
     state='editing';ui.titleScreen.hidden=true;ui.characterEditor.hidden=false;
@@ -131,6 +134,15 @@ function showCharacterEditor() {
     ui.hud.hidden=true;
     renderCharacterEditor();ui.stripeCount.focus();
     return true;
+}
+function returnFromCharacterEditor() {
+    const destination=editorMapReturn;editorMapReturn=null;
+    if(destination) {
+        showLevelMap({target:destination.selected});
+        mapPage=destination.page;mapSelected=destination.selected;
+        renderLevelMap();ui.mapScroll.scrollTop=destination.scrollTop;
+        ui.mapSettingsButton.focus({preventScroll:true});
+    } else {showTitleScreen();ui.editCharacter.focus();}
 }
 function resizeEditorStripes(n) {
     if(state!=='editing' || !Number.isInteger(n) || n<1 || n>8)return false;
@@ -163,9 +175,9 @@ function confirmCharacterEditor() {
     playerHeadColor=draftHeadColor;
     const appearanceSaved=saveAppearance({colors:playerColors,headColor:playerHeadColor});
     const saved=appearanceSaved && nameSaved;
-    updateMapAppearance();showTitleScreen();ui.editCharacter.focus();
+    updateMapAppearance();returnFromCharacterEditor();
     ui.appearanceStatus.textContent=saved?'名前と配色を保存しました。':'名前と配色を適用しました。この端末への保存はできませんでした。';
-    ui.appearanceStatus.hidden=false;
+    ui.appearanceStatus.hidden=state!=='choosing';
     return true;
 }
 ui.editCharacter.onclick=showCharacterEditor;
@@ -194,5 +206,5 @@ ui.playerName.oninput=e=>{if(!e.isComposing)limitPlayerNameInput();};
 ui.playerName.oncompositionend=limitPlayerNameInput;
 ui.editorConfirm.onclick=confirmCharacterEditor;
 ui.editorCancel.onclick=()=>{
-    if(state==='editing'){showTitleScreen();ui.editCharacter.focus();}
+    if(state==='editing')returnFromCharacterEditor();
 };

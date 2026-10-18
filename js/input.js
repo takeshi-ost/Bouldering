@@ -195,17 +195,33 @@ ui.overlay.addEventListener('cancel',e=>e.preventDefault());
 
 ui.debugMode.onchange=()=>{
     if(state!=='choosing') {ui.debugMode.checked=debugMode;return;}
-    debugMode=ui.debugMode.checked;
+    setDebugMode(ui.debugMode.checked);
+};
+function setDebugMode(enabled) {
+    debugMode=enabled;
+    ui.debugMode.checked=ui.mapDebugMode.checked=debugMode;
     syncTitleDebugControls();
     updateUI();
+    if(state==='map')renderLevelMap();
+}
+ui.mapDebugMode.onchange=()=>{
+    if(state!=='map' || !settingsOpen) {ui.mapDebugMode.checked=debugMode;return;}
+    setDebugMode(ui.mapDebugMode.checked);
 };
-ui.settingsButton.onclick=()=>{
-    if(state!=='playing' || cameraIntro || settingsOpen || featureHelpOpen) return;
-    endPointer(null,true);endPan();touchId=null;ignoreTouches=false;
+function openSettings() {
+    const onMap=state==='map';
+    if(settingsOpen || (onMap ? !!mapTransition : state!=='playing' || cameraIntro || featureHelpOpen))return;
+    if(!onMap) {endPointer(null,true);endPan();touchId=null;ignoreTouches=false;}
+    ui.restart.hidden=ui.mapButton.hidden=onMap;
+    ui.mapSettingsControls.hidden=!onMap;
+    ui.mapDebugMode.checked=debugMode;
     settingsOpen=true;
     ui.settingsDialog.showModal?.();
-};
-ui.closeSettings.onclick=()=>{hideSettings();canvas.focus();};
+}
+ui.settingsButton.onclick=openSettings;
+ui.mapSettingsButton.onclick=openSettings;
+ui.mapEditCharacter.onclick=()=>{if(state==='map' && settingsOpen)showCharacterEditor();};
+ui.closeSettings.onclick=()=>{hideSettings();if(state==='map')ui.mapSettingsButton.focus({preventScroll:true});else canvas.focus();};
 ui.settingsDialog.addEventListener('cancel',e=>{e.preventDefault();ui.closeSettings.onclick();});
 ui.settingsDialog.addEventListener('close',()=>{settingsOpen=false;});
 

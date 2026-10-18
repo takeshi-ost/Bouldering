@@ -84,7 +84,12 @@ assert.deepEqual(JSON.parse(data[APPEARANCE_KEY]),{colors:chosen,headColor:'#334
 showCharacterEditor();assert.equal(draftStripeCount,3);selectEditorStripe(0);paintEditorColor('#000000');ui.editorCancel.onclick();assert.deepEqual(playerColors,chosen);
 startCourse('existing');assert(ui.mapMarker.style['--body-stripes'].includes('#112233 0%'));
 assert(ui.mapMarker.style['--body-stripes'].includes('#abcdef'));assert(ui.mapMarker.style['--body-stripes'].includes('#f0a040'));assert.equal(ui.mapMarker.style['--head-color'],'#334455');
-assert.equal(showCharacterEditor(),false,'Editor may only open from the start screen');
+const mapReturn={page:mapPage,selected:mapSelected,scrollTop:173};ui.mapScroll.scrollTop=173;
+ui.mapSettingsButton.onclick();ui.mapEditCharacter.onclick();assert.equal(state,'editing');assert(!settingsOpen && !ui.settingsDialog.open && ui.levelMap.hidden);
+selectEditorStripe(0);paintEditorColor('#abcdef');ui.editorCancel.onclick();assert.equal(state,'map');assert.deepEqual(playerColors,chosen);assert.equal(ui.mapScroll.scrollTop,mapReturn.scrollTop);
+assert.equal(mapPage,mapReturn.page);assert.equal(mapSelected,mapReturn.selected);
+ui.mapSettingsButton.onclick();ui.mapEditCharacter.onclick();selectEditorHead();paintEditorColor('#445566');assert(confirmCharacterEditor());assert.equal(state,'map');assert.equal(playerHeadColor,'#445566');assert.equal(ui.mapMarker.style['--head-color'],'#445566');assert.equal(ui.mapScroll.scrollTop,173);
+playerHeadColor='#334455';updateMapAppearance();
 assert(selectStage(1));cameraIntro=null;
 const fills=[];ctx.fill=()=>fills.push(ctx.fillStyle);
 paints=[];draw(0);assert(fills.includes('#334455'));chosen.forEach(c=>assert(paints.some(p=>p.color===c && p.w===TORSO.width && Math.abs(p.h-TORSO.height/3)<1e-8)));
@@ -131,7 +136,7 @@ const set=storage.setItem;storage.setItem=()=>{throw Error('full');};showCharact
 assert.equal(readPlayerName(),'岳志');
 `)(assert,data,storage);
 new Function('assert',env+source+`assert.equal(playerName,'岳志');showCharacterEditor();assert.equal(ui.playerName.value,'岳志');`)(assert);
-console.log('PASS character editor: randomized saved first run, single head color, legacy body migration, start-only entry, 1-8 equal stripes, mouse/keyboard palette and custom colors, hidden slot retention, draft/cancel/confirm, game and map fills, press feedback, reload, malformed/blocked storage, unchanged physics');
+console.log('PASS character editor: randomized saved first run, single head color, legacy body migration, title/map entry and same-map return, 1-8 equal stripes, mouse/keyboard palette and custom colors, hidden slot retention, draft/cancel/confirm, game and map fills, press feedback, reload, malformed/blocked storage, unchanged physics');
 } finally {
  if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);
  else delete globalThis.localStorage;

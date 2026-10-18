@@ -109,7 +109,7 @@ button:disabled { opacity: .45; cursor: default; }
 .wall.map-open { touch-action:pan-y; }
 .level-map { position:absolute; inset:0; z-index:2; background:#bfc5ae; }
 .level-map[hidden] { display:none; }
-.map-heading { position:absolute; top:calc(env(safe-area-inset-top,0px) + 16px); left:max(14px,env(safe-area-inset-left,0px)); right:max(14px,env(safe-area-inset-right,0px)); z-index:3; display:flex; align-items:center; justify-content:space-between; gap:8px; pointer-events:none; }
+.map-heading { position:absolute; top:calc(env(safe-area-inset-top,0px) + 16px); left:max(14px,env(safe-area-inset-left,0px)); right:calc(max(12px,env(safe-area-inset-right,0px)) + 64px); z-index:3; display:flex; align-items:center; justify-content:space-between; gap:8px; pointer-events:none; }
 .map-heading > * { pointer-events:auto; }
 .map-heading #openDaily { position:relative; margin-left:auto; width:128px; height:72px; min-width:44px; min-height:44px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; letter-spacing:0; animation:daily-airship-float 6s ease-in-out infinite; }
 .daily-airship img { display:block; width:100%; height:100%; object-fit:contain; pointer-events:none; }
@@ -196,6 +196,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .settings-button svg { display:block; width:29px; height:29px; }
 .settings-button:hover { background:transparent; filter:none; }
 .settings-button:active { transform:scale(.94); }
+.map-settings-button { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 12px); right:max(12px,env(safe-area-inset-right,0px)); }
 .progress { grid-column:1/-1; justify-self:end; color:#68786e; font-size:11px; background:#fffdf4d9; padding:8px; border-radius:8px; }
 .title-screen { position:absolute; inset:0; z-index:2; background:#f6f3eb; overflow-y:auto; touch-action:pan-y; padding:calc(env(safe-area-inset-top,0px) + 24px) 22px calc(env(safe-area-inset-bottom,0px) + 24px); display:grid; align-items:center; }
 .title-content { width:min(100%,420px); margin:auto; text-align:center; }
@@ -211,6 +212,11 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .settings-dialog { width:min(360px,calc(100% - 32px)); max-height:calc(100dvh - 40px); overflow:auto; border:0; border-radius:18px; padding:0 22px 22px; color:#25372f; background:#f8f6ee; }
 .settings-dialog::backdrop { background:#23372dbd; }
 .settings-dialog > button { display:block; width:100%; min-height:44px; margin-top:14px; }
+.settings-dialog [hidden] { display:none; }
+.map-settings-controls > button { display:block; width:100%; min-height:44px; margin-top:14px; }
+.settings-row { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:48px; margin-top:12px; font-size:14px; }
+.settings-row input { width:22px; height:22px; accent-color:#39785b; }
+.settings-row select { min-height:44px; max-width:60%; padding:6px 10px; font:inherit; font-size:16px; color:inherit; background:#fffdf3; border:1px solid #c7d2bf; border-radius:8px; }
 
 /* First-encounter explanations precede the stage title and camera intro. */
 .feature-help { position:fixed; inset:0; margin:0; width:100%; height:100%; max-width:none; max-height:none; border:0; overflow:auto; color:#25372f; background:transparent; backdrop-filter:none; outline:none; }
@@ -253,7 +259,6 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .map-page[hidden] { display:none; }
 .map-page-next { top:12px; }
 .map-page-prev { bottom:40px; transform:translateX(-50%) rotate(180deg); }
-.map-title-button { position:absolute; z-index:3; right:max(14px,env(safe-area-inset-right,0px)); bottom:calc(env(safe-area-inset-bottom,0px) + 16px); font-size:11px; padding:10px; }
 .level-map > .map-error { position:absolute; z-index:4; top:116px; left:14px; right:14px; margin:0; padding:8px; border-radius:8px; background:#fffdf3ed; }
 
 .player-name-label { display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:700; }
