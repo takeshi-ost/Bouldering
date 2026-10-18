@@ -218,7 +218,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 
 #overlay .result-stars { margin:8px 0; font-size:30px; line-height:1.4; }
 
-.map-node .map-node-stars { position:absolute; top:calc(100% + 5px); left:50%; transform:translateX(-50%); padding:1px 4px; border-radius:5px; background:#fffdf3ed; font-size:10px; line-height:14px; white-space:nowrap; pointer-events:none; }
+.map-node .map-node-stars { position:absolute; top:calc(50% + 4px); left:50%; transform:translateX(-50%); padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; font-size:10px; line-height:12px; white-space:nowrap; pointer-events:none; }
 
 .title-content [hidden] { display:none; }
 
