@@ -11,11 +11,11 @@ function drawWallBackground() {
 
 // A stable visual variant uses coordinates only; gameplay geometry is unchanged.
 const holdShapesImage=typeof Image==='function'?new Image():null;
-if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-soft.webp';
+if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray.webp';
 function drawHoldSprite(h) {
     if(!holdShapesImage?.complete || !holdShapesImage.naturalWidth)return false;
-    // Only the original first and fourth shapes are present in this two-cell atlas.
-    const variant=((Math.round(h.x)*31+Math.round(h.y)*17)%2+2)%2;
+    // The atlas contains the original first through fourth shapes.
+    const variant=((Math.round(h.x)*31+Math.round(h.y)*17)%4+4)%4;
     ctx.drawImage(holdShapesImage,variant*128,0,128,128,h.x-12,h.y-12,24,24);
     return true;
 }
