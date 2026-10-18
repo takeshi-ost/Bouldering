@@ -14,6 +14,15 @@ const holdShapesImage=typeof Image==='function'?new Image():null;
 if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray-contrast.webp';
 // Midpoint between the previous palette and the original subtle multiply tints.
 const HOLD_TINT_RGB=[[217,222,251],[244,219,249],[251,219,219],[251,248,217]];
+// Three warm-gray tones retain the source artwork's opaque darkest/lightest values.
+const HOLD_TONE_RGB=[[82,78,77],[153,148,145],[223,218,214]];
+const holdToneLuminance=HOLD_TONE_RGB.map(([r,g,b])=>r*.2126+g*.7152+b*.0722);
+function holdToneRGB(r,g,b) {
+    const luminance=r*.2126+g*.7152+b*.0722;
+    const index=luminance<(holdToneLuminance[0]+holdToneLuminance[1])/2 ? 0 :
+        luminance<(holdToneLuminance[1]+holdToneLuminance[2])/2 ? 1 : 2;
+    return HOLD_TONE_RGB[index];
+}
 let holdTintAtlases=null;
 function multiplyHoldChannel(channel,tint) {
     // Source artwork already carries the restored original facet contrast.
@@ -41,7 +50,8 @@ function getHoldTintAtlases() {
             throw error;
         }
         for(let i=0;i<pixels.data.length;i+=4) {
-            for(let c=0;c<3;c++)pixels.data[i+c]=multiplyHoldChannel(pixels.data[i+c],tint[c]);
+            const tone=holdToneRGB(pixels.data[i],pixels.data[i+1],pixels.data[i+2]);
+            for(let c=0;c<3;c++)pixels.data[i+c]=multiplyHoldChannel(tone[c],tint[c]);
             // Preserve the original alpha, including antialiased transparent edges.
         }
         paint.putImageData(pixels,0,0);
