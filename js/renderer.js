@@ -13,10 +13,13 @@ function drawWallBackground() {
 const holdShapesImage=typeof Image==='function'?new Image():null;
 if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray.webp';
 // Midpoint between the previous palette and the original subtle multiply tints.
-const HOLD_TINT_RGB=[[197,202,251],[244,199,249],[251,199,199],[251,248,197]];
+const HOLD_TINT_RGB=[[217,222,251],[244,219,249],[251,219,219],[251,248,217]];
+const HOLD_IMAGE_CONTRAST=1.1;
 let holdTintAtlases=null;
 function multiplyHoldChannel(channel,tint) {
-    return Math.round(channel*tint/255);
+    // Increase source contrast around mid-gray before applying the color multiplier.
+    const contrasted=Math.max(0,Math.min(255,(channel-128)*HOLD_IMAGE_CONTRAST+128));
+    return Math.round(contrasted*tint/255);
 }
 function holdTintIndex(h) {
     // Separate, deterministic visual randomness avoids changing gameplay RNG or flickering.
