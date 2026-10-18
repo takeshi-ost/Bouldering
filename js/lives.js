@@ -57,9 +57,14 @@ function settleLifeAttempt(won) {
 function refreshLives() {
     recoverLives();
     ui.lifeStatus.classList.toggle('title-lives',state==='choosing');
+    const inGame=['playing','won','lost'].includes(state);
+    ui.lifeStatus.classList.toggle('game-lives',inGame);
+    ui.lifeStatus.setAttribute('aria-label',`ライフ ${lives.count} / ${LIFE_MAX}`);
     ui.lifeStatus.hidden=!!dailyRun || !['choosing','map','playing','won','lost'].includes(state) || courseMode==='prototype' || debugAttempt;
     const seconds=lives.recoveryAt===null ? null : Math.max(0,Math.ceil((LIFE_RECOVERY_MS-(Date.now()-lives.recoveryAt))/1000));
-    const text=`LIFE ${lives.count}/${LIFE_MAX}`+(seconds===null?'':`<small>回復まで ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}</small>`);
+    const text=inGame
+        ? `<span class="life-players" aria-hidden="true" style="--head-color:${playerHeadColor};--body-stripes:${bodyStripeGradient()}">${Array.from({length:lives.count},()=>'<span class="life-player"><span class="map-marker"><i></i><b></b></span></span>').join('')}</span>`
+        : `LIFE ${lives.count}/${LIFE_MAX}`+(seconds===null?'':`<small>回復まで ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}</small>`);
     if(ui.lifeStatus.innerHTML!==text)ui.lifeStatus.innerHTML=text;
     if(lifePrompt) {
         ui.lifeWatchAd.textContent=lives.count>0?'ステージを開始':'広告を見る';

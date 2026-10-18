@@ -3,7 +3,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
-    "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
+    "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings",
     "dailyCalendar", "openDaily", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyToday", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
@@ -548,10 +548,8 @@ function updateUI() {
     ui.settingsButton.disabled = !!cameraIntro || state!=='playing';
     ui.stamina.textContent = String(stamina);
     ui.stamina.setAttribute('aria-label',`スタミナ ${stamina} 手`);
-    ui.stamina.style.color =
-        stamina <= 4
-            ? '#bc5144'
-            : '#25372f';
+    ui.stamina.style.color = '#fffaf0';
+    ui.staminaGauge.style.color = stamina <= 4 ? '#bc5144' : '#cf6676';
 
     ui.progress.hidden=!debugMode;
     ui.progress.textContent =
