@@ -370,10 +370,10 @@ function attachMoving(p, anchor) {
 }
 
 function clearStars(moves,expectedMoves) {
-    return moves<expectedMoves ? 3 : moves<=expectedMoves+2 ? 2 : 1;
+    return moves<=expectedMoves ? 3 : moves<=expectedMoves+2 ? 2 : 1;
 }
 function stageStamina(moves) {
-    return moves + (moves < STAGE_CONFIG.staminaInterval ? 2 : Math.floor(moves / STAGE_CONFIG.staminaInterval));
+    return moves + 3;
 }
 
 // Share the live per-limb contact rule with route budgeting.
@@ -397,7 +397,7 @@ function routeHazardCosts(path) {
     });
 }
 function routeStamina(path) {
-    return stageStamina(path.length-1)+(routeHazardCosts(path).at(-1)||0);
+    return stageStamina(path.length-1);
 }
 
 // Use an independent stream: retries preserve both holds and items.
@@ -407,7 +407,7 @@ function createHearts(n, path, selectedDifficulty=dailyRun?.difficulty ?? diffic
     const random = mulberry32(courseSeed(n) ^ 0x48EA27B1);
     const count = Math.floor(random() * (HEART_CONFIG.maxCount + 1));
     const costs = routeHazardCosts(path);
-    const initialBudget = routeStamina(path) - count * HEART_CONFIG.recovery;
+    const initialBudget = routeStamina(path);
     let previousStep = 0;
     return Array.from({length:count}, (_,id) => {
         // Recover before the late climb: one item by halfway, or two by 1/3 and 2/3.
@@ -502,7 +502,7 @@ function reset(n) {
     hearts = createHearts(n,route,difficulty);
     heartPopups = [];
     hazardShakeStart = null;
-    stamina = routeStamina(route) - hearts.length * HEART_CONFIG.recovery;
+    stamina = routeStamina(route);
 
     moveCount = 0;
 

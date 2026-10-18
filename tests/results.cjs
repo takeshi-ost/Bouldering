@@ -27,8 +27,8 @@ assert.equal(moveCount,0);assert.equal(runTimeMs(),6000,'Canceled drag must not 
 clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(runTimeMs(),usedTime,'Undo must not erase time');
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
 assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(!ui.next.hidden);
-assert.equal(ui.resultStats.hidden,false);assert(!ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️');
-const result={moves:moveCount,timeMs:Math.floor(clock-1100),stars:2};
+assert.equal(ui.resultStats.hidden,false);assert(!ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
+const result={moves:moveCount,timeMs:Math.floor(clock-1100),stars:3};
 assert.deepEqual(stageRecords.existing[1],result);
 assert.equal(ui.resultStats.textContent,formatStageRecord(result));
 assert.equal(formatClearTime(0),'00:00:00');assert.equal(formatClearTime(999),'00:00:99');
@@ -70,7 +70,8 @@ startCourse('existing');assert(ui.mapNodes.innerHTML.includes('map-node-stars'))
 `)(assert);
 assert(html.includes('<dialog class="overlay" id="overlay"'));
 new Function('assert','data',env+source+`
-for(const [difference,stars] of [[-1,3],[0,2],[1,2],[2,2],[3,1],[8,1]]) {
+for(const moves of [0,1,5,9,10,20,30,40,100])assert.equal(stageStamina(moves),moves+3);
+for(const [difference,stars] of [[-1,3],[0,3],[1,2],[2,2],[3,1],[8,1]]) {
  reset(1);cameraIntro=null;debugAttempt=true;moveCount=route.length-1+difference;finish(true);
  assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden);
 }

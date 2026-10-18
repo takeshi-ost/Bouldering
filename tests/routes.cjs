@@ -43,7 +43,7 @@ for(let n=1;n<=20;n++){
     check(replayRoute(route),'Two-support route replay failed '+n);
     check(HEIGHT<=MAX_HEIGHT,'Wall too tall');
     const budget=stamina;
-    check(budget===stageStamina(route.length-1)-hearts.length*2,'Initial heart budget failed');
+    check(budget===stageStamina(route.length-1),'Initial heart budget failed');
     for(let i=1;i<route.length;i++){
         camera=clamp(body.y-H*.6,0,HEIGHT-H);
         const before=[...grips],origin={...body},target=route[i];
@@ -69,7 +69,7 @@ for(let n=1;n<=20;n++){
         check(grips.every((h,k)=>h.id===target.grips[k]),'Different contact sequence');
         check(playerPath.length===i+1,'Committed path incorrect');
     }
-    check(state==='won'&&bothHandsOnGoal()&&stamina===stageStamina(route.length-1)-(route.length-1),'Goal or budget failed');
+    check(state==='won'&&bothHandsOnGoal()&&stamina===stageStamina(route.length-1)-(route.length-1)+hearts.filter(h=>h.collected).length*2,'Goal or budget failed');
     check(hearts.every(h=>h.collected),'Missed recovery on validated route');
     check(holds.filter(h=>h.wide).length<=3,'Too many wide holds');
     report.push({level:n,moves:moveCount,holds:holds.length,wide:holds.filter(h=>h.wide).length,selectionHolds:densityStats.selectionHoldIds.length});
@@ -98,6 +98,6 @@ check(pose && pose[0]===goal && pose[1]===goal && pose[2]===left && pose[3]===ri
 check(attachMoving({x:200,y:300},2)===null,'Single-support attachment still permitted');
 restartInput(1);const repeated=JSON.stringify({holds,route});
 ui.retry.onclick();check(JSON.stringify({holds,route})===repeated && cameraIntro && playerPath.length===1,'Retry failed');
-state='won';recordStageClear();ui.next.onclick();check(state==='map','Next should open map');advanceLevelMap(0);advanceLevelMap(650);selectStage(2);check(level===2 && cameraIntro,'Next stage failed');
+state='won';recordStageClear();clearsSinceAd=0;ui.next.onclick();check(state==='map','Next should open map');advanceLevelMap(0);advanceLevelMap(650);selectStage(2);check(level===2 && cameraIntro,'Next stage failed');
 JSON.stringify(report);
 `,context));

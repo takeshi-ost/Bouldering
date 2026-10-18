@@ -37,18 +37,18 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,80]) {
  }
  assert(paid>0,'Dense stage must include penalties on the planned route');
  assert.equal(state,'won');assert.equal(pickups,hearts.length*2);
- assert.equal(starting,base+paid-hearts.length*2);
- assert.equal(stamina,stageStamina(moves)-moves);
+ assert.equal(starting,moves+3);assert(paid<=3);
+ assert.equal(stamina,stageStamina(moves)-moves+pickups-paid);
  assert.equal(routeHazardCosts(route).at(-1),paid);
  ui.retry.onclick();assert.equal(JSON.stringify({holds,route,hearts}),saved);assert.equal(stamina,starting);
  report.push({mode,level:n,total:holds.length,blue:blue.length,moves,penalties:paid,starting});
 }
-// Heart deadlines must account for early penalties, not just the number of moves.
-level=40;initialGrips=[];holds=Array.from({length:20},(_,id)=>({id,type:'hazard',x:id,y:0}));
+// Heart deadlines account for affordable early penalties with no initial deductions.
+level=40;initialGrips=[];holds=Array.from({length:20},(_,id)=>({id,type:id<3?'hazard':'normal',x:id,y:0}));
 const path=Array.from({length:11},(_,i)=>({x:200,y:700-i*40,grips:[i*2%20,(i*2+1)%20]}));
 for(let n=40;n<100;n++) {
  const items=createHearts(n,path),costs=routeHazardCosts(path);
- let budget=routeStamina(path)-items.length*2;
+ let budget=routeStamina(path);
  for(let i=1;i<path.length;i++) {
   assert(budget>0);
   for(const h of items)if(!h.collected && torsoTouchesHeart(path[i-1],path[i],h)){h.collected=true;budget+=2;}

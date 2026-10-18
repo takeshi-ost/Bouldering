@@ -24,7 +24,6 @@ const STAGE_CONFIG = {
     baseMoves: 20,
     movesPerLevel: 2,
     growthLevels: 3,
-    staminaInterval: 10,
     stationSpacing: 40,
     supportSpan: 5,
     introStations: [6.5, 7.5, 8.5, 11.5, 14.5],

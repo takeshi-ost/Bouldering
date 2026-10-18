@@ -38,7 +38,7 @@ for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
   reset(n);cameraIntro=null;
  }
  for(let i=1;i<route.length;i++)play(i);
- assert.equal(state,'won');assert.equal(stamina,stageStamina(route.length-1)-(route.length-1));
+ assert.equal(state,'won');assert.equal(stamina,stageStamina(route.length-1)-(route.length-1)+hearts.filter(h=>h.collected).length*2);
  assert(grips.every(h=>h.type!=='hazard'));
  ui.retry.onclick();assert.equal(JSON.stringify({holds,route,hearts}),saved);
  report.push({mode,level:n,count:hazards.length});

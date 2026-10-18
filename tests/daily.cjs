@@ -39,17 +39,17 @@ const snapshot=()=>JSON.stringify({holds,route,hearts,HEIGHT,initialGrips,stamin
 function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);}
 for(const [rating,key] of dates){
  assert(selectDailyDate(key));finishAds();assert.equal(level,DIFFICULTY_RULES[rating].referenceStage);assert.equal(difficulty,rating);assert.equal(courseMode,'existing');assert(dailyRun && ui.dailyCalendar.hidden);assert(ui.level.textContent.startsWith('DAILY'));
- const first=snapshot();restartInput(level);assert.equal(snapshot(),first,'Daily retry changed the date seed');
+ assert.equal(stamina,route.length-1+3);const first=snapshot();restartInput(level);assert.equal(snapshot(),first,'Daily retry changed the date seed');
  while(featureHelpOpen)dismissStageHelp();advanceCameraIntro(clock);clock+=10000;advanceCameraIntro(clock);assert(!cameraIntro);
  if(rating<2)assert(!holds.some(h=>h.type==='hazard'));
  if(rating===3){const ratio=holds.filter(h=>h.type==='hazard').length/holds.length;assert(ratio>=.3 && ratio<=.5);}
  for(let i=1;i<route.length;i++){clock+=100;play(i);}
- assert.equal(state,'won');assert.equal(dailyRecords[key].stars,2);assert(!ui.next.hidden && ui.retry.hidden);assert.equal(ui.next.textContent,'カレンダーへ');
+ assert.equal(state,'won');assert.equal(dailyRecords[key].stars,3);assert(!ui.next.hidden && ui.retry.hidden);assert.equal(ui.next.textContent,'カレンダーへ');
  assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore,'Daily clear polluted normal progress');
  assert.equal(dailyRecords[key].moves,moveCount);assert(ui.overlay.open);
  ui.next.onclick();finishAds();assert.equal(state,'daily');assert(!dailyRun && ui.overlay.hidden && !ui.dailyCalendar.hidden);assert(ui.dailyGrid.innerHTML.includes('daily-stars'));
  const count=dailyAttempts[key],pending=dailyEntryAdPending;assert(!selectDailyDate(key));assert.equal(state,'daily');assert(!dummyAd);assert.equal(dailyAttempts[key],count);assert.equal(dailyEntryAdPending,pending);
- assert(ui.dailyGrid.innerHTML.includes('disabled'));assert.equal(dailyRecords[key].stars,2);
+ assert(ui.dailyGrid.innerHTML.includes('disabled'));assert.equal(dailyRecords[key].stars,3);
 }
 assert.deepEqual(readDailyRecords(),dailyRecords);
 const key=dates.get(0),originalRecord=JSON.stringify(dailyRecords[key]);dailyRun={...dailyProfile(key),returnCourse:'existing'};moveCount=1;runElapsedMs=100;recordDailyClear();assert.equal(JSON.stringify(dailyRecords[key]),originalRecord,'Completed daily record must remain unchanged');
@@ -95,5 +95,5 @@ for(const [zone,before,after] of [
  `)(assert,before,after);
 }
 process.env.TZ='UTC';
-new Function('assert',env+source+`assert(Object.keys(dailyRecords).length===4);assert(Object.values(dailyRecords).every(r=>r.stars===2));`)(assert);
+new Function('assert',env+source+`assert(Object.keys(dailyRecords).length===4);assert(Object.values(dailyRecords).every(r=>r.stars===3));`)(assert);
 }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}
