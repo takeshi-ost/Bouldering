@@ -57,8 +57,7 @@ function recordStageClear() {
 }
 function unlockedLevel() { return stageProgress[courseMode].cleared + 1; }
 function mapBounds() {
-    // Include the previous page's final node so 20 -> 21 is also a single hop.
-    return {first:Math.max(1,mapPage*MAP_PAGE_SIZE),last:(mapPage+1)*MAP_PAGE_SIZE};
+    return {first:mapPage*MAP_PAGE_SIZE+1,last:(mapPage+1)*MAP_PAGE_SIZE};
 }
 function mapHeight() {
     return (ui.mapTrack.clientWidth||400)*MAP_IMAGE_HEIGHT/MAP_IMAGE_WIDTH+MAP_EDGE_SPACE+MAP_BOTTOM_SPACE;
@@ -92,7 +91,8 @@ function renderLevelMap() {
     }
     ui.mapRoad.innerHTML = '';
     ui.mapNodes.innerHTML = nodes.join('');
-    ui.mapMarker.hidden = mapSelected<first || mapSelected>last;
+    // The page-boundary hop starts on the entry path, without duplicating a stage button.
+    ui.mapMarker.hidden = (mapSelected<first || mapSelected>last) && !mapTransition;
     if (!ui.mapMarker.hidden) positionMapMarker(mapPoint(mapSelected));
     if(typeof updateMapAppearance==='function')updateMapAppearance();
     ui.mapCourse.hidden=courseMode!=='prototype';
@@ -134,7 +134,8 @@ function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
     ui.restart.disabled=ui.mapButton.disabled=true;
     canvas.setAttribute('tabindex','-1');
     renderLevelMap();
-    ui.mapScroll.scrollTop=Math.max(0,mapPoint(destination).y-(ui.mapScroll.clientHeight||H)/2);
+    const viewportHeight=ui.mapScroll.clientHeight||H;
+    ui.mapScroll.scrollTop=Math.max(0,viewportHeight*.2+mapPoint(destination).y-viewportHeight/2);
     if (!mapTransition) focusMapLevel();
 }
 function advanceLevelMap(now) {

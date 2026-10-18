@@ -120,10 +120,10 @@ button:disabled { opacity: .45; cursor: default; }
 .map-heading .eyebrow { letter-spacing:1px; font-size:10px; }
 .map-secondary { padding:11px 12px; background:#dde5d6; color:#3f5b47; min-width:44px; min-height:44px; }
 .map-error { margin:0 18px 10px; color:#ae433d; font-size:12px; }
-.map-scroll { position:absolute; inset:0; z-index:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; background:#bfc5ae; }
+.map-scroll { position:absolute; inset:0; z-index:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; background:#bfc5ae; padding-top:20dvh; }
 .map-sky { position:absolute; inset:0 0 auto; height:20%; z-index:2; pointer-events:none; background:url('assets/map-sky.webp') center top / cover no-repeat; -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 80%,transparent 100%); mask-image:linear-gradient(to bottom,#000 0%,#000 80%,transparent 100%); }
 .map-track { position:relative; margin:0; overflow-x:clip; }
-.map-scenery { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:hidden; }
+.map-scenery { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:hidden; -webkit-mask-image:linear-gradient(to bottom,transparent,#000 16px); mask-image:linear-gradient(to bottom,transparent,#000 16px); }
 .map-road { position:absolute; inset:0; width:100%; height:100%; overflow:visible; fill:none; stroke-width:12; stroke-linecap:round; pointer-events:none; }
 .map-road path { vector-effect:non-scaling-stroke; }
 .map-road-outline { stroke:#a5af9b; stroke-width:15; }
@@ -255,7 +255,9 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 
 #overlay .result-difficulty {margin:8px 0;font-size:16px;font-weight:700;letter-spacing:.12em;color:#526b59;}
 
-.map-page { position:absolute; z-index:3; left:50%; transform:translateX(-50%); width:44px; height:44px; padding:0; font-size:28px; line-height:1; background:#fffdf3ed; color:#3f5b47; border:1px solid #c7d2bf; border-radius:50%; }
+.map-page { position:absolute; z-index:3; left:50%; transform:translateX(-50%); display:grid; place-items:center; width:25vw; height:44px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.map-page svg { display:block; width:100%; height:28px; overflow:visible; fill:#3f5b47; stroke:#fff; stroke-width:2; stroke-linejoin:round; pointer-events:none; }
+.map-page:hover { background:transparent; filter:brightness(1.1); }
 .map-page[hidden] { display:none; }
 .map-page-next { top:12px; }
 .map-page-prev { bottom:40px; transform:translateX(-50%) rotate(180deg); }

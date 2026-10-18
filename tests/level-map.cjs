@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 assert(!/id="(?:mapStatus|mapRange)"|class="map-navigation"|class="map-hint"/.test(html));
-assert(/id="mapNext"[^>]*>△/.test(html));assert(/id="mapPrev"[^>]*>△/.test(html));
+assert(/id="mapNext"[^>]*><svg/.test(html));assert(/id="mapPrev"[^>]*><svg/.test(html));
 const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
 const elements={};const document={getElementById(id){return elements[id] ||= {
@@ -103,7 +103,7 @@ level=2;assert.doesNotThrow(()=>recordStageClear());assert.equal(unlockedLevel()
 // Crossing page boundaries keeps a visible single-step 20 -> 21 hop.
 stageProgress.existing.cleared=19;mapPage=0;renderLevelMap();assert(ui.mapNext.hidden && ui.mapPrev.hidden);
 stageProgress.existing.cleared=20;renderLevelMap();assert(!ui.mapNext.hidden && ui.mapPrev.hidden);level=20;state='won';ui.next.onclick();
-assert.deepEqual(mapBounds(),{first:20,last:40});assert.equal(ui.mapMarker.hidden,false);
+assert.deepEqual(mapBounds(),{first:21,last:40});assert(!ui.mapNodes.innerHTML.includes('data-level="20"'));assert.equal((ui.mapNodes.innerHTML.match(/data-level=/g)||[]).length,20);assert.equal(ui.mapMarker.hidden,false);
 assert.deepEqual([mapTransition.from,mapTransition.to],[20,21]);
 advanceLevelMap(2000);advanceLevelMap(2650);assert.equal(mapSelected,21);assert(!ui.mapPrev.hidden && ui.mapNext.hidden);
 ui.mapPrev.onclick();assert.equal(mapPage,0);assert.equal(ui.mapMarker.hidden,true);assert(ui.mapPrev.disabled && ui.mapPrev.hidden && !ui.mapNext.hidden);ui.mapPrev.onclick();assert.equal(mapPage,0);
