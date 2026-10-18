@@ -60,8 +60,8 @@ function addHazardHolds() {
     updateStageDensity();
 }
 
-// Keep the validated route affordable with the fixed three-move reserve.
-// Extra optional hazards preserve the dense visual ratio without charging that route.
+// Type changes preserve reach, support selection and snapping. Keep wide holds,
+// the start stance and goal intact; no extra geometry or route search is needed.
 function convertDenseHazards() {
     const random=mulberry32(courseSeed() ^ 0x3C61D52A);
     const protectedIds=new Set(initialGrips.map(h=>h.id));
@@ -71,34 +71,8 @@ function convertDenseHazards() {
     const max=Math.min(candidates.length,Math.floor(holds.length*HAZARD_CONFIG.maxRatio));
     if(max<min)throw new Error('Not enough ordinary holds for dense hazards');
     const count=min+Math.floor(random()*(max-min+1));
-    let converted=0;
-    for(const {h} of candidates) {
-        if(converted>=count)break;
-        h.type='hazard';
-        if((routeHazardCosts(route).at(-1)||0)>3)h.type='normal';
-        else converted++;
-    }
-    const targetRatio=count/holds.length;
-    let nextId=Math.max(...holds.map(h=>h.id))+1;
-    for(let attempt=0;attempt<HAZARD_CONFIG.attempts*4 && converted/holds.length<targetRatio;attempt++) {
-        const step=1+Math.floor(random()*(route.length-2));
-        const a=route[step],b=route[Math.min(step+1,route.length-1)],t=random();
-        const limb=limbs[Math.floor(random()*4)];
-        const h={id:nextId,type:'hazard',
-            x:a.x+(b.x-a.x)*t+limb.x+(random()-.5)*72,
-            y:a.y+(b.y-a.y)*t+limb.y+(random()-.5)*56};
-        if(h.x<HOLD_CONFIG.sideMargin || h.x>W-HOLD_CONFIG.sideMargin ||
-            h.y<HOLD_CONFIG.topMargin || h.y>=initialGrips[2].y-24 ||
-            insideStartTriangle(h,initialGrips) ||
-            holds.some(other=>distance(other,h)<(other.wide?32:HAZARD_CONFIG.spacing)))continue;
-        // Avoid exceeding the original maximum ratio when adding a new hold.
-        if((converted+1)/(holds.length+1)>HAZARD_CONFIG.maxRatio)break;
-        holds.push(h);
-        if(samePairRoute(route,replayRoute(route)) && findHazardMove(h)) {converted++;nextId++;}
-        else holds.pop();
-    }
-    if(converted/holds.length<HAZARD_CONFIG.minRatio)throw new Error('Not enough optional dense hazards');
+    for(const {h} of candidates.slice(0,count))h.type='hazard';
     if(!samePairRoute(route,replayRoute(route)))throw new Error('Dense hazard route replay failed');
-    densityStats.hazardCount=converted;
+    densityStats.hazardCount=count;
     updateStageDensity();
 }

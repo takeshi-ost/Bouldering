@@ -37,14 +37,21 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,80]) {
  }
  assert(paid>0,'Dense stage must include penalties on the planned route');
  assert.equal(state,'won');assert.equal(pickups,hearts.length*2);
- assert.equal(starting,moves+3);assert(paid<=3);
- assert.equal(stamina,stageStamina(moves)-moves+pickups-paid);
+ assert.equal(routeExpectedMoves(),moves+paid);assert.equal(starting,moves+paid+3);
+ assert.equal(stamina,3+pickups);
  assert.equal(routeHazardCosts(route).at(-1),paid);
+ debugMode=true;updateUI();assert(ui.progress.textContent.includes('想定 '+(moves+paid)+' 手'));debugMode=false;
+ const expected=moves+paid;
+ for(const [extra,stars] of [[0,3],[1,2],[2,2],[3,1]]) {
+  moveCount=expected+extra;finish(true);
+  assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert.equal(stageRecords[mode][n].stars,3);
+ }
+
  ui.retry.onclick();assert.equal(JSON.stringify({holds,route,hearts}),saved);assert.equal(stamina,starting);
  report.push({mode,level:n,total:holds.length,blue:blue.length,moves,penalties:paid,starting});
 }
-// Heart deadlines account for affordable early penalties with no initial deductions.
-level=40;initialGrips=[];holds=Array.from({length:20},(_,id)=>({id,type:id<3?'hazard':'normal',x:id,y:0}));
+// Heart deadlines include early penalties in the expected-move budget.
+level=40;initialGrips=[];holds=Array.from({length:20},(_,id)=>({id,type:'hazard',x:id,y:0}));
 const path=Array.from({length:11},(_,i)=>({x:200,y:700-i*40,grips:[i*2%20,(i*2+1)%20]}));
 for(let n=40;n<100;n++) {
  const items=createHearts(n,path),costs=routeHazardCosts(path);

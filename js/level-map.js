@@ -46,7 +46,7 @@ function recordStageClear() {
     if(dailyRun) {recordDailyClear();return;}
     if (debugAttempt) return;
     if(moveCount>0) {
-        const stars=Math.max(stageRecords[courseMode][level]?.stars||0,clearStars(moveCount,route.length-1));
+        const stars=Math.max(stageRecords[courseMode][level]?.stars||0,clearStars(moveCount,routeExpectedMoves()));
         stageRecords[courseMode][level]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars};
     }
     stageProgress[courseMode].cleared = Math.max(stageProgress[courseMode].cleared,level);

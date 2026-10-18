@@ -396,8 +396,11 @@ function routeHazardCosts(path) {
         return total;
     });
 }
+function routeExpectedMoves(path=route) {
+    return path.length-1+(routeHazardCosts(path).at(-1)||0);
+}
 function routeStamina(path) {
-    return stageStamina(path.length-1);
+    return stageStamina(routeExpectedMoves(path));
 }
 
 // Use an independent stream: retries preserve both holds and items.
@@ -553,7 +556,7 @@ function updateUI() {
 
     ui.progress.hidden=!debugMode;
     ui.progress.textContent =
-        `${moveCount} 手 / 想定 ${route.length - 1} 手 / ${difficultyLabel(difficulty)}`;
+        `${moveCount} 手 / 想定 ${routeExpectedMoves()} 手 / ${difficultyLabel(difficulty)}`;
 }
 
 function point(e) {
@@ -810,7 +813,7 @@ function finish(won) {
     ui.retry.hidden=!!dailyRun && won;
     ui.retry.textContent=dailyRun?'リトライ':'RETRY';
 
-    const expectedMoves=route.length-1;
+    const expectedMoves=routeExpectedMoves();
     const stars=clearStars(moveCount,expectedMoves);
     ui.resultStars.hidden=!won;
     ui.resultStars.textContent=won ? '⭐️'.repeat(stars) : '';

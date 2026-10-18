@@ -76,7 +76,7 @@ function refreshDailyEntry() {
 function recordDailyClear() {
     if(!dailyRun || moveCount<1 || dailyRecords[dailyRun.date])return;
     const date=dailyRun.date;
-    const stars=clearStars(moveCount,route.length-1);
+    const stars=clearStars(moveCount,routeExpectedMoves());
     dailyRecords[date]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars};
     try {globalThis.localStorage?.setItem(DAILY_RECORDS_KEY,JSON.stringify(dailyRecords));}
     catch(_) { /* Preserve the earned stars within this session. */ }
