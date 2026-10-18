@@ -151,28 +151,31 @@ function drawGoalHoldSprite(h) {
 }
 // World-space effects follow the wall camera, without changing hit areas.
 function drawGoalSparkles(h,now) {
-    ctx.save();ctx.fillStyle='#fffbe0';ctx.strokeStyle='#d3aa4a';ctx.lineWidth=.65;
-    for(let i=0;i<7;i++) {
-        const phase=(now/1800+i*.173)%1;
-        const pulse=Math.pow(Math.sin(Math.PI*phase),3);
-        const angle=i*2.39996, radius=21+(i%3)*6;
-        const x=h.x+Math.cos(angle)*radius,y=h.y+Math.sin(angle)*radius-phase*5;
-        const size=(3+i%3)*pulse;
-        ctx.globalAlpha=.9*pulse;ctx.beginPath();
-        for(let j=0;j<8;j++) {
-            const a=j*Math.PI/4,r=j%2?size*.23:size;
-            const px=x+Math.cos(a)*r,py=y+Math.sin(a)*r;
-            if(j)ctx.lineTo(px,py);else ctx.moveTo(px,py);
-        }
-        ctx.closePath();ctx.fill();ctx.stroke();
+    // Match the airship: four ivory stars, 2.2s staggered size/opacity pulses.
+    const stars=[[-23,-13,12,300],[24,3,16,1300],[-14,23,10,800],[9,-29,12,1800]];
+    const points=[[.5,0],[.61,.39],[1,.5],[.61,.61],[.5,1],[.39,.61],[0,.5],[.39,.39]];
+    const ease=t=>t*t*(3-2*t);
+    ctx.save();ctx.fillStyle='#fffbdc';
+    for(const [dx,dy,size,delay] of stars) {
+        const phase=((now+delay)%2200)/2200;
+        let scale,alpha;
+        if(phase<.45) {const t=ease(phase/.45);scale=.25+.75*t;alpha=t;}
+        else if(phase<.75) {const t=ease((phase-.45)/.3);scale=1-.55*t;alpha=1-t;}
+        else {scale=.45-.2*ease((phase-.75)/.25);alpha=0;}
+        ctx.globalAlpha=alpha;ctx.beginPath();
+        points.forEach(([x,y],i)=>{
+            const px=h.x+dx+(x-.5)*size*scale,py=h.y+dy+(y-.5)*size*scale;
+            if(i)ctx.lineTo(px,py);else ctx.moveTo(px,py);
+        });
+        ctx.closePath();ctx.fill();
     }
     ctx.restore();
 }
 function drawAnchorRings(now) {
-    anchorRings=anchorRings.filter(r=>now-r.start<300);
+    anchorRings=anchorRings.filter(r=>now-r.start<200);
     ctx.save();
     for(const ring of anchorRings) {
-        const t=clamp((now-ring.start)/300,0,1),radius=5+23*(1-(1-t)*(1-t));
+        const t=clamp((now-ring.start)/200,0,1),radius=4+10*(1-(1-t)*(1-t));
         ctx.globalAlpha=(1-t)*.9;
         ctx.beginPath();ctx.arc(ring.x,ring.y,radius,0,Math.PI*2);
         ctx.lineWidth=3;ctx.strokeStyle='#fffdf0';ctx.stroke();

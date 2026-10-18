@@ -659,8 +659,6 @@ function move(e) {
             raw.x - committed.x,
             raw.y - committed.y
         );
-        const now=performance.now();
-        anchorRings=drag.anchor.map(i=>({x:grips[i].x,y:grips[i].y,start:now}));
     }
 
     const previousBody = { ...body };
@@ -734,6 +732,7 @@ function release(cancel = false) {
             )
         );
 
+    const movingLimbs=[0,1,2,3].filter(i=>!drag.anchor?.includes(i));
     drag = null;
 
     // Continuity belongs to a limb/hold pair, not just an occupied hold.
@@ -746,6 +745,8 @@ function release(cancel = false) {
         body = { ...committed };
         grips = [...startGrips];
     } else {
+        const now=performance.now();
+        anchorRings=movingLimbs.map(i=>({x:grips[i].x,y:grips[i].y,start:now}));
         undoSnapshot = moveSnapshot;
         playerPath.push({
             x: body.x,
