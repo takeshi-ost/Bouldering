@@ -1,8 +1,8 @@
 "use strict";
 // Approved raster artwork; mirror the art only, keeping the live stage number upright.
-const MAP_ART_VERSION='white-outline-road-v1';
+const MAP_ART_VERSION='white-plate-ellipse-v2';
 const MAP_BACKGROUND_VERSION='sage-extended-v2';
-const MAP_ICON_ASSETS={"active-100":{"width":512,"height":512,"renderWidth":72.818,"renderHeight":72.818,"left":-4.693,"top":-14.916},"active-125":{"width":512,"height":512,"renderWidth":72.656,"renderHeight":72.656,"left":-4.541,"top":-18.603},"active-150":{"width":512,"height":512,"renderWidth":75.502,"renderHeight":75.502,"left":-5.751,"top":-23.358},"cleared-100":{"width":512,"height":512,"renderWidth":72.496,"renderHeight":72.496,"left":-4.531,"top":-14.77},"cleared-125":{"width":512,"height":512,"renderWidth":74.136,"renderHeight":74.136,"left":-5.213,"top":-21.015},"cleared-150":{"width":512,"height":512,"renderWidth":77.283,"renderHeight":77.283,"left":-7.094,"top":-24.033},"unplayed-100":{"width":512,"height":512,"renderWidth":72.496,"renderHeight":72.496,"left":-4.531,"top":-14.628},"unplayed-125":{"width":512,"height":512,"renderWidth":74.473,"renderHeight":74.473,"left":-5.382,"top":-20.32},"unplayed-150":{"width":512,"height":512,"renderWidth":76.561,"renderHeight":76.561,"left":-6.28,"top":-24.238}};
+const MAP_ICON_ASSETS={"active-100":{"width":512,"height":512,"renderWidth":66.873,"renderHeight":66.873,"left":-1.437,"top":-11.308},"active-125":{"width":512,"height":512,"renderWidth":66.602,"renderHeight":66.602,"left":-1.301,"top":-15.221},"active-150":{"width":512,"height":614,"renderWidth":68.267,"renderHeight":81.867,"left":-2.133,"top":-30.853},"cleared-100":{"width":512,"height":512,"renderWidth":66.602,"renderHeight":66.602,"left":-1.301,"top":-11.058},"cleared-125":{"width":512,"height":512,"renderWidth":66.467,"renderHeight":66.467,"left":-1.168,"top":-15.088},"cleared-150":{"width":512,"height":614,"renderWidth":67.983,"renderHeight":81.527,"left":-1.992,"top":-30.518},"unplayed-100":{"width":512,"height":512,"renderWidth":66.602,"renderHeight":66.602,"left":-1.301,"top":-11.188},"unplayed-125":{"width":512,"height":512,"renderWidth":66.467,"renderHeight":66.467,"left":-1.168,"top":-15.088},"unplayed-150":{"width":512,"height":614,"renderWidth":67.983,"renderHeight":81.527,"left":-1.992,"top":-30.65}};
 function mapStageVariant(n) {
     const index=(n-1)%6,pointIndex=(n-1)%20;
     const from=MAP_TRAIL[pointIndex];
@@ -43,16 +43,6 @@ function mapSceneryMarkup() {
     // The asset includes drawn top/bottom scenery; never reflect or stretch edge copies.
     return `<defs>
         <filter id="map-palette" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="1.2"/></filter>
-        <filter id="map-icon-white-outline" x="-100%" y="-200%" width="300%" height="500%" color-interpolation-filters="sRGB">
-            <feComponentTransfer in="SourceGraphic" result="dark-channels">
-                <feFuncR type="discrete" tableValues="1 0 0 0"/><feFuncG type="discrete" tableValues="1 0 0 0"/><feFuncB type="discrete" tableValues="1 0 0 0"/>
-            </feComponentTransfer>
-            <feColorMatrix in="dark-channels" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .333333 .333333 .333333 0 0"/>
-            <feComponentTransfer result="outline-mask"><feFuncA type="discrete" tableValues="0 0 0 1"/></feComponentTransfer>
-            <feComposite in="SourceGraphic" in2="outline-mask" operator="out" result="fill-only"/>
-            <feComposite in="outline-mask" in2="SourceGraphic" operator="in" result="white-outline"/>
-            <feMerge><feMergeNode in="fill-only"/><feMergeNode in="white-outline"/></feMerge>
-        </filter>
         <image id="map-artwork" href="assets/stage-map.webp?v=${MAP_BACKGROUND_VERSION}" x="0" y="0" width="400" height="${imageHeight}" preserveAspectRatio="none"/></defs>
         <use href="#map-artwork" filter="url(#map-palette)"/>`;
 }

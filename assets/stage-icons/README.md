@@ -1,27 +1,29 @@
 # Stage icons
 
-The approved rounded-mat climbing icon is supplied as transparent WebP artwork.
+The approved horizontal-ellipse mat and white base plate template is exported as
+transparent WebP artwork (quality 95, full-quality alpha).
 
 - `active-*`: gold mat; `cleared-*`: sage mat; `unplayed-*`: gray-blue mat.
-- Suffixes `100`, `125`, `150` identify wall height variants.
-- The six forms combine these three heights with CSS horizontal mirroring.
-  Only the left/right facing follows the outgoing trail, including at corners;
-  the artwork itself is never rotated.
-- Stage numbers are upright white DOM text with a black outline, outside the mirrored artwork.
-- Image placement uses alpha bounds to align mat size and floor position across variants.
+- Suffixes `100`, `125`, `150` identify the three wall-height forms.
+- CSS horizontal mirroring supplies both facing directions, for six forms and
+  eighteen form/state combinations. Facing follows the outgoing trail; artwork
+  is never rotated.
+- The mat is a level, left/right symmetrical ellipse. A slightly larger white
+  plate sits beneath it, with half the mat thickness.
+- The charcoal outline follows the complete outside silhouette, including the
+  white plate. The gray mat/white plate junction has no internal outline.
+- The outline is displayed in the approved charcoal color, without recoloring.
+- Stage numbers remain upright white DOM text with a black outline. Images
+  contain no numbers. Alpha bounds align mat width and floor position across
+  variants; tall forms can have a portrait canvas.
 
-Created with the built-in image generation tool from the approved icon. Prompt set:
-preserve the elliptical padded mat, rearward wall base, five holds and exterior-only
-outline; change only wall height (1 / 1.25 / 1.5) and mat palette (gold / sage / gray-blue),
-with a transparent background and no numbers. Mirroring is performed at display time.
+Created with the built-in image generation tool from the approved template.
+Prompt set: preserve the wall perspective, five holds, horizontal elliptical mat,
+white larger base plate, uniform exterior-only charcoal outline and clean
+mat/plate junction; vary only wall height and mat palette (gold / sage /
+gray-blue), with transparent backgrounds and no numbers. Each height's color
+variants use its generated gold form as their reference. The approved template's
+surface shading is retained. `palette.json` records the earlier flat-color
+revision and is not applied to these exports.
 
-The exterior outline is recolored white by an SVG display filter, leaving the
-black outline of the live white stage number unchanged.
-
-Shading revision: each base material uses a light/dark pair of flat colors, without
-gradients or texture. Geometry, six variants and progress palettes are retained.
-
-The final exports use the explicit light/dark pairs in `palette.json` and lossless
-WebP compression. Intermediate texture colors are removed at export; transparent
-edge alpha remains available for smooth compositing. The background keeps the approved shaded illustration and includes tents, bunting,
-picnic props, signposts and flowers beside the unchanged twenty-stage trail. Asset URLs include a revision to refresh older cached art.
+Asset URLs include `white-plate-ellipse-v2` to refresh cached artwork.
