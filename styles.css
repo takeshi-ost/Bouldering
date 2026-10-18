@@ -115,7 +115,8 @@ button:disabled { opacity: .45; cursor: default; }
 .map-heading .eyebrow { letter-spacing:1px; font-size:10px; }
 .map-secondary { padding:11px 12px; background:#dde5d6; color:#3f5b47; min-width:44px; min-height:44px; }
 .map-error { margin:0 18px 10px; color:#ae433d; font-size:12px; }
-.map-scroll { position:absolute; inset:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; background:#bfc5ae; }
+.map-scroll { position:absolute; inset:0; z-index:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; background:#bfc5ae; }
+.map-sky { position:absolute; inset:0 0 auto; height:20%; z-index:2; pointer-events:none; background:url('assets/map-sky.webp') center top / cover no-repeat; -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 45%,transparent 100%); mask-image:linear-gradient(to bottom,#000 0%,#000 45%,transparent 100%); }
 .map-track { position:relative; margin:0; overflow-x:clip; }
 .map-scenery { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:hidden; }
 .map-road { position:absolute; inset:0; width:100%; height:100%; overflow:visible; fill:none; stroke-width:12; stroke-linecap:round; pointer-events:none; }
