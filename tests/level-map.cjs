@@ -17,9 +17,16 @@ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
 Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {
 new Function('assert','storage','data',env+source+`
-// All six forms are stable across page changes, and status does not mirror live labels.
-assert.equal(new Set(Array.from({length:60},(_,i)=>{const v=mapStageVariant(i+1);return v.height+'-'+v.mirrored;})).size,6);
-for(let i=1;i<=6;i++)assert.deepEqual(mapStageVariant(i),mapStageVariant(i+60));
+// Wall height follows generated length; road facing never mirrors live labels.
+assert.equal(new Set(Array.from({length:60},(_,i)=>mapStageVariant(i+1).height)).size,3);
+for(let n=1;n<=100;n++) {
+ const actual=createStageGenerator().generate(n,true);
+ assert.equal(stageLengthInfo(n).height,actual.HEIGHT);
+ assert.equal(mapStageVariant(n).height,actual.HEIGHT<=H?'100':actual.HEIGHT<H*2?'125':'150');
+}
+assert.equal(mapStageVariant(1).height,'100');
+assert.equal(mapStageVariant(2).height,'125');
+assert.equal(mapStageVariant(5).height,'150');
 for(const status of ['active','cleared','unplayed'])for(let n=1;n<=6;n++) {
  const markup=mapWallMarkup(n,status);
  assert(markup.includes('assets/stage-icons/'+status+'-'+mapStageVariant(n).height+'.webp'));

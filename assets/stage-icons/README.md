@@ -5,6 +5,9 @@ transparent WebP artwork (quality 95, full-quality alpha).
 
 - `active-*`: gold mat; `cleared-*`: sage mat; `unplayed-*`: gray-blue mat.
 - Suffixes `100`, `125`, `150` identify the three wall-height forms.
+  The map selects them by actual generated wall height: up to one screen,
+  between one and two screens, and at least two screens, respectively.
+  Preview geometry is shared with generation and requires no route solving.
 - CSS horizontal mirroring supplies both facing directions, for six forms and
   eighteen form/state combinations. Facing follows the outgoing trail; artwork
   is never rotated.

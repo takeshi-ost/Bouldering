@@ -1,4 +1,69 @@
 "use strict";
+function makeStageCourse(length, mirror, climbHeight) {
+    // Piecewise-linear centerline; sample by arc length without smoothing
+    // the corners. Traverses are horizontal or slightly descending.
+    const samples = [{ x: W / 2 + mirror * STAGE_CONFIG.horizontalAmplitude, y: 0, s: 0 }];
+    let side=mirror, segment=0;
+    while(samples[samples.length-1].s<length) {
+        const previous=samples[samples.length-1];
+        const p=segment%2===0
+            ? {x:previous.x,y:previous.y-climbHeight}
+            : {x:W/2-side*STAGE_CONFIG.horizontalAmplitude,y:previous.y+STAGE_CONFIG.traverseDrop};
+        samples.push({...p,s:previous.s+distance(previous,p)});
+        if(segment%2===1)side=-side;
+        segment++;
+    }
+    return s => {
+        let low = 0, high = samples.length - 1;
+        while (high - low > 1) {
+            const mid = (low + high) >> 1;
+            if (samples[mid].s < s)
+                low = mid;
+            else
+                high = mid;
+        }
+        const a = samples[low], b = samples[high], t = clamp((s - a.s) / (b.s - a.s), 0, 1), d = distance(a, b);
+        return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, nx: -(b.y - a.y) / d, ny: (b.x - a.x) / d };
+    };
+}
+
+// Pure shared geometry: map previews do not generate holds or solve routes.
+function stageLayout(n,random=mulberry32(n)) {
+    // A finite wall cannot accumulate an unlimited number of distinct holds.
+    // Only every fifth stage may reach two screens; long walls cap at three.
+    const longStage = n % STAGE_CONFIG.longStageInterval === 0;
+    const baseSteps = n === 1 ? STAGE_CONFIG.introGuideSteps : STAGE_CONFIG.baseMoves + Math.min(n - 2, STAGE_CONFIG.growthLevels) * STAGE_CONFIG.movesPerLevel;
+    const guideSteps = Math.ceil(baseSteps * (longStage ? STAGE_CONFIG.longStageLengthScale : 1));
+    const rows = [0,1,2,3], support = [...rows];
+    // "row" is a station every 40px ALONG the course, not a vertical grid row.
+    // Four supports span at most 200px of arc. The torso at its midpoint is
+    // within 100px + the 8px hold offset of all four supports (R = 112px).
+    for (let i = 0; i < guideSteps; i++) {
+        support.shift();
+        const next = support[0] + STAGE_CONFIG.supportSpan;
+        rows.push(next);
+        support.push(next);
+    }
+    // Keep the intro guide compact; its actual move count is solved with two supports.
+    // Actual playability is checked later by route.js, not this station model.
+    if (n === 1)
+        rows.splice(4, STAGE_CONFIG.introGuideSteps, ...STAGE_CONFIG.introStations);
+    const lastStation = rows[rows.length - 1] * STAGE_CONFIG.stationSpacing;
+    const rawCourse = n === 1 ? s => ({ x: W / 2, y: -s, nx: 1, ny: 0 }) : makeStageCourse(lastStation, random() < .5 ? -1 : 1, (longStage ? STAGE_CONFIG.longStageClimbHeight : STAGE_CONFIG.climbHeight) + random() * STAGE_CONFIG.climbVariation);
+    const rise = -rawCourse(lastStation).y;
+    const height = n === 1 ? H : Math.min(longStage ? MAX_HEIGHT : H * 2 - 1, Math.max(H, Math.ceil(rise) + STAGE_CONFIG.verticalPadding));
+    const scaleY = n === 1 ? 1 : Math.min(1, (height - STAGE_CONFIG.verticalPadding) / rise);
+    const course = s => {
+        const p = rawCourse(s);
+        return { ...p, y: p.y * scaleY, ny: p.ny * scaleY };
+    };
+    return {rows,course,height};
+}
+function stageLengthInfo(n,seed=n) {
+    const {height}=stageLayout(n,mulberry32(seed));
+    return {height,category:height<=H?'short':height<H*2?'medium':'long'};
+}
+
 // 生成中の状態をゲーム本体から分離します。戻り値だけをゲームへ渡します。
 function createStageGenerator() {
     let holds = [];
@@ -7,33 +72,6 @@ function createStageGenerator() {
     let initialGrips = [];
     let densityReference = null;
     let densityStats = null;
-    function makeCourse(length, mirror, climbHeight) {
-        // Piecewise-linear centerline; sample by arc length without smoothing
-        // the corners. Traverses are horizontal or slightly descending.
-        const samples = [{ x: W / 2 + mirror * STAGE_CONFIG.horizontalAmplitude, y: 0, s: 0 }];
-        let side=mirror, segment=0;
-        while(samples[samples.length-1].s<length) {
-            const previous=samples[samples.length-1];
-            const p=segment%2===0
-                ? {x:previous.x,y:previous.y-climbHeight}
-                : {x:W/2-side*STAGE_CONFIG.horizontalAmplitude,y:previous.y+STAGE_CONFIG.traverseDrop};
-            samples.push({...p,s:previous.s+distance(previous,p)});
-            if(segment%2===1)side=-side;
-            segment++;
-        }
-        return s => {
-            let low = 0, high = samples.length - 1;
-            while (high - low > 1) {
-                const mid = (low + high) >> 1;
-                if (samples[mid].s < s)
-                    low = mid;
-                else
-                    high = mid;
-            }
-            const a = samples[low], b = samples[high], t = clamp((s - a.s) / (b.s - a.s), 0, 1), d = distance(a, b);
-            return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, nx: -(b.y - a.y) / d, ny: (b.x - a.x) / d };
-        };
-    }
     function generate(n, guideOnly = false, seed = n) {
         // Calibrate from STAGE 1 even when a debug tool opens another level first.
         // This uses its unchanged seeded layout, rather than a hard-coded count.
@@ -48,34 +86,8 @@ function createStageGenerator() {
             holds.push(h);
             return h;
         };
-        // A finite wall cannot accumulate an unlimited number of distinct holds.
-        // Only every fifth stage may reach two screens; long walls cap at three.
-        const longStage = n % STAGE_CONFIG.longStageInterval === 0;
-        const baseSteps = n === 1 ? STAGE_CONFIG.introGuideSteps : STAGE_CONFIG.baseMoves + Math.min(n - 2, STAGE_CONFIG.growthLevels) * STAGE_CONFIG.movesPerLevel;
-        const guideSteps = Math.ceil(baseSteps * (longStage ? STAGE_CONFIG.longStageLengthScale : 1));
-        const rows = [0,1,2,3], support = [...rows];
-        // "row" is a station every 40px ALONG the course, not a vertical grid row.
-        // Four supports span at most 200px of arc. The torso at its midpoint is
-        // within 100px + the 8px hold offset of all four supports (R = 112px).
-        for (let i = 0; i < guideSteps; i++) {
-            support.shift();
-            const next = support[0] + STAGE_CONFIG.supportSpan;
-            rows.push(next);
-            support.push(next);
-        }
-        // Keep the intro guide compact; its actual move count is solved with two supports.
-        // Actual playability is checked later by route.js, not this station model.
-        if (n === 1)
-            rows.splice(4, STAGE_CONFIG.introGuideSteps, ...STAGE_CONFIG.introStations);
-        const lastStation = rows[rows.length - 1] * STAGE_CONFIG.stationSpacing;
-        const rawCourse = n === 1 ? s => ({ x: W / 2, y: -s, nx: 1, ny: 0 }) : makeCourse(lastStation, random() < .5 ? -1 : 1, (longStage ? STAGE_CONFIG.longStageClimbHeight : STAGE_CONFIG.climbHeight) + random() * STAGE_CONFIG.climbVariation);
-        const rise = -rawCourse(lastStation).y;
-        HEIGHT = n === 1 ? H : Math.min(longStage ? MAX_HEIGHT : H * 2 - 1, Math.max(H, Math.ceil(rise) + STAGE_CONFIG.verticalPadding));
-        const scaleY = n === 1 ? 1 : Math.min(1, (HEIGHT - STAGE_CONFIG.verticalPadding) / rise);
-        const course = s => {
-            const p = rawCourse(s);
-            return { ...p, y: p.y * scaleY, ny: p.ny * scaleY };
-        };
+        const {rows,course,height}=stageLayout(n,random);
+        HEIGHT=height;
         const bottom = HEIGHT - STAGE_CONFIG.bottomMargin;
         rows.forEach((row, i) => {
             const p = course(row * STAGE_CONFIG.stationSpacing), offset = (row % 2 ? 1 : -1) * STAGE_CONFIG.holdOffset;
