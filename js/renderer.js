@@ -12,12 +12,11 @@ function drawWallBackground() {
 // A stable visual variant uses coordinates only; gameplay geometry is unchanged.
 const holdShapesImage=typeof Image==='function'?new Image():null;
 if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray.webp';
-const HOLD_TINT_STRENGTH=.12;
-const HOLD_TINT_RGB=[[100,145,220],[165,110,205],[220,110,110],[225,195,100]];
+// Direct multiply RGB: retain primary channels and reduce the others to 80.
+const HOLD_TINT_RGB=[[80,80,251],[244,80,249],[251,80,80],[251,248,80]];
 let holdTintAtlases=null;
 function multiplyHoldChannel(channel,tint) {
-    const multiplier=Math.round(255+(tint-255)*HOLD_TINT_STRENGTH);
-    return Math.round(channel*multiplier/255);
+    return Math.round(channel*tint/255);
 }
 function holdTintIndex(h) {
     // Separate, deterministic visual randomness avoids changing gameplay RNG or flickering.
