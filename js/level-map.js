@@ -64,7 +64,7 @@ function mapHeight() {
     return (ui.mapTrack.clientWidth||400)*MAP_IMAGE_HEIGHT/MAP_IMAGE_WIDTH+MAP_EDGE_SPACE+MAP_BOTTOM_SPACE;
 }
 function mapPoint(n) {
-    if(n===mapPage*MAP_PAGE_SIZE)return {x:8.5,y:mapHeight()-MAP_BOTTOM_SPACE-12};
+    if(n===mapPage*MAP_PAGE_SIZE)return {x:MAP_ENTRY_X/MAP_IMAGE_WIDTH*100,y:mapHeight()-40};
     const point=mapTrailPoint((n-mapPage*MAP_PAGE_SIZE-1)/(MAP_PAGE_SIZE-1));
     return {x:point.x/MAP_IMAGE_WIDTH*100,y:MAP_EDGE_SPACE+point.y/MAP_IMAGE_WIDTH*(ui.mapTrack.clientWidth||400)};
 }

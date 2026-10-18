@@ -34,8 +34,12 @@ for(let n=1;n<=20;n++) {
  assert(!('rotation' in v));
 }
 assert.equal(MAP_TRAIL.length,20);
-const step=Math.hypot(MAP_TRAIL[1][0]-MAP_TRAIL[0][0],MAP_TRAIL[1][1]-MAP_TRAIL[0][1]);
-for(let i=1;i<MAP_TRAIL.length;i++)assert(Math.abs(Math.hypot(MAP_TRAIL[i][0]-MAP_TRAIL[i-1][0],MAP_TRAIL[i][1]-MAP_TRAIL[i-1][1])-step)<1e-8);
+for(let i=0;i<MAP_TRAIL.length;i++) {
+ const point=mapTrailPoint(i/19);
+ assert(Math.abs(point.x-MAP_TRAIL[i][0])<1e-8 && Math.abs(point.y-MAP_TRAIL[i][1])<1e-8,'Stage must match its painted clearing');
+ if(i)assert(MAP_TRAIL[i][1]<MAP_TRAIL[i-1][1],'Stages ascend along the image');
+ if(i<19){const half=mapTrailPoint((i+.5)/19);assert(Math.abs(half.x-(MAP_TRAIL[i][0]+MAP_TRAIL[i+1][0])/2)<1e-8);assert(Math.abs(half.y-(MAP_TRAIL[i][1]+MAP_TRAIL[i+1][1])/2)<1e-8);}
+}
 let run=1;const runs=[];
 for(let i=2;i<MAP_TRAIL.length;i++) {
  const prev=Math.sign(MAP_TRAIL[i-1][0]-MAP_TRAIL[i-2][0]),next=Math.sign(MAP_TRAIL[i][0]-MAP_TRAIL[i-1][0]);
