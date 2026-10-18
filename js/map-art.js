@@ -43,6 +43,22 @@ function mapSceneryMarkup() {
     // The asset includes drawn top/bottom scenery; never reflect or stretch edge copies.
     return `<defs>
         <filter id="map-palette" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="1.2"/></filter>
+        <filter id="map-icon-soft-outline" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+            <feComponentTransfer in="SourceGraphic" result="dark-channels">
+                <feFuncR type="discrete" tableValues="1 0 0 0"/><feFuncG type="discrete" tableValues="1 0 0 0"/><feFuncB type="discrete" tableValues="1 0 0 0"/>
+            </feComponentTransfer>
+            <feColorMatrix in="dark-channels" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .333333 .333333 .333333 0 0"/>
+            <feComponentTransfer result="dark-mask"><feFuncA type="discrete" tableValues="0 0 0 1"/></feComponentTransfer>
+            <feComposite in="dark-mask" in2="SourceAlpha" operator="in" result="outline-mask"/>
+            <feComposite in="SourceGraphic" in2="dark-mask" operator="out" result="fill-only"/>
+            <feFlood flood-color="#435c50" flood-opacity=".22"/>
+            <feComposite in2="outline-mask" operator="in" result="soft-outline"/>
+            <feGaussianBlur in="outline-mask" stdDeviation=".8"/>
+            <feOffset dy="1" result="outline-shadow-mask"/>
+            <feFlood flood-color="#435c50" flood-opacity=".28"/>
+            <feComposite in2="outline-shadow-mask" operator="in" result="outline-shadow"/>
+            <feMerge><feMergeNode in="outline-shadow"/><feMergeNode in="soft-outline"/><feMergeNode in="fill-only"/></feMerge>
+        </filter>
         <image id="map-artwork" href="assets/stage-map.webp?v=${MAP_BACKGROUND_VERSION}" x="0" y="0" width="400" height="${imageHeight}" preserveAspectRatio="none"/></defs>
         <use href="#map-artwork" filter="url(#map-palette)"/>`;
 }

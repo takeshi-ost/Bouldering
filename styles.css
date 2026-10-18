@@ -130,7 +130,7 @@ button:disabled { opacity: .45; cursor: default; }
 .map-road-open,.map-road-locked { stroke:#eee9d8; }
 .map-node { position:absolute; transform:translate(-50%,-50%); width:64px; height:72px; padding:0; border:0; border-radius:8px; background:transparent; box-shadow:none; letter-spacing:0; overflow:visible; }
 .map-wall { position:absolute; inset:0; display:block; width:64px; height:72px; pointer-events:none; }
-.map-icon-art { position:absolute; inset:0; transform-origin:50% 50%; }
+.map-icon-art { position:absolute; inset:0; transform-origin:50% 50%; filter:url(#map-icon-soft-outline); }
 .map-icon-image { position:absolute; max-width:none; object-fit:fill; }
 .map-wall .map-node-number { position:absolute; left:50%; top:calc(50% - 6px); transform:translate(-50%,-50%); color:#fff; -webkit-text-stroke:2px #000; paint-order:stroke fill; font-weight:800; line-height:1; letter-spacing:0; text-shadow:none; }
 .map-node small { display:none; position:absolute; top:64px; left:0; right:0; font-size:9px; line-height:12px; color:#475e52; }

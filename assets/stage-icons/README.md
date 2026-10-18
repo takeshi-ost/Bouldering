@@ -12,7 +12,9 @@ transparent WebP artwork (quality 95, full-quality alpha).
   plate sits beneath it, with half the mat thickness.
 - The charcoal outline follows the complete outside silhouette, including the
   white plate. The gray mat/white plate junction has no internal outline.
-- The outline is displayed in the approved charcoal color, without recoloring.
+- At display time, an SVG filter isolates the dark exterior outline and renders
+  it in player-outline green (#435c50) at 22% opacity, with a soft 28% shadow.
+  Wall, holds, mat and white plate fills keep their original colors and opacity.
 - Stage numbers remain upright white DOM text with a black outline. Images
   contain no numbers. Alpha bounds align mat width and floor position across
   variants; tall forms can have a portrait canvas.
