@@ -95,6 +95,8 @@ function drawHoldSprite(h) {
     return true;
 }
 
+const PLAYER_OUTLINE_COLOR='#435c50';
+
 function circle(x, y, r, fill, stroke) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -917,7 +919,7 @@ function draw(now = 0) {
         const color =
             moving
                 ? '#c39037'
-                : '#435c50';
+                : PLAYER_OUTLINE_COLOR;
 
         drawLimbSegments(root, joint, h, color);
     });
@@ -941,33 +943,26 @@ function draw(now = 0) {
             x: visual.body.x,
             y: top - 9
         },
-        '#435c50',
+        PLAYER_OUTLINE_COLOR,
         5
     );
 
+    ctx.lineWidth = 2;
     circle(
         visual.body.x,
         top - 13,
         10,
-        typeof playerHeadColor==='undefined' ? '#e0b99b' : playerHeadColor
+        typeof playerHeadColor==='undefined' ? '#e0b99b' : playerHeadColor,
+        PLAYER_OUTLINE_COLOR
     );
 
     const pressOffset=bodyTap ? 3 : 0;
-    ctx.fillStyle =
-        '#ffffff70';
-
-    ctx.fillRect(
-        left - 4,
-        top - 4 + pressOffset,
-        TORSO.width + 8,
-        TORSO.height + 8
-    );
 
     drawBodyFill(left,top+pressOffset,TORSO.width,TORSO.height,!!bodyTap);
 
     ctx.lineWidth = 2;
     ctx.strokeStyle =
-        '#fff9ed';
+        PLAYER_OUTLINE_COLOR;
 
     ctx.strokeRect(
         left,
