@@ -33,6 +33,7 @@ const wideHoldImage=typeof Image==='function'?new Image():null;
 if(wideHoldImage)wideHoldImage.src='assets/hold-wide-flat.webp';
 // Midpoint between the previous palette and the original subtle multiply tints.
 const HOLD_TINT_RGB=[[217,222,251],[244,219,249],[251,219,219],[251,248,217]];
+const GOAL_HOLD_TINT_RGB=[255,228,150];
 // Three warm-gray tones retain the source artwork's opaque darkest/lightest values.
 const HOLD_TONE_RGB=[[82,78,77],[153,148,145],[223,218,214]];
 const holdToneLuminance=HOLD_TONE_RGB.map(([r,g,b])=>r*.2126+g*.7152+b*.0722);
@@ -42,7 +43,7 @@ function holdToneRGB(r,g,b) {
         luminance<(holdToneLuminance[1]+holdToneLuminance[2])/2 ? 1 : 2;
     return HOLD_TONE_RGB[index];
 }
-let holdTintAtlases=null,wideHoldTintAtlases=null;
+let holdTintAtlases=null,wideHoldTintAtlases=null,goalHoldTintAtlas=null;
 function multiplyHoldChannel(channel,tint) {
     // Source artwork already carries the restored original facet contrast.
     return Math.round(channel*tint/255);
@@ -53,8 +54,8 @@ function holdTintIndex(h) {
     hash=Math.imul(hash^(hash>>>16),0x45d9f3b);
     return ((hash^(hash>>>16))>>>0)%HOLD_TINT_RGB.length;
 }
-function createHoldTintAtlases(image) {
-    return HOLD_TINT_RGB.map(tint=>{
+function createHoldTintAtlases(image,tints=HOLD_TINT_RGB) {
+    return tints.map(tint=>{
         const atlas=document.createElement('canvas');
         atlas.width=image.naturalWidth;
         atlas.height=image.naturalHeight;
@@ -83,6 +84,14 @@ function drawWideHoldSprite(h) {
     if(!wideHoldImage?.complete || !wideHoldImage.naturalWidth)return false;
     wideHoldTintAtlases ??= createHoldTintAtlases(wideHoldImage);
     ctx.drawImage(wideHoldTintAtlases[holdTintIndex(h)],h.x-30,h.y-18,60,36);
+    return true;
+}
+
+function drawGoalHoldSprite(h) {
+    if(!holdShapesImage?.complete || !holdShapesImage.naturalWidth)return false;
+    goalHoldTintAtlas ??= createHoldTintAtlases(holdShapesImage,[GOAL_HOLD_TINT_RGB])[0];
+    // Always reuse the first ordinary shape, at 1.25 times its 24px display size.
+    ctx.drawImage(goalHoldTintAtlas,0,0,128,128,h.x-15,h.y-15,30,30);
     return true;
 }
 
@@ -815,7 +824,7 @@ function draw(now = 0) {
             holdShape(
                 h.x,
                 h.y,
-                hazard ? 11 : h.wide ? 17 : 14,
+                hazard ? 11 : gold ? 18 : h.wide ? 17 : 14,
                 hazard ? '#6099cf20' : '#70987920',
                 gold
                     ? '#cfaa48'
@@ -823,8 +832,8 @@ function draw(now = 0) {
             );
         }
 
-        const spriteDrawn = !hazard && (h.wide ? drawWideHoldSprite(h) :
-            !gold && !green && drawHoldSprite(h));
+        const spriteDrawn = !hazard && (gold ? drawGoalHoldSprite(h) :
+            h.wide ? drawWideHoldSprite(h) : !green && drawHoldSprite(h));
         if (!spriteDrawn) {
             holdShape(
                 h.x,
