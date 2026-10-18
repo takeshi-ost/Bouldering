@@ -87,12 +87,68 @@ function drawWideHoldSprite(h) {
     return true;
 }
 
+function createMetallicGoalAtlas() {
+    const atlas=document.createElement('canvas');
+    atlas.width=atlas.height=128;
+    const paint=atlas.getContext('2d');
+    paint.drawImage(holdShapesImage,0,0,128,128,0,0,128,128);
+    let pixels;
+    try {pixels=paint.getImageData(0,0,128,128);}
+    catch(error) {
+        if(error.name==='SecurityError')return createHoldTintAtlases(holdShapesImage,[GOAL_HOLD_TINT_RGB])[0];
+        throw error;
+    }
+    const goldTones=[[99,60,9],[221,161,31],[255,235,139]];
+    for(let i=0;i<pixels.data.length;i+=4) {
+        const tone=HOLD_TONE_RGB.indexOf(holdToneRGB(pixels.data[i],pixels.data[i+1],pixels.data[i+2]));
+        for(let c=0;c<3;c++)pixels.data[i+c]=goldTones[tone][c];
+    }
+    paint.putImageData(pixels,0,0);
+    // Cache diagonal reflection bands inside the original silhouette, preserving alpha.
+    paint.globalCompositeOperation='source-atop';
+    const reflection=paint.createLinearGradient(0,0,128,128);
+    for(const [at,color] of [[0,'#fff4b522'],[.28,'#fffbe000'],[.38,'#fffbe000'],
+        [.44,'#ffffedee'],[.50,'#fffbe000'],[.61,'#5d350033'],[.7,'#fffbe000'],
+        [.79,'#fff8c366'],[.88,'#fffbe000'],[1,'#58300022']])reflection.addColorStop(at,color);
+    paint.fillStyle=reflection;
+    paint.fillRect(0,0,128,128);
+    return atlas;
+}
 function drawGoalHoldSprite(h) {
     if(!holdShapesImage?.complete || !holdShapesImage.naturalWidth)return false;
-    goalHoldTintAtlas ??= createHoldTintAtlases(holdShapesImage,[GOAL_HOLD_TINT_RGB])[0];
-    // Always reuse the first ordinary shape, at 1.25 times its 24px display size.
+    goalHoldTintAtlas ??= createMetallicGoalAtlas();
     ctx.drawImage(goalHoldTintAtlas,0,0,128,128,h.x-15,h.y-15,30,30);
+    // Small alternating glints make the goal readable against the pale wall.
+    ctx.save();
+    const time=performance.now()/650;
+    for(const [dx,dy,phase] of [[-11,-9,0],[12,5,Math.PI]]) {
+        const pulse=(Math.sin(time+phase)+1)/2,r=2+2*pulse;
+        ctx.globalAlpha=.45+.55*pulse;
+        ctx.fillStyle='#fffbd7';
+        ctx.beginPath();
+        for(let i=0;i<8;i++) {
+            const a=i*Math.PI/4,reach=i%2 ? r*.22 : r;
+            const x=h.x+dx+Math.cos(a)*reach,y=h.y+dy+Math.sin(a)*reach;
+            if(i)ctx.lineTo(x,y);else ctx.moveTo(x,y);
+        }
+        ctx.closePath();ctx.fill();
+    }
+    ctx.restore();
     return true;
+}
+function drawDebugHoldNumbers() {
+    if(!debugMode)return;
+    ctx.save();
+    ctx.font='bold 10px system-ui';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.lineWidth=3;ctx.lineJoin='round';
+    ctx.strokeStyle='#fffdf3';ctx.fillStyle='#26382f';
+    for(const h of holds) {
+        if(h.y<camera-35 || h.y>camera+H+35)continue;
+        const text=String(h.id+1),x=clamp(h.x,12,W-12),y=Math.min(HEIGHT-7,h.y+(h.wide ? 26 : 21));
+        ctx.strokeText(text,x,y);ctx.fillText(text,x,y);
+    }
+    ctx.restore();
 }
 
 function drawHoldSprite(h) {
@@ -1020,6 +1076,7 @@ function draw(now = 0) {
 
     ctx.restore();
     ctx.restore();
+    drawDebugHoldNumbers();
     drawHeartPopups(performance.now());
     ctx.restore();
     drawStageIntro();
