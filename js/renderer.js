@@ -12,11 +12,49 @@ function drawWallBackground() {
 // A stable visual variant uses coordinates only; gameplay geometry is unchanged.
 const holdShapesImage=typeof Image==='function'?new Image():null;
 if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray.webp';
+const HOLD_TINT_STRENGTH=.12;
+const HOLD_TINT_RGB=[[100,145,220],[165,110,205],[220,110,110],[225,195,100]];
+let holdTintAtlases=null;
+function multiplyHoldChannel(channel,tint) {
+    const multiplier=Math.round(255+(tint-255)*HOLD_TINT_STRENGTH);
+    return Math.round(channel*multiplier/255);
+}
+function holdTintIndex(h) {
+    // Separate, deterministic visual randomness avoids changing gameplay RNG or flickering.
+    let hash=Math.imul(Math.round(h.x),73856093)^Math.imul(Math.round(h.y),19349663);
+    hash=Math.imul(hash^(hash>>>16),0x45d9f3b);
+    return ((hash^(hash>>>16))>>>0)%HOLD_TINT_RGB.length;
+}
+function getHoldTintAtlases() {
+    if(holdTintAtlases)return holdTintAtlases;
+    holdTintAtlases=HOLD_TINT_RGB.map(tint=>{
+        const atlas=document.createElement('canvas');
+        atlas.width=holdShapesImage.naturalWidth;
+        atlas.height=holdShapesImage.naturalHeight;
+        const paint=atlas.getContext('2d');
+        paint.drawImage(holdShapesImage,0,0);
+        let pixels;
+        try {pixels=paint.getImageData(0,0,atlas.width,atlas.height);}
+        catch(error) {
+            // Standalone file URLs may block pixel readback; retain playable original artwork.
+            if(error.name==='SecurityError')return holdShapesImage;
+            throw error;
+        }
+        for(let i=0;i<pixels.data.length;i+=4) {
+            for(let c=0;c<3;c++)pixels.data[i+c]=multiplyHoldChannel(pixels.data[i+c],tint[c]);
+            // Preserve the original alpha, including antialiased transparent edges.
+        }
+        paint.putImageData(pixels,0,0);
+        return atlas;
+    });
+    return holdTintAtlases;
+}
 function drawHoldSprite(h) {
     if(!holdShapesImage?.complete || !holdShapesImage.naturalWidth)return false;
     // The atlas contains the original first through fourth shapes.
     const variant=((Math.round(h.x)*31+Math.round(h.y)*17)%4+4)%4;
-    ctx.drawImage(holdShapesImage,variant*128,0,128,128,h.x-12,h.y-12,24,24);
+    const atlas=getHoldTintAtlases()[holdTintIndex(h)];
+    ctx.drawImage(atlas,variant*128,0,128,128,h.x-12,h.y-12,24,24);
     return true;
 }
 
