@@ -103,6 +103,7 @@ function renderLevelMap() {
     ui.mapNext.disabled = ui.mapNext.hidden || !!mapTransition;
     ui.mapCourses.disabled = !!mapTransition;
     ui.openDaily.disabled=!!mapTransition;
+    refreshDailyEntry();
     ui.debugStage.disabled = ui.debugPlay.disabled = !!mapTransition;
     ui.debugControls.hidden = !debugMode;
 }

@@ -680,7 +680,7 @@ function draw(now = 0) {
     if(state==='ad') {advanceDummyAd(now);requestAnimationFrame(draw);return;}
     if (state === 'choosing' || state === 'editing' || state === 'map' || state === 'daily') {
         if (state === 'map') advanceLevelMap(now);
-        if (state === 'daily') refreshDailyCalendar();
+        if (state === 'daily' || state === 'map') refreshDailyCalendar();
         requestAnimationFrame(draw);
         return;
     }

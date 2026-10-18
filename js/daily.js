@@ -64,7 +64,15 @@ function readDailyRecords() {
 let dailyRecords=readDailyRecords();
 let dailyMonth=localToday().slice(0,7);
 let dailyCalendarToday=null;
+let dailyEntryToday=null;
 let dailyReturnCourse='existing';
+function refreshDailyEntry() {
+    const today=localToday();
+    if(today===dailyEntryToday)return;
+    dailyEntryToday=today;
+    ui.dailyEntryDate.textContent=today.slice(5).replace('-','/');
+    ui.openDaily.setAttribute('aria-label',`デイリーチャレンジ ${today.replaceAll('-','/')}`);
+}
 function recordDailyClear() {
     if(!dailyRun || moveCount<1 || dailyRecords[dailyRun.date])return;
     const date=dailyRun.date;
@@ -98,6 +106,7 @@ function renderDailyCalendar() {
     ui.dailyNext.disabled=dailyMonth>=today.slice(0,7);
 }
 function refreshDailyCalendar() {
+    if(state==='map') {refreshDailyEntry();return;}
     if(state!=='daily')return;
     const today=localToday();
     if(today===dailyCalendarToday)return;
