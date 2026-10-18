@@ -90,16 +90,30 @@ function drawWideHoldSprite(h) {
     return true;
 }
 
-function drawHazardHoldSprite(h) {
+function drawHazardSpriteTo(paint,x,y,size) {
     if(!hazardHoldImage?.complete || !hazardHoldImage.naturalWidth)return false;
     hazardHoldTintAtlas ??= createHoldTintAtlases(hazardHoldImage,[HAZARD_HOLD_TINT_RGB])[0];
-    ctx.save();
-    ctx.translate(h.x,h.y);
+    paint.save();
+    paint.translate(x,y);
     // Shape five points right in the source; rotate its sharp corner upward.
-    ctx.rotate(-Math.PI/2);
-    ctx.drawImage(hazardHoldTintAtlas,-10.8,-10.8,21.6,21.6);
-    ctx.restore();
+    paint.rotate(-Math.PI/2);
+    paint.drawImage(hazardHoldTintAtlas,-size/2,-size/2,size,size);
+    paint.restore();
     return true;
+}
+function drawHazardHoldSprite(h) {
+    return drawHazardSpriteTo(ctx,h.x,h.y,21.6);
+}
+function paintHazardHelpIcon(canvas) {
+    if(!canvas || !hazardHoldImage)return;
+    const render=()=>{
+        if(!canvas.isConnected)return;
+        const paint=canvas.getContext('2d');
+        paint.clearRect(0,0,canvas.width,canvas.height);
+        drawHazardSpriteTo(paint,canvas.width/2,canvas.height/2,canvas.width);
+    };
+    if(hazardHoldImage.complete && hazardHoldImage.naturalWidth)render();
+    else hazardHoldImage.addEventListener('load',render,{once:true});
 }
 
 function createMetallicGoalAtlas() {

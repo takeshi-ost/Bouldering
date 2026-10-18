@@ -43,8 +43,9 @@ function showStageHelp() {
 }
 function renderStageHelp() {
     const heart=pendingFeatureHelp[0]==='heart';
-    const icon=heart ? '❤️' : '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 Q22 3 26 13 L34 33 Q35 38 29 36 L20 32 10 37 Q5 38 7 31 L15 12Z" fill="#a34bd2" stroke="#70328f" stroke-width="2"/></svg>';
+    const icon=heart ? '❤️' : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
     ui.featureHelpContent.innerHTML=`<div class="feature-help-icon" aria-hidden="true">${icon}</div><h1 id="featureHelpTitle">${heart?'回復ハート':'紫ホールド'}</h1><p>${heart?'ボディで触れるとスタミナが2回復する':'新しく手足を固定するとスタミナを追加で1消費する'}</p>`;
+    if(!heart)paintHazardHelpIcon(ui.featureHelpContent.querySelector?.('.feature-hold-image'));
 }
 function dismissStageHelp() {
     if(!featureHelpOpen)return;

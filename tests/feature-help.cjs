@@ -28,7 +28,7 @@ advanceCameraIntro(clock);drawStageIntro();assert(labels.some(t=>t.startsWith('S
 clock+=999;advanceCameraIntro(clock);assert(cameraIntro);clock++;advanceCameraIntro(clock);assert(!cameraIntro);assert.equal(runTimeMs(),0);
 showStageHelp();assert(!featureHelpOpen,'Do not repeat a heart explanation');
 reset(1);holds.push({type:'hazard'});showStageHelp();assert.deepEqual(pendingFeatureHelp,['hazard']);
-assert(ui.featureHelpContent.innerHTML.includes('追加で1消費'));assert(!ui.featureHelpContent.innerHTML.includes('<small>'));
+assert(ui.featureHelpContent.innerHTML.includes('追加で1消費'));assert(ui.featureHelpContent.innerHTML.includes('feature-hold-image'));assert(!ui.featureHelpContent.innerHTML.includes('<svg'));assert(!ui.featureHelpContent.innerHTML.includes('<small>'));
 ui.featureHelpDialog.events.cancel({preventDefault(){}});assert(!featureHelpOpen);assert(readFeatureHelpSeen().hazard);
 courseMode='prototype';reset(1);hearts=[{}];holds.push({type:'hazard'});showStageHelp();assert(!featureHelpOpen,'Seen items shared across courses');
 featureHelpSeen={heart:false,hazard:false};showStageHelp();assert.deepEqual(pendingFeatureHelp,['heart','hazard']);
