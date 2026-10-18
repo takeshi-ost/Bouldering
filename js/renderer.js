@@ -12,6 +12,8 @@ function drawWallBackground() {
 // A stable visual variant uses coordinates only; gameplay geometry is unchanged.
 const holdShapesImage=typeof Image==='function'?new Image():null;
 if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray-contrast.webp';
+const wideHoldImage=typeof Image==='function'?new Image():null;
+if(wideHoldImage)wideHoldImage.src='assets/hold-wide-gray.webp';
 // Midpoint between the previous palette and the original subtle multiply tints.
 const HOLD_TINT_RGB=[[217,222,251],[244,219,249],[251,219,219],[251,248,217]];
 // Three warm-gray tones retain the source artwork's opaque darkest/lightest values.
@@ -23,7 +25,7 @@ function holdToneRGB(r,g,b) {
         luminance<(holdToneLuminance[1]+holdToneLuminance[2])/2 ? 1 : 2;
     return HOLD_TONE_RGB[index];
 }
-let holdTintAtlases=null;
+let holdTintAtlases=null,wideHoldTintAtlases=null;
 function multiplyHoldChannel(channel,tint) {
     // Source artwork already carries the restored original facet contrast.
     return Math.round(channel*tint/255);
@@ -34,19 +36,18 @@ function holdTintIndex(h) {
     hash=Math.imul(hash^(hash>>>16),0x45d9f3b);
     return ((hash^(hash>>>16))>>>0)%HOLD_TINT_RGB.length;
 }
-function getHoldTintAtlases() {
-    if(holdTintAtlases)return holdTintAtlases;
-    holdTintAtlases=HOLD_TINT_RGB.map(tint=>{
+function createHoldTintAtlases(image) {
+    return HOLD_TINT_RGB.map(tint=>{
         const atlas=document.createElement('canvas');
-        atlas.width=holdShapesImage.naturalWidth;
-        atlas.height=holdShapesImage.naturalHeight;
+        atlas.width=image.naturalWidth;
+        atlas.height=image.naturalHeight;
         const paint=atlas.getContext('2d');
-        paint.drawImage(holdShapesImage,0,0);
+        paint.drawImage(image,0,0);
         let pixels;
         try {pixels=paint.getImageData(0,0,atlas.width,atlas.height);}
         catch(error) {
             // Standalone file URLs may block pixel readback; retain playable original artwork.
-            if(error.name==='SecurityError')return holdShapesImage;
+            if(error.name==='SecurityError')return image;
             throw error;
         }
         for(let i=0;i<pixels.data.length;i+=4) {
@@ -57,8 +58,17 @@ function getHoldTintAtlases() {
         paint.putImageData(pixels,0,0);
         return atlas;
     });
-    return holdTintAtlases;
 }
+function getHoldTintAtlases() {
+    return holdTintAtlases ??= createHoldTintAtlases(holdShapesImage);
+}
+function drawWideHoldSprite(h) {
+    if(!wideHoldImage?.complete || !wideHoldImage.naturalWidth)return false;
+    wideHoldTintAtlases ??= createHoldTintAtlases(wideHoldImage);
+    ctx.drawImage(wideHoldTintAtlases[holdTintIndex(h)],h.x-24,h.y-12,48,24);
+    return true;
+}
+
 function drawHoldSprite(h) {
     if(!holdShapesImage?.complete || !holdShapesImage.naturalWidth)return false;
     // The atlas contains the original first through fourth shapes.
@@ -757,7 +767,7 @@ function draw(now = 0) {
         const radius = hazard ? HAZARD_CONFIG.radius : gold ? 10 : 8;
 
         ctx.lineWidth = 1.5;
-        // Wide holds have a rectangular silhouette, with unchanged contact geometry.
+        // Keep the existing active outline and unloaded-image fallback; contact geometry is unchanged.
         const holdShape = (x,y,r,fill,stroke) => {
             if (hazard) {drawJaggedHold(x,y,r,fill,stroke);return;}
             if (!h.wide) { circle(x,y,r,fill,stroke); return; }
@@ -779,7 +789,8 @@ function draw(now = 0) {
             );
         }
 
-        const spriteDrawn = !h.wide && !hazard && !gold && !green && drawHoldSprite(h);
+        const spriteDrawn = !hazard && (h.wide ? drawWideHoldSprite(h) :
+            !gold && !green && drawHoldSprite(h));
         if (!spriteDrawn) {
             holdShape(
                 h.x,
