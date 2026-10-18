@@ -96,6 +96,18 @@ function drawHoldSprite(h) {
 }
 
 const PLAYER_OUTLINE_COLOR='#435c50';
+function drawSoftPlayerOutline() {
+    // Stroke the current silhouette only, so body stripes do not cast individual shadows.
+    ctx.save();
+    ctx.lineWidth=1.5;
+    ctx.strokeStyle='rgba(67,92,80,.22)';
+    ctx.shadowColor='rgba(67,92,80,.28)';
+    ctx.shadowBlur=3;
+    ctx.shadowOffsetX=0;
+    ctx.shadowOffsetY=1.5;
+    ctx.stroke();
+    ctx.restore();
+}
 
 function circle(x, y, r, fill, stroke) {
     ctx.beginPath();
@@ -947,29 +959,21 @@ function draw(now = 0) {
         5
     );
 
-    ctx.lineWidth = 2;
     circle(
         visual.body.x,
         top - 13,
         10,
-        typeof playerHeadColor==='undefined' ? '#e0b99b' : playerHeadColor,
-        PLAYER_OUTLINE_COLOR
+        typeof playerHeadColor==='undefined' ? '#e0b99b' : playerHeadColor
     );
+    drawSoftPlayerOutline();
 
     const pressOffset=bodyTap ? 3 : 0;
 
     drawBodyFill(left,top+pressOffset,TORSO.width,TORSO.height,!!bodyTap);
 
-    ctx.lineWidth = 2;
-    ctx.strokeStyle =
-        PLAYER_OUTLINE_COLOR;
-
-    ctx.strokeRect(
-        left,
-        top + pressOffset,
-        TORSO.width,
-        TORSO.height
-    );
+    ctx.beginPath();
+    ctx.rect(left,top+pressOffset,TORSO.width,TORSO.height);
+    drawSoftPlayerOutline();
 
     for (
         let i = 0;
