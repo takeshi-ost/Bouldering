@@ -9,6 +9,16 @@ function drawWallBackground() {
     ctx.drawImage(gameWallImage,0,top,W,HEIGHT-top);
 }
 
+// A stable visual variant uses coordinates only; gameplay geometry is unchanged.
+const holdShapesImage=typeof Image==='function'?new Image():null;
+if(holdShapesImage)holdShapesImage.src='assets/hold-shapes.webp';
+function drawHoldSprite(h) {
+    if(!holdShapesImage?.complete || !holdShapesImage.naturalWidth)return false;
+    const variant=((Math.round(h.x)*31+Math.round(h.y)*17)%5+5)%5;
+    ctx.drawImage(holdShapesImage,variant*128,0,128,128,h.x-10,h.y-10,20,20);
+    return true;
+}
+
 function circle(x, y, r, fill, stroke) {
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -720,34 +730,37 @@ function draw(now = 0) {
             );
         }
 
-        holdShape(
-            h.x,
-            h.y + 2,
-            radius,
-            '#293c3020'
-        );
+        const spriteDrawn = !h.wide && !hazard && !gold && !green && drawHoldSprite(h);
+        if (!spriteDrawn) {
+            holdShape(
+                h.x,
+                h.y + 2,
+                radius,
+                '#293c3020'
+            );
 
-        holdShape(
-            h.x,
-            h.y,
-            radius,
-            hazard
-                ? active ? '#477fb7' : '#6099cf'
-                : gold
-                ? '#e4be58'
-                : green
-                    ? '#7ca486'
-                    : active
-                        ? '#75927b'
-                        : '#b2b6aa'
-        );
+            holdShape(
+                h.x,
+                h.y,
+                radius,
+                hazard
+                    ? active ? '#477fb7' : '#6099cf'
+                    : gold
+                    ? '#e4be58'
+                    : green
+                        ? '#7ca486'
+                        : active
+                            ? '#75927b'
+                            : '#b2b6aa'
+            );
 
-        (hazard ? circle : holdShape)(
-            h.x - 2,
-            h.y - 2,
-            2,
-            '#ffffff70'
-        );
+            (hazard ? circle : holdShape)(
+                h.x - 2,
+                h.y - 2,
+                2,
+                '#ffffff70'
+            );
+        }
 
         if (gold || (green && h.wide)) {
             ctx.fillStyle = gold ? '#9e7b2c' : '#526659';
