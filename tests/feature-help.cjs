@@ -34,10 +34,10 @@ courseMode='prototype';reset(1);hearts=[{}];holds.push({type:'hazard'});showStag
 featureHelpSeen={heart:false,hazard:false};showStageHelp();assert.deepEqual(pendingFeatureHelp,['heart','hazard']);
 showLevelMap();assert(!featureHelpOpen && !ui.featureHelpDialog.open);assert(!featureHelpSeen.heart,'Leaving without acknowledging does not mark seen');
 reset(1);hearts=[{}];holds.push({type:'hazard'});showStageHelp();
-assert(!ui.featureHelpContent.innerHTML.includes('青ホールド'));
+assert(!ui.featureHelpContent.innerHTML.includes('紫ホールド'));
 ui.featureHelpDialog.onclick();assert(featureHelpOpen && ui.featureHelpDialog.open);
 assert(featureHelpSeen.heart && !featureHelpSeen.hazard);assert.deepEqual(pendingFeatureHelp,['hazard']);
-assert(ui.featureHelpContent.innerHTML.includes('青ホールド'));assert.equal(cameraIntro.start,null);assert.equal(runTimeMs(),0);
+assert(ui.featureHelpContent.innerHTML.includes('紫ホールド'));assert.equal(cameraIntro.start,null);assert.equal(runTimeMs(),0);
 assert.deepEqual(readFeatureHelpSeen(),{heart:true,hazard:false});
 const savedSet=storage.setItem;storage.setItem=()=>{throw Error('blocked');};assert.doesNotThrow(dismissStageHelp);assert(featureHelpSeen.heart && featureHelpSeen.hazard);storage.setItem=savedSet;
 showStageHelp();assert(!featureHelpOpen,'Remember within session when storage blocked');

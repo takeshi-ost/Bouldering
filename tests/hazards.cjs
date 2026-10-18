@@ -79,7 +79,7 @@ assert(Math.abs(hazardShakeOffset(shakeStart+30))>0);
 assert.deepEqual(body,logicalBody);assert.deepEqual(grips,contacts);
 const labels=[];ctx.fillText=(text,x,y)=>labels.push({text,x,y,color:ctx.fillStyle,alpha:ctx.globalAlpha});
 drawHeartPopups(popup.start+500);
-assert.equal(labels[0].text,'-1');assert.equal(labels[0].color,'#477fb7');
+assert.equal(labels[0].text,'-1');assert.equal(labels[0].color,'#9442be');
 assert.equal(labels[0].x,popup.x);assert(Math.abs(labels[0].y-(popup.y-15))<1e-8);
 assert(Math.abs(labels[0].alpha-.5)<1e-8);
 drawHeartPopups(popup.start+1001);assert.equal(heartPopups.length,0);
@@ -111,11 +111,11 @@ assert.equal(grips[3],beforeTransfer[2]);assert.equal(heartPopups.length,1);asse
 assert(undoMove());assert.equal(stamina,8);assert.deepEqual(grips,beforeTransfer);
 transferFeet();assert.equal(stamina,6);transferFeet();assert.equal(stamina,4);
 assert.equal(heartPopups.length,2,'Each limb handoff must show a fresh penalty');
-// Distinct small jagged geometry and blue fill, independent of emoji fonts.
+// The unloaded-image fallback retains a vector silhouette, independent of emoji fonts.
 const points=[];ctx.moveTo=(x,y)=>points.push({x,y});ctx.lineTo=(x,y)=>points.push({x,y});
-drawJaggedHold(100,200,HAZARD_CONFIG.radius,'#6099cf');assert.equal(points.length,16);assert.equal(ctx.fillStyle,'#6099cf');
+drawJaggedHold(100,200,HAZARD_CONFIG.radius,'#9442be');assert.equal(points.length,16);assert.equal(ctx.fillStyle,'#9442be');
 assert(HAZARD_CONFIG.radius<8);
 points.forEach((p,i)=>assert(Math.abs(distance(p,{x:100,y:200})-HAZARD_CONFIG.radius*(i%2?.66:1))<1e-8));
-console.log('PASS hazards: Lv19 boundary, 0-5 seeded placement, optional real moves, free-route clears in both courses, retry, contact transitions, cancel, stacked costs, zero clamp, Undo and heart recovery; jagged blue drawing');
+console.log('PASS hazards: Lv19 boundary, 0-5 seeded placement, optional real moves, free-route clears in both courses, retry, contact transitions, cancel, stacked costs, zero clamp, Undo and heart recovery; purple penalty and vector loading fallback');
 console.log(JSON.stringify(report));
 `)(assert);

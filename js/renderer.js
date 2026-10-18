@@ -31,6 +31,9 @@ const holdShapesImage=typeof Image==='function'?new Image():null;
 if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray-contrast.webp';
 const wideHoldImage=typeof Image==='function'?new Image():null;
 if(wideHoldImage)wideHoldImage.src='assets/hold-wide-flat.webp';
+const hazardHoldImage=typeof Image==='function'?new Image():null;
+if(hazardHoldImage)hazardHoldImage.src='assets/hold-hazard-source.webp';
+const HAZARD_HOLD_TINT_RGB=[190,80,255];
 // Midpoint between the previous palette and the original subtle multiply tints.
 const HOLD_TINT_RGB=[[217,222,251],[244,219,249],[251,219,219],[251,248,217]];
 const GOAL_HOLD_TINT_RGB=[255,228,150];
@@ -43,7 +46,7 @@ function holdToneRGB(r,g,b) {
         luminance<(holdToneLuminance[1]+holdToneLuminance[2])/2 ? 1 : 2;
     return HOLD_TONE_RGB[index];
 }
-let holdTintAtlases=null,wideHoldTintAtlases=null,goalHoldTintAtlas=null;
+let holdTintAtlases=null,wideHoldTintAtlases=null,goalHoldTintAtlas=null,hazardHoldTintAtlas=null;
 function multiplyHoldChannel(channel,tint) {
     // Source artwork already carries the restored original facet contrast.
     return Math.round(channel*tint/255);
@@ -84,6 +87,18 @@ function drawWideHoldSprite(h) {
     if(!wideHoldImage?.complete || !wideHoldImage.naturalWidth)return false;
     wideHoldTintAtlases ??= createHoldTintAtlases(wideHoldImage);
     ctx.drawImage(wideHoldTintAtlases[holdTintIndex(h)],h.x-30,h.y-18,60,36);
+    return true;
+}
+
+function drawHazardHoldSprite(h) {
+    if(!hazardHoldImage?.complete || !hazardHoldImage.naturalWidth)return false;
+    hazardHoldTintAtlas ??= createHoldTintAtlases(hazardHoldImage,[HAZARD_HOLD_TINT_RGB])[0];
+    ctx.save();
+    ctx.translate(h.x,h.y);
+    // Shape five points right in the source; rotate its sharp corner upward.
+    ctx.rotate(-Math.PI/2);
+    ctx.drawImage(hazardHoldTintAtlas,-10.8,-10.8,21.6,21.6);
+    ctx.restore();
     return true;
 }
 
@@ -881,15 +896,16 @@ function draw(now = 0) {
                 h.x,
                 h.y,
                 hazard ? 11 : gold ? 18 : h.wide ? 17 : 14,
-                hazard ? '#6099cf20' : '#70987920',
+                hazard ? '#a34bd220' : '#70987920',
                 gold
                     ? '#cfaa48'
-                    : hazard ? '#6099cf' : '#84a78c'
+                    : hazard ? '#a34bd2' : '#84a78c'
             );
         }
 
-        const spriteDrawn = !hazard && (gold ? drawGoalHoldSprite(h) :
-            h.wide ? drawWideHoldSprite(h) : !green && drawHoldSprite(h));
+        const spriteDrawn = hazard ? drawHazardHoldSprite(h) :
+            gold ? drawGoalHoldSprite(h) :
+            h.wide ? drawWideHoldSprite(h) : !green && drawHoldSprite(h);
         if (!spriteDrawn) {
             holdShape(
                 h.x,
@@ -903,7 +919,7 @@ function draw(now = 0) {
                 h.y,
                 radius,
                 hazard
-                    ? active ? '#477fb7' : '#6099cf'
+                    ? '#9442be'
                     : gold
                     ? '#e4be58'
                     : green
