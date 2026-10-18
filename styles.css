@@ -187,7 +187,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .stamina-heart svg { display:block; width:100%; height:100%; filter:drop-shadow(0 2px 1px #4b29332b); }
 .stamina-heart strong { position:absolute; inset:0; display:grid; place-items:center; padding-top:2px; padding-bottom:5px; font-size:22px; line-height:1; font-weight:800; color:#fffaf0; letter-spacing:0; font-variant-numeric:tabular-nums; }
 .level { grid-column:2; font-size:17px; font-weight:800; letter-spacing:1px; -webkit-text-stroke:3px #fff; paint-order:stroke fill; }
-.settings-button { grid-column:3; justify-self:end; pointer-events:auto; display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:0; box-shadow:none; background:transparent; color:#395343; letter-spacing:0; }
+.settings-button { grid-column:3; justify-self:end; pointer-events:auto; display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:0; box-shadow:none; background:transparent; color:#000; letter-spacing:0; }
 .settings-button svg { display:block; width:29px; height:29px; }
 .settings-button:hover { background:transparent; filter:none; }
 .settings-button:active { transform:scale(.94); }
