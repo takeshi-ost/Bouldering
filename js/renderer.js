@@ -11,15 +11,13 @@ function drawWallBackground() {
 
 // A stable visual variant uses coordinates only; gameplay geometry is unchanged.
 const holdShapesImage=typeof Image==='function'?new Image():null;
-if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray.webp';
+if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray-contrast.webp';
 // Midpoint between the previous palette and the original subtle multiply tints.
 const HOLD_TINT_RGB=[[217,222,251],[244,219,249],[251,219,219],[251,248,217]];
-const HOLD_IMAGE_CONTRAST=1.1;
 let holdTintAtlases=null;
 function multiplyHoldChannel(channel,tint) {
-    // Increase source contrast around mid-gray before applying the color multiplier.
-    const contrasted=Math.max(0,Math.min(255,(channel-128)*HOLD_IMAGE_CONTRAST+128));
-    return Math.round(contrasted*tint/255);
+    // Source artwork already carries the restored original facet contrast.
+    return Math.round(channel*tint/255);
 }
 function holdTintIndex(h) {
     // Separate, deterministic visual randomness avoids changing gameplay RNG or flickering.
