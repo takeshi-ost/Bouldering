@@ -9,6 +9,23 @@ function drawWallBackground() {
     ctx.drawImage(gameWallImage,0,top,W,HEIGHT-top);
 }
 
+
+const gymFloorImage=typeof Image==='function'?new Image():null;
+if(gymFloorImage)gymFloorImage.src='assets/gym-floor.webp';
+function drawGymFloor() {
+    // Share the start-foot margin so both feet sit exactly on the floor's upper edge.
+    const height=HOLD_CONFIG.bottomMargin,top=HEIGHT-height;
+    if(gymFloorImage?.complete && gymFloorImage.naturalWidth) {
+        ctx.drawImage(gymFloorImage,0,top,W,height);
+    } else {
+        ctx.fillStyle='#969e91';
+        ctx.fillRect(0,top,W,height);
+    }
+}
+function isFloorStartHold(h) {
+    return h===initialGrips[2] || h===initialGrips[3];
+}
+
 // A stable visual variant uses coordinates only; gameplay geometry is unchanged.
 const holdShapesImage=typeof Image==='function'?new Image():null;
 if(holdShapesImage)holdShapesImage.src='assets/hold-shapes-gray-contrast.webp';
@@ -615,6 +632,7 @@ function draw(now = 0) {
     );
 
     drawWallBackground();
+    drawGymFloor();
     ctx.lineWidth = 1;
 
     ctx.fillStyle = '#a6aea0';
@@ -749,6 +767,8 @@ function draw(now = 0) {
     }
 
     for (const h of holds) {
+        // Invisible floor anchors remain available to the existing grip/snap logic.
+        if(isFloorStartHold(h))continue;
         if (
             h.y < camera - 30 ||
             h.y > camera + H + 30
