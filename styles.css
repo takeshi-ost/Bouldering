@@ -308,7 +308,9 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
     background:transparent; color:#25372f; font-size:24px; line-height:1;
     box-shadow:none;
 }
-.modal-close:hover { background:#25372f10; }
+.modal-close:hover { background:transparent; }
+/* Native dialog autofocus must not draw a circular button frame. */
+button.modal-close:focus-visible { outline:none; }
 .modal-tap { display:block; width:100%; margin:12px 0 0; padding:4px 0;
     background:transparent; color:#637267; font-size:12px; font-weight:700;
     text-align:center; letter-spacing:.18em; box-shadow:none; }
