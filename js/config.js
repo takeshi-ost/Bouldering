@@ -3,7 +3,7 @@ const RELEASE_VERSION = '0.1.0';
 // 表示サイズと可動域。単位はゲーム内の論理pxです。
 const W = 400;
 const H = 700;
-const STAGE_SAFE_WIDTH = 40;
+const STAGE_SAFE_WIDTH = 16;
 const R = 112;
 const MAX_HEIGHT = H * 3;
 const TORSO = { width: 40, height: 72, hitPadding: 8 };

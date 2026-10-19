@@ -120,23 +120,23 @@ showLevelMap();e=visibleEvent();mouse('mousedown',e);mouse('mouseup',e);assert.e
 // Edge gestures scroll from their initial camera and never become player gestures.
 fixture();HEIGHT=H*3;camera=100;
 const edgeSnapshot=JSON.stringify({body,grips,stamina,moveCount,undoSnapshot});
-let edge=finger(50,eventAt({x:20,y:camera+300}));
+let edge=finger(50,eventAt({x:STAGE_SAFE_WIDTH/2,y:camera+300}));
 touch('touchstart',[edge]);assert(pan?.edge && !bodyTap && !drag);
 let edgeMoved={...edge,clientX:eventAt({x:200,y:camera+300}).clientX,clientY:edge.clientY-75};
 touch('touchmove',[edgeMoved]);assert.equal(camera,200);
 touch('touchend',[],[edgeMoved]);assert(!pan && touchId===null && !ignoreTouches);
 assert.equal(JSON.stringify({body,grips,stamina,moveCount,undoSnapshot}),edgeSnapshot);
 // Mouse starts on the right edge, crosses the center and remains a scroll.
-edge=eventAt({x:380,y:camera+300});mouse('mousedown',edge);assert(pan?.edge && pan.mouse);
+edge=eventAt({x:W-STAGE_SAFE_WIDTH/2,y:camera+300});mouse('mousedown',edge);assert(pan?.edge && pan.mouse);
 mouse('mousemove',{...edge,clientX:edge.clientX-100,clientY:edge.clientY+75});assert.equal(camera,100);
 mouse('mouseup',{...edge,clientX:edge.clientX-100,clientY:edge.clientY+75});assert(!pan && !drag && !bodyTap);
 assert.equal(JSON.stringify({body,grips,stamina,moveCount,undoSnapshot}),edgeSnapshot);
 // Clamping and cancellation release the edge gesture without changing the player.
-edge=finger(51,eventAt({x:39,y:camera+300}));touch('touchstart',[edge]);touch('touchmove',[{...edge,clientY:edge.clientY-10000}]);assert.equal(camera,HEIGHT-H);
+edge=finger(51,eventAt({x:STAGE_SAFE_WIDTH-1,y:camera+300}));touch('touchstart',[edge]);touch('touchmove',[{...edge,clientY:edge.clientY-10000}]);assert.equal(camera,HEIGHT-H);
 touch('touchcancel',[],[]);assert(!pan && !ignoreTouches);
-edge=eventAt({x:361,y:camera+300});mouse('mousedown',edge);mouse('mousemove',{...edge,clientY:edge.clientY+10000});assert.equal(camera,cameraTop());window.events.blur();assert(!pan);
+edge=eventAt({x:W-STAGE_SAFE_WIDTH+1,y:camera+300});mouse('mousedown',edge);mouse('mousemove',{...edge,clientY:edge.clientY+10000});assert.equal(camera,cameraTop());window.events.blur();assert(!pan);
 // A second finger switches safely to two-finger scrolling, never to a character drag.
-edge=finger(52,eventAt({x:20,y:camera+300}));const second=finger(53,{...edge,clientX:edge.clientX+100});
+edge=finger(52,eventAt({x:STAGE_SAFE_WIDTH/2,y:camera+300}));const second=finger(53,{...edge,clientX:edge.clientX+100});
 touch('touchstart',[edge]);touch('touchstart',[edge,second],[second]);assert(pan && !pan.edge && ignoreTouches);
 touch('touchend',[edge],[second]);touch('touchend',[],[edge]);assert(!pan && !ignoreTouches && !drag && !bodyTap);
 assert.equal(JSON.stringify({body,grips,stamina,moveCount,undoSnapshot}),edgeSnapshot);
