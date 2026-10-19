@@ -124,7 +124,7 @@ function renderCharacterEditor() {
 }
 let editorMapReturn=null;
 function showCharacterEditor() {
-    if(state!=='map' || mapPreparing || mapTransition)return false;
+    if(state!=='map' || mapPreparing || stageStartContext || mapTransition)return false;
     editorMapReturn=state==='map'?{page:mapPage,selected:mapSelected,scrollTop:ui.mapScroll.scrollTop}:null;
     cancelMapReveal();
     hideSettings();ui.levelMap.hidden=true;ui.wall.classList.toggle('map-open',false);

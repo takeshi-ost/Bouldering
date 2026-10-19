@@ -116,9 +116,10 @@ function refreshDailyCalendar() {
 }
 function showDailyCalendar({openFromMap=false}={}) {
     if(openFromMap) {
-        if(state!=='map' || mapPreparing || mapTransition)return;
+        if(state!=='map' || mapPreparing || stageStartContext || mapTransition)return;
         dailyReturnCourse=courseMode;dailyMonth=localToday().slice(0,7);
     }
+    hideStageStart();
     cancelMapReveal();
     release(true);endPan();touchId=null;ignoreTouches=false;
     drag=null;bodyTap=null;cameraIntro=null;heartPopups=[];hazardShakeStart=null;

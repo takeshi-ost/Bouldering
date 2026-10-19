@@ -359,5 +359,26 @@ button.modal-close:focus-visible { outline:none; }
 /* Press feedback follows the artwork, while the hit area stays fixed. */
 .map-node:hover,.map-node:active { background:transparent; filter:none; }
 .map-node .map-wall { transition:transform .12s ease; transform-origin:50% 58%; }
-.map-node:active:not(:disabled) .map-wall { transform:scale(1.08); }
+.map-node:active:not(:disabled) .map-wall { transform:scale(1.16); }
 .level-map.map-preparing { visibility:hidden; pointer-events:none; }
+
+.map-node.is-tapped .map-wall { animation:map-stage-tap .32s ease-out both; }
+@keyframes map-stage-tap {
+    0%,100% { transform:scale(1); }
+    35% { transform:scale(1.18); }
+}
+.stage-start-dialog { position:relative; width:min(360px,calc(100% - 32px)); max-height:calc(100dvh - 32px); overflow:auto; padding:42px 22px 24px; border:0; border-radius:18px; background:#f8f6ee; color:#25372f; }
+.stage-start-dialog button { -webkit-tap-highlight-color:transparent; }
+.stage-start-dialog::backdrop { background:#23372dbd; }
+.stage-start-dialog h2 { margin:0 0 22px; text-align:center; font-size:26px; letter-spacing:.06em; }
+.stage-start-info { display:grid; gap:12px; margin:0 0 24px; }
+.stage-start-info>div { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.stage-start-info dt { color:#637267; font-size:13px; }
+.stage-start-info dd { margin:0; font-size:16px; font-weight:700; }
+.stage-start-items { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.stage-item { position:relative; display:grid; gap:8px; justify-items:center; padding:15px 4px 12px; border:2px solid #dce0d4; border-radius:12px; background:#eeeee4; color:#637267; font-size:11px; letter-spacing:0; min-height:92px; }
+.stage-item-symbol { font-size:26px; line-height:1.2; }
+.stage-item[aria-pressed="true"] { border-color:#628a71; background:#dfebdc; color:#2f654f; }
+.stage-item-check { position:absolute; right:5px; top:4px; font-size:15px; font-weight:800; }
+.stage-item[aria-pressed="false"] .stage-item-check { visibility:hidden; }
+#stageStartButton { display:block; width:100%; min-height:48px; margin-top:24px; font-size:15px; }

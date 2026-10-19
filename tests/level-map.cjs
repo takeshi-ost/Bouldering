@@ -6,7 +6,7 @@ assert(/id="mapNext"[^>]*><svg/.test(html));assert(/id="mapPrev"[^>]*><svg/.test
 const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
 const elements={};const document={getElementById(id){return elements[id] ||= {
- style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},contains(){return true;},
+ style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},contains(){return true;},showModal(){this.open=true;},close(){this.open=false;},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){}}});},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};
@@ -64,7 +64,8 @@ assert(!canScrollStage());assert.equal(undoMove(),false);
 down({clientX:200,clientY:400});assert.equal(drag,null);
 for(const n of [0,-1,1.5,2,NaN])assert.equal(selectStage(n),false);
 ui.mapNodes.onclick({target:{closest(){return {dataset:{level:'2'}};}}});assert.equal(state,'map');
-ui.mapNodes.onclick({target:{closest(){return {dataset:{level:'1'}};}}});assert.equal(state,'playing');
+ui.mapNodes.onclick({target:{closest(){return {dataset:{level:'1'},classList:{toggle(){}}};}}});assert.equal(state,'map');assert.equal(stageStartContext.n,1);
+ui.stageStartDialog.showModal();ui.stageStartButton.onclick();assert.equal(state,'playing');
 assert(ui.levelMap.hidden);assert(!ui.mapButton.disabled);
 function complete() {
  while(featureHelpOpen)dismissStageHelp();
@@ -123,6 +124,7 @@ const progressBefore=JSON.stringify(stageProgress),savedBefore=data[PROGRESS_KEY
 for(const n of [0,-1,1.5,NaN,Infinity,Number.MAX_SAFE_INTEGER])assert.equal(selectStage(n,true),false);
 assert.equal(selectStage(22),false);
 ui.debugStage.value='22';ui.debugControls.onsubmit({preventDefault(){}});
+assert.equal(state,'map');assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();
 assert.equal(state,'playing');assert.equal(level,22);assert(debugAttempt);
 ui.retry.onclick();assert(debugAttempt);complete();
 assert.equal(JSON.stringify(stageProgress),progressBefore);assert.equal(data[PROGRESS_KEY],savedBefore);

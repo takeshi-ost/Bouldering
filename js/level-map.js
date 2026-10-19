@@ -149,6 +149,7 @@ function focusMapLevel() {
     button?.focus({preventScroll:true});
 }
 function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
+    hideStageStart();
     cancelMapReveal();mapPreparing=true;
     ui.levelMap.classList.toggle('map-preparing',true);
     ui.levelMap.inert=true;ui.levelMap.setAttribute('aria-hidden','true');
@@ -189,8 +190,62 @@ function advanceLevelMap(now) {
         renderLevelMap();focusMapLevel();
     }
 }
+let stageStartContext=null,stageStartTimer=null;
+const stageItemButtons=[ui.stageItem1,ui.stageItem2,ui.stageItem3];
+function canSelectStage(n,debug=false) {
+    return state==='map' && !mapPreparing && !mapTransition && !stageStartContext &&
+        Number.isSafeInteger(n) && n>=1 && n<Number.MAX_SAFE_INTEGER &&
+        (debug?debugMode:n<=unlockedLevel());
+}
+function hideStageStart() {
+    if(stageStartTimer!==null)clearTimeout(stageStartTimer);
+    stageStartTimer=null;
+    stageStartContext?.button?.classList.toggle('is-tapped',false);
+    stageStartContext=null;
+    if(ui.stageStartDialog.open)ui.stageStartDialog.close?.();
+}
+function closeStageStart() {
+    const selected=stageStartContext?.n;
+    hideStageStart();
+    if(state==='map')ui.mapNodes.querySelector?.(`[data-level="${selected}"]`)?.focus({preventScroll:true});
+}
+function openStageStart(n,debug=false,button=null) {
+    if(!canSelectStage(n,debug))return false;
+    if(debug)ui.debugStage.blur?.();
+    const context={n,debug,mode:courseMode,items:[false,false,false],button};
+    stageStartContext=context;
+    ui.stageStartTitle.textContent=`STAGE ${n}`;
+    ui.stageStartDifficulty.textContent=difficultyLabel(difficultyForStage(n));
+    ui.stageStartLength.textContent={short:'短い',medium:'中くらい',long:'長い'}[stageLengthInfo(n).category];
+    stageItemButtons.forEach(item=>item.setAttribute('aria-pressed','false'));
+    ui.stageStartButton.disabled=false;
+    const show=()=>{
+        stageStartTimer=null;
+        if(stageStartContext!==context || state!=='map' || courseMode!==context.mode)return;
+        ui.stageStartDialog.showModal?.();
+    };
+    if(button) {
+        button.classList.toggle('is-tapped',true);
+        stageStartTimer=setTimeout(show,140);
+    } else show();
+    return true;
+}
+stageItemButtons.forEach((button,index)=>{
+    button.onclick=()=>{
+        if(!stageStartContext || !ui.stageStartDialog.open)return;
+        stageStartContext.items[index]=!stageStartContext.items[index];
+        button.setAttribute('aria-pressed',String(stageStartContext.items[index]));
+    };
+});
+ui.stageStartButton.onclick=()=>{
+    const context=stageStartContext;
+    if(!context || !ui.stageStartDialog.open || ui.stageStartButton.disabled)return;
+    ui.stageStartButton.disabled=true;
+    hideStageStart();
+    if(context.mode===courseMode)selectStage(context.n,context.debug);
+};
 function selectStage(n,debug=false) {
-    if (state!=='map' || mapPreparing || mapTransition || !Number.isSafeInteger(n) || n<1 || n>=Number.MAX_SAFE_INTEGER || (debug ? !debugMode : n>unlockedLevel())) return false;
+    if(!canSelectStage(n,debug))return false;
     // Dismiss the numeric keyboard before generating and opening the stage.
     if(debug)ui.debugStage.blur?.();
     const launch=()=>{
@@ -215,15 +270,15 @@ function selectStage(n,debug=false) {
 }
 ui.mapNodes.onclick = e => {
     const button=e.target.closest('button[data-level]');
-    if (button && ui.mapNodes.contains(button)) selectStage(Number(button.dataset.level));
+    if (button && ui.mapNodes.contains(button)) openStageStart(Number(button.dataset.level),false,button);
 };
 ui.mapCourses.onclick=()=>{if(!mapTransition)showTitleScreen();};
 ui.mapPrev.onclick=()=>{
-    if (state!=='map' || mapPreparing || mapTransition || mapPage===0) return;
+    if (state!=='map' || mapPreparing || stageStartContext || mapTransition || mapPage===0) return;
     mapPage--;renderLevelMap();ui.mapScroll.scrollTop=0;
 };
 ui.mapNext.onclick=()=>{
-    if (state!=='map' || mapPreparing || mapTransition || mapBounds().last>=unlockedLevel()) return;
+    if (state!=='map' || mapPreparing || stageStartContext || mapTransition || mapBounds().last>=unlockedLevel()) return;
     mapPage++;renderLevelMap();ui.mapScroll.scrollTop=ui.mapTrack.clientHeight;
 };
 
@@ -235,7 +290,7 @@ ui.debugControls.onsubmit=e=>{
         ui.mapError.hidden=false;
         return;
     }
-    selectStage(n,true);
+    openStageStart(n,true);
 };
 
 // Recalculate both artwork height and hit targets when the viewport changes.

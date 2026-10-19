@@ -141,6 +141,7 @@ ui.mapButton.onclick = () => {
 };
 
 function showTitleScreen() {
+    hideStageStart();
     cancelMapReveal();
     settleLifeAttempt(false);
     leaveDailyRun();ui.dailyCalendar.hidden=true;
@@ -207,6 +208,9 @@ function dismissOutside(dialog,close,card=false) {
 ui.closeResult.onclick=()=>ui.mapButton.onclick();
 ui.overlay.addEventListener('cancel',e=>{e.preventDefault();ui.closeResult.onclick();});
 dismissOutside(ui.overlay,()=>ui.closeResult.onclick(),true);
+ui.closeStageStart.onclick=closeStageStart;
+ui.stageStartDialog.addEventListener('cancel',e=>{e.preventDefault();closeStageStart();});
+dismissOutside(ui.stageStartDialog,closeStageStart);
 ui.closeLife.onclick=cancelLifePrompt;
 dismissOutside(ui.lifeDialog,cancelLifePrompt,true);
 
@@ -231,7 +235,7 @@ for(const [key,control] of Object.entries(debugDisplayControls)) {
 }
 function openSettings() {
     const onMap=state==='map';
-    if(settingsOpen || (onMap ? !!mapTransition || mapPreparing : state!=='playing' || cameraIntro || featureHelpOpen))return;
+    if(settingsOpen || stageStartContext || (onMap ? !!mapTransition || mapPreparing : state!=='playing' || cameraIntro || featureHelpOpen))return;
     if(!onMap) {endPointer(null,true);endPan();touchId=null;ignoreTouches=false;}
     ui.restart.hidden=ui.mapButton.hidden=onMap;
     ui.mapSettingsControls.hidden=!onMap;

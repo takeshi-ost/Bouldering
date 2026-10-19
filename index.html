@@ -143,6 +143,20 @@
         <dialog id="featureHelpDialog" class="overlay feature-help" aria-labelledby="featureHelpTitle" aria-describedby="featureHelpContent">
             <div class="card" id="featureHelpContent" aria-live="polite"></div>
         </dialog>
+        <dialog id="stageStartDialog" class="stage-start-dialog" aria-labelledby="stageStartTitle" aria-describedby="stageStartDifficulty stageStartLength">
+            <button id="closeStageStart" class="modal-close" aria-label="閉じる">✕</button>
+            <h2 id="stageStartTitle">STAGE 1</h2>
+            <dl class="stage-start-info">
+                <div><dt>難易度</dt><dd id="stageStartDifficulty"></dd></div>
+                <div><dt>コースの長さ</dt><dd id="stageStartLength"></dd></div>
+            </dl>
+            <div class="stage-start-items" role="group" aria-label="アイテム選択">
+                <button id="stageItem1" class="stage-item" type="button" aria-pressed="false"><span class="stage-item-symbol" aria-hidden="true">●</span><span>アイテム1</span><span class="stage-item-check" aria-hidden="true">✓</span></button>
+                <button id="stageItem2" class="stage-item" type="button" aria-pressed="false"><span class="stage-item-symbol" aria-hidden="true">▲</span><span>アイテム2</span><span class="stage-item-check" aria-hidden="true">✓</span></button>
+                <button id="stageItem3" class="stage-item" type="button" aria-pressed="false"><span class="stage-item-symbol" aria-hidden="true">◆</span><span>アイテム3</span><span class="stage-item-check" aria-hidden="true">✓</span></button>
+            </div>
+            <button id="stageStartButton">スタート</button>
+        </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
             <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" class="modal-close" aria-label="設定を閉じる" autofocus>✕</button></div>
             <button id="restart">RESTART</button>
