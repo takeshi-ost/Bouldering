@@ -49,18 +49,12 @@
                 <div class="progress" id="progress" hidden>0 手 / 準備中</div>
             </div>
 
-            <div class="title-screen" id="titleScreen" aria-label="タイトル画面">
+            <div class="title-screen" id="titleScreen" role="button" tabindex="0" aria-label="準備完了後にタップしてマップへ" aria-disabled="true">
                 <div class="title-content">
                     <h1 class="brand">ASCENT<span class="brand-dot">.</span></h1>
-                    <div class="tag">ONE MOVE CLOSER.</div>
-                    <p class="game-summary">体をスワイプして、壁を登るクライミングパズル。<br>2本の手足を支えに、残りの2本を動かします。<br>スタミナが尽きる前に、両手で黄色いゴールをつかもう。</p>
-                    <label class="debug-toggle"><input id="debugMode" type="checkbox"> デバッグモード</label>
-                    <button id="existingCourse">PLAY</button>
-                    <button class="secondary" id="prototypeCourse" hidden>ロジハラ（検証用）</button>
-                    <button class="secondary" id="editCharacter">キャラエディット</button>
-                    <p id="appearanceStatus" role="status" hidden></p>
-                    <p id="courseError" role="alert" hidden></p>
-                    <button class="secondary help-button" id="showHelp" aria-haspopup="dialog" aria-controls="helpDialog">くわしい説明</button>
+                    <p id="releaseVersion" class="release-version"></p>
+                    <p id="playerUuid" class="player-uuid"></p>
+                    <div id="titleTap" class="title-tap" aria-live="polite" hidden>TAP</div>
                 </div>
             </div>
             <section id="characterEditor" class="character-editor" aria-labelledby="editorTitle" hidden>
@@ -78,6 +72,7 @@
                     <div id="paletteSwatches" class="palette-swatches" aria-label="カラーパレット"></div>
                     <label class="custom-color" for="customColor">自由な色 <input id="customColor" type="color" value="#39785b"></label>
                 </div>
+                <p id="appearanceStatus" role="status" hidden></p>
                 <p class="editor-hint">配色は「決定」で保存されます。</p>
                 <div class="editor-actions"><button id="editorCancel" class="secondary">戻る</button><button id="editorConfirm">決定</button></div>
             </section>
@@ -152,6 +147,7 @@
             <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" class="modal-close" aria-label="設定を閉じる" autofocus>✕</button></div>
             <button id="restart">RESTART</button>
             <button id="mapButton" class="secondary">MAPにもどる</button>
+            <button id="showHelp" class="secondary" aria-haspopup="dialog" aria-controls="helpDialog">くわしい説明</button>
             <div id="stageDebugDisplay" hidden>
                 <label class="settings-row" for="debugRoute"><span>想定ルート</span><input id="debugRoute" type="checkbox" checked></label>
                 <label class="settings-row" for="debugHoldNumbers"><span>ホールドNo</span><input id="debugHoldNumbers" type="checkbox" checked></label>
@@ -160,6 +156,7 @@
             <div id="mapSettingsControls" class="map-settings-controls" hidden>
                 <button id="mapCourses">タイトル画面へ</button>
                 <button id="mapEditCharacter" class="secondary">キャラクターエディット</button>
+                <button id="prototypeCourse" class="secondary" hidden>ロジハラ（検証用）</button>
                 <label class="settings-row" for="soundEnabled"><span>サウンド</span><input id="soundEnabled" type="checkbox" checked></label>
                 <label class="settings-row" for="languageChoice"><span>言語</span><select id="languageChoice"><option value="ja">日本語</option><option value="en">English</option></select></label>
                 <label class="settings-row" for="mapDebugMode"><span>デバッグモード</span><input id="mapDebugMode" type="checkbox"></label>
@@ -168,7 +165,7 @@
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
             <div class="help-heading"><h2 id="helpTitle">くわしい説明</h2></div>
             <h3>キャラエディット</h3>
-            <p>タイトル画面からボディを1〜8段の横ストライプに塗り分けられます。頭は単色、ボディは各段をタップして色を選び、「決定」でゲーム中とマップへ反映・保存します。「戻る」では変更を破棄します。初回はボディの段数と色・頭の色がランダムに設定されます。</p>
+            <p>マップ設定の「キャラクターエディット」からボディを1〜8段の横ストライプに塗り分けられます。頭は単色、ボディは各段をタップして色を選び、「決定」でゲーム中とマップへ反映・保存します。「戻る」では変更を破棄します。初回はボディの段数と色・頭の色がランダムに設定されます。</p>
             <h3>登り方</h3>
             <p>壁のどこからでもスワイプして体を動かせます。移動方向に応じて2本の手足が支えに選ばれ、残りの2本が届くホールドへ自動で移ります。スワイプ中は支えの2本は変わりません。</p>
             <p>指を離したときに4本ともホールドを保持できていれば1手確定します。保持できない場合や、同じ4つの接触位置に戻った場合は手数を消費しません。両足を保持したまま、両手で黄色いゴールをつかむとクリアです。</p>
@@ -184,10 +181,10 @@
             <p>ボディは押している間だけ少し沈み、色が変わります。短くタップすると、直前の1手を取り消し、姿勢と消費したスタミナを戻せます。❤️の取得と回復分は維持します。連続では使えませんが、新しく1手進むと再び使えます。結果モーダル表示中は背景を操作できません。RESTARTは現在のステージをやり直し、スタミナと❤️をそのステージ開始時の状態に戻します。</p>
             <p>回復ハートを含むルールが選ばれた想定5手以上のステージでは、ルート上に❤️が0〜2個現れます。手足ではなくボディで触れるとスタミナが2回復します。開始時の通常スタミナは❤️1個につき2少なくなるため、途中で回収しながら登りましょう。取得位置に「+2」が上昇しながら消えます。ボディが触れれば、移動が確定できなくても取得できます。キャンセル・Undoでも❤️と回復分は維持されます。</p>
             <h3>コースと便利な機能</h3>
-            <p>PLAYでステージマップが開きます。挑戦できるSTAGEをタッチして開始し、クリアすると次のSTAGEが解放されます。クリア済みのSTAGEも何度でも遊べます。タイトル画面のデバッグモードをONにすると、マップで番号を入力して未解放のステージも試せます（クリア進捗は保存しません）。進行状況はこの端末へ保存します。プライベートブラウズではタブやセッションを閉じると記録が消える場合があります。歯車の設定から「MAPにもどる」でマップへ戻ると、進行中の挑戦は終了します。操作可能になった時点からタイムを計り、クリア時に「手数 分:秒:1/100秒」を表示します。記録はマップのステージ横に表示し、再クリア時は最新の記録に更新します。</p>
+            <p>タイトル画面で準備完了後に表示される「TAP」をタップすると、ステージマップが開きます。挑戦できるSTAGEをタッチして開始し、クリアすると次のSTAGEが解放されます。クリア済みのSTAGEも何度でも遊べます。マップ設定のデバッグモードをONにすると、マップで番号を入力して未解放のステージも試せます（クリア進捗は保存しません）。進行状況はこの端末へ保存します。プライベートブラウズではタブやセッションを閉じると記録が消える場合があります。歯車の設定から「MAPにもどる」でマップへ戻ると、進行中の挑戦は終了します。操作可能になった時点からタイムを計り、クリア時に「手数 分:秒:1/100秒」を表示します。獲得した星はマップに表示され、手数とタイムはクリア時に確認できます。</p>
             <p>壁全体にホールド候補を配置し、ルートを確認して調整したステージを遊べます。</p>
             <p id="prototypeDescription" hidden><strong>ロジハラ（検証用）：</strong>デバッグモード時だけ選べます。通れるルートを保ちながら、必要なホールドまで絞った検証用のモードです。</p>
-            <p>タイトル画面のデバッグモードをONにすると、ゲーム中に想定ルートと手数が表示されます。クリア時は実際に通ったルートを自動表示します。ステージ上を2本指で上下にスワイプすると壁をスクロールできます。1本指はキャラクターの移動です。開始時は中央にSTAGE番号を表示します。最下段へのスクロールと、最低1秒の表示が終わると操作可能です。</p>
+            <p>マップ設定のデバッグモードをONにすると、ステージ設定で想定ルート・ホールドNo・コース情報を個別に切り替えられます。クリア時は実際に通ったルートを自動表示します。ステージ上を2本指で上下にスワイプすると壁をスクロールできます。1本指はキャラクターの移動です。開始時は中央にSTAGE番号を表示します。最下段へのスクロールと、最低1秒の表示が終わると操作可能です。</p>
             <button id="closeHelp" class="modal-tap" aria-label="説明を閉じる">TAP</button>
         </dialog>
     </main>

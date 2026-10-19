@@ -124,7 +124,7 @@ function renderCharacterEditor() {
 }
 let editorMapReturn=null;
 function showCharacterEditor() {
-    if(state!=='choosing' && (state!=='map' || mapTransition))return false;
+    if(state!=='map' || mapTransition)return false;
     editorMapReturn=state==='map'?{page:mapPage,selected:mapSelected,scrollTop:ui.mapScroll.scrollTop}:null;
     hideSettings();ui.levelMap.hidden=true;ui.wall.classList.toggle('map-open',false);
     draftColors=[...playerColors];draftHeadColor=playerHeadColor;draftStripeCount=playerColors.length;selectedStripe=null;selectedPart=null;
@@ -142,7 +142,7 @@ function returnFromCharacterEditor() {
         mapPage=destination.page;mapSelected=destination.selected;
         renderLevelMap();ui.mapScroll.scrollTop=destination.scrollTop;
         ui.mapSettingsButton.focus({preventScroll:true});
-    } else {showTitleScreen();ui.editCharacter.focus();}
+    } else showLevelMap();
 }
 function resizeEditorStripes(n) {
     if(state!=='editing' || !Number.isInteger(n) || n<1 || n>8)return false;
@@ -177,10 +177,10 @@ function confirmCharacterEditor() {
     const saved=appearanceSaved && nameSaved;
     updateMapAppearance();returnFromCharacterEditor();
     ui.appearanceStatus.textContent=saved?'名前と配色を保存しました。':'名前と配色を適用しました。この端末への保存はできませんでした。';
-    ui.appearanceStatus.hidden=state!=='choosing';
+    ui.appearanceStatus.hidden=true;
+    if(!saved) {ui.mapError.textContent=ui.appearanceStatus.textContent;ui.mapError.hidden=false;}
     return true;
 }
-ui.editCharacter.onclick=showCharacterEditor;
 ui.stripeCount.oninput=()=>resizeEditorStripes(Number(ui.stripeCount.value));
 ui.editorPreview.onclick=e=>{
     const band=e.target.closest('[data-stripe], [data-part="head"]');

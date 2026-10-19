@@ -27,7 +27,7 @@ playerColors=['#39785b'];playerHeadColor=DEFAULT_HEAD_COLOR;
 data[APPEARANCE_KEY]=JSON.stringify({colors:playerColors,headColor:playerHeadColor});
 const originalSave=data[APPEARANCE_KEY];
 const physics=JSON.stringify({body,holds,grips,route});
-ui.editCharacter.onclick();assert.equal(state,'editing');assert(!ui.characterEditor.hidden && ui.titleScreen.hidden);
+startCourse('existing');showCharacterEditor();assert.equal(state,'editing');assert(!ui.characterEditor.hidden && ui.titleScreen.hidden);
 assert(ui.editorPalette.hidden);assert.equal(ui.stripeCount.value,'1');
 for(const n of [0,-1,9,1.5,NaN])assert.equal(resizeEditorStripes(n),false);
 for(let n=1;n<=8;n++) {
@@ -73,13 +73,13 @@ resizeEditorStripes(1);assert.equal(selectedStripe,0);resizeEditorStripes(8);ass
 let prevented=false;ui.editorPreview.onkeydown({key:'Enter',preventDefault(){prevented=true;},target:{closest(){return {dataset:{stripe:'4'}};}}});
 assert(prevented && ui.customColor.focused);assert.equal(selectedStripe,4);
 assert.equal(JSON.stringify({body,holds,grips,route}),physics,'Editor must not change game geometry');
-ui.editorCancel.onclick();assert.equal(state,'choosing');assert(ui.characterEditor.hidden);assert.deepEqual(playerColors,['#39785b']);assert.equal(data[APPEARANCE_KEY],originalSave);assert.equal(playerHeadColor,DEFAULT_HEAD_COLOR);
+ui.editorCancel.onclick();assert.equal(state,'map');assert(ui.characterEditor.hidden);assert.deepEqual(playerColors,['#39785b']);assert.equal(data[APPEARANCE_KEY],originalSave);assert.equal(playerHeadColor,DEFAULT_HEAD_COLOR);
 // Confirm creates precisely the chosen three-color palette, not hidden draft slots.
 showCharacterEditor();resizeEditorStripes(3);
 const chosen=['#112233','#abcdef','#f0a040'];chosen.forEach((c,i)=>{selectEditorStripe(i);paintEditorColor(c);});
 selectEditorHead();paintEditorColor('#334455');assert(ui.editorPreview.innerHTML.includes('fill="#334455"'));assert.equal(playerHeadColor,DEFAULT_HEAD_COLOR);
 let paints=[];ctx.fillRect=(x,y,w,h)=>paints.push({x,y,w,h,color:ctx.fillStyle});draw(0);assert.equal(paints.length,0,'Editor must not run the game renderer');
-ui.editorConfirm.onclick();assert.equal(state,'choosing');assert(ui.characterEditor.hidden);assert.deepEqual(playerColors,chosen);
+ui.editorConfirm.onclick();assert.equal(state,'map');assert(ui.characterEditor.hidden);assert.deepEqual(playerColors,chosen);
 assert.deepEqual(JSON.parse(data[APPEARANCE_KEY]),{colors:chosen,headColor:'#334455'});assert.deepEqual(readAppearance(),{colors:chosen,headColor:'#334455'});
 showCharacterEditor();assert.equal(draftStripeCount,3);selectEditorStripe(0);paintEditorColor('#000000');ui.editorCancel.onclick();assert.deepEqual(playerColors,chosen);
 startCourse('existing');assert(ui.mapMarker.style['--body-stripes'].includes('#112233 0%'));
@@ -99,7 +99,7 @@ paints=[];drawBodyFill(10,20,40,72,true);assert.equal(paints.length,3);assert(pa
 assert.equal(JSON.stringify({body,grips,route,stamina,moveCount}),savedPhysics);
 paints=[];drawBodyFill(10,20,40,72);assert.deepEqual(paints.map(p=>p.color),chosen);
 assert.equal(paints[0].y,20);assert.equal(paints.at(-1).y+paints.at(-1).h,92);
-showTitleScreen();showCharacterEditor();resizeEditorStripes(8);ui.editorConfirm.onclick();assert.equal(playerColors.length,8);
+startCourse('existing');showCharacterEditor();resizeEditorStripes(8);ui.editorConfirm.onclick();assert.equal(playerColors.length,8);
 showCharacterEditor();resizeEditorStripes(1);selectEditorStripe(0);paintEditorColor('#ffffff');selectEditorHead();paintEditorColor('#556677');ui.editorConfirm.onclick();assert.deepEqual(playerColors,['#ffffff']);
 // Legacy/malformed saves and blocked storage cannot corrupt rendering or stop play.
 const saved=data[APPEARANCE_KEY];
@@ -109,11 +109,11 @@ for(const value of ['{bad','null',JSON.stringify({colors:[]}),JSON.stringify({co
 data[APPEARANCE_KEY]=JSON.stringify({colors:['#ABCDEF']});assert.deepEqual(readAppearance(),{colors:['#abcdef'],headColor:DEFAULT_HEAD_COLOR});data[APPEARANCE_KEY]=saved;
 const get=storage.getItem;storage.getItem=()=>{throw Error('blocked');};assert.equal(readAppearance(),null);storage.getItem=get;
 const set=storage.setItem;storage.setItem=()=>{throw Error('full');};
-showCharacterEditor();selectEditorStripe(0);paintEditorColor('#123456');assert(confirmCharacterEditor());assert.deepEqual(playerColors,['#123456']);assert(!ui.appearanceStatus.hidden);storage.setItem=set;
+showCharacterEditor();selectEditorStripe(0);paintEditorColor('#123456');assert(confirmCharacterEditor());assert.deepEqual(playerColors,['#123456']);assert(!ui.mapError.hidden);storage.setItem=set;
 assert.equal(data[APPEARANCE_KEY],saved);
 `)(assert,storage,data);
 new Function('assert','Math',env+source+`
-assert.deepEqual(playerColors,['#ffffff']);assert.equal(playerHeadColor,'#556677');ui.editCharacter.onclick();assert.equal(draftStripeCount,1);
+assert.deepEqual(playerColors,['#ffffff']);assert.equal(playerHeadColor,'#556677');startCourse('existing');showCharacterEditor();assert.equal(draftStripeCount,1);
 assert(ui.editorPreview.innerHTML.includes('fill="#ffffff"'));
 ui.editorCancel.onclick();startCourse('prototype');assert(ui.mapMarker.style['--body-stripes'].includes('#ffffff'));assert.equal(ui.mapMarker.style['--head-color'],'#556677');
 `)(assert,Object.assign(Object.create(Math),{random(){throw Error('Saved appearance must not rerandomize');}}));
@@ -122,7 +122,7 @@ new Function('assert','Math',env+source+`assert.deepEqual(playerColors,['#cc1122
 data['ascent.appearance.v1']=savedAppearance;
 new Function('assert','data','storage',env+source+`
 assert.equal(playerName,JSON.parse(data[PLAYER_NAME_KEY]));assert.equal(nameCharacters(playerName).length,8);
-showCharacterEditor();const savedName=playerName;
+startCourse('existing');showCharacterEditor();const savedName=playerName;
 ui.playerName.value='  ';assert(!confirmCharacterEditor());assert(!ui.playerNameError.hidden);assert.equal(state,'editing');assert.equal(playerName,savedName);
 ui.playerName.value='岳志1234567890';ui.playerName.oninput({isComposing:false});assert.equal(ui.playerName.value,'岳志12345678');
 ui.playerName.value='新しい名前';ui.editorCancel.onclick();assert.equal(playerName,savedName);
@@ -132,11 +132,11 @@ ui.playerName.oncompositionend();assert.equal(nameCharacters(ui.playerName.value
 assert(confirmCharacterEditor());assert.equal(playerName,'👨‍👩‍👧‍👦'.repeat(10));assert.equal(readPlayerName(),playerName);
 showCharacterEditor();ui.playerName.value='  岳志  ';assert(confirmCharacterEditor());assert.equal(playerName,'岳志');
 const old=data[PLAYER_NAME_KEY];data[PLAYER_NAME_KEY]='{bad';assert.equal(readPlayerName(),'');data[PLAYER_NAME_KEY]=old;
-const set=storage.setItem;storage.setItem=()=>{throw Error('full');};showCharacterEditor();ui.playerName.value='Guest';assert(confirmCharacterEditor());assert.equal(playerName,'Guest');assert(!ui.appearanceStatus.hidden);storage.setItem=set;
+const set=storage.setItem;storage.setItem=()=>{throw Error('full');};showCharacterEditor();ui.playerName.value='Guest';assert(confirmCharacterEditor());assert.equal(playerName,'Guest');assert(!ui.mapError.hidden);storage.setItem=set;
 assert.equal(readPlayerName(),'岳志');
 `)(assert,data,storage);
-new Function('assert',env+source+`assert.equal(playerName,'岳志');showCharacterEditor();assert.equal(ui.playerName.value,'岳志');`)(assert);
-console.log('PASS character editor: randomized saved first run, single head color, legacy body migration, title/map entry and same-map return, 1-8 equal stripes, mouse/keyboard palette and custom colors, hidden slot retention, draft/cancel/confirm, game and map fills, press feedback, reload, malformed/blocked storage, unchanged physics');
+new Function('assert',env+source+`assert.equal(playerName,'岳志');startCourse('existing');showCharacterEditor();assert.equal(ui.playerName.value,'岳志');`)(assert);
+console.log('PASS character editor: randomized saved first run, single head color, legacy body migration, map entry and same-map return, 1-8 equal stripes, mouse/keyboard palette and custom colors, hidden slot retention, draft/cancel/confirm, game and map fills, press feedback, reload, malformed/blocked storage, unchanged physics');
 } finally {
  if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);
  else delete globalThis.localStorage;

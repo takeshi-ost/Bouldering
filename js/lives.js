@@ -61,7 +61,7 @@ function refreshLives() {
     const inMap=state==='map';
     ui.lifeStatus.classList.toggle('game-lives',inGame || inMap);
     ui.lifeStatus.setAttribute('aria-label',`ライフ ${lives.count} / ${LIFE_MAX}`);
-    ui.lifeStatus.hidden=!!dailyRun || !['choosing','map','playing','won','lost'].includes(state) || courseMode==='prototype' || debugAttempt;
+    ui.lifeStatus.hidden=!!dailyRun || !['map','playing','won','lost'].includes(state) || courseMode==='prototype' || debugAttempt;
     const seconds=lives.recoveryAt===null ? null : Math.max(0,Math.ceil((LIFE_RECOVERY_MS-(Date.now()-lives.recoveryAt))/1000));
     const recoveryTime=`${String(Math.floor((seconds??0)/60)).padStart(2,'0')}:${String((seconds??0)%60).padStart(2,'0')}`;
     if(inMap && lives.count===0)ui.lifeStatus.setAttribute('aria-label',`ライフ0、回復まで ${recoveryTime}`);

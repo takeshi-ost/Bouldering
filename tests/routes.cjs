@@ -9,7 +9,7 @@ if(!html.includes('id="existingCourse"') || !html.includes('id="prototypeCourse"
 console.log(vm.runInContext(`
 function check(v,m){if(!v)throw Error(m);}
 check(state==='choosing' && !cameraIntro && !ui.titleScreen.hidden,'Course menu startup failed');
-ui.existingCourse.onclick();check(state==='map','Course should open map');selectStage(1);
+startCourse('existing');check(state==='map','Course should open map');selectStage(1);
 check(state==='playing' && cameraIntro && level===1 && courseMode==='existing','One-screen stage needs its title intro');
 advanceCameraIntro(0);advanceCameraIntro(999);check(cameraIntro,'One-screen title vanished before 1s');
 advanceCameraIntro(1000);check(!cameraIntro,'One-screen intro did not finish at 1s');

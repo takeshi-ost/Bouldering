@@ -159,31 +159,32 @@ function showTitleScreen() {
     ui.mapButton.disabled = true;
     hideResultModal();
     ui.titleScreen.hidden = false;
-    ui.courseError.hidden = true;
+
     ui.restart.disabled = true;
     bodyTap = null;
     hideSettings();
     ui.hud.hidden=true;
-    ui.debugMode.checked=debugMode;
-    syncTitleDebugControls();
+    courseMode='existing';
+    syncDebugCourseControls();
     canvas.setAttribute('tabindex', '-1');
-    ui.existingCourse.focus();
+    beginTitlePreparation();
 }
 function startCourse(mode) {
     if (mode !== 'existing' && mode !== 'prototype') return;
     courseMode = mode;
     showLevelMap();
 }
-ui.existingCourse.onclick = () => startCourse('existing');
-ui.prototypeCourse.onclick = () => {if(debugMode)startCourse('prototype');};
-function syncTitleDebugControls() {
+ui.prototypeCourse.onclick = () => {
+    if(debugMode && state==='map' && settingsOpen)startCourse(courseMode==='prototype'?'existing':'prototype');
+};
+function syncDebugCourseControls() {
     ui.prototypeCourse.hidden=!debugMode;
+    ui.prototypeCourse.textContent=courseMode==='prototype'?'通常コースへ':'ロジハラ（検証用）';
     ui.prototypeDescription.hidden=!debugMode;
 }
 
-
 ui.showHelp.onclick = () => {
-    if (state !== 'choosing' || ui.helpDialog.open) return;
+    if (!settingsOpen || !['map','playing'].includes(state) || ui.helpDialog.open) return;
     ui.helpDialog.showModal();
     ui.helpDialog.scrollTop = 0;
 };
@@ -208,14 +209,10 @@ dismissOutside(ui.overlay,()=>ui.closeResult.onclick(),true);
 ui.closeLife.onclick=cancelLifePrompt;
 dismissOutside(ui.lifeDialog,cancelLifePrompt,true);
 
-ui.debugMode.onchange=()=>{
-    if(state!=='choosing') {ui.debugMode.checked=debugMode;return;}
-    setDebugMode(ui.debugMode.checked);
-};
 function setDebugMode(enabled) {
     debugMode=enabled;
-    ui.debugMode.checked=ui.mapDebugMode.checked=debugMode;
-    syncTitleDebugControls();
+    ui.mapDebugMode.checked=debugMode;
+    syncDebugCourseControls();
     updateUI();
     if(state==='map')renderLevelMap();
 }
@@ -240,6 +237,7 @@ function openSettings() {
     ui.stageDebugDisplay.hidden=onMap || !debugMode;
     for(const [key,control] of Object.entries(debugDisplayControls))control.checked=debugDisplay[key];
     ui.mapDebugMode.checked=debugMode;
+    syncDebugCourseControls();
     settingsOpen=true;
     ui.settingsDialog.showModal?.();
 }

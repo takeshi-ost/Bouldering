@@ -113,6 +113,9 @@ function focusMapLevel() {
     button?.focus({preventScroll:true});
 }
 function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
+    ui.levelMap.inert=false;
+    ui.levelMap.removeAttribute?.('aria-hidden');
+    ui.wall.classList.toggle('title-open',false);
     settleLifeAttempt(false);
     leaveDailyRun();ui.dailyCalendar.hidden=true;
     release(true);endPan();touchId=null;ignoreTouches=false;
@@ -201,4 +204,4 @@ ui.debugControls.onsubmit=e=>{
 };
 
 // Recalculate both artwork height and hit targets when the viewport changes.
-window.addEventListener('resize',()=>{if(state==='map')renderLevelMap();});
+window.addEventListener('resize',()=>{if(state==='map')renderLevelMap();else if(state==='choosing')prepareTitleMapLayout();});

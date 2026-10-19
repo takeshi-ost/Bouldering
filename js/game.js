@@ -4,10 +4,10 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
-    "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "debugMode", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
+    "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
     "dailyCalendar", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyToday", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
-    "characterEditor", "playerName", "playerNameError", "editCharacter", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
-    "titleScreen", "existingCourse", "prototypeCourse", "prototypeDescription", "courseError", "showHelp", "helpDialog", "closeHelp"
+    "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
+    "titleScreen", "releaseVersion", "playerUuid", "titleTap", "prototypeCourse", "prototypeDescription", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
 let debugMode = false;

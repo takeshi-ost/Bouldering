@@ -1,4 +1,5 @@
 "use strict";
+const RELEASE_VERSION = '0.1.0';
 // 表示サイズと可動域。単位はゲーム内の論理pxです。
 const W = 400;
 const H = 700;

@@ -118,7 +118,7 @@ ui.mapNext.onclick();assert.equal(mapPage,1);assert.equal(ui.mapMarker.hidden,fa
 assert.equal(selectStage(22),false);
 level=1;recordStageClear();assert.equal(stageProgress.existing.cleared,20);
 // Explicit debug play can jump beyond unlocks without changing saved progress.
-showTitleScreen();ui.debugMode.checked=true;ui.debugMode.onchange();startCourse('existing');assert.equal(ui.debugControls.hidden,false);
+showTitleScreen();setDebugMode(true);startCourse('existing');assert.equal(ui.debugControls.hidden,false);
 const progressBefore=JSON.stringify(stageProgress),savedBefore=data[PROGRESS_KEY];
 for(const n of [0,-1,1.5,NaN,Infinity,Number.MAX_SAFE_INTEGER])assert.equal(selectStage(n,true),false);
 assert.equal(selectStage(22),false);
@@ -128,7 +128,7 @@ ui.retry.onclick();assert(debugAttempt);complete();
 assert.equal(JSON.stringify(stageProgress),progressBefore);assert.equal(data[PROGRESS_KEY],savedBefore);
 state='won';ui.next.onclick();assert.equal(state,'map');assert.equal(mapSelected,21);assert.equal(mapTransition,null);
 ui.debugStage.value='1.2';ui.debugControls.onsubmit({preventDefault(){}});assert(!ui.mapError.hidden);
-showTitleScreen();ui.debugMode.checked=false;ui.debugMode.onchange();startCourse('existing');assert(ui.debugControls.hidden);
+showTitleScreen();setDebugMode(false);startCourse('existing');assert(ui.debugControls.hidden);
 assert.equal(selectStage(22,true),false);assert.equal(selectStage(22),false);
 // Generation errors stay on the map so a player can retry selection.
 const originalReset=reset;reset=()=>{throw Error('generation failed');};

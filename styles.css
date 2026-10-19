@@ -198,7 +198,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .settings-button:active { transform:scale(.94); }
 .map-settings-button { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 12px); right:max(12px,env(safe-area-inset-right,0px)); }
 .progress { grid-column:1/-1; justify-self:end; color:#68786e; font-size:11px; background:#fffdf4d9; padding:8px; border-radius:8px; }
-.title-screen { position:absolute; inset:0; z-index:2; background:#f6f3eb; overflow-y:auto; touch-action:pan-y; padding:calc(env(safe-area-inset-top,0px) + 24px) 22px calc(env(safe-area-inset-bottom,0px) + 24px); display:grid; align-items:center; }
+.title-screen { position:absolute; inset:0; z-index:5; background:#f6f3eb; overflow-y:auto; touch-action:pan-y; padding:calc(env(safe-area-inset-top,0px) + 24px) 22px calc(env(safe-area-inset-bottom,0px) + 24px); display:grid; align-items:center; }
 .title-content { width:min(100%,420px); margin:auto; text-align:center; }
 .brand { font-size:36px; font-weight:850; letter-spacing:6px; margin:0 0 4px; }
 .tag { font-size:10px; letter-spacing:2px; color:#68786e; }
@@ -346,3 +346,12 @@ button.modal-close:focus-visible { outline:none; }
     45% { transform:scale(1); opacity:1; }
     75% { transform:scale(.45); opacity:0; }
 }
+
+/* The title covers a laid-out, decoded map until preparation is complete. */
+.title-screen { outline:none; cursor:default; -webkit-tap-highlight-color:transparent; }
+.title-screen[aria-disabled="false"] { cursor:pointer; }
+.title-content .release-version { margin:28px 0 6px; font-size:12px; }
+.title-content .player-uuid { margin:0; font-size:10px; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.title-tap { margin-top:44px; font-size:15px; font-weight:700; letter-spacing:.24em; }
+.title-tap[hidden] { display:none; }
+.wall.title-open .level-map { visibility:hidden; pointer-events:none; }
