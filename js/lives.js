@@ -60,6 +60,7 @@ function refreshLives() {
     const inGame=['playing','won','lost'].includes(state);
     const inMap=state==='map';
     ui.lifeStatus.classList.toggle('game-lives',inGame || inMap);
+    ui.lifeStatus.classList.toggle('map-lives',inMap);
     ui.lifeStatus.setAttribute('aria-label',`ライフ ${lives.count} / ${LIFE_MAX}`);
     ui.lifeStatus.hidden=!!dailyRun || !['map','playing','won','lost'].includes(state) || courseMode==='prototype' || debugAttempt;
     const seconds=lives.recoveryAt===null ? null : Math.max(0,Math.ceil((LIFE_RECOVERY_MS-(Date.now()-lives.recoveryAt))/1000));
