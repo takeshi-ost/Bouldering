@@ -113,7 +113,7 @@ e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal
 reset(1);assert(cameraIntro);e=visibleEvent();mouse('mousedown',e);mouse('mouseup',e);assert.equal(bodyTap,null);assert.equal(drag,null);
 advanceCameraIntro(100);advanceCameraIntro(1099);assert(cameraIntro);assert.equal(camera,HEIGHT-H);
 const labels=[];ctx.fillText=(text,x,y)=>labels.push({text,x,y});
-drawStageIntro();assert.deepEqual(labels.pop(),{text:'STAGE 001',x:W/2,y:H/2});
+drawStageIntro();assert.deepEqual(labels.pop(),{text:'STAGE 1',x:(W-240)/2,y:H/2});
 advanceCameraIntro(1100);assert.equal(cameraIntro,null);drawStageIntro();assert.equal(labels.length,0);
 assert.equal(ui.next.textContent,'次のステージへ →');
 showLevelMap();e=visibleEvent();mouse('mousedown',e);mouse('mouseup',e);assert.equal(bodyTap,null);assert.equal(state,'map');

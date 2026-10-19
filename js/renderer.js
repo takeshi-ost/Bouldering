@@ -688,9 +688,11 @@ function drawStageIntro() {
     ctx.font='800 40px system-ui';
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    const title=dailyRun ? `DAILY ${dailyRun.date.slice(5).replace('-','/')}` : `STAGE ${String(level).padStart(3,'0')}`;
-    ctx.strokeText(title,W/2,H/2);
-    ctx.fillText(title,W/2,H/2);
+    const title=dailyRun ? `DAILY ${dailyRun.date.slice(5).replace('-','/')}` : `STAGE ${level}`;
+    const x=dailyRun?W/2:(W-(ctx.measureText?.('STAGE 0000')?.width || 240))/2;
+    if(!dailyRun)ctx.textAlign='left';
+    ctx.strokeText(title,x,H/2);
+    ctx.fillText(title,x,H/2);
     ctx.restore();
 }
 

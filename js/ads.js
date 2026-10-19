@@ -9,6 +9,12 @@ function readAdClearCount() {
 }
 let clearsSinceAd=readAdClearCount();
 let dummyAd=null;
+let adCoverPending=false;
+function finishDummyAdCover() {
+    if(!adCoverPending)return;
+    adCoverPending=false;
+    ui.dummyAd.close?.();ui.dummyAd.hidden=true;
+}
 function saveAdClearCount() {
     try {globalThis.localStorage?.setItem(AD_CLEARS_KEY,JSON.stringify(clearsSinceAd));}
     catch(_) { /* Keep the interval within this session if storage is unavailable. */ }
@@ -21,7 +27,7 @@ function recordAdClear() {
 function resetAdClearCount() {clearsSinceAd=0;saveAdClearCount();}
 // Completion work (e.g. a future reward) runs before returning to the caller's sequence.
 function startDummyAd({onComplete=()=>{},onReturn=null}={}) {
-    if(dummyAd)return false;
+    if(dummyAd || adCoverPending)return false;
     const previousState=state,wasResultOpen=!!ui.overlay.open;
     const wasTiming=runStartedAt!==null;
     if(wasTiming){runElapsedMs=runTimeMs();runStartedAt=null;}
@@ -44,7 +50,7 @@ function advanceDummyAd(now=performance.now()) {
 function completeDummyAd() {
     if(!dummyAd || dummyAd.remaining>0)return false;
     const ad=dummyAd;dummyAd=null;
-    ui.dummyAd.close?.();ui.dummyAd.hidden=true;
+    adCoverPending=true;ui.adComplete.hidden=true;
     state=ad.previousState;
     if(ad.wasTiming)runStartedAt=performance.now()-runElapsedMs;
     try {ad.onComplete();}
@@ -52,6 +58,7 @@ function completeDummyAd() {
         if(ad.onReturn)ad.onReturn();
         else if(ad.wasResultOpen){showResultModal();(state==='won'?ui.next:ui.retry).focus();}
         else canvas.focus();
+        if(state!=='map' || !mapPreparing)finishDummyAdCover();
     }
     return true;
 }

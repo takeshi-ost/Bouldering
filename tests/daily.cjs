@@ -37,7 +37,7 @@ ui.dailyGrid.onclick({target:{closest:()=>previewButton}});
 assert.equal(state,'daily');assert.equal(dailyRun,null);assert(!dummyAd);assert.equal(JSON.stringify(dailyAttempts),beforePreview);
 assert.equal(dailySelectedDate,previewDate);assert.equal(ui.dailyStartTitle.textContent,'2026/10/16');
 assert.equal(ui.dailyStartDifficulty.textContent,difficultyLabel(previewProfile.difficulty));
-assert.equal(ui.dailyStartLength.textContent,{short:'短い',medium:'中くらい',long:'長い'}[stageLengthInfo(previewProfile.referenceStage,previewProfile.seed).category]);
+assert.equal(ui.dailyStartLength.textContent,{short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(previewProfile.referenceStage,previewProfile.seed).category]);
 assert.equal((ui.dailyGrid.innerHTML.match(/is-selected/g)||[]).length,1);
 assert(!ui.dailyGrid.innerHTML.includes('daily-stars'));assert(!ui.stageStartDialog.open);
 ui.dailyStartButton.onclick();assert.equal(state,'playing');assert.equal(dailyRun.date,previewDate);assert.equal(dailyAttempts[previewDate],1);

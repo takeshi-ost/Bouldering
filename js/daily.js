@@ -123,7 +123,7 @@ function renderDailyStart() {
     const profile=dailySelectedDate?dailyProfile(dailySelectedDate):null;
     ui.dailyStartTitle.textContent=profile?profile.date.replaceAll('-','/'):'日付を選択';
     ui.dailyStartDifficulty.textContent=profile?difficultyLabel(profile.difficulty):'—';
-    ui.dailyStartLength.textContent=profile?{short:'短い',medium:'中くらい',long:'長い'}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
+    ui.dailyStartLength.textContent=profile?{short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
     const record=profile && dailyRecords[profile.date];
     ui.dailyStartButton.hidden=!!record;
     ui.dailyStartButton.disabled=!profile || !!record;

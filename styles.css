@@ -132,7 +132,7 @@ button:disabled { opacity: .45; cursor: default; }
 .map-wall { position:absolute; inset:0; display:block; width:64px; height:72px; pointer-events:none; }
 .map-icon-art { position:absolute; inset:0; transform-origin:50% 50%; filter:url(#map-icon-soft-outline); }
 .map-icon-image { position:absolute; max-width:none; object-fit:fill; }
-.map-wall .map-node-number { position:absolute; left:50%; top:calc(50% - 6px); transform:translate(-50%,-50%); color:#fff; -webkit-text-stroke:2px #000; paint-order:stroke fill; font-weight:800; line-height:1; letter-spacing:0; text-shadow:none; }
+.map-wall .map-node-number { position:absolute; left:50%; top:calc(50% - 6px); transform:translate(-50%,-50%); color:#fff; -webkit-text-stroke:2px #000; paint-order:stroke fill; font-weight:800; line-height:1; letter-spacing:0; text-shadow:none; width:4ch; text-align:left; font-variant-numeric:tabular-nums; }
 .map-node small { display:none; position:absolute; top:64px; left:0; right:0; font-size:9px; line-height:12px; color:#475e52; }
 .map-node:disabled { opacity:1; }
 .map-node:disabled:hover { filter:none; }
@@ -191,7 +191,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .stamina-heart { position:absolute; top:28px; left:0; width:64px; height:58px; color:#cf6676; }
 .stamina-heart svg { display:block; width:100%; height:100%; filter:drop-shadow(0 2px 1px #4b29332b); }
 .stamina-heart strong { position:absolute; inset:0; display:grid; place-items:center; padding-top:2px; padding-bottom:5px; font-size:22px; line-height:1; font-weight:800; color:#fffaf0; letter-spacing:0; font-variant-numeric:tabular-nums; }
-.level { grid-column:2; font-size:17px; font-weight:800; letter-spacing:1px; -webkit-text-stroke:3px #fff; paint-order:stroke fill; }
+.level { min-width:10ch; text-align:left; font-variant-numeric:tabular-nums; grid-column:2; font-size:17px; font-weight:800; letter-spacing:1px; -webkit-text-stroke:3px #fff; paint-order:stroke fill; }
 .settings-button { grid-column:3; justify-self:end; pointer-events:auto; display:grid; place-items:center; width:44px; height:44px; padding:0; border:0; border-radius:0; box-shadow:none; background:transparent; color:#000; letter-spacing:0; }
 .settings-button svg { display:block; width:29px; height:29px; }
 .settings-button:hover { background:transparent; filter:none; }
@@ -388,7 +388,7 @@ button.modal-close:focus-visible { outline:none; }
 .stage-start-lives { min-height:24px; margin:0 36px 10px 0; }
 .stage-start-lives .life-players,.stage-start-lives .life-countdown { margin-left:0; }
 .stage-start-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:16px; }
-.stage-start-dialog h2 { margin:0; text-align:left; font-size:20px; line-height:28px; letter-spacing:0; white-space:nowrap; }
+.stage-start-dialog h2 { min-width:10ch; font-variant-numeric:tabular-nums; margin:0; text-align:left; font-size:20px; line-height:28px; letter-spacing:0; white-space:nowrap; }
 .stage-start-info { display:flex; align-items:center; gap:8px; margin:0; }
 .stage-start-info dt { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .stage-start-info dd { margin:0; font-size:12px; font-weight:700; white-space:nowrap; }

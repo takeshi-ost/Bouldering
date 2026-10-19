@@ -169,6 +169,7 @@ ui.mapButton.onclick = () => {
 };
 
 function showTitleScreen() {
+    finishDummyAdCover();
     hideStageStart();
     cancelMapReveal();
     settleLifeAttempt(false);

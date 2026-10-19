@@ -20,7 +20,7 @@ function mapWallMarkup(n,status='active') {
         <span class="map-icon-art" style="transform:scaleX(${variant.mirrored?-1:1})">
             <img class="map-icon-image" src="assets/stage-icons/${key}.webp?v=${MAP_ART_VERSION}" alt="" draggable="false" width="${asset.width}" height="${asset.height}" style="width:${asset.renderWidth}px;height:${asset.renderHeight}px;left:${asset.left}px;top:${asset.top}px">
         </span>
-        <span class="map-node-number" style="font-size:${n<1000?18:14}px">${n}</span>
+        <span class="map-node-number" style="font-size:${n<10000?14:12}px">${n}</span>
     </span>`;
 }
 // Twenty clearings measured from the approved pale-sage wallpaper, bottom to top.

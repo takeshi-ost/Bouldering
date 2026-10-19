@@ -60,6 +60,7 @@ function prepareMapReveal() {
         ui.levelMap.classList.toggle('map-preparing',false);
         ui.levelMap.inert=false;
         ui.levelMap.removeAttribute?.('aria-hidden');
+        finishDummyAdCover();
         if(!mapTransition)focusMapLevel();
     };
     const images=Array.from(ui.mapNodes.querySelectorAll?.('img')||[]);
@@ -215,10 +216,10 @@ function openStageStart(n,debug=false,button=null,delay=0) {
     if(debug)ui.debugStage.blur?.();
     const context={n,debug,mode:courseMode,items:[false,false,false],button};
     stageStartContext=context;
-    ui.stageStartTitle.textContent=`STAGE ${String(n).padStart(4,'0')}`;
+    ui.stageStartTitle.textContent=`STAGE ${n}`;
     refreshLives();
     ui.stageStartDifficulty.textContent=difficultyLabel(difficultyForStage(n));
-    ui.stageStartLength.textContent={short:'短い',medium:'中くらい',long:'長い'}[stageLengthInfo(n).category];
+    ui.stageStartLength.textContent={short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(n).category];
     stageItemButtons.forEach(item=>item.setAttribute('aria-pressed','false'));
     ui.stageStartButton.disabled=false;
     const show=()=>{

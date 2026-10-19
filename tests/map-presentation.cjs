@@ -27,6 +27,13 @@ advanceLevelMap(1000);assert.equal(mapTransition.start,null);assert.equal(mapSel
 ready.forEach(resolve=>resolve());await tick();assert(mapPreparing);assert.equal(frames.length,1);
 frames.shift()();assert(mapPreparing);frames.shift()();assert(!mapPreparing && !ui.levelMap.inert);assert(!ui.overlay.open,'Close the previous screen only at reveal');
 assert.equal(mapTransition.start,null);advanceLevelMap(100);advanceLevelMap(750);assert.equal(mapSelected,2);
+// Keep the completed ad covering the goal until the async map is ready.
+let adReady;mapImageWork=[{decode(){return new Promise(r=>adReady=r);}}];
+state='won';assert(startDummyAd({onReturn:()=>showLevelMap({advanceFrom:1})}));
+dummyAd.remaining=0;assert(completeDummyAd());assert.equal(state,'map');
+assert(mapPreparing && adCoverPending && ui.dummyAd.open && !ui.dummyAd.hidden);assert(ui.adComplete.hidden);
+assert(!completeDummyAd());assert(!startDummyAd());adReady();await tick();await finishFrames();
+assert(!mapPreparing && !adCoverPending && !ui.dummyAd.open && ui.dummyAd.hidden);
 mapImageWork=[{decode(){return Promise.reject(Error('offline'));}}];showLevelMap({target:2});assert(mapPreparing);await tick();await finishFrames();assert(!mapPreparing && !ui.levelMap.inert);
 let stale;mapImageWork=[{decode(){return new Promise(r=>stale=r);}}];showLevelMap();assert(mapPreparing);
 showTitleScreen();assert(!mapPreparing && ui.levelMap.inert);stale();await tick();await finishFrames();
