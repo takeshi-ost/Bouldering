@@ -141,6 +141,7 @@ ui.mapButton.onclick = () => {
 };
 
 function showTitleScreen() {
+    cancelMapReveal();
     settleLifeAttempt(false);
     leaveDailyRun();ui.dailyCalendar.hidden=true;
     endPointer(null,true);
@@ -184,7 +185,7 @@ function syncDebugCourseControls() {
 }
 
 ui.showHelp.onclick = () => {
-    if (!settingsOpen || !['map','playing'].includes(state) || ui.helpDialog.open) return;
+    if (mapPreparing || !settingsOpen || !['map','playing'].includes(state) || ui.helpDialog.open) return;
     ui.helpDialog.showModal();
     ui.helpDialog.scrollTop = 0;
 };
@@ -230,7 +231,7 @@ for(const [key,control] of Object.entries(debugDisplayControls)) {
 }
 function openSettings() {
     const onMap=state==='map';
-    if(settingsOpen || (onMap ? !!mapTransition : state!=='playing' || cameraIntro || featureHelpOpen))return;
+    if(settingsOpen || (onMap ? !!mapTransition || mapPreparing : state!=='playing' || cameraIntro || featureHelpOpen))return;
     if(!onMap) {endPointer(null,true);endPan();touchId=null;ignoreTouches=false;}
     ui.restart.hidden=ui.mapButton.hidden=onMap;
     ui.mapSettingsControls.hidden=!onMap;

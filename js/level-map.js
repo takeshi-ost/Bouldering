@@ -41,6 +41,42 @@ let stageProgress = readStageProgress();
 let mapPage = 0;
 let mapSelected = 1;
 let mapTransition = null;
+let mapPreparing=false,mapRevealTicket=0;
+function cancelMapReveal() {
+    mapRevealTicket++;mapPreparing=false;
+    ui.levelMap.classList.toggle('map-preparing',false);
+    ui.levelMap.inert=false;
+}
+function prepareMapReveal() {
+    const ticket=++mapRevealTicket;
+    const reveal=()=>{
+        if(ticket!==mapRevealTicket || state!=='map')return;
+        // Keep the previous screen until the map's final placement is ready.
+        ui.mapTrack.getBoundingClientRect();
+        ui.dailyCalendar.hidden=ui.characterEditor.hidden=ui.titleScreen.hidden=ui.hud.hidden=true;
+        hideResultModal();hideSettings();
+        ui.wall.classList.toggle('map-open',true);
+        mapPreparing=false;
+        ui.levelMap.classList.toggle('map-preparing',false);
+        ui.levelMap.inert=false;
+        ui.levelMap.removeAttribute?.('aria-hidden');
+        if(!mapTransition)focusMapLevel();
+    };
+    const images=Array.from(ui.mapNodes.querySelectorAll?.('img')||[]);
+    if(!images.length){reveal();return;}
+    const ready=images.map(image=>{
+        if(image.decode)return image.decode();
+        if(image.complete)return Promise.resolve();
+        return new Promise(resolve=>{
+            image.addEventListener('load',resolve,{once:true});
+            image.addEventListener('error',resolve,{once:true});
+        });
+    });
+    Promise.allSettled(ready).then(()=>{
+        if(ticket!==mapRevealTicket || state!=='map')return;
+        requestAnimationFrame(()=>requestAnimationFrame(reveal));
+    });
+}
 let debugAttempt = false;
 function recordStageClear() {
     if(dailyRun) {recordDailyClear();return;}
@@ -113,36 +149,34 @@ function focusMapLevel() {
     button?.focus({preventScroll:true});
 }
 function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
-    ui.levelMap.inert=false;
-    ui.levelMap.removeAttribute?.('aria-hidden');
+    cancelMapReveal();mapPreparing=true;
+    ui.levelMap.classList.toggle('map-preparing',true);
+    ui.levelMap.inert=true;ui.levelMap.setAttribute('aria-hidden','true');
     ui.wall.classList.toggle('title-open',false);
     settleLifeAttempt(false);
-    leaveDailyRun();ui.dailyCalendar.hidden=true;
+    leaveDailyRun();
     release(true);endPan();touchId=null;ignoreTouches=false;
     drag=null;bodyTap=null;cameraIntro=null;heartPopups=[];hazardShakeStart=null;
     if (debugAttempt) { advanceFrom=null; target=unlockedLevel(); }
     debugAttempt=false;
     hideStageHelp();
     state='map';
-    ui.characterEditor.hidden=true;
-    ui.wall.classList.toggle('map-open',true);
     const destination=clamp(advanceFrom===null?target:advanceFrom+1,1,unlockedLevel());
     mapSelected=advanceFrom===null?destination:advanceFrom;
     mapPage=Math.floor((destination-1)/MAP_PAGE_SIZE);
     mapTransition=advanceFrom!==null && destination!==advanceFrom
         ? {from:advanceFrom,to:destination,start:null} : null;
-    hideResultModal();ui.titleScreen.hidden=true;ui.levelMap.hidden=false;
+    ui.levelMap.hidden=false;
     ui.mapError.hidden=true;
-    hideSettings();ui.hud.hidden=true;
     ui.restart.disabled=ui.mapButton.disabled=true;
     canvas.setAttribute('tabindex','-1');
     renderLevelMap();
     const viewportHeight=ui.mapScroll.clientHeight||H;
     ui.mapScroll.scrollTop=Math.max(0,viewportHeight*.2+mapPoint(destination).y-viewportHeight/2);
-    if (!mapTransition) focusMapLevel();
+    prepareMapReveal();
 }
 function advanceLevelMap(now) {
-    if (state!=='map' || !mapTransition) return;
+    if (state!=='map' || mapPreparing || !mapTransition) return;
     if (mapTransition.start===null) {mapTransition.start=now;return;}
     const t=clamp((now-mapTransition.start)/MAP_HOP_DURATION,0,1),s=t*t*(3-2*t);
     const from=mapPoint(mapTransition.from),to=mapPoint(mapTransition.to);
@@ -156,10 +190,11 @@ function advanceLevelMap(now) {
     }
 }
 function selectStage(n,debug=false) {
-    if (state!=='map' || mapTransition || !Number.isSafeInteger(n) || n<1 || n>=Number.MAX_SAFE_INTEGER || (debug ? !debugMode : n>unlockedLevel())) return false;
+    if (state!=='map' || mapPreparing || mapTransition || !Number.isSafeInteger(n) || n<1 || n>=Number.MAX_SAFE_INTEGER || (debug ? !debugMode : n>unlockedLevel())) return false;
     // Dismiss the numeric keyboard before generating and opening the stage.
     if(debug)ui.debugStage.blur?.();
     const launch=()=>{
+        cancelMapReveal();
         try {
             debugAttempt=debug;
             restartInput(n);
@@ -184,11 +219,11 @@ ui.mapNodes.onclick = e => {
 };
 ui.mapCourses.onclick=()=>{if(!mapTransition)showTitleScreen();};
 ui.mapPrev.onclick=()=>{
-    if (state!=='map' || mapTransition || mapPage===0) return;
+    if (state!=='map' || mapPreparing || mapTransition || mapPage===0) return;
     mapPage--;renderLevelMap();ui.mapScroll.scrollTop=0;
 };
 ui.mapNext.onclick=()=>{
-    if (state!=='map' || mapTransition || mapBounds().last>=unlockedLevel()) return;
+    if (state!=='map' || mapPreparing || mapTransition || mapBounds().last>=unlockedLevel()) return;
     mapPage++;renderLevelMap();ui.mapScroll.scrollTop=ui.mapTrack.clientHeight;
 };
 

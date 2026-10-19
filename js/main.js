@@ -16,6 +16,7 @@ function readPlayerUuid() {
 const playerUuid=readPlayerUuid();
 let titleReady=false,titlePreparation=0;
 function prepareTitleMapLayout() {
+    cancelMapReveal();
     mapSelected=unlockedLevel();mapPage=Math.floor((mapSelected-1)/MAP_PAGE_SIZE);mapTransition=null;
     ui.levelMap.hidden=false;
     ui.levelMap.inert=true;ui.levelMap.setAttribute('aria-hidden','true');

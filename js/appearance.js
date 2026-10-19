@@ -124,8 +124,9 @@ function renderCharacterEditor() {
 }
 let editorMapReturn=null;
 function showCharacterEditor() {
-    if(state!=='map' || mapTransition)return false;
+    if(state!=='map' || mapPreparing || mapTransition)return false;
     editorMapReturn=state==='map'?{page:mapPage,selected:mapSelected,scrollTop:ui.mapScroll.scrollTop}:null;
+    cancelMapReveal();
     hideSettings();ui.levelMap.hidden=true;ui.wall.classList.toggle('map-open',false);
     draftColors=[...playerColors];draftHeadColor=playerHeadColor;draftStripeCount=playerColors.length;selectedStripe=null;selectedPart=null;
     ui.playerName.value=playerName;ui.playerNameError.hidden=true;
