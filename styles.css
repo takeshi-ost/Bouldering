@@ -137,6 +137,7 @@ button:disabled { opacity: .45; cursor: default; }
 .map-node:disabled { opacity:1; }
 .map-node:disabled:hover { filter:none; }
 .map-node[aria-current] { outline:none; }
+.map-node[aria-current] .map-wall[data-status="active"] .map-icon-image { filter:saturate(2.4) hue-rotate(-8deg) contrast(1.06); }
 .map-node:focus-visible { outline:2px solid #3d694e; outline-offset:3px; }
 @media (pointer:coarse) { .map-node:focus { outline:none; } }
 .map-marker { position:absolute; transform:translate(-50%,-100%); width:24px; height:32px; pointer-events:none; z-index:1; filter:drop-shadow(0 2px 1px #25372f30); }
@@ -335,17 +336,18 @@ button.modal-close:focus-visible { outline:none; }
 .map-node[aria-current]:not(:disabled)::before,
 .map-node[aria-current]:not(:disabled)::after {
     content:""; position:absolute; pointer-events:none;
-    left:50%; top:52%; width:62px; height:24px; border-radius:50%;
-    border:2px solid #fff9cf; background:#ffeeb522;
-    box-shadow:0 0 9px #fff4bb99; opacity:0;
-    animation:stage-base-glow 2.4s ease-out infinite;
+    left:50%; top:52%; width:66px; height:28px; border-radius:50%;
+    border:3px solid #ff9200; background:#ffb32940;
+    box-shadow:0 0 0 1px #fff6d5,0 0 10px 3px #ffad00a8; opacity:0;
+    animation:stage-base-glow 1.8s ease-out infinite; animation-delay:-.9s;
 }
-.map-node[aria-current]:not(:disabled)::after { animation-delay:1.2s; }
+.map-node[aria-current]:not(:disabled)::after { animation-delay:0s; }
 .map-node[aria-current] .map-wall, .map-node[aria-current] .map-node-stars { z-index:1; }
 @keyframes stage-base-glow {
-    0% { transform:translate(-50%,-50%) scale(.6); opacity:0; }
-    15% { opacity:.85; }
-    100% { transform:translate(-50%,-50%) scale(1.25); opacity:0; }
+    0% { transform:translate(-50%,-50%) scale(.9); opacity:0; }
+    15% { transform:translate(-50%,-50%) scale(1); opacity:1; }
+    65% { opacity:.85; }
+    100% { transform:translate(-50%,-50%) scale(1.45); opacity:0; }
 }
 .daily-sparkle { display:none; position:absolute; pointer-events:none; z-index:2;
     width:12px; height:12px; background:#fffbdc;
