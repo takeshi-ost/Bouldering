@@ -237,7 +237,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .daily-calendar { position:absolute; inset:0; z-index:2; overflow:hidden; background:#bfc5ae; }
 .daily-content { position:absolute; inset:calc(20% + 8px) 0 0; display:flex; flex-direction:column; gap:12px; min-height:0; overflow:hidden; overscroll-behavior:none; touch-action:none; padding:0 max(14px,calc((100% - 560px)/2)) calc(env(safe-area-inset-bottom,0px) + 12px); }
 .daily-calendar[hidden] { display:none; }
-.daily-heading,.stage-map-heading { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 18px); left:max(14px,env(safe-area-inset-left,0px)); margin:0; max-width:calc(100% - 220px); font-size:clamp(10px,calc((100vw - 230px)/9),22px); white-space:nowrap; font-weight:900; line-height:1.35; color:#fff; -webkit-text-stroke:3px #747b7d; paint-order:stroke fill; pointer-events:none; }
+.daily-heading,.stage-map-heading { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 48px); left:max(14px,env(safe-area-inset-left,0px)); margin:0; max-width:calc(100% - 220px); font-size:clamp(10px,calc((100vw - 230px)/9),22px); white-space:nowrap; font-weight:900; line-height:1.35; color:#fff; -webkit-text-stroke:3px #747b7d; paint-order:stroke fill; pointer-events:none; }
 .daily-calendar-plate { touch-action:none; flex:0 1 auto; min-height:0; display:flex; flex-direction:column; padding:12px; border-radius:18px; background:#f8f6ee; }
 .daily-month-navigation { flex:none; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px; }
 .daily-month-navigation h2 { font-size:18px; margin:0; }
@@ -291,7 +291,6 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 
 .life-status { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 74px); left:max(14px,env(safe-area-inset-left,0px)); display:flex; flex-direction:column; gap:3px; padding:7px 10px; border-radius:10px; background:#fffdf3ed; color:#3f5b47; font-size:12px; font-weight:700; pointer-events:none; }
 .life-status.game-lives { top:calc(env(safe-area-inset-top,0px) + 12px); left:max(12px,env(safe-area-inset-left,0px)); padding:0; border-radius:0; background:transparent; }
-.life-status.game-lives.map-lives { top:calc(20% - 40px); transform:translateY(-100%); left:max(14px,env(safe-area-inset-left,0px)); }
 /* Three 18px icons plus two 2px gaps center on the 64px stamina heart. */
 .life-players { display:flex; align-items:flex-start; gap:2px; margin-left:3px; }
 .life-player { position:relative; display:block; width:18px; height:24px; }

@@ -1131,9 +1131,10 @@ function draw(now = 0) {
     drawAnchorRings(now);
     drawHeartPopups(performance.now());
     ctx.restore();
-    ctx.fillStyle=RENDER_CONFIG.safeAreaColor;
-    ctx.fillRect(0,0,STAGE_SAFE_WIDTH,H);
-    ctx.fillRect(W-STAGE_SAFE_WIDTH,0,STAGE_SAFE_WIDTH,H);
+    if(pan?.edge && pan.scrolling && canScrollStage()) {
+        ctx.fillStyle=RENDER_CONFIG.safeAreaColor;
+        ctx.fillRect(pan.side==='left'?0:W-STAGE_SAFE_WIDTH,0,STAGE_SAFE_WIDTH,H);
+    }
     drawStageIntro();
 
     requestAnimationFrame(draw);

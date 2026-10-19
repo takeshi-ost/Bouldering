@@ -10,7 +10,7 @@ function beginPointer(e) {
     const p=point(e);
     if(p.x>=0 && p.x<=W && (p.x<INPUT_CONFIG.edgeScrollWidth || p.x>W-INPUT_CONFIG.edgeScrollWidth)) {
         inspecting=true;
-        pan={edge:true,mouse:e.identifier===undefined,ids:e.identifier===undefined?[]:[e.identifier],y:e.clientY,camera};
+        pan={edge:true,side:p.x<W/2?'left':'right',scrolling:false,mouse:e.identifier===undefined,ids:e.identifier===undefined?[]:[e.identifier],y:e.clientY,camera};
         return;
     }
     const visible=characterPose(performance.now()).body;
@@ -66,7 +66,9 @@ canvas.addEventListener('mousedown', e => {
 });
 function moveEdgePan(e) {
     if(!pan?.edge || !canScrollStage())return;
-    camera=clamp(pan.camera-(e.clientY-pan.y)*H/canvas.getBoundingClientRect().height,cameraTop(),HEIGHT-H);
+    const dy=(e.clientY-pan.y)*H/canvas.getBoundingClientRect().height;
+    if(Math.abs(dy)>=INPUT_CONFIG.dragThreshold)pan.scrolling=true;
+    camera=clamp(pan.camera-dy,cameraTop(),HEIGHT-H);
 }
 window.addEventListener('mousemove', e => {
     if(pan?.edge && pan.mouse)moveEdgePan(e);

@@ -121,13 +121,13 @@ showLevelMap();e=visibleEvent();mouse('mousedown',e);mouse('mouseup',e);assert.e
 fixture();HEIGHT=H*3;camera=100;
 const edgeSnapshot=JSON.stringify({body,grips,stamina,moveCount,undoSnapshot});
 let edge=finger(50,eventAt({x:STAGE_SAFE_WIDTH/2,y:camera+300}));
-touch('touchstart',[edge]);assert(pan?.edge && !bodyTap && !drag);
+touch('touchstart',[edge]);assert(pan?.edge && !bodyTap && !drag);assert.equal(pan.side,'left');assert(!pan.scrolling);
 let edgeMoved={...edge,clientX:eventAt({x:200,y:camera+300}).clientX,clientY:edge.clientY-75};
-touch('touchmove',[edgeMoved]);assert.equal(camera,200);
+touch('touchmove',[edgeMoved]);assert.equal(camera,200);assert(pan.scrolling);assert.equal(pan.side,'left');
 touch('touchend',[],[edgeMoved]);assert(!pan && touchId===null && !ignoreTouches);
 assert.equal(JSON.stringify({body,grips,stamina,moveCount,undoSnapshot}),edgeSnapshot);
 // Mouse starts on the right edge, crosses the center and remains a scroll.
-edge=eventAt({x:W-STAGE_SAFE_WIDTH/2,y:camera+300});mouse('mousedown',edge);assert(pan?.edge && pan.mouse);
+edge=eventAt({x:W-STAGE_SAFE_WIDTH/2,y:camera+300});mouse('mousedown',edge);assert(pan?.edge && pan.mouse);assert.equal(pan.side,'right');assert(!pan.scrolling);
 mouse('mousemove',{...edge,clientX:edge.clientX-100,clientY:edge.clientY+75});assert.equal(camera,100);
 mouse('mouseup',{...edge,clientX:edge.clientX-100,clientY:edge.clientY+75});assert(!pan && !drag && !bodyTap);
 assert.equal(JSON.stringify({body,grips,stamina,moveCount,undoSnapshot}),edgeSnapshot);
