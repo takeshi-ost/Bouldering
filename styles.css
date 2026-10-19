@@ -237,7 +237,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .daily-calendar { position:absolute; inset:0; z-index:2; overflow:hidden; background:#bfc5ae; }
 .daily-content { position:absolute; inset:calc(20% + 8px) 0 0; display:flex; flex-direction:column; gap:12px; min-height:0; overflow:hidden; overscroll-behavior:none; touch-action:none; padding:0 max(14px,calc((100% - 560px)/2)) calc(env(safe-area-inset-bottom,0px) + 12px); }
 .daily-calendar[hidden] { display:none; }
-.daily-heading { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 18px); left:max(14px,env(safe-area-inset-left,0px)); margin:0; max-width:calc(100% - 220px); font-size:clamp(14px,3.5vw,20px); line-height:24px; pointer-events:none; }
+.daily-heading { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 18px); left:max(14px,env(safe-area-inset-left,0px)); margin:0; max-width:calc(100% - 220px); font-size:clamp(20px,5.5vw,28px); font-weight:900; line-height:1.35; color:#fff; -webkit-text-stroke:3px #000; paint-order:stroke fill; pointer-events:none; }
 .daily-calendar-plate { touch-action:none; flex:0 1 auto; min-height:0; display:flex; flex-direction:column; padding:12px; border-radius:18px; background:#f8f6ee; }
 .daily-month-navigation { flex:none; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px; }
 .daily-month-navigation h2 { font-size:18px; margin:0; }
