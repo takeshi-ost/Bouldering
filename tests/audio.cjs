@@ -22,6 +22,21 @@ events.visibilitychange();events.blur();assert(voices.every(v=>v.stopped));
 data['ascent.sound-enabled.v1']='false';const second=vm.createContext({...env});vm.runInContext(audio,second);assert.equal(control.checked,false);
 const unsupported=vm.createContext({assert,document:env.document,window:env.window,localStorage:{getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}}});
 vm.runInContext(audio+";assert.doesNotThrow(unlockSound);assert.doesNotThrow(()=>setSoundEnabled(false));assert.equal(playSound('tap'),false);",unsupported);
+// Safari-like activation: pointerdown cannot resume, but touchend can. A real
+// buffer must be started in that gesture, and interrupted contexts can recover.
+let activated=false,primers=0,safariEvents={};
+class SafariAudio extends Audio {
+ createBuffer(){return {};}
+ createBufferSource(){return {connect(){},disconnect(){},start(){primers++;}};}
+ resume(){if(activated)this.state='running';return Promise.resolve();}
+}
+const safari=vm.createContext({assert,AudioContext:SafariAudio,document:{getElementById:()=>({}),addEventListener:(k,fn)=>safariEvents[k]=fn},window:{addEventListener(){}}});
+vm.runInContext(audio,safari);safariEvents.pointerdown();
+vm.runInContext("assert.equal(soundContext.state,'suspended');assert.equal(playSound('tap'),false);assert(pendingSound);",safari);
+activated=true;safariEvents.touchend();assert(primers>=2);
+vm.runInContext("assert.equal(soundContext.state,'running');assert.equal(pendingSound,null);assert(soundVoices.size>0);soundContext.state='interrupted';",safari);
+safariEvents.touchend();vm.runInContext("assert.equal(soundContext.state,'running');setSoundEnabled(false);soundContext.state='interrupted';",safari);
+safariEvents.touchend();vm.runInContext("assert.equal(soundContext.state,'interrupted');assert.equal(pendingSound,null);",safari);
 // Exercise the actual game hooks, without a sound device or changing game rules.
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 new Function('assert',`

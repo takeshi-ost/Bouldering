@@ -3,7 +3,7 @@
 const SOUND_KEY='ascent.sound-enabled.v1';
 let soundEnabled=true;
 try {soundEnabled=globalThis.localStorage?.getItem(SOUND_KEY)!=='false';} catch(_) {}
-let soundContext=null,soundMaster=null;
+let soundContext=null,soundMaster=null,soundPrimed=false,pendingSound=null;
 const soundVoices=new Set(),soundLastPlayed=new Map();
 const SOUND_NOTES={
     tap:[[720,480,0,.045,'sine',.45]],
@@ -22,11 +22,17 @@ const SOUND_NOTES={
 };
 function stopSounds() {
     for(const voice of soundVoices) {try {voice.stop();} catch(_) {}}
-    soundVoices.clear();soundLastPlayed.clear();
+    soundVoices.clear();soundLastPlayed.clear();pendingSound=null;
+}
+function flushPendingSound() {
+    if(!soundEnabled || soundContext?.state!=='running' || !pendingSound)return;
+    const pending=pendingSound;pendingSound=null;
+    if(Date.now()-pending.at<250)playSound(pending.name);
 }
 function unlockSound() {
-    if(!soundEnabled)return;
+    if(!soundEnabled || document.hidden)return;
     try {
+        if(soundContext?.state==='closed') {soundContext=null;soundMaster=null;soundPrimed=false;}
         if(!soundContext) {
             const Audio=globalThis.AudioContext || globalThis.webkitAudioContext;
             if(!Audio)return;
@@ -34,7 +40,19 @@ function unlockSound() {
             soundMaster=soundContext.createGain();soundMaster.gain.value=.18;
             soundMaster.connect(soundContext.destination);
         }
-        if(soundContext.state==='suspended')soundContext.resume()?.catch(()=>{});
+        // A real source is started synchronously inside the gesture. In Safari,
+        // pointerdown alone may precede activation, so touchend/click retry this.
+        if((!soundPrimed || soundContext.state!=='running') && soundContext.createBufferSource) {
+            const source=soundContext.createBufferSource();
+            source.buffer=soundContext.createBuffer(1,1,22050);
+            source.connect(soundContext.destination);
+            source.onended=()=>source.disconnect();source.start(0);soundPrimed=true;
+        }
+        if(soundContext.state==='suspended' || soundContext.state==='interrupted') {
+            const resumed=soundContext.resume();
+            resumed?.then(flushPendingSound).catch(()=>{});
+        }
+        flushPendingSound();
     } catch(_) { /* Audio failure must never interrupt a game or a button action. */ }
 }
 function setSoundEnabled(enabled) {
@@ -43,7 +61,11 @@ function setSoundEnabled(enabled) {
     if(soundEnabled){unlockSound();playSound('tap');}else stopSounds();
 }
 function playSound(name) {
-    if(!soundEnabled || !soundContext || soundContext.state!=='running' || document.hidden)return false;
+    if(!soundEnabled || !soundContext || document.hidden)return false;
+    if(soundContext.state!=='running') {
+        if(SOUND_NOTES[name])pendingSound={name,at:Date.now()};
+        return false;
+    }
     const notes=SOUND_NOTES[name],now=soundContext.currentTime;
     if(!notes || now-(soundLastPlayed.get(name)??-Infinity)<.04)return false;
     soundLastPlayed.set(name,now);
@@ -67,9 +89,11 @@ function playSound(name) {
 }
 const soundControl=document.getElementById('soundEnabled');
 if(soundControl){soundControl.checked=soundEnabled;soundControl.onchange=()=>setSoundEnabled(soundControl.checked);}
-document.addEventListener?.('pointerdown',unlockSound,{capture:true,passive:true});
+for(const event of ['pointerdown','pointerup','touchstart','touchend','mousedown','mouseup'])
+    document.addEventListener?.(event,unlockSound,{capture:true,passive:true});
 document.addEventListener?.('keydown',unlockSound,{capture:true});
 document.addEventListener?.('click',e=>{
+    unlockSound();
     const button=e.target.closest?.('button');
     if(!button || button.disabled || button.closest('#dummyAd') || ['dailyPrev','dailyNext','editorConfirm'].includes(button.id))return;
     playSound('tap');
