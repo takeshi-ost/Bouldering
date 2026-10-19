@@ -401,10 +401,10 @@ button.modal-close:focus-visible { outline:none; }
 @media (max-width:350px) { .stage-start-info { padding-left:6px; } .stage-start-info dd { font-size:12px; } }
 #stageStartButton { display:block; width:100%; min-height:44px; margin-top:0; font-size:15px; }
 
-.stage-heart-items { margin:0 0 14px; padding:12px; border-radius:12px; background:#eee9df; }
-.stage-heart-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; font-weight:700; }
-#stageHeartOwned { font-size:12px; white-space:nowrap; }
-.stage-heart-controls { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:8px; }
-.stage-heart-controls button { width:44px; min-height:44px; padding:0; margin:0; font-size:22px; }
-#stageHeartCount { width:80px; min-height:44px; padding:6px; border:1px solid #cecbbf; border-radius:8px; background:#fffdf7; color:inherit; font:700 20px system-ui,sans-serif; text-align:center; }
-.stage-heart-items p { margin:8px 0 0; font-size:11px; line-height:1.5; text-align:center; }
+.stage-heart-items { margin:0 0 14px; padding:10px; border-radius:12px; background:#eee9df; }
+#stageHeartOwned { margin-bottom:6px; font-size:12px; font-weight:700; text-align:right; white-space:nowrap; }
+.stage-heart-controls { display:flex; align-items:center; justify-content:center; gap:6px; font-size:20px; line-height:1; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.stage-heart-quantity { display:flex; align-items:center; border:1px solid #cecbbf; border-radius:8px; background:#fffdf7; }
+.stage-heart-controls button { flex:none; width:36px; min-height:44px; padding:0; margin:0; background:transparent; color:inherit; box-shadow:none; font:inherit; }
+#stageHeartCount { width:2.1ch; min-height:44px; padding:0; border:0; border-radius:0; background:transparent; color:inherit; font:inherit; text-align:left; appearance:textfield; -moz-appearance:textfield; }
+#stageHeartCount::-webkit-inner-spin-button,#stageHeartCount::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }

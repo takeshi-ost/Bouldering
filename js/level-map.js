@@ -211,11 +211,11 @@ let stageStartContext=null,stageStartTimer=null;
 function renderStageHeartItems() {
     const context=stageStartContext;if(!context)return;
     ui.stageHeartOwned.textContent=`所持 ${heartItems}個`;
-    ui.stageHeartCount.value=String(context.hearts);
+    ui.stageHeartCount.value=String(context.hearts).padStart(2,'0');
     ui.stageHeartCount.max=String(heartItems);
     ui.stageHeartMinus.disabled=context.hearts===0;
     ui.stageHeartPlus.disabled=context.hearts===heartItems;
-    ui.stageStartStamina.textContent=previewStaminaText(context.n,context.mode,null,context.hearts);
+    ui.stageStartStamina.textContent=previewStaminaText(context.n,context.mode);
 }
 function setStageHeartItems(value) {
     if(!stageStartContext || !ui.stageStartDialog.open)return;

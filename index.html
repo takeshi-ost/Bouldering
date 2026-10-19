@@ -176,17 +176,18 @@
                 <dl class="stage-start-info">
                     <div><dt>難易度</dt><dd id="stageStartDifficulty"></dd></div>
                     <div><dt>コースの長さ</dt><dd id="stageStartLength"></dd></div>
-                    <div><dt>開始スタミナ</dt><dd id="stageStartStamina">❤️00</dd></div>
                 </dl>
             </div>
-            <div class="stage-heart-items" role="group" aria-labelledby="stageHeartLabel">
-                <div class="stage-heart-heading"><span id="stageHeartLabel">追加スタミナ ❤️</span><span id="stageHeartOwned"></span></div>
+            <div class="stage-heart-items" role="group" aria-label="開始スタミナと使用するハート">
+                <div id="stageHeartOwned"></div>
                 <div class="stage-heart-controls">
-                    <button id="stageHeartMinus" class="secondary" aria-label="使用するハートを1個減らす">−</button>
-                    <input id="stageHeartCount" type="number" inputmode="numeric" min="0" max="20" step="1" value="0" aria-label="使用するハートの数" aria-describedby="stageHeartHelp">
-                    <button id="stageHeartPlus" class="secondary" aria-label="使用するハートを1個増やす">＋</button>
+                    <span id="stageStartStamina">❤️00</span><span aria-hidden="true">+</span>
+                    <div class="stage-heart-quantity">
+                        <button id="stageHeartMinus" class="secondary" aria-label="使用するハートを1個減らす">−</button>
+                        <span aria-hidden="true">❤️</span><input id="stageHeartCount" type="number" inputmode="numeric" min="0" max="20" step="1" value="00" aria-label="使用するハートの数">
+                        <button id="stageHeartPlus" class="secondary" aria-label="使用するハートを1個増やす">+</button>
+                    </div>
                 </div>
-                <p id="stageHeartHelp">1個でスタミナ＋1。このプレイのみ有効です。</p>
             </div>
             <button id="stageStartButton">スタート</button>
         </dialog>

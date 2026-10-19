@@ -19,7 +19,7 @@ startCourse('existing');assert(openStageStart(1));
 const base=stagePreview(1).stamina;
 assert.equal(stageStartContext.hearts,0);assert(ui.stageHeartMinus.disabled);assert.equal(ui.stageHeartOwned.textContent,'所持 20個');
 ui.stageHeartPlus.onclick();ui.stageHeartPlus.onclick();ui.stageHeartMinus.onclick();assert.equal(stageStartContext.hearts,1);
-assert.equal(ui.stageStartStamina.textContent,'❤️'+String(base+1).padStart(2,'0'));
+assert.equal(ui.stageStartStamina.textContent,'❤️'+String(base).padStart(2,'0'));
 setStageHeartItems(999);assert.equal(stageStartContext.hearts,20);assert(ui.stageHeartPlus.disabled);
 setStageHeartItems(-1);assert.equal(stageStartContext.hearts,0);
 setStageHeartItems(NaN);assert.equal(stageStartContext.hearts,0);
