@@ -216,7 +216,7 @@ function openStageStart(n,debug=false,button=null,delay=0) {
     if(debug)ui.debugStage.blur?.();
     const context={n,debug,mode:courseMode,button};
     stageStartContext=context;
-    ui.stageStartTitle.textContent=String(n).padStart(4,'0');
+    ui.stageStartTitle.textContent=`STAGE ${n}`;
     ui.stageStartTitle.setAttribute('aria-label',`STAGE ${n}`);
     ui.stageStartStamina.textContent=previewStaminaText(n);
     refreshLives();

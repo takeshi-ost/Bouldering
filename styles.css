@@ -393,6 +393,7 @@ button.modal-close:focus-visible { outline:none; }
 .stage-start-title { min-width:0; container-type:inline-size; padding-right:10px; }
 .stage-start-label { display:block; font-size:12px; line-height:18px; font-weight:800; letter-spacing:.08em; }
 .stage-start-dialog .stage-start-title h2,.daily-stage-start .stage-start-title h2 { min-width:0; margin:0; font-size:clamp(28px,38cqw,84px); line-height:1.15; font-weight:900; font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; text-align:left; }
+.stage-start-dialog .stage-start-title h2 { font-size:14.8cqw; }
 .daily-stage-start .stage-start-title h2 { font-size:clamp(28px,30cqw,84px); }
 .stage-start-info { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:6px; margin:0; padding-left:8px; }
 .stage-start-info dt { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
