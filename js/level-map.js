@@ -188,6 +188,7 @@ function advanceLevelMap(now) {
     if (t===1) {
         mapSelected=mapTransition.to;mapTransition=null;
         renderLevelMap();focusMapLevel();
+        openStageStart(mapSelected,false,null,500);
     }
 }
 let stageStartContext=null,stageStartTimer=null;
@@ -209,7 +210,7 @@ function closeStageStart() {
     hideStageStart();
     if(state==='map')ui.mapNodes.querySelector?.(`[data-level="${selected}"]`)?.focus({preventScroll:true});
 }
-function openStageStart(n,debug=false,button=null) {
+function openStageStart(n,debug=false,button=null,delay=0) {
     if(!canSelectStage(n,debug))return false;
     if(debug)ui.debugStage.blur?.();
     const context={n,debug,mode:courseMode,items:[false,false,false],button};
@@ -225,9 +226,9 @@ function openStageStart(n,debug=false,button=null) {
         if(stageStartContext!==context || state!=='map' || courseMode!==context.mode)return;
         ui.stageStartDialog.showModal?.();
     };
-    if(button) {
-        button.classList.toggle('is-tapped',true);
-        stageStartTimer=setTimeout(show,140);
+    if(button || delay>0) {
+        button?.classList.toggle('is-tapped',true);
+        stageStartTimer=setTimeout(show,button?140:delay);
     } else show();
     return true;
 }

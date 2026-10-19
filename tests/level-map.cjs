@@ -87,11 +87,11 @@ assert.deepEqual([mapTransition.from,mapTransition.to],[1,2]);assert.equal(selec
 assert(ui.mapPrev.disabled && ui.mapNext.disabled);ui.mapNext.onclick();assert.equal(mapPage,0);
 advanceLevelMap(100);advanceLevelMap(425);
 assert(mapTransition);assert.equal(selectStage(2),false);
-advanceLevelMap(750);assert.equal(mapTransition,null);assert.equal(mapSelected,2);
+advanceLevelMap(750);assert.equal(mapTransition,null);assert.equal(mapSelected,2);closeStageStart();
 ui.next.onclick();assert.equal(mapSelected,2);assert.equal(selectStage(3),false);
 // Replaying a cleared node works without advancing or erasing existing progress.
 assert(selectStage(1));complete();assert.equal(unlockedLevel(),2);
-ui.next.onclick();advanceLevelMap(1000);advanceLevelMap(1650);
+ui.next.onclick();advanceLevelMap(1000);advanceLevelMap(1650);closeStageStart();
 assert(selectStage(2));assert.equal(level,2);assert.equal(stamina,stageStamina(route.length-1));
 ui.mapButton.onclick();assert.equal(state,'map');assert.equal(mapSelected,2);assert.equal(drag,null);
 ui.mapCourses.onclick();assert.equal(state,'choosing');
@@ -113,7 +113,7 @@ stageProgress.existing.cleared=19;mapPage=0;renderLevelMap();assert(ui.mapNext.h
 stageProgress.existing.cleared=20;renderLevelMap();assert(!ui.mapNext.hidden && ui.mapPrev.hidden);level=20;state='won';ui.next.onclick();
 assert.deepEqual(mapBounds(),{first:21,last:40});assert(!ui.mapNodes.innerHTML.includes('data-level="20"'));assert.equal((ui.mapNodes.innerHTML.match(/data-level=/g)||[]).length,20);assert.equal(ui.mapMarker.hidden,false);
 assert.deepEqual([mapTransition.from,mapTransition.to],[20,21]);
-advanceLevelMap(2000);advanceLevelMap(2650);assert.equal(mapSelected,21);assert(!ui.mapPrev.hidden && ui.mapNext.hidden);
+advanceLevelMap(2000);advanceLevelMap(2650);assert.equal(mapSelected,21);closeStageStart();assert(!ui.mapPrev.hidden && ui.mapNext.hidden);
 ui.mapPrev.onclick();assert.equal(mapPage,0);assert.equal(ui.mapMarker.hidden,true);assert(ui.mapPrev.disabled && ui.mapPrev.hidden && !ui.mapNext.hidden);ui.mapPrev.onclick();assert.equal(mapPage,0);
 ui.mapNext.onclick();assert.equal(mapPage,1);assert.equal(ui.mapMarker.hidden,false);assert(ui.mapNext.disabled && ui.mapNext.hidden && !ui.mapPrev.hidden);ui.mapNext.onclick();assert.equal(mapPage,1);
 assert.equal(selectStage(22),false);

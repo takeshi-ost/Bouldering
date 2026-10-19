@@ -42,5 +42,12 @@ lives.recoveryAt=Date.now()-LIFE_RECOVERY_MS;refreshLives();assert.equal(lives.c
 lives.count=0;lives.recoveryAt=Date.now();refreshLives();assert.equal(state,'map');assert(!lifePrompt);ui.stageStartButton.onclick();assert.equal(state,'life-prompt');assert(!ui.stageStartDialog.open);ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
 assert(!openStageStart(99,true));setDebugMode(true);assert(openStageStart(1,true));ui.stageStartButton.onclick();assert.equal(state,'playing');assert(debugAttempt);assert.equal(lives.count,0);
 showLevelMap();assert(openStageStart(1,false,button));const stale=timers.at(-1).fn;showTitleScreen();stale();assert(!stageStartContext && !ui.stageStartDialog.open);assert.equal(state,'choosing');
+startCourse('existing');stageProgress.existing.cleared=21;lives.count=3;lives.recoveryAt=null;
+showLevelMap({advanceFrom:20});advanceLevelMap(100);advanceLevelMap(750);
+assert.equal(mapSelected,21);assert.equal(mapPage,1);assert.equal(stageStartContext.n,21);assert(!ui.stageStartDialog.open);assert.equal(timers.at(-1).ms,500);
+assert(!openStageStart(20));ui.mapPrev.onclick();assert.equal(mapPage,1);
+timers.at(-1).fn();assert(ui.stageStartDialog.open);assert.equal(ui.stageStartTitle.textContent,'STAGE 0021');assert.equal(state,'map');
+ui.stageStartButton.onclick();assert.equal(level,21);assert.equal(state,'playing');
+showLevelMap({advanceFrom:20});advanceLevelMap(1000);advanceLevelMap(1650);const delayedNext=timers.at(-1).fn;showTitleScreen();delayedNext();assert(!ui.stageStartDialog.open && !stageStartContext);
 console.log('PASS stage start: correct stage/difficulty/length, independent dummy items, reset on reopen, close/backdrop/Escape no life cost, visible tap pulse, Start-only launch and life gate, double-start guard, debug launch and canceled delayed opening');
 `)(assert);
