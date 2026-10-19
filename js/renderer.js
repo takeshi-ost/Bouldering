@@ -185,7 +185,7 @@ function drawAnchorRings(now) {
 }
 
 function drawDebugHoldNumbers() {
-    if(!debugMode)return;
+    if(!debugMode || !debugDisplay.holdNumbers)return;
     ctx.save();
     ctx.font='bold 10px system-ui';
     ctx.textAlign='center';ctx.textBaseline='middle';
@@ -364,12 +364,13 @@ function danglingTip(p, index, time) {
 }
 
 function drawPath() {
-    if (!debugMode && state !== 'won')
+    const showPlanned=debugMode && debugDisplay.route;
+    if (!showPlanned && state !== 'won')
         return;
 
     ctx.save();
 
-    if (debugMode) {
+    if (showPlanned) {
         ctx.setLineDash([6, 5]);
 
         for (let i = 1; i < route.length; i++) {

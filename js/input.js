@@ -223,12 +223,22 @@ ui.mapDebugMode.onchange=()=>{
     if(state!=='map' || !settingsOpen) {ui.mapDebugMode.checked=debugMode;return;}
     setDebugMode(ui.mapDebugMode.checked);
 };
+const debugDisplayControls={route:ui.debugRoute,holdNumbers:ui.debugHoldNumbers,courseInfo:ui.debugCourseInfo};
+for(const [key,control] of Object.entries(debugDisplayControls)) {
+    control.onchange=()=>{
+        if(state==='playing' && settingsOpen && debugMode)debugDisplay[key]=control.checked;
+        control.checked=debugDisplay[key];
+        updateUI();
+    };
+}
 function openSettings() {
     const onMap=state==='map';
     if(settingsOpen || (onMap ? !!mapTransition : state!=='playing' || cameraIntro || featureHelpOpen))return;
     if(!onMap) {endPointer(null,true);endPan();touchId=null;ignoreTouches=false;}
     ui.restart.hidden=ui.mapButton.hidden=onMap;
     ui.mapSettingsControls.hidden=!onMap;
+    ui.stageDebugDisplay.hidden=onMap || !debugMode;
+    for(const [key,control] of Object.entries(debugDisplayControls))control.checked=debugDisplay[key];
     ui.mapDebugMode.checked=debugMode;
     settingsOpen=true;
     ui.settingsDialog.showModal?.();

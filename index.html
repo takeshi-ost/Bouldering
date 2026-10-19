@@ -152,6 +152,11 @@
             <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" class="modal-close" aria-label="設定を閉じる" autofocus>✕</button></div>
             <button id="restart">RESTART</button>
             <button id="mapButton" class="secondary">MAPにもどる</button>
+            <div id="stageDebugDisplay" hidden>
+                <label class="settings-row" for="debugRoute"><span>想定ルート</span><input id="debugRoute" type="checkbox" checked></label>
+                <label class="settings-row" for="debugHoldNumbers"><span>ホールドNo</span><input id="debugHoldNumbers" type="checkbox" checked></label>
+                <label class="settings-row" for="debugCourseInfo"><span>コース情報</span><input id="debugCourseInfo" type="checkbox" checked></label>
+            </div>
             <div id="mapSettingsControls" class="map-settings-controls" hidden>
                 <button id="mapCourses">タイトル画面へ</button>
                 <button id="mapEditCharacter" class="secondary">キャラクターエディット</button>

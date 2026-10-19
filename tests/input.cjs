@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 assert(!/<(?:header|footer)[ >]/.test(html));
 assert(!/id="(?:showPath|mapDebug|courseMenu)"/.test(html));
-assert.equal((html.match(/type="checkbox"/g)||[]).length,3);
+assert.equal((html.match(/type="checkbox"/g)||[]).length,6);
 assert(/<dialog id="settingsDialog"[\s\S]*id="restart"[\s\S]*id="mapButton"[\s\S]*?<\/dialog>/.test(html));
 const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
