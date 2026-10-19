@@ -3,8 +3,10 @@ const root=path.join(__dirname,'..'),audio=fs.readFileSync(path.join(root,'js/au
 const data={},control={},events={},voices=[];let contexts=0;
 const param=()=>({value:0,setValueAtTime(){},exponentialRampToValueAtTime(){}});
 class Audio {
- constructor(){contexts++;this.state='suspended';this.currentTime=0;this.destination={};}
+ constructor(){contexts++;this.state='suspended';this.currentTime=0;this.destination={};this.sampleRate=44100;}
  resume(){this.state='running';return Promise.resolve();}
+ createBuffer(channels,length){return {length,getChannelData:()=>new Float32Array(length)};}
+ createBufferSource(){const voice={connect(){},disconnect(){},start(){this.started=true;if(this.buffer?.length===1)this.stopped=true;},stop(){this.stopped=true;}};voices.push(voice);return voice;}
  createGain(){return {gain:param(),connect(){},disconnect(){}};}
  createOscillator(){const voice={frequency:param(),connect(){},disconnect(){},start(){this.started=true;},stop(){this.stopped=true;}};voices.push(voice);return voice;}
 }

@@ -7,7 +7,7 @@ let soundContext=null,soundMaster=null,soundPrimed=false,pendingSound=null;
 const soundVoices=new Set(),soundLastPlayed=new Map();
 const SOUND_NOTES={
     tap:[[720,480,0,.045,'sine',.45]],
-    move:[[210,115,0,.085,'sine',.8],[760,370,0,.035,'triangle',.12]],
+    move:[[0,0,0,.055,'noise',.65],[1100,650,0,.025,'triangle',.14]],
     blocked:[[150,90,0,.09,'sine',.45]],
     pickup:[[660,660,0,.11,'sine',.5],[990,990,.065,.16,'sine',.45]],
     hazard:[[250,140,0,.14,'triangle',.5],[185,105,.035,.12,'sine',.4]],
@@ -72,12 +72,20 @@ function playSound(name) {
     try {
         for(const [from,to,delay,duration,type,volume] of notes) {
             if(soundVoices.size>=12) {const oldest=soundVoices.values().next().value;oldest.stop();soundVoices.delete(oldest);}
-            const oscillator=soundContext.createOscillator(),gain=soundContext.createGain(),start=now+delay;
-            oscillator.type=type;
-            oscillator.frequency.setValueAtTime(from,start);
-            oscillator.frequency.exponentialRampToValueAtTime(to,start+duration);
+            const oscillator=type==='noise'?soundContext.createBufferSource():soundContext.createOscillator(),gain=soundContext.createGain(),start=now+delay;
+            if(type==='noise') {
+                // A bright, dry contact sound: remove low-end weight from white noise.
+                const buffer=soundContext.createBuffer(1,Math.ceil(soundContext.sampleRate*duration),soundContext.sampleRate);
+                const samples=buffer.getChannelData(0);let previous=0;
+                for(let i=0;i<samples.length;i++) {const sample=Math.random()*2-1;samples[i]=(sample-previous)*.5;previous=sample;}
+                oscillator.buffer=buffer;
+            } else {
+                oscillator.type=type;
+                oscillator.frequency.setValueAtTime(from,start);
+                oscillator.frequency.exponentialRampToValueAtTime(to,start+duration);
+            }
             gain.gain.setValueAtTime(.0001,start);
-            gain.gain.exponentialRampToValueAtTime(volume,start+.006);
+            gain.gain.exponentialRampToValueAtTime(volume,start+(type==='noise'?.002:.006));
             gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
             oscillator.connect(gain);gain.connect(soundMaster);
             soundVoices.add(oscillator);
