@@ -124,10 +124,10 @@ function renderCharacterEditor() {
 }
 let editorMapReturn=null;
 function showCharacterEditor() {
-    if(state!=='map' || mapPreparing || stageStartContext || mapTransition)return false;
-    editorMapReturn=state==='map'?{page:mapPage,selected:mapSelected,scrollTop:ui.mapScroll.scrollTop}:null;
+    if(!['map','daily'].includes(state) || mapPreparing || stageStartContext || mapTransition)return false;
+    editorMapReturn=state==='daily'?{daily:true}:{page:mapPage,selected:mapSelected,scrollTop:ui.mapScroll.scrollTop};
     cancelMapReveal();
-    hideSettings();ui.levelMap.hidden=true;ui.wall.classList.toggle('map-open',false);
+    hideSettings();ui.dailyCalendar.hidden=true;ui.levelMap.hidden=true;ui.wall.classList.toggle('map-open',false);
     draftColors=[...playerColors];draftHeadColor=playerHeadColor;draftStripeCount=playerColors.length;selectedStripe=null;selectedPart=null;
     ui.playerName.value=playerName;ui.playerNameError.hidden=true;
     state='editing';ui.titleScreen.hidden=true;ui.characterEditor.hidden=false;
@@ -138,7 +138,9 @@ function showCharacterEditor() {
 }
 function returnFromCharacterEditor() {
     const destination=editorMapReturn;editorMapReturn=null;
-    if(destination) {
+    if(destination?.daily) {
+        showDailyCalendar();ui.dailySettingsButton.focus({preventScroll:true});
+    } else if(destination) {
         showLevelMap({target:destination.selected});
         mapPage=destination.page;mapSelected=destination.selected;
         renderLevelMap();ui.mapScroll.scrollTop=destination.scrollTop;

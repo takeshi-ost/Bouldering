@@ -107,13 +107,13 @@
             </section>
             <section id="dailyCalendar" class="daily-calendar" aria-labelledby="dailyTitle" hidden>
                 <div class="map-sky" aria-hidden="true"></div>
-                <div class="map-heading daily-scenery" aria-hidden="true">
-                    <div class="daily-airship"><img src="assets/daily-airship.webp" alt="" width="672" height="374"><span id="dailySkyDate"></span></div>
+                <h1 id="dailyTitle" class="daily-heading">デイリーチャレンジ</h1>
+                <button id="dailySettingsButton" class="settings-button map-settings-button" aria-label="設定を開く" aria-haspopup="dialog" aria-controls="settingsDialog"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
+                <div class="map-heading daily-scenery">
+                    <button id="dailyBack" class="daily-airship" type="button" aria-label="マップへ戻る"><img src="assets/daily-airship.webp" alt="" width="672" height="374"><span id="dailySkyDate" aria-hidden="true"></span></button>
                 </div>
                 <div class="daily-content">
-                    <div class="daily-heading"><h1 id="dailyTitle">デイリーチャレンジ</h1><button id="dailyBack" class="map-secondary">マップへ</button></div>
                     <div id="dailyPlate" class="daily-calendar-plate">
-                        <p id="dailyToday" class="daily-today"></p>
                         <div class="daily-month-navigation"><button id="dailyPrev" class="map-secondary" aria-label="前の月">←</button><h2 id="dailyMonthTitle"></h2><button id="dailyNext" class="map-secondary" aria-label="次の月">→</button></div>
                         <div class="daily-weekdays" aria-hidden="true"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
                         <div id="dailyGrid" class="daily-grid" aria-label="日付を選択"></div>

@@ -177,7 +177,7 @@ function startCourse(mode) {
     showLevelMap();
 }
 ui.prototypeCourse.onclick = () => {
-    if(debugMode && state==='map' && settingsOpen)startCourse(courseMode==='prototype'?'existing':'prototype');
+    if(debugMode && ['map','daily'].includes(state) && settingsOpen)startCourse(courseMode==='prototype'?'existing':'prototype');
 };
 function syncDebugCourseControls() {
     ui.prototypeCourse.hidden=!debugMode;
@@ -186,7 +186,7 @@ function syncDebugCourseControls() {
 }
 
 ui.showHelp.onclick = () => {
-    if (mapPreparing || !settingsOpen || !['map','playing'].includes(state) || ui.helpDialog.open) return;
+    if (mapPreparing || !settingsOpen || !['map','daily','playing'].includes(state) || ui.helpDialog.open) return;
     ui.helpDialog.showModal();
     ui.helpDialog.scrollTop = 0;
 };
@@ -222,7 +222,7 @@ function setDebugMode(enabled) {
     if(state==='map')renderLevelMap();
 }
 ui.mapDebugMode.onchange=()=>{
-    if(state!=='map' || !settingsOpen) {ui.mapDebugMode.checked=debugMode;return;}
+    if(!['map','daily'].includes(state) || !settingsOpen) {ui.mapDebugMode.checked=debugMode;return;}
     setDebugMode(ui.mapDebugMode.checked);
 };
 const debugDisplayControls={route:ui.debugRoute,holdNumbers:ui.debugHoldNumbers,courseInfo:ui.debugCourseInfo};
@@ -234,7 +234,7 @@ for(const [key,control] of Object.entries(debugDisplayControls)) {
     };
 }
 function openSettings() {
-    const onMap=state==='map';
+    const onMap=['map','daily'].includes(state);
     if(settingsOpen || stageStartContext || (onMap ? !!mapTransition || mapPreparing : state!=='playing' || cameraIntro || featureHelpOpen))return;
     if(!onMap) {endPointer(null,true);endPan();touchId=null;ignoreTouches=false;}
     ui.restart.hidden=ui.mapButton.hidden=onMap;
@@ -248,8 +248,9 @@ function openSettings() {
 }
 ui.settingsButton.onclick=openSettings;
 ui.mapSettingsButton.onclick=openSettings;
-ui.mapEditCharacter.onclick=()=>{if(state==='map' && settingsOpen)showCharacterEditor();};
-ui.closeSettings.onclick=()=>{hideSettings();if(state==='map')ui.mapSettingsButton.focus({preventScroll:true});else canvas.focus();};
+ui.dailySettingsButton.onclick=openSettings;
+ui.mapEditCharacter.onclick=()=>{if(['map','daily'].includes(state) && settingsOpen)showCharacterEditor();};
+ui.closeSettings.onclick=()=>{hideSettings();if(state==='map')ui.mapSettingsButton.focus({preventScroll:true});else if(state==='daily')ui.dailySettingsButton.focus({preventScroll:true});else canvas.focus();};
 ui.settingsDialog.addEventListener('cancel',e=>{e.preventDefault();ui.closeSettings.onclick();});
 ui.settingsDialog.addEventListener('close',()=>{settingsOpen=false;});
 dismissOutside(ui.settingsDialog,()=>ui.closeSettings.onclick());

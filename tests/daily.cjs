@@ -27,6 +27,10 @@ startCourse('existing');ui.openDaily.onclick();assert.equal(state,'daily');asser
 assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-17"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(ui.dailyNext.disabled);assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
 // Calendar selection only previews; Start launches the selected seed once.
 assert.equal(dailySelectedDate,'2026-10-17');assert.equal(ui.dailyStartTitle.textContent,'2026/10/17');
+ui.dailySettingsButton.onclick();assert(settingsOpen && ui.settingsDialog.open);assert(!ui.mapSettingsControls.hidden && ui.restart.hidden && ui.mapButton.hidden);
+assert(!chooseDailyDate('2026-10-15'));assert(!changeDailyMonth(-1));ui.dailyBack.onclick();assert.equal(state,'daily');
+ui.showHelp.onclick();assert(ui.helpDialog.open);ui.closeHelp.onclick();ui.closeSettings.onclick();assert(!settingsOpen);
+ui.dailySettingsButton.onclick();ui.mapEditCharacter.onclick();assert.equal(state,'editing');assert(ui.dailyCalendar.hidden);ui.editorCancel.onclick();assert.equal(state,'daily');assert.equal(dailySelectedDate,'2026-10-17');
 const previewDate='2026-10-16',previewProfile=dailyProfile(previewDate),beforePreview=JSON.stringify(dailyAttempts);
 const previewButton={dataset:{date:previewDate}};
 ui.dailyGrid.onclick({target:{closest:()=>previewButton}});
@@ -111,7 +115,7 @@ for(const [zone,before,after] of [
  ['America/Los_Angeles','2026-11-01T06:59:59Z','2026-11-01T07:00:00Z']
 ]) {
  process.env.TZ=zone;
- new Function('assert','before','after',env+source+`
+ new Function('assert','before','after','html',env+source+`
  nowIso=before;startCourse('existing');showDailyCalendar({openFromMap:true});
  assert.equal(localToday(),'2026-10-31');assert.equal(dailyMonth,'2026-10');
  const seed=dailyProfile('2026-11-01');assert.equal(seed.baseSeed,20261101);
@@ -119,8 +123,8 @@ for(const [zone,before,after] of [
  assert(ui.dailyGrid.innerHTML.includes('data-date="2026-11-01"'));
  assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-11-02"'));
  assert.deepEqual(dailyProfile('2026-11-01'),seed);
- assert(!ui.dailyToday.textContent.includes('UTC'));
- `)(assert,before,after);
+ assert(!html.includes('id="dailyToday"'));
+ `)(assert,before,after,html);
 }
 process.env.TZ='UTC';
 new Function('assert',env+source+`assert(Object.keys(dailyRecords).length===4);assert(Object.values(dailyRecords).every(r=>r.stars===3));`)(assert);

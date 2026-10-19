@@ -235,31 +235,33 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .title-content [hidden] { display:none; }
 
 .daily-calendar { position:absolute; inset:0; z-index:2; overflow:hidden; background:#bfc5ae; }
-.daily-content { position:absolute; inset:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; padding:calc(20dvh + env(safe-area-inset-top,0px) + 12px) max(14px,calc((100% - 560px)/2)) calc(env(safe-area-inset-bottom,0px) + 20px); }
-.daily-scenery,.daily-scenery > * { pointer-events:none; }
+.daily-content { position:absolute; inset:calc(20% + 8px) 0 0; display:flex; flex-direction:column; gap:12px; min-height:0; overflow:hidden; overscroll-behavior:none; touch-action:none; padding:0 max(14px,calc((100% - 560px)/2)) calc(env(safe-area-inset-bottom,0px) + 12px); }
 .daily-calendar[hidden] { display:none; }
-.daily-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.daily-heading h1 { font-size:20px; margin:0; }
-.daily-calendar-plate { touch-action:pan-y; flex:none; margin-top:16px; padding:12px; border-radius:18px; background:#f8f6ee; }
-.daily-today { color:#627864; font-size:11px; margin:0 0 8px; }
-.daily-month-navigation { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px; }
+.daily-heading { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 18px); left:max(14px,env(safe-area-inset-left,0px)); margin:0; max-width:calc(100% - 220px); font-size:clamp(14px,3.5vw,20px); line-height:24px; pointer-events:none; }
+.daily-calendar-plate { touch-action:none; flex:0 1 auto; min-height:0; display:flex; flex-direction:column; padding:12px; border-radius:18px; background:#f8f6ee; }
+.daily-month-navigation { flex:none; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px; }
 .daily-month-navigation h2 { font-size:18px; margin:0; }
 .daily-month-navigation button { padding:6px 12px; background:transparent; box-shadow:none; }
 .daily-weekdays,.daily-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:0; }
 .daily-weekdays { text-align:center; font-size:12px; color:#627864; margin-bottom:4px; }
-.daily-cell { min-height:43px; display:grid; place-items:center; }
+.daily-grid { flex:1; min-height:0; }
+.daily-weekdays { flex:none; }
+.daily-cell { min-height:0; display:grid; place-items:center; }
 .daily-future { color:#b4b8af; font-size:18px; }
-.daily-day { -webkit-tap-highlight-color:transparent; width:100%; height:43px; min-height:0; padding:0; display:grid; place-items:center; font-size:18px; line-height:1; letter-spacing:0; border:0; border-radius:8px; background:transparent; color:#25372f; box-shadow:none; }
+.daily-day { -webkit-tap-highlight-color:transparent; width:100%; height:100%; min-height:0; padding:0; display:grid; place-items:center; font-size:18px; line-height:1; letter-spacing:0; border:0; border-radius:8px; background:transparent; color:#25372f; box-shadow:none; }
 .daily-day:hover,.daily-day:active { background:transparent; filter:none; }
 .daily-day.is-cleared { color:#39785b; }
 .daily-clear-icon { font-size:24px; font-weight:800; pointer-events:none; }
 .daily-day.is-selected,.daily-day.is-selected:hover,.daily-day.is-selected:active { background:#478bc6; color:#fff; }
 .daily-day:focus-visible { outline:2px solid #478bc6; outline-offset:-2px; }
-.daily-stage-start { flex:none; margin-top:16px; padding:18px; border-radius:18px; background:#f8f6ee; color:#25372f; }
+.daily-stage-start { flex:none; margin-top:0; padding:18px; border-radius:18px; background:#f8f6ee; color:#25372f; }
 .daily-stage-start h2 { margin:0; font-size:20px; line-height:28px; letter-spacing:0; white-space:nowrap; }
 #dailyStartButton { display:block; width:100%; min-height:44px; font-size:15px; }
 @media (max-width:350px) { .daily-stage-start { padding:14px; } .daily-stage-start h2 { font-size:18px; } }
-.daily-calendar .map-error { margin:18px 0 0; }
+.daily-calendar .map-error { flex:none; margin:0; }
+#dailyBack:hover { background:transparent; filter:brightness(1.04); }
+#dailyBack:active { transform:scale(.97); }
+@media (max-height:650px) { .daily-content { gap:8px; padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px); } .daily-stage-start { padding:12px 14px; } .daily-stage-start .stage-start-heading { margin-bottom:8px; } .daily-clear-stars { font-size:22px; } .daily-clear-record p { margin-top:6px; } }
 
 #overlay .result-difficulty {margin:8px 0;font-size:16px;font-weight:700;letter-spacing:.12em;color:#526b59;}
 

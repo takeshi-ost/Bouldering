@@ -103,8 +103,9 @@ function renderDailyCalendar() {
     }
     while(cells.length%7)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');
+    ui.dailyPlate.style.height=(cells.length/7*43+86)+'px';
+    ui.dailyGrid.style.gridTemplateRows=`repeat(${cells.length/7},minmax(0,1fr))`;
     ui.dailyMonthTitle.textContent=`${year}年 ${month}月`;
-    ui.dailyToday.textContent=`今日：${today.replaceAll('-','/')}（端末時刻）`;
     ui.dailyPrev.disabled=dailyMonth<='1000-01';
     ui.dailyNext.disabled=dailyMonth>=today.slice(0,7);
     ui.dailySkyDate.textContent=today.slice(5).replace('-','/');
@@ -124,7 +125,7 @@ function renderDailyStart() {
     ui.dailyClearStats.textContent=record?formatStageRecord(record):'';
 }
 function chooseDailyDate(key) {
-    if(state!=='daily' || !validDailyDate(key) || key.slice(0,7)!==dailyMonth || key>localToday())return false;
+    if(state!=='daily' || settingsOpen || !validDailyDate(key) || key.slice(0,7)!==dailyMonth || key>localToday())return false;
     dailySelectedDate=key;
     ui.dailyError.hidden=true;
     renderDailyCalendar();
@@ -181,7 +182,7 @@ function launchDailyAttempt(profile,attempt) {
     } catch(error) {return reportDailyGenerationError(error);}
 }
 function selectDailyDate(key,{adAlreadyShown=false}={}) {
-    if(state!=='daily' || !validDailyDate(key) || key>localToday() || dailyRecords[key])return false;
+    if(state!=='daily' || settingsOpen || !validDailyDate(key) || key>localToday() || dailyRecords[key])return false;
     try {
         const profile=dailyProfile(key);
         const attempt=(dailyAttempts[key]||0)+1;
@@ -205,11 +206,11 @@ function continueDailyResult(retry=false) {
 }
 ui.openDaily.onclick=()=>showDailyCalendar({openFromMap:true});
 ui.dailyBack.onclick=()=>{
-    if(state!=='daily')return;
+    if(state!=='daily' || settingsOpen)return;
     courseMode=dailyReturnCourse;showLevelMap();
 };
 function changeDailyMonth(delta) {
-    if(state!=='daily' || (delta!==-1 && delta!==1) ||
+    if(state!=='daily' || settingsOpen || (delta!==-1 && delta!==1) ||
         (delta<0?dailyMonth<='1000-01':dailyMonth>=localToday().slice(0,7)))return false;
     dailyMonth=shiftedDailyMonth(delta);renderDailyCalendar();
     return true;
@@ -219,12 +220,12 @@ ui.dailyNext.onclick=()=>changeDailyMonth(1);
 let dailySwipe=null,dailySwipeConsumed=false;
 ui.dailyPlate.addEventListener('pointerdown',e=>{
     dailySwipeConsumed=false;
-    if(state!=='daily' || e.isPrimary===false || (e.button!==undefined && e.button!==0) || dailySwipe) {dailySwipe=null;return;}
+    if(state!=='daily' || settingsOpen || e.isPrimary===false || (e.button!==undefined && e.button!==0) || dailySwipe) {dailySwipe=null;return;}
     dailySwipe={id:e.pointerId,x:e.clientX,y:e.clientY};
 });
 ui.dailyPlate.addEventListener('pointerup',e=>{
     const start=dailySwipe;dailySwipe=null;
-    if(!start || e.pointerId!==start.id || state!=='daily')return;
+    if(!start || e.pointerId!==start.id || state!=='daily' || settingsOpen)return;
     const dx=e.clientX-start.x,dy=e.clientY-start.y;
     if(Math.abs(dx)<48 || Math.abs(dx)<=Math.abs(dy)*1.4)return;
     dailySwipeConsumed=true;
@@ -240,7 +241,7 @@ ui.dailyGrid.onclick=e=>{
     if(button && ui.dailyGrid.contains(button))chooseDailyDate(button.dataset.date);
 };
 ui.dailyStartButton.onclick=()=>{
-    if(state!=='daily' || ui.dailyStartButton.disabled || !dailySelectedDate)return;
+    if(state!=='daily' || settingsOpen || ui.dailyStartButton.disabled || !dailySelectedDate)return;
     ui.dailyStartButton.disabled=true;
     if(!selectDailyDate(dailySelectedDate))renderDailyCalendar();
 };
