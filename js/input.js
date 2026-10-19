@@ -7,7 +7,13 @@ function canScrollStage() { return !featureHelpOpen && !settingsOpen && ['playin
 // Delay a body gesture until it becomes a drag, preserving the visible pose on tap.
 function beginPointer(e) {
     if (featureHelpOpen || settingsOpen || !ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
-    const p=point(e),visible=characterPose(performance.now()).body;
+    const p=point(e);
+    if(p.x>=0 && p.x<=W && (p.x<INPUT_CONFIG.edgeScrollWidth || p.x>W-INPUT_CONFIG.edgeScrollWidth)) {
+        inspecting=true;
+        pan={edge:true,mouse:e.identifier===undefined,ids:e.identifier===undefined?[]:[e.identifier],y:e.clientY,camera};
+        return;
+    }
+    const visible=characterPose(performance.now()).body;
     if (Math.abs(p.x-visible.x)<=TORSO.width/2+TORSO.hitPadding &&
         Math.abs(p.y-visible.y)<=TORSO.height/2+TORSO.hitPadding) {
         bodyTap={event:{clientX:e.clientX,clientY:e.clientY},start:performance.now()};
@@ -58,14 +64,25 @@ canvas.addEventListener('wheel', e => {
 canvas.addEventListener('mousedown', e => {
     if (e.button === 0 && !pan) { e.preventDefault(); beginPointer(e); }
 });
-window.addEventListener('mousemove', e => { if (!pan) movePointer(e); });
-window.addEventListener('mouseup', e => { if (e.button === 0 && !pan) endPointer(e); });
+function moveEdgePan(e) {
+    if(!pan?.edge || !canScrollStage())return;
+    camera=clamp(pan.camera-(e.clientY-pan.y)*H/canvas.getBoundingClientRect().height,cameraTop(),HEIGHT-H);
+}
+window.addEventListener('mousemove', e => {
+    if(pan?.edge && pan.mouse)moveEdgePan(e);
+    else if(!pan)movePointer(e);
+});
+window.addEventListener('mouseup', e => {
+    if(e.button!==0)return;
+    if(pan?.edge && pan.mouse){moveEdgePan(e);endPan();}
+    else if(!pan)endPointer(e);
+});
 window.addEventListener('blur', () => {
     endPointer(null,true); endPan(); touchId = null; ignoreTouches = false;
 });
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
-    if (e.touches.length === 2 && !pan && !ignoreTouches && canScrollStage()) {
+    if (e.touches.length === 2 && (!pan || pan.edge) && !ignoreTouches && canScrollStage()) {
         beginTouchPan(e.touches);
         return;
     }
@@ -83,6 +100,11 @@ canvas.addEventListener('touchstart', e => {
 }, { passive: false });
 canvas.addEventListener('touchmove', e => {
     e.preventDefault();
+    if (pan?.edge) {
+        const finger=Array.from(e.touches).find(t=>t.identifier===pan.ids[0]);
+        if(e.touches.length!==1 || !finger){endPan();ignoreTouches=true;return;}
+        moveEdgePan(finger);return;
+    }
     if (pan) {
         const fingers=pan.ids.map(id=>Array.from(e.touches).find(t=>t.identifier===id));
         if (e.touches.length!==2 || fingers.some(t=>!t)) { endPan(); return; }
@@ -100,7 +122,11 @@ function touchEnd(e, cancel) {
         ignoreTouches=e.touches.length>0;
         return;
     }
-    if (pan && (e.touches.length!==2 || pan.ids.some(id=>!Array.from(e.touches).some(t=>t.identifier===id)))) {
+    if(pan?.edge) {
+        const last=Array.from(e.changedTouches).find(t=>t.identifier===pan.ids[0]);
+        if(last)moveEdgePan(last);
+    }
+    if (pan && (e.touches.length!==pan.ids.length || pan.ids.some(id=>!Array.from(e.touches).some(t=>t.identifier===id)))) {
         endPan(); touchId=null;
     }
     const t=Array.from(e.changedTouches).find(t=>t.identifier===touchId);
