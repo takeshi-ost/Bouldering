@@ -63,6 +63,7 @@ function readDailyRecords() {
 }
 let dailyRecords=readDailyRecords();
 let dailyMonth=localToday().slice(0,7);
+let dailySelectedDate=null;
 let dailyCalendarToday=null;
 let dailyEntryToday=null;
 let dailyReturnCourse='existing';
@@ -89,6 +90,7 @@ function shiftedDailyMonth(delta) {
 }
 function renderDailyCalendar() {
     const today=localToday();dailyCalendarToday=today;
+    if(dailySelectedDate && (dailySelectedDate.slice(0,7)!==dailyMonth || dailySelectedDate>today || dailyRecords[dailySelectedDate]))dailySelectedDate=null;
     const [year,month]=monthParts();
     const firstDay=new Date(Date.UTC(year,month-1,1)).getUTCDay();
     const days=new Date(Date.UTC(year,month,0)).getUTCDate();
@@ -97,7 +99,7 @@ function renderDailyCalendar() {
         const key=dailyMonth+'-'+String(day).padStart(2,'0');
         if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${year}年${month}月${day}日">${day}</div>`);continue;}
         const record=dailyRecords[key];
-        cells.push(`<div class="daily-cell daily-playable"><button class="daily-day ${record?'is-cleared':''} ${key===today?'is-today':''}" data-date="${key}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星・再挑戦できません':'プレイできます'}" ${record?'disabled':''} ${key===today?'aria-current="date"':''}><span>${day}</span>${record?`<span class="daily-stars" aria-hidden="true">${'⭐️'.repeat(record.stars)}</span>`:''}</button></div>`);
+        cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星・再挑戦できません':'選択できます'}" ${record?'disabled':''} ${key===today?'aria-current="date"':''}>${day}</button></div>`);
     }
     while(cells.length%7)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');
@@ -105,6 +107,22 @@ function renderDailyCalendar() {
     ui.dailyToday.textContent=`今日：${today.replaceAll('-','/')}（端末時刻）`;
     ui.dailyPrev.disabled=dailyMonth<='1000-01';
     ui.dailyNext.disabled=dailyMonth>=today.slice(0,7);
+    renderDailyStart();
+}
+function renderDailyStart() {
+    const profile=dailySelectedDate?dailyProfile(dailySelectedDate):null;
+    ui.dailyStartTitle.textContent=profile?profile.date.replaceAll('-','/'):'日付を選択';
+    ui.dailyStartDifficulty.textContent=profile?difficultyLabel(profile.difficulty):'—';
+    ui.dailyStartLength.textContent=profile?{short:'短い',medium:'中くらい',long:'長い'}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
+    ui.dailyStartButton.disabled=!profile;
+}
+function chooseDailyDate(key) {
+    if(state!=='daily' || !validDailyDate(key) || key.slice(0,7)!==dailyMonth || key>localToday() || dailyRecords[key])return false;
+    dailySelectedDate=key;
+    ui.dailyError.hidden=true;
+    renderDailyCalendar();
+    ui.dailyGrid.querySelector?.(`[data-date="${key}"]`)?.focus({preventScroll:true});
+    return true;
 }
 function refreshDailyCalendar() {
     if(state==='map') {refreshDailyEntry();return;}
@@ -118,6 +136,7 @@ function showDailyCalendar({openFromMap=false}={}) {
     if(openFromMap) {
         if(state!=='map' || mapPreparing || stageStartContext || mapTransition)return;
         dailyReturnCourse=courseMode;dailyMonth=localToday().slice(0,7);
+        dailySelectedDate=dailyRecords[localToday()]?null:localToday();
     }
     hideStageStart();
     cancelMapReveal();
@@ -191,6 +210,11 @@ ui.dailyNext.onclick=()=>{
 };
 ui.dailyGrid.onclick=e=>{
     const button=e.target.closest('button[data-date]');
-    if(button && ui.dailyGrid.contains(button))selectDailyDate(button.dataset.date);
+    if(button && ui.dailyGrid.contains(button))chooseDailyDate(button.dataset.date);
+};
+ui.dailyStartButton.onclick=()=>{
+    if(state!=='daily' || ui.dailyStartButton.disabled || !dailySelectedDate)return;
+    ui.dailyStartButton.disabled=true;
+    if(!selectDailyDate(dailySelectedDate))renderDailyCalendar();
 };
 window.addEventListener('focus',refreshDailyCalendar);

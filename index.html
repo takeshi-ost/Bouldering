@@ -107,10 +107,22 @@
             </section>
             <section id="dailyCalendar" class="daily-calendar" aria-labelledby="dailyTitle" hidden>
                 <div class="daily-heading"><h1 id="dailyTitle">デイリーチャレンジ</h1><button id="dailyBack" class="map-secondary">マップへ</button></div>
-                <p id="dailyToday" class="daily-today"></p>
-                <div class="daily-month-navigation"><button id="dailyPrev" class="map-secondary" aria-label="前の月">←</button><h2 id="dailyMonthTitle"></h2><button id="dailyNext" class="map-secondary" aria-label="次の月">→</button></div>
-                <div class="daily-weekdays" aria-hidden="true"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
-                <div id="dailyGrid" class="daily-grid" aria-label="日付を選んでプレイ"></div>
+                <div class="daily-calendar-plate">
+                    <p id="dailyToday" class="daily-today"></p>
+                    <div class="daily-month-navigation"><button id="dailyPrev" class="map-secondary" aria-label="前の月">←</button><h2 id="dailyMonthTitle"></h2><button id="dailyNext" class="map-secondary" aria-label="次の月">→</button></div>
+                    <div class="daily-weekdays" aria-hidden="true"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+                    <div id="dailyGrid" class="daily-grid" aria-label="日付を選択"></div>
+                </div>
+                <section class="daily-stage-start" aria-labelledby="dailyStartTitle">
+                    <div class="stage-start-heading" aria-live="polite" aria-atomic="true">
+                        <h2 id="dailyStartTitle">日付を選択</h2>
+                        <dl class="stage-start-info">
+                            <div><dt>難易度</dt><dd id="dailyStartDifficulty">—</dd></div>
+                            <div><dt>コースの長さ</dt><dd id="dailyStartLength">—</dd></div>
+                        </dl>
+                    </div>
+                    <button id="dailyStartButton" type="button" disabled>スタート</button>
+                </section>
                 <p id="dailyError" class="map-error" role="alert" hidden></p>
             </section>
             <dialog id="lifeDialog" class="life-dialog" aria-modal="true" aria-labelledby="lifeQuestion" hidden>

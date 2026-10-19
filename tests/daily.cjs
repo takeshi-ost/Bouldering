@@ -25,6 +25,21 @@ const counts={0:0,1:0,2:0,3:0};for(let i=0;i<366;i++){const key=utcToday(new Dat
 for(const count of Object.values(counts))assert(count>65 && count<120,'Unbalanced daily categories');
 startCourse('existing');ui.openDaily.onclick();assert.equal(state,'daily');assert(ui.levelMap.hidden && !ui.dailyCalendar.hidden && ui.hud.hidden);assert(!canScrollStage());
 assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-17"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(ui.dailyNext.disabled);assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
+// Calendar selection only previews; Start launches the selected seed once.
+assert.equal(dailySelectedDate,'2026-10-17');assert.equal(ui.dailyStartTitle.textContent,'2026/10/17');
+const previewDate='2026-10-16',previewProfile=dailyProfile(previewDate),beforePreview=JSON.stringify(dailyAttempts);
+const previewButton={dataset:{date:previewDate}};
+ui.dailyGrid.onclick({target:{closest:()=>previewButton}});
+assert.equal(state,'daily');assert.equal(dailyRun,null);assert(!dummyAd);assert.equal(JSON.stringify(dailyAttempts),beforePreview);
+assert.equal(dailySelectedDate,previewDate);assert.equal(ui.dailyStartTitle.textContent,'2026/10/16');
+assert.equal(ui.dailyStartDifficulty.textContent,difficultyLabel(previewProfile.difficulty));
+assert.equal(ui.dailyStartLength.textContent,{short:'短い',medium:'中くらい',long:'長い'}[stageLengthInfo(previewProfile.referenceStage,previewProfile.seed).category]);
+assert.equal((ui.dailyGrid.innerHTML.match(/is-selected/g)||[]).length,1);
+assert(!ui.dailyGrid.innerHTML.includes('daily-stars'));assert(!ui.stageStartDialog.open);
+ui.dailyStartButton.onclick();assert.equal(state,'playing');assert.equal(dailyRun.date,previewDate);assert.equal(dailyAttempts[previewDate],1);
+ui.dailyStartButton.onclick();assert.equal(dailyAttempts[previewDate],1);
+showDailyCalendar();ui.dailyPrev.onclick();assert.equal(dailySelectedDate,null);assert(ui.dailyStartButton.disabled);
+ui.dailyStartButton.onclick();assert.equal(state,'daily');ui.dailyNext.onclick();
 assert(!selectDailyDate('2026-10-18'));assert(!selectDailyDate('2026-02-30'));assert.equal(state,'daily');
 nowIso='2026-10-18T00:00:00Z';refreshDailyCalendar();assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-19"'));assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-19"'));assert(!ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
 dailyMonth='2024-02';renderDailyCalendar();assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,29);
@@ -47,7 +62,7 @@ for(const [rating,key] of dates){
  assert.equal(state,'won');assert.equal(dailyRecords[key].stars,3);assert(!ui.next.hidden && ui.retry.hidden);assert.equal(ui.next.textContent,'カレンダーへ');
  assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore,'Daily clear polluted normal progress');
  assert.equal(dailyRecords[key].moves,moveCount);assert(ui.overlay.open);
- ui.next.onclick();finishAds();assert.equal(state,'daily');assert(!dailyRun && ui.overlay.hidden && !ui.dailyCalendar.hidden);assert(ui.dailyGrid.innerHTML.includes('daily-stars'));
+ ui.next.onclick();finishAds();assert.equal(state,'daily');assert(!dailyRun && ui.overlay.hidden && !ui.dailyCalendar.hidden);assert(!ui.dailyGrid.innerHTML.includes('daily-stars'));assert.equal(dailySelectedDate,null);assert(ui.dailyStartButton.disabled);
  const count=dailyAttempts[key],pending=dailyEntryAdPending;assert(!selectDailyDate(key));assert.equal(state,'daily');assert(!dummyAd);assert.equal(dailyAttempts[key],count);assert.equal(dailyEntryAdPending,pending);
  assert(ui.dailyGrid.innerHTML.includes('disabled'));assert.equal(dailyRecords[key].stars,3);
 }

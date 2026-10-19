@@ -43,7 +43,7 @@ assert(selectDailyDate(other));done();assert.equal(state,'daily');assert(!ui.dai
 const saved=data[DAILY_ATTEMPTS_KEY];data[DAILY_ATTEMPTS_KEY]=JSON.stringify({'bad':1,'2026-02-30':2,'2026-01-03':-1,'2026-01-04':'2','2026-01-05':3});assert.deepEqual(readDailyAttempts(),{'2026-01-05':3});data[DAILY_ATTEMPTS_KEY]=saved;
 // Leaving a failed run defers the ad to the next date tap, even a different first-time date.
 assert(selectDailyDate('2026-01-03'));assert.equal(state,'playing');finish(false);ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd);assert(dailyEntryAdPending);
-assert(selectDailyDate('2026-01-04'));assert.equal(state,'ad');assert(dailyEntryAdPending);assert(!completeDummyAd());done();assert.equal(state,'playing');assert.equal(dailyRun.date,'2026-01-04');assert.equal(dailyRun.attempt,1);assert(!dailyEntryAdPending);
+dailyMonth='2026-01';renderDailyCalendar();assert(chooseDailyDate('2026-01-04'));assert.equal(state,'daily');assert(!dummyAd);assert(dailyEntryAdPending);assert(!dailyAttempts['2026-01-04']);ui.dailyStartButton.onclick();assert.equal(state,'ad');assert(dailyEntryAdPending);assert(!completeDummyAd());done();assert.equal(state,'playing');assert.equal(dailyRun.date,'2026-01-04');assert.equal(dailyRun.attempt,1);assert(!dailyEntryAdPending);
 // The in-game Calendar action also defers, and survives reloads.
 ui.mapButton.onclick();assert.equal(state,'daily');assert(dailyEntryAdPending);assert(!dummyAd);assert(readDailyEntryAdPending());
 const set=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(saveDailyAttempts);assert.doesNotThrow(()=>setDailyEntryAdPending(true));storage.setItem=set;
