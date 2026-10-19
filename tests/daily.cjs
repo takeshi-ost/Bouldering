@@ -26,7 +26,7 @@ for(const count of Object.values(counts))assert(count>65 && count<120,'Unbalance
 startCourse('existing');ui.openDaily.onclick();assert.equal(state,'daily');assert(ui.levelMap.hidden && !ui.dailyCalendar.hidden && ui.hud.hidden);assert(!canScrollStage());
 assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-17"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(ui.dailyNext.disabled);assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
 // Calendar selection only previews; Start launches the selected seed once.
-assert.equal(dailySelectedDate,'2026-10-17');assert.equal(ui.dailyStartTitle.textContent,'2026/10/17');
+assert.equal(dailySelectedDate,'2026-10-17');assert.equal(ui.dailyStartTitle.textContent,'10/17');
 ui.dailySettingsButton.onclick();assert(settingsOpen && ui.settingsDialog.open);assert(!ui.mapSettingsControls.hidden && ui.restart.hidden && ui.mapButton.hidden);
 assert(!chooseDailyDate('2026-10-15'));assert(!changeDailyMonth(-1));ui.dailyBack.onclick();assert.equal(state,'daily');
 ui.showHelp.onclick();assert(ui.helpDialog.open);ui.closeHelp.onclick();ui.closeSettings.onclick();assert(!settingsOpen);
@@ -35,7 +35,7 @@ const previewDate='2026-10-16',previewProfile=dailyProfile(previewDate),beforePr
 const previewButton={dataset:{date:previewDate}};
 ui.dailyGrid.onclick({target:{closest:()=>previewButton}});
 assert.equal(state,'daily');assert.equal(dailyRun,null);assert(!dummyAd);assert.equal(JSON.stringify(dailyAttempts),beforePreview);
-assert.equal(dailySelectedDate,previewDate);assert.equal(ui.dailyStartTitle.textContent,'2026/10/16');
+assert.equal(dailySelectedDate,previewDate);assert.equal(ui.dailyStartTitle.textContent,'10/16');
 assert.equal(ui.dailyStartDifficulty.textContent,difficultyLabel(previewProfile.difficulty));
 assert.equal(ui.dailyStartLength.textContent,{short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(previewProfile.referenceStage,previewProfile.seed).category]);
 assert.equal((ui.dailyGrid.innerHTML.match(/is-selected/g)||[]).length,1);

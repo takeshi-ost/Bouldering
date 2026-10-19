@@ -121,7 +121,10 @@ function renderDailyCalendar() {
 }
 function renderDailyStart() {
     const profile=dailySelectedDate?dailyProfile(dailySelectedDate):null;
-    ui.dailyStartTitle.textContent=profile?profile.date.replaceAll('-','/'):'日付を選択';
+    ui.dailyStartLabel.textContent=profile?`DAILY ${profile.date.slice(0,4)}`:'日付を選択';
+    ui.dailyStartTitle.textContent=profile?profile.date.slice(5).replace('-','/'):'—';
+    ui.dailyStartTitle.setAttribute('aria-label',profile?profile.date.replaceAll('-','/'):'日付を選択');
+    ui.dailyStartStamina.textContent=profile?previewStaminaText(profile.referenceStage,'existing',profile):'❤️00';
     ui.dailyStartDifficulty.textContent=profile?difficultyLabel(profile.difficulty):'—';
     ui.dailyStartLength.textContent=profile?{short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
     const record=profile && dailyRecords[profile.date];

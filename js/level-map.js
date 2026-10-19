@@ -216,7 +216,9 @@ function openStageStart(n,debug=false,button=null,delay=0) {
     if(debug)ui.debugStage.blur?.();
     const context={n,debug,mode:courseMode,button};
     stageStartContext=context;
-    ui.stageStartTitle.textContent=`STAGE ${n}`;
+    ui.stageStartTitle.textContent=String(n).padStart(4,'0');
+    ui.stageStartTitle.setAttribute('aria-label',`STAGE ${n}`);
+    ui.stageStartStamina.textContent=previewStaminaText(n);
     refreshLives();
     ui.stageStartDifficulty.textContent=difficultyLabel(difficultyForStage(n));
     ui.stageStartLength.textContent={short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(n).category];

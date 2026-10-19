@@ -4,8 +4,8 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
-    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartButton", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
-    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
+    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
+    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartLabel", "dailyStartStamina", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
     "titleScreen", "releaseVersion", "playerUuid", "titleTap", "prototypeCourse", "prototypeDescription", "showHelp", "helpDialog", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
@@ -476,6 +476,27 @@ function prepareCurrentStage() {
         try {prepareStage();addHazardHolds();return;}catch(error){failure=error;}
     }
     throw failure;
+}
+const stagePreviewCache=new Map();
+function stagePreview(n,mode=courseMode,profile=null) {
+    const selectedDifficulty=profile?.difficulty ?? difficultyForStage(n);
+    const key=JSON.stringify([n,mode,profile?.date,selectedDifficulty,STAGE_CONFIG,HOLD_CONFIG,HAZARD_CONFIG]);
+    if(stagePreviewCache.has(key))return stagePreviewCache.get(key);
+    const saved={level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount};
+    try {
+        level=n;difficulty=selectedDifficulty;courseMode=mode;dailyRun=profile?{...profile}:null;
+        stageGenerator=createStageGenerator();
+        prepareCurrentStage();
+        const preview={stamina:routeStamina(route),height:HEIGHT,difficulty,seed:courseSeed()};
+        if(stagePreviewCache.size>=64)stagePreviewCache.delete(stagePreviewCache.keys().next().value);
+        stagePreviewCache.set(key,preview);return preview;
+    } finally {
+        ({level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount}=saved);
+    }
+}
+function previewStaminaText(n,mode=courseMode,profile=null) {
+    try {return `❤️${String(stagePreview(n,mode,profile).stamina).padStart(2,'0')}`;}
+    catch(_) {return '❤️—';}
 }
 function reset(n) {
     lifeAttemptId++;

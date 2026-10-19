@@ -209,4 +209,4 @@ function createStageGenerator() {
     }
     return { generate };
 }
-const stageGenerator = createStageGenerator();
+let stageGenerator = createStageGenerator();

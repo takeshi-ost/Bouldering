@@ -122,10 +122,11 @@
                     </div>
                     <section class="daily-stage-start" aria-labelledby="dailyStartTitle">
                         <div class="stage-start-heading" aria-live="polite" aria-atomic="true">
-                            <h2 id="dailyStartTitle">日付を選択</h2>
+                            <div class="stage-start-title"><span id="dailyStartLabel" class="stage-start-label">日付を選択</span><h2 id="dailyStartTitle">—</h2></div>
                             <dl class="stage-start-info">
                                 <div><dt>難易度</dt><dd id="dailyStartDifficulty">—</dd></div>
                                 <div><dt>コースの長さ</dt><dd id="dailyStartLength">—</dd></div>
+                                <div><dt>開始スタミナ</dt><dd id="dailyStartStamina">❤️00</dd></div>
                             </dl>
                         </div>
                         <button id="dailyStartButton" type="button" disabled>スタート</button>
@@ -167,14 +168,15 @@
         <dialog id="featureHelpDialog" class="overlay feature-help" aria-labelledby="featureHelpTitle" aria-describedby="featureHelpContent">
             <div class="card" id="featureHelpContent" aria-live="polite"></div>
         </dialog>
-        <dialog id="stageStartDialog" class="stage-start-dialog" aria-labelledby="stageStartTitle" aria-describedby="stageStartDifficulty stageStartLength">
+        <dialog id="stageStartDialog" class="stage-start-dialog" aria-labelledby="stageStartTitle" aria-describedby="stageStartDifficulty stageStartLength stageStartStamina">
             <button id="closeStageStart" class="modal-close" aria-label="閉じる">✕</button>
             <div id="stageStartLives" class="stage-start-lives" role="status"></div>
             <div class="stage-start-heading">
-                <h2 id="stageStartTitle">STAGE 1</h2>
+                <div class="stage-start-title"><span class="stage-start-label">STAGE</span><h2 id="stageStartTitle">0001</h2></div>
                 <dl class="stage-start-info">
                     <div><dt>難易度</dt><dd id="stageStartDifficulty"></dd></div>
                     <div><dt>コースの長さ</dt><dd id="stageStartLength"></dd></div>
+                    <div><dt>開始スタミナ</dt><dd id="stageStartStamina">❤️00</dd></div>
                 </dl>
             </div>
             <button id="stageStartButton">スタート</button>

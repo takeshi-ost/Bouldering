@@ -15,11 +15,12 @@ function clearTimeout(id){timers[id-1]=null;}
 `;
 new Function('assert',env+source+`
 startCourse('existing');const initialLives=lives.count,initialAttempt=lifeAttemptId,initialHeight=HEIGHT;
+const initialState=JSON.stringify({level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,committed,startGrips,moveCount}),originalGenerator=stageGenerator;
 assert.equal(openStageStart(2),false);assert.equal(openStageStart(1.5),false);
 assert(openStageStart(1));assert(ui.stageStartDialog.open);assert.equal(state,'map');
-assert.equal(ui.stageStartTitle.textContent,'STAGE 1');assert.equal(ui.stageStartDifficulty.textContent,'EASY');assert.equal(ui.stageStartLength.textContent,'ショート');
+assert.equal(ui.stageStartTitle.textContent,'0001');assert.equal(ui.stageStartDifficulty.textContent,'EASY');assert.equal(ui.stageStartLength.textContent,'ショート');
 assert.equal((ui.stageStartLives.innerHTML.match(/class="life-player"/g)||[]).length,initialLives);
-assert.equal(lives.count,initialLives);assert.equal(lifeAttemptId,initialAttempt);assert.equal(HEIGHT,initialHeight);
+assert.equal(lives.count,initialLives);assert.equal(lifeAttemptId,initialAttempt);assert.equal(HEIGHT,initialHeight);assert.equal(stageGenerator,originalGenerator);assert.equal(JSON.stringify({level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,committed,startGrips,moveCount}),initialState);
 assert(!openStageStart(1));assert(!selectStage(1));ui.mapSettingsButton.onclick();assert(!settingsOpen);
 ui.stageStartDialog.events.click({target:ui.stageStartTitle,clientX:10,clientY:10});assert(ui.stageStartDialog.open);
 ui.closeStageStart.onclick();assert(!ui.stageStartDialog.open && !stageStartContext);assert.equal(lives.count,initialLives);
@@ -28,12 +29,12 @@ ui.stageStartDialog.events.click({target:ui.stageStartDialog,clientX:-1,clientY:
 assert(openStageStart(1));let canceled=false;ui.stageStartDialog.events.cancel({preventDefault(){canceled=true;}});assert(canceled && !stageStartContext);
 stageProgress.existing.cleared=40;
 for(const [n,length,label] of [[2,'ミドル','EASY'],[5,'ロング','NORMAL'],[20,'ロング','NORMAL'],[40,'ロング','HARD']]) {
- assert(openStageStart(n));assert.equal(ui.stageStartLength.textContent,length);assert.equal(ui.stageStartDifficulty.textContent,label);closeStageStart();
+ assert(openStageStart(n));assert.equal(ui.stageStartLength.textContent,length);assert.equal(ui.stageStartDifficulty.textContent,label);assert.match(ui.stageStartStamina.textContent,/^❤️[0-9]{2,}$/);closeStageStart();
 }
 let pulsing=false;const button={classList:{toggle(_,on){pulsing=on;}}};
 assert(openStageStart(1,false,button));assert(pulsing && !ui.stageStartDialog.open);assert.equal(timers.at(-1).ms,140);
 timers.at(-1).fn();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();
-assert.equal(state,'playing');assert.equal(level,1);assert(!stageStartContext && !ui.stageStartDialog.open && !pulsing);assert(lives.inProgress);assert.equal(stamina,routeStamina(route));
+assert.equal(state,'playing');assert.equal(level,1);assert(!stageStartContext && !ui.stageStartDialog.open && !pulsing);assert(lives.inProgress);assert.equal(stamina,routeStamina(route));assert.equal(ui.stageStartStamina.textContent,'❤️'+String(stamina).padStart(2,'0'));
 const attempt=lifeAttemptId;ui.stageStartButton.onclick();assert.equal(lifeAttemptId,attempt,'Double Start must not restart');
 showLevelMap();lives.count=0;lives.recoveryAt=Date.now();
 assert(openStageStart(1));assert.match(ui.stageStartLives.innerHTML,/30:00/);
@@ -45,7 +46,7 @@ startCourse('existing');stageProgress.existing.cleared=21;lives.count=3;lives.re
 showLevelMap({advanceFrom:20});advanceLevelMap(100);advanceLevelMap(750);
 assert.equal(mapSelected,21);assert.equal(mapPage,1);assert.equal(stageStartContext.n,21);assert(!ui.stageStartDialog.open);assert.equal(timers.at(-1).ms,500);
 assert(!openStageStart(20));ui.mapPrev.onclick();assert.equal(mapPage,1);
-timers.at(-1).fn();assert(ui.stageStartDialog.open);assert.equal(ui.stageStartTitle.textContent,'STAGE 21');assert.equal(state,'map');
+timers.at(-1).fn();assert(ui.stageStartDialog.open);assert.equal(ui.stageStartTitle.textContent,'0021');assert.equal(state,'map');
 ui.stageStartButton.onclick();assert.equal(level,21);assert.equal(state,'playing');
 showLevelMap({advanceFrom:20});advanceLevelMap(1000);advanceLevelMap(1650);const delayedNext=timers.at(-1).fn;showTitleScreen();delayedNext();assert(!ui.stageStartDialog.open && !stageStartContext);
 console.log('PASS stage start: correct stage/difficulty/length, no item elements, close/backdrop/Escape no life cost, visible tap pulse, Start-only launch and life gate, double-start guard, debug launch and canceled delayed opening');

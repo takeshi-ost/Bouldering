@@ -389,10 +389,13 @@ button.modal-close:focus-visible { outline:none; }
 .stage-start-dialog::backdrop { background:#23372dbd; }
 .stage-start-lives { min-height:24px; margin:0 36px 10px 0; }
 .stage-start-lives .life-players,.stage-start-lives .life-countdown { margin-left:0; }
-.stage-start-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:16px; }
-.stage-start-dialog h2 { min-width:10ch; font-variant-numeric:tabular-nums; margin:0; text-align:left; font-size:20px; line-height:28px; letter-spacing:0; white-space:nowrap; }
-.stage-start-info { display:flex; align-items:center; gap:8px; margin:0; }
+.stage-start-heading { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); align-items:center; gap:0; margin-bottom:16px; }
+.stage-start-title { min-width:0; container-type:inline-size; padding-right:10px; }
+.stage-start-label { display:block; font-size:12px; line-height:18px; font-weight:800; letter-spacing:.08em; }
+.stage-start-dialog .stage-start-title h2,.daily-stage-start .stage-start-title h2 { min-width:0; margin:0; font-size:clamp(28px,38cqw,84px); line-height:1.15; font-weight:900; font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; text-align:left; }
+.daily-stage-start .stage-start-title h2 { font-size:clamp(28px,30cqw,84px); }
+.stage-start-info { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:6px; margin:0; padding-left:8px; }
 .stage-start-info dt { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-.stage-start-info dd { margin:0; font-size:12px; font-weight:700; white-space:nowrap; }
-@media (max-width:350px) { .stage-start-dialog h2 { font-size:18px; } .stage-start-info { gap:6px; } .stage-start-info dd { font-size:11px; } }
+.stage-start-info dd { margin:0; font-size:14px; line-height:20px; font-weight:800; white-space:nowrap; font-variant-numeric:tabular-nums; }
+@media (max-width:350px) { .stage-start-info { padding-left:6px; } .stage-start-info dd { font-size:12px; } }
 #stageStartButton { display:block; width:100%; min-height:44px; margin-top:0; font-size:15px; }
