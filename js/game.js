@@ -4,7 +4,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
-    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
+    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartOwned", "stageHeartCount", "stageHeartMinus", "stageHeartPlus", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
     "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartLabel", "dailyStartStamina", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
     "titleScreen", "releaseVersion", "playerUuid", "titleTap", "prototypeCourse", "prototypeDescription", "showHelp", "helpDialog", "closeHelp"
@@ -494,11 +494,11 @@ function stagePreview(n,mode=courseMode,profile=null) {
         ({level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount}=saved);
     }
 }
-function previewStaminaText(n,mode=courseMode,profile=null) {
-    try {return `❤️${String(stagePreview(n,mode,profile).stamina).padStart(2,'0')}`;}
+function previewStaminaText(n,mode=courseMode,profile=null,bonus=0) {
+    try {return `❤️${String(stagePreview(n,mode,profile).stamina+bonus).padStart(2,'0')}`;}
     catch(_) {return '❤️—';}
 }
-function reset(n) {
+function reset(n,staminaBonus=0) {
     lifeAttemptId++;
     adClearRecorded=false;
     hideStageHelp();
@@ -530,7 +530,7 @@ function reset(n) {
     heartPopups = [];
     anchorRings = [];
     hazardShakeStart = null;
-    stamina = routeStamina(route);
+    stamina = routeStamina(route)+staminaBonus;
 
     moveCount = 0;
 

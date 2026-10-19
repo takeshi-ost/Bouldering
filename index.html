@@ -179,6 +179,15 @@
                     <div><dt>開始スタミナ</dt><dd id="stageStartStamina">❤️00</dd></div>
                 </dl>
             </div>
+            <div class="stage-heart-items" role="group" aria-labelledby="stageHeartLabel">
+                <div class="stage-heart-heading"><span id="stageHeartLabel">追加スタミナ ❤️</span><span id="stageHeartOwned"></span></div>
+                <div class="stage-heart-controls">
+                    <button id="stageHeartMinus" class="secondary" aria-label="使用するハートを1個減らす">−</button>
+                    <input id="stageHeartCount" type="number" inputmode="numeric" min="0" max="20" step="1" value="0" aria-label="使用するハートの数" aria-describedby="stageHeartHelp">
+                    <button id="stageHeartPlus" class="secondary" aria-label="使用するハートを1個増やす">＋</button>
+                </div>
+                <p id="stageHeartHelp">1個でスタミナ＋1。このプレイのみ有効です。</p>
+            </div>
             <button id="stageStartButton">スタート</button>
         </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">

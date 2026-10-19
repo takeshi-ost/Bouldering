@@ -1,4 +1,18 @@
 "use strict";
+// Consumable hearts are separate from life and the hearts picked up on a course.
+const HEART_ITEMS_KEY='ascent.heart-items.v1';
+function readHeartItems() {
+    try {
+        const count=JSON.parse(globalThis.localStorage?.getItem(HEART_ITEMS_KEY)||'null');
+        if(Number.isSafeInteger(count) && count>=0)return count;
+    } catch(_) {}
+    return 20;
+}
+let heartItems=readHeartItems();
+function saveHeartItems() {
+    try {globalThis.localStorage?.setItem(HEART_ITEMS_KEY,JSON.stringify(heartItems));}catch(_) {}
+}
+saveHeartItems();
 const PROGRESS_KEY = 'ascent.progress.v1';
 const MAP_PAGE_SIZE = 20;
 const MAP_HOP_DURATION = 650;
@@ -194,6 +208,24 @@ function advanceLevelMap(now) {
     }
 }
 let stageStartContext=null,stageStartTimer=null;
+function renderStageHeartItems() {
+    const context=stageStartContext;if(!context)return;
+    ui.stageHeartOwned.textContent=`所持 ${heartItems}個`;
+    ui.stageHeartCount.value=String(context.hearts);
+    ui.stageHeartCount.max=String(heartItems);
+    ui.stageHeartMinus.disabled=context.hearts===0;
+    ui.stageHeartPlus.disabled=context.hearts===heartItems;
+    ui.stageStartStamina.textContent=previewStaminaText(context.n,context.mode,null,context.hearts);
+}
+function setStageHeartItems(value) {
+    if(!stageStartContext || !ui.stageStartDialog.open)return;
+    const count=Number(value);
+    stageStartContext.hearts=Number.isFinite(count)?clamp(Math.trunc(count),0,heartItems):0;
+    renderStageHeartItems();
+}
+ui.stageHeartMinus.onclick=()=>setStageHeartItems((stageStartContext?.hearts??0)-1);
+ui.stageHeartPlus.onclick=()=>setStageHeartItems((stageStartContext?.hearts??0)+1);
+ui.stageHeartCount.oninput=()=>setStageHeartItems(ui.stageHeartCount.value);
 function canSelectStage(n,debug=false) {
     return state==='map' && !mapPreparing && !mapTransition && !stageStartContext &&
         Number.isSafeInteger(n) && n>=1 && n<Number.MAX_SAFE_INTEGER &&
@@ -214,11 +246,11 @@ function closeStageStart() {
 function openStageStart(n,debug=false,button=null,delay=0) {
     if(!canSelectStage(n,debug))return false;
     if(debug)ui.debugStage.blur?.();
-    const context={n,debug,mode:courseMode,button};
+    const context={n,debug,mode:courseMode,button,hearts:0};
     stageStartContext=context;
     ui.stageStartTitle.textContent=`STAGE ${n}`;
     ui.stageStartTitle.setAttribute('aria-label',`STAGE ${n}`);
-    ui.stageStartStamina.textContent=previewStaminaText(n);
+    renderStageHeartItems();
     refreshLives();
     ui.stageStartDifficulty.textContent=difficultyLabel(difficultyForStage(n));
     ui.stageStartLength.textContent={short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(n).category];
@@ -239,21 +271,23 @@ ui.stageStartButton.onclick=()=>{
     if(!context || !ui.stageStartDialog.open || ui.stageStartButton.disabled)return;
     ui.stageStartButton.disabled=true;
     hideStageStart();
-    if(context.mode===courseMode)selectStage(context.n,context.debug);
+    if(context.mode===courseMode)selectStage(context.n,context.debug,context.hearts);
 };
-function selectStage(n,debug=false) {
-    if(!canSelectStage(n,debug))return false;
+function selectStage(n,debug=false,heartsUsed=0) {
+    if(!canSelectStage(n,debug) || !Number.isSafeInteger(heartsUsed) || heartsUsed<0 || heartsUsed>heartItems)return false;
     // Dismiss the numeric keyboard before generating and opening the stage.
     if(debug)ui.debugStage.blur?.();
     const launch=()=>{
+        if(heartsUsed>heartItems)return false;
         cancelMapReveal();
         try {
             debugAttempt=debug;
-            restartInput(n);
+            restartInput(n,heartsUsed);
             beginLifeAttempt();
             ui.titleScreen.hidden=true;ui.levelMap.hidden=true;
             canvas.setAttribute('tabindex','0');
             if(!featureHelpOpen)canvas.focus();
+            heartItems-=heartsUsed;saveHeartItems();
             return true;
         } catch (error) {
             showLevelMap({target:n});

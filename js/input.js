@@ -140,8 +140,8 @@ function touchEnd(e, cancel) {
 }
 canvas.addEventListener('touchend', e => touchEnd(e, false));
 canvas.addEventListener('touchcancel', e => touchEnd(e, true));
-function restartInput(n) {
-    bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n);showStageHelp();
+function restartInput(n,staminaBonus=0) {
+    bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n,staminaBonus);showStageHelp();
 }
 ui.next.onclick = () => {
     if(dailyRun && ['won','lost'].includes(state))continueDailyResult();
