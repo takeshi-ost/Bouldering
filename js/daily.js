@@ -90,7 +90,7 @@ function shiftedDailyMonth(delta) {
 }
 function renderDailyCalendar() {
     const today=localToday();dailyCalendarToday=today;
-    if(dailySelectedDate && (dailySelectedDate.slice(0,7)!==dailyMonth || dailySelectedDate>today || dailyRecords[dailySelectedDate]))dailySelectedDate=null;
+    if(dailySelectedDate && (dailySelectedDate.slice(0,7)!==dailyMonth || dailySelectedDate>today))dailySelectedDate=null;
     const [year,month]=monthParts();
     const firstDay=new Date(Date.UTC(year,month-1,1)).getUTCDay();
     const days=new Date(Date.UTC(year,month,0)).getUTCDate();
@@ -99,7 +99,7 @@ function renderDailyCalendar() {
         const key=dailyMonth+'-'+String(day).padStart(2,'0');
         if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${year}年${month}月${day}日">${day}</div>`);continue;}
         const record=dailyRecords[key];
-        cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星・再挑戦できません':'選択できます'}" ${record?'disabled':''} ${key===today?'aria-current="date"':''}>${day}</button></div>`);
+        cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?'<span class="daily-clear-icon" aria-hidden="true">✓</span>':day}</button></div>`);
     }
     while(cells.length%7)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');
@@ -107,6 +107,7 @@ function renderDailyCalendar() {
     ui.dailyToday.textContent=`今日：${today.replaceAll('-','/')}（端末時刻）`;
     ui.dailyPrev.disabled=dailyMonth<='1000-01';
     ui.dailyNext.disabled=dailyMonth>=today.slice(0,7);
+    ui.dailySkyDate.textContent=today.slice(5).replace('-','/');
     renderDailyStart();
 }
 function renderDailyStart() {
@@ -114,10 +115,16 @@ function renderDailyStart() {
     ui.dailyStartTitle.textContent=profile?profile.date.replaceAll('-','/'):'日付を選択';
     ui.dailyStartDifficulty.textContent=profile?difficultyLabel(profile.difficulty):'—';
     ui.dailyStartLength.textContent=profile?{short:'短い',medium:'中くらい',long:'長い'}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
-    ui.dailyStartButton.disabled=!profile;
+    const record=profile && dailyRecords[profile.date];
+    ui.dailyStartButton.hidden=!!record;
+    ui.dailyStartButton.disabled=!profile || !!record;
+    ui.dailyClearRecord.hidden=!record;
+    ui.dailyClearStars.textContent=record?'⭐️'.repeat(record.stars):'';
+    ui.dailyClearStars.setAttribute('aria-label',record?`${record.stars}つ星`:'');
+    ui.dailyClearStats.textContent=record?formatStageRecord(record):'';
 }
 function chooseDailyDate(key) {
-    if(state!=='daily' || !validDailyDate(key) || key.slice(0,7)!==dailyMonth || key>localToday() || dailyRecords[key])return false;
+    if(state!=='daily' || !validDailyDate(key) || key.slice(0,7)!==dailyMonth || key>localToday())return false;
     dailySelectedDate=key;
     ui.dailyError.hidden=true;
     renderDailyCalendar();
@@ -136,8 +143,9 @@ function showDailyCalendar({openFromMap=false}={}) {
     if(openFromMap) {
         if(state!=='map' || mapPreparing || stageStartContext || mapTransition)return;
         dailyReturnCourse=courseMode;dailyMonth=localToday().slice(0,7);
-        dailySelectedDate=dailyRecords[localToday()]?null:localToday();
+        dailySelectedDate=localToday();
     }
+    dailySwipe=null;dailySwipeConsumed=false;
     hideStageStart();
     cancelMapReveal();
     release(true);endPan();touchId=null;ignoreTouches=false;
@@ -200,14 +208,33 @@ ui.dailyBack.onclick=()=>{
     if(state!=='daily')return;
     courseMode=dailyReturnCourse;showLevelMap();
 };
-ui.dailyPrev.onclick=()=>{
-    if(state!=='daily' || dailyMonth<='1000-01')return;
-    dailyMonth=shiftedDailyMonth(-1);renderDailyCalendar();
-};
-ui.dailyNext.onclick=()=>{
-    if(state!=='daily' || dailyMonth>=localToday().slice(0,7))return;
-    dailyMonth=shiftedDailyMonth(1);renderDailyCalendar();
-};
+function changeDailyMonth(delta) {
+    if(state!=='daily' || (delta!==-1 && delta!==1) ||
+        (delta<0?dailyMonth<='1000-01':dailyMonth>=localToday().slice(0,7)))return false;
+    dailyMonth=shiftedDailyMonth(delta);renderDailyCalendar();
+    return true;
+}
+ui.dailyPrev.onclick=()=>changeDailyMonth(-1);
+ui.dailyNext.onclick=()=>changeDailyMonth(1);
+let dailySwipe=null,dailySwipeConsumed=false;
+ui.dailyPlate.addEventListener('pointerdown',e=>{
+    dailySwipeConsumed=false;
+    if(state!=='daily' || e.isPrimary===false || (e.button!==undefined && e.button!==0) || dailySwipe) {dailySwipe=null;return;}
+    dailySwipe={id:e.pointerId,x:e.clientX,y:e.clientY};
+});
+ui.dailyPlate.addEventListener('pointerup',e=>{
+    const start=dailySwipe;dailySwipe=null;
+    if(!start || e.pointerId!==start.id || state!=='daily')return;
+    const dx=e.clientX-start.x,dy=e.clientY-start.y;
+    if(Math.abs(dx)<48 || Math.abs(dx)<=Math.abs(dy)*1.4)return;
+    dailySwipeConsumed=true;
+    changeDailyMonth(dx<0?1:-1);
+});
+ui.dailyPlate.addEventListener('pointercancel',()=>{dailySwipe=null;});
+ui.dailyPlate.addEventListener('click',e=>{
+    if(!dailySwipeConsumed)return;
+    dailySwipeConsumed=false;e.preventDefault();e.stopPropagation();
+},true);
 ui.dailyGrid.onclick=e=>{
     const button=e.target.closest('button[data-date]');
     if(button && ui.dailyGrid.contains(button))chooseDailyDate(button.dataset.date);

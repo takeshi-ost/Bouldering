@@ -40,6 +40,15 @@ ui.dailyStartButton.onclick();assert.equal(state,'playing');assert.equal(dailyRu
 ui.dailyStartButton.onclick();assert.equal(dailyAttempts[previewDate],1);
 showDailyCalendar();ui.dailyPrev.onclick();assert.equal(dailySelectedDate,null);assert(ui.dailyStartButton.disabled);
 ui.dailyStartButton.onclick();assert.equal(state,'daily');ui.dailyNext.onclick();
+// Right swipe goes back; left goes forward; vertical, canceled and multi-touch gestures do not navigate.
+function gesture(dx,dy=0) {ui.dailyPlate.events.pointerdown({pointerId:1,clientX:100,clientY:100,isPrimary:true,button:0});ui.dailyPlate.events.pointerup({pointerId:1,clientX:100+dx,clientY:100+dy});}
+assert(chooseDailyDate('2026-10-15'));assert(!chooseDailyDate('2026-10-18'));assert.equal(dailySelectedDate,'2026-10-15');
+gesture(80);assert.equal(dailyMonth,'2026-09');assert.equal(dailySelectedDate,null);
+let prevented=0,stopped=0;ui.dailyPlate.events.click({preventDefault(){prevented++;},stopPropagation(){stopped++;}});assert.equal(prevented,1);assert.equal(stopped,1);
+gesture(-80);assert.equal(dailyMonth,'2026-10');gesture(-80);assert.equal(dailyMonth,'2026-10');
+gesture(10,80);assert.equal(dailyMonth,'2026-10');gesture(80,100);assert.equal(dailyMonth,'2026-10');
+ui.dailyPlate.events.pointerdown({pointerId:1,clientX:100,clientY:100});ui.dailyPlate.events.pointercancel();ui.dailyPlate.events.pointerup({pointerId:1,clientX:200,clientY:100});assert.equal(dailyMonth,'2026-10');
+ui.dailyPlate.events.pointerdown({pointerId:1,clientX:100,clientY:100});ui.dailyPlate.events.pointerdown({pointerId:2,clientX:100,clientY:100,isPrimary:false});ui.dailyPlate.events.pointerup({pointerId:1,clientX:200,clientY:100});assert.equal(dailyMonth,'2026-10');
 assert(!selectDailyDate('2026-10-18'));assert(!selectDailyDate('2026-02-30'));assert.equal(state,'daily');
 nowIso='2026-10-18T00:00:00Z';refreshDailyCalendar();assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-19"'));assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-19"'));assert(!ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
 dailyMonth='2024-02';renderDailyCalendar();assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,29);
@@ -62,9 +71,13 @@ for(const [rating,key] of dates){
  assert.equal(state,'won');assert.equal(dailyRecords[key].stars,3);assert(!ui.next.hidden && ui.retry.hidden);assert.equal(ui.next.textContent,'カレンダーへ');
  assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore,'Daily clear polluted normal progress');
  assert.equal(dailyRecords[key].moves,moveCount);assert(ui.overlay.open);
- ui.next.onclick();finishAds();assert.equal(state,'daily');assert(!dailyRun && ui.overlay.hidden && !ui.dailyCalendar.hidden);assert(!ui.dailyGrid.innerHTML.includes('daily-stars'));assert.equal(dailySelectedDate,null);assert(ui.dailyStartButton.disabled);
+ ui.next.onclick();finishAds();assert.equal(state,'daily');assert(!dailyRun && ui.overlay.hidden && !ui.dailyCalendar.hidden);assert(!ui.dailyGrid.innerHTML.includes('daily-stars'));
+ assert(chooseDailyDate(key));assert.equal(dailySelectedDate,key);assert(ui.dailyStartButton.hidden && ui.dailyStartButton.disabled);assert(!ui.dailyClearRecord.hidden);
+ assert.equal(ui.dailyClearStars.textContent,'⭐️⭐️⭐️');assert.equal(ui.dailyClearStats.textContent,formatStageRecord(dailyRecords[key]));
+ const selectedBeforeFuture=dailySelectedDate;assert(!chooseDailyDate('2026-10-18'));assert.equal(dailySelectedDate,selectedBeforeFuture);
+ ui.dailyStartButton.onclick();assert.equal(state,'daily');assert(!dummyAd);
  const count=dailyAttempts[key],pending=dailyEntryAdPending;assert(!selectDailyDate(key));assert.equal(state,'daily');assert(!dummyAd);assert.equal(dailyAttempts[key],count);assert.equal(dailyEntryAdPending,pending);
- assert(ui.dailyGrid.innerHTML.includes('disabled'));assert.equal(dailyRecords[key].stars,3);
+ assert(ui.dailyGrid.innerHTML.includes('daily-clear-icon'));assert.equal(dailyRecords[key].stars,3);
 }
 assert.deepEqual(readDailyRecords(),dailyRecords);
 const key=dates.get(0),originalRecord=JSON.stringify(dailyRecords[key]);dailyRun={...dailyProfile(key),returnCourse:'existing'};moveCount=1;runElapsedMs=100;recordDailyClear();assert.equal(JSON.stringify(dailyRecords[key]),originalRecord,'Completed daily record must remain unchanged');
