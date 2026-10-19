@@ -3,6 +3,7 @@ const RELEASE_VERSION = '0.1.0';
 // 表示サイズと可動域。単位はゲーム内の論理pxです。
 const W = 400;
 const H = 700;
+const STAGE_SAFE_WIDTH = 40;
 const R = 112;
 const MAX_HEIGHT = H * 3;
 const TORSO = { width: 40, height: 72, hitPadding: 8 };
@@ -28,7 +29,7 @@ const STAGE_CONFIG = {
     stationSpacing: 40,
     supportSpan: 5,
     introStations: [6.5, 7.5, 8.5, 11.5, 14.5],
-    horizontalAmplitude: 160,
+    horizontalAmplitude: 160 - STAGE_SAFE_WIDTH,
     traverseDrop: 20,
     climbHeight: 290,
     climbVariation: 20,
@@ -65,7 +66,7 @@ const HOLD_CONFIG = {
     passes: 5,
     gridStep: 40,
     jitter: 38,
-    sideMargin: 24,
+    sideMargin: STAGE_SAFE_WIDTH + 30,
     topMargin: 28,
     bottomMargin: 50,
     snapGuard: 6,
@@ -83,7 +84,7 @@ const HEART_CONFIG = { minMoves: 5, maxCount: 2, recovery: 2, radius: 10, popupD
 // Difficulty 2 adds optional hazards; difficulty 3 converts 30–50% of holds.
 const HAZARD_CONFIG = { minRatio: .3, maxRatio: .5, maxCount: 5, penalty: 1, shakeDuration: 280, shakeAmplitude: 4, radius: 6, attempts: 140, spacing: 24 };
 // 操作と描画。
-const INPUT_CONFIG = { edgeScrollWidth: 40, dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24, tapMaxDuration: 400 };
+const INPUT_CONFIG = { edgeScrollWidth: STAGE_SAFE_WIDTH, dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24, tapMaxDuration: 400 };
 const CAMERA_CONFIG = { goalTopPadding: 180, bodyScreenRatio: 0.6, followRate: 0.08, introSpeed: H * 1.5, introMinDuration: 1000 };
 const FALL_CONFIG = { gravity: 1400, clearance: 180 };
-const RENDER_CONFIG = { maxPixelRatio: 2 };
+const RENDER_CONFIG = { maxPixelRatio: 2, safeAreaColor: '#aeb8ac' };

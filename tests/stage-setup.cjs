@@ -10,6 +10,8 @@ assert(insideStartTriangle({x:0,y:60},[triangle[0],triangle[1],triangle[3],trian
 const heights=[];
 for(let n=1;n<=100;n++) {
  const stage=createStageGenerator().generate(n,true);
+ assert(stage.holds.every(h=>h.x-(h.wide?30:12)>=STAGE_SAFE_WIDTH && h.x+(h.wide?30:12)<=W-STAGE_SAFE_WIDTH),'Hold sprite overlaps scroll safe area');
+ assert(stage.route.every(p=>p.x>=STAGE_SAFE_WIDTH+TORSO.width/2 && p.x<=W-STAGE_SAFE_WIDTH-TORSO.width/2),'Guide body overlaps scroll safe area');
  HEIGHT=stage.HEIGHT;body={...stage.route[0]};grips=stage.initialGrips;
  const snapshot=JSON.stringify({body,grips});startInitialPose();
  const visual=characterPose(performance.now());

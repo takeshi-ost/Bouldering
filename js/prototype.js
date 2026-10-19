@@ -17,7 +17,7 @@ function preparePrototypeStage() {
     const normalBottom = initialGrips[2].y - 24;
     for (const hold of holds) {
         if (hold.type !== 'normal') continue;
-        hold.x = jitter(hold.x, 14, 24, W - 24);
+        hold.x = jitter(hold.x, 14, HOLD_CONFIG.sideMargin, W - HOLD_CONFIG.sideMargin);
         hold.y = jitter(hold.y, 16, 28, normalBottom);
     }
     holds = holds.filter(h=>h.type!=='normal' || !insideStartTriangle(h,initialGrips));
@@ -31,7 +31,7 @@ function preparePrototypeStage() {
             const t = travelled / length;
             const p = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
             for (const limb of limbs) {
-                const h = { x: jitter(p.x + limb.x, 16, 24, W - 24),
+                const h = { x: jitter(p.x + limb.x, 16, HOLD_CONFIG.sideMargin, W - HOLD_CONFIG.sideMargin),
                     y: jitter(p.y + limb.y, 18, 28, normalBottom) };
                 if (!insideStartTriangle(h,initialGrips) && holds.every(other => distance(other, h) >= 24))
                     holds.push({ ...h, id: nextId++, type: 'normal', row: null });

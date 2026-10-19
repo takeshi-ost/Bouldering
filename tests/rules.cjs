@@ -70,7 +70,7 @@ for(let i=1;i<route.length;i++)playStep(route[i]);
 assert.equal(state,'won');draw(2000);
 assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
 ui.next.onclick();assert.equal(state,'map');
-advanceLevelMap(0);advanceLevelMap(MAP_HOP_DURATION);assert.equal(mapSelected,2);assert(selectStage(2));assert.equal(level,2);
+advanceLevelMap(0);advanceLevelMap(MAP_HOP_DURATION);assert.equal(mapSelected,2);closeStageStart();assert(selectStage(2));assert.equal(level,2);
 const nextBudget=stageStamina(route.length-1);
 assert.equal(stamina,nextBudget);assert.equal(ui.stamina.textContent,String(nextBudget));
 ui.next.onclick();assert.equal(level,2,'Repeated Next advances twice');

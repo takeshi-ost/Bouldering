@@ -16,7 +16,7 @@ function findHazardMove(hold,path=route) {
             for (const dx of [-48,-24,0,24,48]) for (const dy of [-48,-24,0,24,48]) {
                 if (dx===0 && dy===0) continue;
                 const to={x:from.x+dx,y:from.y+dy};
-                if (to.x<25 || to.x>W-25 || to.y<80 || to.y>HEIGHT-40) continue;
+                if (to.x<STAGE_SAFE_WIDTH+TORSO.width/2 || to.x>W-STAGE_SAFE_WIDTH-TORSO.width/2 || to.y<80 || to.y>HEIGHT-40) continue;
                 const anchor=selectAnchor(dx,dy);
                 if (supportMotionFraction(from,to,anchor)<1-1e-9) continue;
                 const attached=attachMoving(to,anchor);

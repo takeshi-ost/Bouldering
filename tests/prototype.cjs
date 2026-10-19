@@ -23,6 +23,8 @@ assert.equal(courseMode,'prototype'); assert.equal(state,'playing');
 const report=[];
 for (let n=1;n<=20;n++) {
     reset(n);
+    assert(holds.every(h=>h.x-(h.wide?30:15)>=STAGE_SAFE_WIDTH && h.x+(h.wide?30:15)<=W-STAGE_SAFE_WIDTH),'Prototype hold overlaps safe area');
+    assert(route.every(p=>p.x>=STAGE_SAFE_WIDTH+TORSO.width/2 && p.x<=W-STAGE_SAFE_WIDTH-TORSO.width/2),'Solved body path overlaps safe area');
     assert(grips[0]===grips[1] && grips[0].wide,'Hands must share starting bar');
     assert(grips[2]!==grips[3] && grips[2].y===grips[3].y,'Feet must have separate bottom holds');
     assert(grips[2].y===HEIGHT-HOLD_CONFIG.bottomMargin,'Feet not on bottom row');
@@ -68,7 +70,7 @@ for (let n=1;n<=20;n++) {
     report.push({level:n,holds:holds.length,wide:holds.filter(h=>h.wide).length,moves:route.length-1});
 }
 assert(report.some(p=>p.wide>0),'Wide holds never survive pruning');
-state='won';ui.next.onclick();assert.equal(state,'map');advanceLevelMap(0);advanceLevelMap(650);assert.equal(mapSelected,21);assert(selectStage(21));assert.equal(level,21);assert.equal(courseMode,'prototype');
+state='won';ui.next.onclick();assert.equal(state,'map');advanceLevelMap(0);advanceLevelMap(650);assert.equal(mapSelected,21);closeStageStart();assert(selectStage(21));assert.equal(level,21);assert.equal(courseMode,'prototype');
 showTitleScreen();assert.equal(state,'choosing');assert.equal(drag,null);
 startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert.equal(courseMode,'existing');assert.equal(level,1);
 const original=JSON.stringify({holds,route});

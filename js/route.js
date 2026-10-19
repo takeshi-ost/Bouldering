@@ -38,7 +38,7 @@ function solveRoute(guide, maxMoves = 40) {
                     for (const dy of (needsTraverse ? [-90,-45,0,20,40] : [-90,-45,0]))
                         candidates.push({ x: node.p.x + dx, y: node.p.y + dy });
                 for (const p of candidates) {
-                    if (p.x < 25 || p.x > W - 25 || p.y < 80 || p.y > HEIGHT - 40 || distance(p, node.p) < 5) continue;
+                    if (p.x < STAGE_SAFE_WIDTH + TORSO.width/2 || p.x > W - STAGE_SAFE_WIDTH - TORSO.width/2 || p.y < 80 || p.y > HEIGHT - 40 || distance(p, node.p) < 5) continue;
                     const anchor = selectAnchor(p.x - node.p.x, p.y - node.p.y);
                     if (!supportsReachable(p,anchor) || supportMotionFraction(node.p,p,anchor)<1-1e-9) continue;
                     const stance = attachMoving(p, anchor);

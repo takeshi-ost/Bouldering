@@ -112,7 +112,7 @@ function createStageGenerator() {
         hand.x = startBody.x; hand.y = startBody.y - 68; hand.wide = true;
         initialGrips = [hand, hand, holds[0], holds[1]];
         for (const i of [2,3]) {
-            initialGrips[i].x = clamp(startBody.x + (i===2 ? -1 : 1) * STAGE_CONFIG.startFootSpan / 2,24,W-24);
+            initialGrips[i].x = clamp(startBody.x + (i===2 ? -1 : 1) * STAGE_CONFIG.startFootSpan / 2,HOLD_CONFIG.sideMargin,W-HOLD_CONFIG.sideMargin);
             initialGrips[i].y = HEIGHT - HOLD_CONFIG.bottomMargin;
         }
         holds = holds.filter(h=>h !== removedHand &&
