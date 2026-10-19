@@ -16,7 +16,8 @@ new Function('assert',env+source+`
 startCourse('existing');const initialLives=lives.count,initialAttempt=lifeAttemptId,initialHeight=HEIGHT;
 assert.equal(openStageStart(2),false);assert.equal(openStageStart(1.5),false);
 assert(openStageStart(1));assert(ui.stageStartDialog.open);assert.equal(state,'map');
-assert.equal(ui.stageStartTitle.textContent,'STAGE 1');assert.equal(ui.stageStartDifficulty.textContent,'EASY');assert.equal(ui.stageStartLength.textContent,'短い');
+assert.equal(ui.stageStartTitle.textContent,'STAGE 0001');assert.equal(ui.stageStartDifficulty.textContent,'EASY');assert.equal(ui.stageStartLength.textContent,'短い');
+assert.equal((ui.stageStartLives.innerHTML.match(/class="life-player"/g)||[]).length,initialLives);
 assert.equal(lives.count,initialLives);assert.equal(lifeAttemptId,initialAttempt);assert.equal(HEIGHT,initialHeight);
 assert(!openStageStart(1));assert(!selectStage(1));ui.mapSettingsButton.onclick();assert(!settingsOpen);
 ui.stageItem1.onclick();ui.stageItem2.onclick();ui.stageItem3.onclick();assert.deepEqual(stageStartContext.items,[true,true,true]);
@@ -36,7 +37,9 @@ timers.at(-1).fn();assert(ui.stageStartDialog.open);ui.stageItem1.onclick();ui.s
 assert.equal(state,'playing');assert.equal(level,1);assert(!stageStartContext && !ui.stageStartDialog.open && !pulsing);assert(lives.inProgress);assert.equal(stamina,routeStamina(route));
 const attempt=lifeAttemptId;ui.stageStartButton.onclick();assert.equal(lifeAttemptId,attempt,'Double Start must not restart');
 showLevelMap();lives.count=0;lives.recoveryAt=Date.now();
-assert(openStageStart(1));assert.equal(state,'map');assert(!lifePrompt);ui.stageStartButton.onclick();assert.equal(state,'life-prompt');assert(!ui.stageStartDialog.open);ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
+assert(openStageStart(1));assert.match(ui.stageStartLives.innerHTML,/30:00/);
+lives.recoveryAt=Date.now()-LIFE_RECOVERY_MS;refreshLives();assert.equal(lives.count,1);assert.match(ui.stageStartLives.innerHTML,/life-player/);
+lives.count=0;lives.recoveryAt=Date.now();refreshLives();assert.equal(state,'map');assert(!lifePrompt);ui.stageStartButton.onclick();assert.equal(state,'life-prompt');assert(!ui.stageStartDialog.open);ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
 assert(!openStageStart(99,true));setDebugMode(true);assert(openStageStart(1,true));ui.stageStartButton.onclick();assert.equal(state,'playing');assert(debugAttempt);assert.equal(lives.count,0);
 showLevelMap();assert(openStageStart(1,false,button));const stale=timers.at(-1).fn;showTitleScreen();stale();assert(!stageStartContext && !ui.stageStartDialog.open);assert.equal(state,'choosing');
 console.log('PASS stage start: correct stage/difficulty/length, independent dummy items, reset on reopen, close/backdrop/Escape no life cost, visible tap pulse, Start-only launch and life gate, double-start guard, debug launch and canceled delayed opening');

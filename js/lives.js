@@ -71,6 +71,10 @@ function refreshLives() {
         ? `<span class="life-players" aria-hidden="true" style="--head-color:${playerHeadColor};--body-stripes:${bodyStripeGradient()}">${Array.from({length:lives.count},()=>'<span class="life-player"><span class="map-marker"><i></i><b></b></span></span>').join('')}</span>`
         : `LIFE ${lives.count}/${LIFE_MAX}`+(seconds===null?'':`<small>回復まで ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}</small>`);
     if(ui.lifeStatus.innerHTML!==text)ui.lifeStatus.innerHTML=text;
+    if(stageStartContext) {
+        if(ui.stageStartLives.innerHTML!==text)ui.stageStartLives.innerHTML=text;
+        ui.stageStartLives.setAttribute('aria-label',lives.count===0 ? `ライフ0、回復まで ${recoveryTime}` : `ライフ ${lives.count} / ${LIFE_MAX}`);
+    }
     if(lifePrompt) {
         ui.lifeWatchAd.textContent=lives.count>0?'ステージを開始':'広告を見る';
         ui.lifeQuestion.textContent=lives.count>0?'ライフが回復しました。ステージを開始しますか？':'ライフがありません。広告を見てライフを増やしますか？';
