@@ -1,0 +1,79 @@
+"use strict";
+// Small synthesized effects: no downloads, music, or timing dependencies in gameplay.
+const SOUND_KEY='ascent.sound-enabled.v1';
+let soundEnabled=true;
+try {soundEnabled=globalThis.localStorage?.getItem(SOUND_KEY)!=='false';} catch(_) {}
+let soundContext=null,soundMaster=null;
+const soundVoices=new Set(),soundLastPlayed=new Map();
+const SOUND_NOTES={
+    tap:[[720,480,0,.045,'sine',.45]],
+    move:[[210,115,0,.085,'sine',.8],[760,370,0,.035,'triangle',.12]],
+    blocked:[[150,90,0,.09,'sine',.45]],
+    pickup:[[660,660,0,.11,'sine',.5],[990,990,.065,.16,'sine',.45]],
+    hazard:[[250,140,0,.14,'triangle',.5],[185,105,.035,.12,'sine',.4]],
+    undo:[[700,420,0,.10,'sine',.45],[420,280,.07,.12,'sine',.4]],
+    start:[[392,392,0,.09,'triangle',.35],[523,523,.09,.16,'sine',.5]],
+    clear:[[523,523,0,.14,'triangle',.4],[659,659,.11,.14,'triangle',.4],[784,784,.22,.15,'triangle',.4],[1047,1047,.34,.3,'sine',.5]],
+    fail:[[330,220,0,.2,'triangle',.35],[220,110,.17,.32,'sine',.5]],
+    life:[[523,523,0,.12,'sine',.5],[784,784,.08,.22,'sine',.45]],
+    step:[[260,180,0,.06,'sine',.5],[340,230,.075,.06,'sine',.35]],
+    page:[[420,620,0,.07,'sine',.25]],
+    confirm:[[523,523,0,.08,'sine',.4],[784,784,.06,.15,'sine',.4]],
+};
+function stopSounds() {
+    for(const voice of soundVoices) {try {voice.stop();} catch(_) {}}
+    soundVoices.clear();soundLastPlayed.clear();
+}
+function unlockSound() {
+    if(!soundEnabled)return;
+    try {
+        if(!soundContext) {
+            const Audio=globalThis.AudioContext || globalThis.webkitAudioContext;
+            if(!Audio)return;
+            soundContext=new Audio();
+            soundMaster=soundContext.createGain();soundMaster.gain.value=.18;
+            soundMaster.connect(soundContext.destination);
+        }
+        if(soundContext.state==='suspended')soundContext.resume()?.catch(()=>{});
+    } catch(_) { /* Audio failure must never interrupt a game or a button action. */ }
+}
+function setSoundEnabled(enabled) {
+    soundEnabled=!!enabled;
+    try {globalThis.localStorage?.setItem(SOUND_KEY,String(soundEnabled));} catch(_) {}
+    if(soundEnabled){unlockSound();playSound('tap');}else stopSounds();
+}
+function playSound(name) {
+    if(!soundEnabled || !soundContext || soundContext.state!=='running' || document.hidden)return false;
+    const notes=SOUND_NOTES[name],now=soundContext.currentTime;
+    if(!notes || now-(soundLastPlayed.get(name)??-Infinity)<.04)return false;
+    soundLastPlayed.set(name,now);
+    try {
+        for(const [from,to,delay,duration,type,volume] of notes) {
+            if(soundVoices.size>=12) {const oldest=soundVoices.values().next().value;oldest.stop();soundVoices.delete(oldest);}
+            const oscillator=soundContext.createOscillator(),gain=soundContext.createGain(),start=now+delay;
+            oscillator.type=type;
+            oscillator.frequency.setValueAtTime(from,start);
+            oscillator.frequency.exponentialRampToValueAtTime(to,start+duration);
+            gain.gain.setValueAtTime(.0001,start);
+            gain.gain.exponentialRampToValueAtTime(volume,start+.006);
+            gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+            oscillator.connect(gain);gain.connect(soundMaster);
+            soundVoices.add(oscillator);
+            oscillator.onended=()=>{soundVoices.delete(oscillator);oscillator.disconnect();gain.disconnect();};
+            oscillator.start(start);oscillator.stop(start+duration+.01);
+        }
+        return true;
+    } catch(_) {return false;}
+}
+const soundControl=document.getElementById('soundEnabled');
+if(soundControl){soundControl.checked=soundEnabled;soundControl.onchange=()=>setSoundEnabled(soundControl.checked);}
+document.addEventListener?.('pointerdown',unlockSound,{capture:true,passive:true});
+document.addEventListener?.('keydown',unlockSound,{capture:true});
+document.addEventListener?.('click',e=>{
+    const button=e.target.closest?.('button');
+    if(!button || button.disabled || button.closest('#dummyAd') || ['dailyPrev','dailyNext','editorConfirm'].includes(button.id))return;
+    playSound('tap');
+},{capture:true});
+document.addEventListener?.('visibilitychange',()=>{if(document.hidden)stopSounds();});
+window.addEventListener('pagehide',stopSounds);
+window.addEventListener('blur',stopSounds);

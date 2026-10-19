@@ -223,6 +223,7 @@ function changeDailyMonth(delta) {
         (delta<0?dailyMonth<='1000-01':dailyMonth>=localToday().slice(0,7)))return false;
     finishDailyMonthScroll();
     const previous=ui.dailyGrid.cloneNode?.(true);
+    playSound('page');
     dailyMonth=shiftedDailyMonth(delta);
     const [year,month]=monthParts();
     const lastDay=new Date(Date.UTC(year,month,0)).getUTCDate();

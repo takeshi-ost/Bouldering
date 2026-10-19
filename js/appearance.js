@@ -178,6 +178,7 @@ function confirmCharacterEditor() {
     playerHeadColor=draftHeadColor;
     const appearanceSaved=saveAppearance({colors:playerColors,headColor:playerHeadColor});
     const saved=appearanceSaved && nameSaved;
+    playSound('confirm');
     updateMapAppearance();returnFromCharacterEditor();
     ui.appearanceStatus.textContent=saved?'名前と配色を保存しました。':'名前と配色を適用しました。この端末への保存はできませんでした。';
     ui.appearanceStatus.hidden=true;

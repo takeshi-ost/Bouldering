@@ -452,6 +452,7 @@ function collectHearts(from, to) {
     for (const heart of hearts) {
         if (!heart.collected && torsoTouchesHeart(from,to,heart)) {
             heart.collected = true;
+            playSound('pickup');
             stamina += HEART_CONFIG.recovery;
             heartPopups.push({x:heart.x,y:heart.y,start:performance.now()});
         }
@@ -743,6 +744,7 @@ function release(cancel = false) {
         invalid ||
         (sameContacts(grips, startGrips) && !newHazards.size)
     ) {
+        if(invalid && !cancel)playSound('blocked');
         body = { ...committed };
         grips = [...startGrips];
     } else {
@@ -761,6 +763,7 @@ function release(cancel = false) {
             for (const h of newHazards) heartPopups.push({x:h.x,y:h.y,start:now,
                 kind:'hazard',text:`-${HAZARD_CONFIG.penalty}`,color:'#9442be'});
         }
+        if(!bothHandsOnGoal() && stamina>0)playSound(newHazards.size?'hazard':'move');
         moveCount++;
 
         committed = { ...body };
@@ -783,6 +786,7 @@ function canUndoMove() {
 }
 function undoMove() {
     if (!canUndoMove()) return false;
+    playSound('undo');
     hazardShakeStart = null;
     anchorRings = [];
     heartPopups = heartPopups.filter(p => p.kind !== 'hazard');
@@ -806,6 +810,7 @@ function undoMove() {
 }
 
 function finish(won) {
+    if(state==='playing')playSound(won?'clear':'fail');
     settleLifeAttempt(won);
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
     state = won ? 'won' : 'lost';
@@ -849,6 +854,7 @@ function advanceCameraIntro(now) {
         Math.max(0,now-cameraIntro.start) * CAMERA_CONFIG.introSpeed / 1000);
     if (camera >= cameraIntro.to && now-cameraIntro.start >= CAMERA_CONFIG.introMinDuration) {
         cameraIntro = null;
+        playSound('start');
         runStartedAt=now;runElapsedMs=0;
         updateUI();
     }
