@@ -1,6 +1,6 @@
 "use strict";
 // Approved raster artwork; mirror the art only, keeping the live stage number upright.
-const MAP_ART_VERSION='white-plate-ellipse-v2';
+const MAP_ART_VERSION='wall-hold-count-v3';
 const MAP_BACKGROUND_VERSION='sage-extended-v2';
 const MAP_ICON_ASSETS={"active-100":{"width":512,"height":512,"renderWidth":66.873,"renderHeight":66.873,"left":-1.437,"top":-11.308},"active-125":{"width":512,"height":512,"renderWidth":66.602,"renderHeight":66.602,"left":-1.301,"top":-15.221},"active-150":{"width":512,"height":614,"renderWidth":68.267,"renderHeight":81.867,"left":-2.133,"top":-30.853},"cleared-100":{"width":512,"height":512,"renderWidth":66.602,"renderHeight":66.602,"left":-1.301,"top":-11.058},"cleared-125":{"width":512,"height":512,"renderWidth":66.467,"renderHeight":66.467,"left":-1.168,"top":-15.088},"cleared-150":{"width":512,"height":614,"renderWidth":67.983,"renderHeight":81.527,"left":-1.992,"top":-30.518},"unplayed-100":{"width":512,"height":512,"renderWidth":66.602,"renderHeight":66.602,"left":-1.301,"top":-11.188},"unplayed-125":{"width":512,"height":512,"renderWidth":66.467,"renderHeight":66.467,"left":-1.168,"top":-15.088},"unplayed-150":{"width":512,"height":614,"renderWidth":67.983,"renderHeight":81.527,"left":-1.992,"top":-30.65}};
 function mapStageVariant(n) {

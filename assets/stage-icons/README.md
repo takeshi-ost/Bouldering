@@ -8,6 +8,10 @@ transparent WebP artwork (quality 95, full-quality alpha).
   The map selects them by actual generated wall height: up to one screen,
   between one and two screens, and at least two screens, respectively.
   Preview geometry is shared with generation and requires no route solving.
+- The low (`100`), middle (`125`) and tall (`150`) walls show 3, 4 and 5 holds.
+  Only removed-hold regions were patched; all other visible pixels and alpha
+  of the six edited sprites are preserved exactly with lossless WebP exports.
+  Tall sprites are unchanged.
 - CSS horizontal mirroring supplies both facing directions, for six forms and
   eighteen form/state combinations. Facing follows the outgoing trail; artwork
   is never rotated.
@@ -23,7 +27,7 @@ transparent WebP artwork (quality 95, full-quality alpha).
   variants; tall forms can have a portrait canvas.
 
 Created with the built-in image generation tool from the approved template.
-Prompt set: preserve the wall perspective, five holds, horizontal elliptical mat,
+Prompt set: preserve the wall perspective, remaining holds, horizontal elliptical mat,
 white larger base plate, uniform exterior-only charcoal outline and clean
 mat/plate junction; vary only wall height and mat palette (gold / sage /
 gray-blue), with transparent backgrounds and no numbers. Each height's color
@@ -31,4 +35,4 @@ variants use its generated gold form as their reference. The approved template's
 surface shading is retained. `palette.json` records the earlier flat-color
 revision and is not applied to these exports.
 
-Asset URLs include `white-plate-ellipse-v2` to refresh cached artwork.
+Asset URLs include `wall-hold-count-v3` to refresh cached artwork.
