@@ -194,7 +194,6 @@ function advanceLevelMap(now) {
     }
 }
 let stageStartContext=null,stageStartTimer=null;
-const stageItemButtons=[ui.stageItem1,ui.stageItem2,ui.stageItem3];
 function canSelectStage(n,debug=false) {
     return state==='map' && !mapPreparing && !mapTransition && !stageStartContext &&
         Number.isSafeInteger(n) && n>=1 && n<Number.MAX_SAFE_INTEGER &&
@@ -215,13 +214,12 @@ function closeStageStart() {
 function openStageStart(n,debug=false,button=null,delay=0) {
     if(!canSelectStage(n,debug))return false;
     if(debug)ui.debugStage.blur?.();
-    const context={n,debug,mode:courseMode,items:[false,false,false],button};
+    const context={n,debug,mode:courseMode,button};
     stageStartContext=context;
     ui.stageStartTitle.textContent=`STAGE ${n}`;
     refreshLives();
     ui.stageStartDifficulty.textContent=difficultyLabel(difficultyForStage(n));
     ui.stageStartLength.textContent={short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(n).category];
-    stageItemButtons.forEach(item=>item.setAttribute('aria-pressed','false'));
     ui.stageStartButton.disabled=false;
     const show=()=>{
         stageStartTimer=null;
@@ -234,13 +232,6 @@ function openStageStart(n,debug=false,button=null,delay=0) {
     } else show();
     return true;
 }
-stageItemButtons.forEach((button,index)=>{
-    button.onclick=()=>{
-        if(!stageStartContext || !ui.stageStartDialog.open)return;
-        stageStartContext.items[index]=!stageStartContext.items[index];
-        button.setAttribute('aria-pressed',String(stageStartContext.items[index]));
-    };
-});
 ui.stageStartButton.onclick=()=>{
     const context=stageStartContext;
     if(!context || !ui.stageStartDialog.open || ui.stageStartButton.disabled)return;
