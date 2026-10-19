@@ -42,12 +42,11 @@ assert.equal((ui.dailyGrid.innerHTML.match(/is-selected/g)||[]).length,1);
 assert(!ui.dailyGrid.innerHTML.includes('daily-stars'));assert(!ui.stageStartDialog.open);
 ui.dailyStartButton.onclick();assert.equal(state,'playing');assert.equal(dailyRun.date,previewDate);assert.equal(dailyAttempts[previewDate],1);
 ui.dailyStartButton.onclick();assert.equal(dailyAttempts[previewDate],1);
-showDailyCalendar();ui.dailyPrev.onclick();assert.equal(dailySelectedDate,null);assert(ui.dailyStartButton.disabled);
-ui.dailyStartButton.onclick();assert.equal(state,'daily');ui.dailyNext.onclick();
+showDailyCalendar();ui.dailyPrev.onclick();assert.equal(dailySelectedDate,'2026-09-30');assert(!ui.dailyStartButton.disabled);ui.dailyNext.onclick();assert.equal(dailySelectedDate,'2026-10-17');
 // Right swipe goes back; left goes forward; vertical, canceled and multi-touch gestures do not navigate.
 function gesture(dx,dy=0) {ui.dailyPlate.events.pointerdown({pointerId:1,clientX:100,clientY:100,isPrimary:true,button:0});ui.dailyPlate.events.pointerup({pointerId:1,clientX:100+dx,clientY:100+dy});}
 assert(chooseDailyDate('2026-10-15'));assert(!chooseDailyDate('2026-10-18'));assert.equal(dailySelectedDate,'2026-10-15');
-gesture(80);assert.equal(dailyMonth,'2026-09');assert.equal(dailySelectedDate,null);
+gesture(80);assert.equal(dailyMonth,'2026-09');assert.equal(dailySelectedDate,'2026-09-30');
 let prevented=0,stopped=0;ui.dailyPlate.events.click({preventDefault(){prevented++;},stopPropagation(){stopped++;}});assert.equal(prevented,1);assert.equal(stopped,1);
 gesture(-80);assert.equal(dailyMonth,'2026-10');gesture(-80);assert.equal(dailyMonth,'2026-10');
 gesture(10,80);assert.equal(dailyMonth,'2026-10');gesture(80,100);assert.equal(dailyMonth,'2026-10');
@@ -56,7 +55,7 @@ ui.dailyPlate.events.pointerdown({pointerId:1,clientX:100,clientY:100});ui.daily
 assert(!selectDailyDate('2026-10-18'));assert(!selectDailyDate('2026-02-30'));assert.equal(state,'daily');
 nowIso='2026-10-18T00:00:00Z';refreshDailyCalendar();assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-19"'));assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-19"'));assert(!ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
 dailyMonth='2024-02';renderDailyCalendar();assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,29);
-ui.dailyPrev.onclick();assert.equal(dailyMonth,'2024-01');ui.dailyNext.onclick();assert.equal(dailyMonth,'2024-02');
+ui.dailyPrev.onclick();assert.equal(dailyMonth,'2024-01');assert.equal(dailySelectedDate,'2024-01-31');ui.dailyNext.onclick();assert.equal(dailyMonth,'2024-02');assert.equal(dailySelectedDate,'2024-02-29');
 nowIso='2026-12-31T23:59:59Z';dailyMonth='2026-12';renderDailyCalendar();nowIso='2027-01-01T00:00:00Z';refreshDailyCalendar();assert.equal(dailyMonth,'2027-01');assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,1);
 nowIso='2026-10-17T12:00:00Z';dailyMonth='2026-01';renderDailyCalendar();
 function finishAds(){if(state==='ad'){clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());}}

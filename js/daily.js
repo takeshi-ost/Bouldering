@@ -88,7 +88,15 @@ function shiftedDailyMonth(delta) {
     const [year,month]=monthParts();
     return new Date(Date.UTC(year,month-1+delta,1)).toISOString().slice(0,7);
 }
+let dailyMonthScroll=null;
+function finishDailyMonthScroll() {
+    const motion=dailyMonthScroll;dailyMonthScroll=null;
+    if(!motion)return;
+    motion.animations.forEach(animation=>animation.cancel());
+    motion.previous.remove();
+}
 function renderDailyCalendar() {
+    finishDailyMonthScroll();
     const today=localToday();dailyCalendarToday=today;
     if(dailySelectedDate && (dailySelectedDate.slice(0,7)!==dailyMonth || dailySelectedDate>today))dailySelectedDate=null;
     const [year,month]=monthParts();
@@ -207,12 +215,30 @@ function continueDailyResult(retry=false) {
 ui.openDaily.onclick=()=>showDailyCalendar({openFromMap:true});
 ui.dailyBack.onclick=()=>{
     if(state!=='daily' || settingsOpen)return;
+    finishDailyMonthScroll();
     courseMode=dailyReturnCourse;showLevelMap();
 };
 function changeDailyMonth(delta) {
     if(state!=='daily' || settingsOpen || (delta!==-1 && delta!==1) ||
         (delta<0?dailyMonth<='1000-01':dailyMonth>=localToday().slice(0,7)))return false;
-    dailyMonth=shiftedDailyMonth(delta);renderDailyCalendar();
+    finishDailyMonthScroll();
+    const previous=ui.dailyGrid.cloneNode?.(true);
+    dailyMonth=shiftedDailyMonth(delta);
+    const [year,month]=monthParts();
+    const lastDay=new Date(Date.UTC(year,month,0)).getUTCDate();
+    dailySelectedDate=dailyMonth<localToday().slice(0,7)?`${dailyMonth}-${String(lastDay).padStart(2,'0')}`:localToday();
+    renderDailyCalendar();
+    if(previous && ui.dailyGrid.animate && !globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+        previous.removeAttribute('id');previous.removeAttribute('aria-label');
+        previous.setAttribute('aria-hidden','true');previous.inert=true;
+        previous.classList.add('daily-month-outgoing');
+        ui.dailyMonthViewport.append(previous);
+        const options={duration:280,easing:'cubic-bezier(.22,.7,.25,1)'};
+        const outgoing=previous.animate([{transform:'translateX(0)'},{transform:`translateX(${-delta*100}%)`}],options);
+        const incoming=ui.dailyGrid.animate([{transform:`translateX(${delta*100}%)`},{transform:'translateX(0)'}],options);
+        const motion={previous,animations:[outgoing,incoming]};dailyMonthScroll=motion;
+        incoming.onfinish=()=>{if(dailyMonthScroll===motion)finishDailyMonthScroll();};
+    }
     return true;
 }
 ui.dailyPrev.onclick=()=>changeDailyMonth(-1);
