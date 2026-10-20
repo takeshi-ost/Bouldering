@@ -25,7 +25,7 @@ assert.equal(state,'choosing');assert(!titleReady && ui.titleTap.hidden);
 assert(ui.levelMap.inert && !ui.levelMap.hidden);assert.equal((ui.mapNodes.innerHTML.match(/data-level=/g)||[]).length,20);
 assert.equal(ui.releaseVersion.textContent,'VERSION '+RELEASE_VERSION);assert.equal(ui.playerUuid.textContent,'UUID '+playerUuid);
 assert.equal(readPlayerUuid(),playerUuid);assert.equal(data[PLAYER_UUID_KEY],playerUuid);
-ui.titleScreen.onclick();assert.equal(state,'choosing');assert.equal(pendingImages.length,12);
+ui.titleScreen.onclick();assert.equal(state,'choosing');assert.equal(pendingImages.length,13);
 const markup=ui.mapNodes.innerHTML;pendingImages.splice(0).forEach(resolve=>resolve());
 for(let i=0;i<5;i++)await Promise.resolve();
 assert(!titleReady && ui.titleTap.hidden);assert.equal(frames.length,1);

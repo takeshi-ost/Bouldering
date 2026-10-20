@@ -153,6 +153,7 @@ function renderDailyStart() {
     ui.dailyStartDifficulty.textContent=profile?difficultyLabel(profile.difficulty):'—';
     ui.dailyStartLength.textContent=profile?{short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
     const record=profile && dailyRecords[profile.date];
+    ui.dailyStartGift.hidden=!(profile?.date===localToday() && (!record || record.rewardStatus==='pending'));
     ui.dailyStartButton.hidden=!!record;
     ui.dailyStartButton.disabled=!profile || !!record;
     ui.dailyClearRecord.hidden=!record;

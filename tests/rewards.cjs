@@ -70,7 +70,7 @@ dailyRecords['2026-10-18']={moves:1,timeMs:100,stars:3,rewardStatus:'pending'};s
 const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-10-01':{rewardStatus:'pending'},'2026-10-02':{moves:1,timeMs:0,stars:3,rewardStatus:'pending'}});assert.deepEqual(Object.keys(readDailyRecords()),['2026-10-02']);data[DAILY_RECORDS_KEY]=saved;
 // Map milestones: fixed stage numbers, one grant, shared goal glints, existing ad interval.
 showLevelMap();
-assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,5);
+assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,5);assert.equal((ui.mapNodes.innerHTML.match(/map-reward-gift/g)||[]).length,5);
 assert(hasMapReward(4));assert(hasMapReward(8));assert(hasMapReward(12));assert(hasMapReward(20));assert(!hasMapReward(9));assert(!hasMapReward(10));
 stageProgress.existing.cleared=3;showLevelMap({target:4});assert(selectStage(4));
 clearsSinceAd=4;moveCount=1;finish(true);
@@ -79,7 +79,7 @@ ui.next.onclick();assert.equal(state,'ad');ad();assert.equal(state,'reward');ass
 const mapBefore=heartItems;land(1);assert.equal(heartItems,mapBefore+5);assert.equal(mapRewards[4].status,'claimed');
 assert(!hasMapReward(4));assert(hasMapReward(20));assert.deepEqual(readMapRewards(),mapRewards);
 resultReturn();assert.equal(state,'map');assert.deepEqual([mapTransition.from,mapTransition.to],[4,5]);
-assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,4);
+assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,4);assert.equal((ui.mapNodes.innerHTML.match(/map-reward-gift/g)||[]).length,4);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();
 assert(selectStage(4));moveCount=1;finish(true);clearsSinceAd=0;ui.next.onclick();assert.equal(state,'map');assert(!rewardSequence);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();

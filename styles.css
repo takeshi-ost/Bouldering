@@ -260,7 +260,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .daily-clear-icon { font-size:24px; font-weight:800; pointer-events:none; }
 .daily-day.is-selected,.daily-day.is-selected:hover,.daily-day.is-selected:active { background:#478bc6; color:#fff; }
 .daily-day:focus-visible { outline:2px solid #478bc6; outline-offset:-2px; }
-.daily-stage-start { flex:none; margin-top:0; padding:18px; border-radius:18px; background:#f8f6ee; color:#25372f; }
+.daily-stage-start { position:relative; flex:none; margin-top:0; padding:18px; border-radius:18px; background:#f8f6ee; color:#25372f; }
 .daily-stage-start h2 { margin:0; font-size:20px; line-height:28px; letter-spacing:0; white-space:nowrap; }
 #dailyStartButton { display:block; width:100%; height:44px; min-height:44px; margin:0; font-size:15px; }
 @media (max-width:350px) { .daily-stage-start { padding:14px; } .daily-stage-start h2 { font-size:18px; } }
@@ -480,3 +480,9 @@ button.modal-close:focus-visible { outline:none; }
 .reward-wheel .reward-item-quantity { font-size:20px; fill:#fff; stroke:#797c78; stroke-width:3px; paint-order:stroke fill; }
 
 .stage-heart-plus { flex:none; margin:0 8px; font-size:30px; line-height:1; }
+
+/* A shared static badge indicates an available, unclaimed reward. */
+.reward-gift-icon { display:block; object-fit:contain; pointer-events:none; user-select:none; }
+.reward-gift-icon[hidden] { display:none; }
+.map-reward-gift { position:absolute; z-index:3; right:-7px; top:-16px; width:30px; height:30px; }
+.daily-stage-gift { position:absolute; z-index:1; right:12px; top:-16px; width:32px; height:32px; }

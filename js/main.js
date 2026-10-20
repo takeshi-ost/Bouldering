@@ -32,7 +32,7 @@ async function beginTitlePreparation() {
     ui.playerUuid.textContent=`UUID ${playerUuid}`;
     ui.wall.classList.toggle('title-open',true);
     prepareTitleMapLayout();refreshLives();
-    const sources=[`assets/stage-map.webp?v=${MAP_BACKGROUND_VERSION}`,'assets/map-sky.webp','assets/daily-airship.webp',
+    const sources=[`assets/stage-map.webp?v=${MAP_BACKGROUND_VERSION}`,'assets/map-sky.webp','assets/daily-airship.webp','assets/reward-gift.png',
         ...Object.keys(MAP_ICON_ASSETS).map(key=>`assets/stage-icons/${key}.webp?v=${MAP_ART_VERSION}`)];
     const tasks=typeof Image==='undefined'?[]:sources.map(src=>{
         const image=new Image();
