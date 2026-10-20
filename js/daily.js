@@ -131,10 +131,10 @@ function renderDailyCalendar() {
         const record=dailyRecords[key];
         cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?'<span class="daily-clear-icon" aria-hidden="true">✓</span>':day}</button></div>`);
     }
-    while(cells.length%7)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
+    while(cells.length<42)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');
-    ui.dailyPlate.style.height=(cells.length/7*43+86)+'px';
-    ui.dailyGrid.style.gridTemplateRows=`repeat(${cells.length/7},minmax(0,1fr))`;
+    ui.dailyPlate.style.height=(6*43+86)+'px';
+    ui.dailyGrid.style.gridTemplateRows='repeat(6,minmax(0,1fr))';
     ui.dailyMonthTitle.textContent=`${year}年 ${month}月`;
     ui.dailyPrev.disabled=dailyMonth<='1000-01';
     ui.dailyNext.disabled=dailyMonth>=today.slice(0,7);

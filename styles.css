@@ -262,12 +262,12 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .daily-day:focus-visible { outline:2px solid #478bc6; outline-offset:-2px; }
 .daily-stage-start { flex:none; margin-top:0; padding:18px; border-radius:18px; background:#f8f6ee; color:#25372f; }
 .daily-stage-start h2 { margin:0; font-size:20px; line-height:28px; letter-spacing:0; white-space:nowrap; }
-#dailyStartButton { display:block; width:100%; min-height:44px; font-size:15px; }
+#dailyStartButton { display:block; width:100%; height:44px; min-height:44px; margin:0; font-size:15px; }
 @media (max-width:350px) { .daily-stage-start { padding:14px; } .daily-stage-start h2 { font-size:18px; } }
 .daily-calendar .map-error { flex:none; margin:0; }
 #dailyBack:hover { background:transparent; filter:brightness(1.04); }
 #dailyBack:active { transform:scale(.97); }
-@media (max-height:650px) { .daily-content { gap:8px; padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px); } .daily-stage-start { padding:12px 14px; } .daily-stage-start .stage-start-heading { margin-bottom:8px; } .daily-clear-stars { font-size:22px; } .daily-clear-record p { margin-top:6px; } }
+@media (max-height:650px) { .daily-content { gap:8px; padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px); } .daily-stage-start { padding:12px 14px; } .daily-stage-start .stage-start-heading { margin-bottom:8px; } }
 
 #overlay .result-difficulty {margin:8px 0;font-size:16px;font-weight:700;letter-spacing:.12em;color:#526b59;}
 
@@ -313,9 +313,9 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .life-status.title-lives { top:calc(env(safe-area-inset-top,0px) + 16px); }
 
 #dailyStartButton[hidden],.daily-clear-record[hidden] { display:none; }
-.daily-clear-record { text-align:center; }
-.daily-clear-stars { font-size:28px; line-height:1.3; }
-.daily-clear-record p { margin:10px 0 0; font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; }
+.daily-clear-record { display:flex; align-items:center; justify-content:center; gap:8px; height:44px; text-align:center; white-space:nowrap; }
+.daily-clear-stars { flex:none; font-size:18px; line-height:24px; }
+.daily-clear-record p { margin:0; font-size:14px; line-height:24px; font-weight:700; font-variant-numeric:tabular-nums; }
 
 /* Shared modal dismissal: controls stay inside; read-only cards accept any tap. */
 .settings-dialog, #overlay .card, .life-dialog .card { position:relative; }
@@ -395,9 +395,7 @@ button.modal-close:focus-visible { outline:none; }
 .stage-start-heading { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); align-items:center; gap:0; margin-bottom:16px; }
 .stage-start-title { min-width:0; container-type:inline-size; padding-right:10px; }
 .stage-start-label { display:block; font-size:12px; line-height:18px; font-weight:800; letter-spacing:.08em; }
-.stage-start-dialog .stage-start-title h2,.daily-stage-start .stage-start-title h2 { min-width:0; margin:0; font-size:clamp(28px,38cqw,84px); line-height:1.15; font-weight:900; font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; text-align:left; }
-.stage-start-dialog .stage-start-title h2 { font-size:14.8cqw; }
-.daily-stage-start .stage-start-title h2 { font-size:clamp(28px,30cqw,84px); }
+.stage-start-dialog .stage-start-title h2,.daily-stage-start .stage-start-title h2 { min-width:0; margin:0; font-size:calc((min(360px, calc(100vw - 32px)) - 36px) * .0986667 - 1.48px); line-height:1.15; font-weight:900; font-variant-numeric:tabular-nums; letter-spacing:0; white-space:nowrap; text-align:left; }
 .stage-start-info { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:6px; margin:0; padding-left:8px; }
 .stage-start-info dt { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .stage-start-info dd { margin:0; font-size:14px; line-height:20px; font-weight:800; white-space:nowrap; font-variant-numeric:tabular-nums; }

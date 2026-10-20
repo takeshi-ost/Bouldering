@@ -26,6 +26,7 @@ for(const count of Object.values(counts))assert(count>65 && count<120,'Unbalance
 startCourse('existing');ui.openDaily.onclick();assert.equal(state,'daily');assert(ui.levelMap.hidden && !ui.dailyCalendar.hidden && ui.hud.hidden);assert(!canScrollStage());
 assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-17"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(ui.dailyNext.disabled);assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
 // Calendar selection only previews; Start launches the selected seed once.
+assert.equal((ui.dailyGrid.innerHTML.match(/class="daily-cell/g)||[]).length,42);assert.equal(ui.dailyGrid.style.gridTemplateRows,'repeat(6,minmax(0,1fr))');
 assert.equal(dailySelectedDate,'2026-10-17');assert.equal(ui.dailyStartTitle.textContent,'10/17');
 ui.dailySettingsButton.onclick();assert(settingsOpen && ui.settingsDialog.open);assert(!ui.mapSettingsControls.hidden && ui.restart.hidden && ui.mapButton.hidden);
 assert(!chooseDailyDate('2026-10-15'));assert(!changeDailyMonth(-1));ui.dailyBack.onclick();assert.equal(state,'daily');
@@ -68,7 +69,7 @@ ui.dailyPlate.events.pointerdown({pointerId:1,clientX:100,clientY:100});ui.daily
 ui.dailyPlate.events.pointerdown({pointerId:1,clientX:100,clientY:100});ui.dailyPlate.events.pointerdown({pointerId:2,clientX:100,clientY:100,isPrimary:false});ui.dailyPlate.events.pointerup({pointerId:1,clientX:200,clientY:100});assert.equal(dailyMonth,'2026-10');
 assert(!selectDailyDate('2026-10-18'));assert(!selectDailyDate('2026-02-30'));assert.equal(state,'daily');
 nowIso='2026-10-18T00:00:00Z';refreshDailyCalendar();assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-19"'));assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-19"'));assert(!ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
-dailyMonth='2024-02';renderDailyCalendar();assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,29);
+dailyMonth='2024-02';renderDailyCalendar();assert.equal((ui.dailyGrid.innerHTML.match(/class="daily-cell/g)||[]).length,42);assert.equal(ui.dailyPlate.style.height,'344px');assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,29);
 ui.dailyPrev.onclick();assert.equal(dailyMonth,'2024-01');assert.equal(dailySelectedDate,'2024-01-31');ui.dailyNext.onclick();assert.equal(dailyMonth,'2024-02');assert.equal(dailySelectedDate,'2024-02-29');
 nowIso='2026-12-31T23:59:59Z';dailyMonth='2026-12';renderDailyCalendar();nowIso='2027-01-01T00:00:00Z';refreshDailyCalendar();assert.equal(dailyMonth,'2027-01');assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,1);
 nowIso='2026-10-17T12:00:00Z';dailyMonth='2026-01';renderDailyCalendar();
