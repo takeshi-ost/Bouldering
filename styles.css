@@ -484,5 +484,7 @@ button.modal-close:focus-visible { outline:none; }
 /* A shared static badge indicates an available, unclaimed reward. */
 .reward-gift-icon { display:block; object-fit:contain; pointer-events:none; user-select:none; }
 .reward-gift-icon[hidden] { display:none; }
-.map-reward-gift { position:absolute; z-index:3; right:-7px; top:-16px; width:30px; height:30px; }
-.daily-stage-gift { position:absolute; z-index:1; right:12px; top:-16px; width:32px; height:32px; }
+.map-reward-gift { position:absolute; z-index:3; right:-7px; top:-7px; width:30px; height:30px; }
+.daily-stage-meta { display:flex; align-items:center; gap:4px; min-width:0; }
+.daily-stage-meta .stage-start-info { flex:1; min-width:0; }
+.daily-stage-gift { flex:none; width:32px; height:32px; }
