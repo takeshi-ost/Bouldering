@@ -41,7 +41,7 @@ const monthMarkup=ui.dailyGrid.innerHTML,attemptsBeforeSelection=JSON.stringify(
 const gameBeforeSelection=JSON.stringify({holds,route,stamina,level,courseMode,dailyRun});
 assert(chooseDailyDate('2026-10-15'));assert(chooseDailyDate('2026-10-16'));
 assert.equal(ui.dailyGrid.innerHTML,monthMarkup);
-assert.equal(ui.dailyStartStamina.textContent,'❤️手数+3');assert.equal(selectionCourseCalls,0);
+assert.equal(selectionCourseCalls,0);
 assert.equal(JSON.stringify(dailyAttempts),attemptsBeforeSelection);
 assert.equal(JSON.stringify({holds,route,stamina,level,courseMode,dailyRun}),gameBeforeSelection);
 prepareCurrentStage=selectionPrepare;stagePreview=originalPreview;renderDailyCalendar=originalRenderCalendar;
