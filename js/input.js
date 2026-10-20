@@ -145,13 +145,7 @@ function restartInput(n,staminaBonus=0) {
 }
 ui.next.onclick = () => {
     if(dailyRun && ['won','lost'].includes(state))continueDailyResult();
-    else if(state==='won') {
-        const advanceFrom=level;
-        const resume=()=>showLevelMap({advanceFrom});
-        if(courseMode==='existing' && !debugAttempt && clearsSinceAd>=5)
-            startDummyAd({onComplete:resetAdClearCount,onReturn:resume});
-        else resume();
-    }
+    else if(state==='won')continueNormalClear();
 };
 ui.retry.onclick=()=>{
     if(dailyRun)continueDailyResult(true);
@@ -165,7 +159,9 @@ ui.mapButton.onclick = () => {
     if(!['playing','won','lost'].includes(state))return;
     if(dailyRun) {
         if(state==='won')continueDailyResult();else returnDailyWithoutClear();
-    } else showLevelMap({target:level});
+    } else if(state==='won' && !debugAttempt && courseMode==='existing' && mapRewards[level]?.status==='pending')
+        continueNormalClear({advance:false});
+    else showLevelMap({target:level});
 };
 
 function showTitleScreen() {

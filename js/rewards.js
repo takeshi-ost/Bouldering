@@ -1,5 +1,56 @@
 "use strict";
 // A reusable interstitial: callers supply grant/return callbacks, not a destination screen.
+// Map milestones are earned once per stage, independently of daily rewards.
+const MAP_REWARDS_KEY='ascent.map-rewards.v1';
+function readMapRewards() {
+    const records={};
+    try {
+        const saved=JSON.parse(globalThis.localStorage?.getItem(MAP_REWARDS_KEY)||'null');
+        if(saved && typeof saved==='object' && !Array.isArray(saved))
+            for(const [key,value] of Object.entries(saved)) {
+                const n=Number(key);
+                if(!/^[1-9]\d*$/.test(key) || !Number.isSafeInteger(n) || n>=Number.MAX_SAFE_INTEGER || n%10!==0)continue;
+                if(value?.status==='pending' || value?.status==='claimed')
+                    records[key]={status:value.status,adRequired:value.adRequired===true,adCompleted:value.adCompleted===true};
+            }
+    } catch(_) { /* Keep milestone rewards usable without storage. */ }
+    return records;
+}
+let mapRewards=readMapRewards();
+function saveMapRewards() {
+    try {globalThis.localStorage?.setItem(MAP_REWARDS_KEY,JSON.stringify(mapRewards));}catch(_) {}
+}
+function hasMapReward(n) {
+    return courseMode==='existing' && n%10===0 && mapRewards[n]?.status!=='claimed';
+}
+function recordMapRewardClear() {
+    if(dailyRun || debugAttempt || !hasMapReward(level) || mapRewards[level])return;
+    mapRewards[level]={status:'pending',adRequired:clearsSinceAd>=5,adCompleted:false};
+    saveMapRewards();
+}
+function startMapClearReward(n,onReturn=()=>showLevelMap({target:n+1})) {
+    const record=mapRewards[n];
+    if(courseMode!=='existing' || record?.status!=='pending' || rewardSequence || state==='ad')return false;
+    const launch=()=>startRewardSequence({
+        onGrant:()=>{record.status='claimed';saveMapRewards();},onReturn
+    });
+    if(!record.adRequired || record.adCompleted)return launch();
+    return startDummyAd({onComplete:()=>{
+        resetAdClearCount();record.adCompleted=true;saveMapRewards();
+    },onReturn:launch});
+}
+function resumePendingMapReward() {
+    if(courseMode!=='existing' || mapTransition || stageStartContext)return false;
+    const pending=Object.keys(mapRewards).map(Number).sort((a,b)=>a-b).find(n=>mapRewards[n].status==='pending');
+    return pending===undefined?false:startMapClearReward(pending);
+}
+function continueNormalClear({advance=true}={}) {
+    const n=level,resume=()=>showLevelMap(advance?{advanceFrom:n}:{target:n});
+    if(!debugAttempt && startMapClearReward(n,resume))return;
+    if(courseMode==='existing' && !debugAttempt && clearsSinceAd>=5)
+        startDummyAd({onComplete:resetAdClearCount,onReturn:resume});
+    else resume();
+}
 const ROULETTE_OPTIONS=Object.freeze([
     Object.freeze({kind:'hearts',amount:1,label:'❤️+1',weight:2}),
     Object.freeze({kind:'hearts',amount:5,label:'❤️+5',weight:2}),

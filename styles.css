@@ -441,3 +441,11 @@ button.modal-close:focus-visible { outline:none; }
 #rewardStop { min-height:48px; min-width:200px; margin:0; }
 .reward-result { min-height:48px; font-size:30px; font-weight:900; }
 .reward-result .reward-player-icon { display:inline-block; width:30px; height:40px; margin-right:8px; vertical-align:middle; object-fit:contain; }
+
+/* Reuse goal glints around unclaimed map milestones without Canvas updates. */
+.map-reward-effects { left:50%; top:50%; z-index:2; }
+.map-reward-effects i:nth-child(1) { left:-43px; top:-30px; }
+.map-reward-effects i:nth-child(2) { left:30px; top:-12px; }
+.map-reward-effects i:nth-child(3) { left:-36px; top:24px; }
+.map-reward-effects i:nth-child(4) { left:18px; top:-44px; }
+.wall.presentation-paused .map-reward-effects i { animation-play-state:paused; }

@@ -839,7 +839,7 @@ function finish(won) {
     settleLifeAttempt(won);
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
     state = won ? 'won' : 'lost';
-    if(won) { recordStageClear(); recordAdClear(); startGoalHang(); }
+    if(won) { recordStageClear(); recordAdClear(); recordMapRewardClear(); startGoalHang(); }
     else startFall();
     ui.resultDifficulty.hidden=!won;
     ui.resultDifficulty.textContent=won ? difficultyLabel(difficulty) : '';
