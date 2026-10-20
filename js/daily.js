@@ -146,7 +146,10 @@ function renderDailyStart() {
     ui.dailyStartLabel.textContent=profile?`DAILY ${profile.date.slice(0,4)}`:'日付を選択';
     ui.dailyStartTitle.textContent=profile?profile.date.slice(5).replace('-','/'):'—';
     ui.dailyStartTitle.setAttribute('aria-label',profile?profile.date.replaceAll('-','/'):'日付を選択');
-    ui.dailyStartStamina.textContent=profile?previewStaminaText(profile.referenceStage,'existing',profile):'❤️00';
+    // Exact stamina depends on solving the course; defer that work until Start.
+    ui.dailyStartStamina.textContent=profile?'❤️手数+3':'—';
+    ui.dailyStartStamina.setAttribute('aria-label',profile?'開始スタミナは想定手数＋3。個数はステージ開始時に確定します。':'日付を選択');
+    ui.dailyStartStamina.setAttribute('title',profile?'想定手数＋3（ステージ開始時に確定）':'');
     ui.dailyStartDifficulty.textContent=profile?difficultyLabel(profile.difficulty):'—';
     ui.dailyStartLength.textContent=profile?{short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
     const record=profile && dailyRecords[profile.date];
@@ -159,10 +162,18 @@ function renderDailyStart() {
 }
 function chooseDailyDate(key) {
     if(state!=='daily' || settingsOpen || !validDailyDate(key) || key.slice(0,7)!==dailyMonth || key>localToday())return false;
+    if(key===dailySelectedDate)return true;
+    finishDailyMonthScroll();
+    const previous=ui.dailyGrid.querySelector?.(`[data-date="${dailySelectedDate}"]`);
+    previous?.classList.toggle('is-selected',false);
+    previous?.setAttribute('aria-pressed','false');
     dailySelectedDate=key;
     ui.dailyError.hidden=true;
-    renderDailyCalendar();
-    ui.dailyGrid.querySelector?.(`[data-date="${key}"]`)?.focus({preventScroll:true});
+    const selected=ui.dailyGrid.querySelector?.(`[data-date="${key}"]`);
+    selected?.classList.toggle('is-selected',true);
+    selected?.setAttribute('aria-pressed','true');
+    renderDailyStart();
+    selected?.focus({preventScroll:true});
     return true;
 }
 function refreshDailyCalendar() {
