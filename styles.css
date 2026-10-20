@@ -456,4 +456,8 @@ button.modal-close:focus-visible { outline:none; }
 /* Inventory hearts use a cached chalk-bag image, smaller than the stamina heart. */
 .heart-item-icon { display:inline-block; flex:none; width:52px; height:48px; object-fit:contain; vertical-align:middle; pointer-events:none; user-select:none; }
 #stageHeartCount { display:flex; align-items:center; justify-content:center; gap:4px; padding:4px 8px; }
-.reward-result .heart-item-icon { margin-right:8px; }
+.heart-item-stack { position:relative; display:inline-block; flex:none; width:64px; height:48px; vertical-align:middle; }
+.heart-item-stack > .heart-item-icon { position:absolute; top:0; left:0; }
+.heart-item-quantity { position:absolute; right:0; bottom:0; z-index:1; color:#25372f; font-size:20px; font-weight:900; line-height:1; white-space:nowrap; -webkit-text-stroke:3px #fffdf7; paint-order:stroke fill; font-variant-numeric:tabular-nums; }
+.reward-result .heart-item-stack { width:72px; }
+.reward-result .heart-item-quantity { font-size:22px; }
