@@ -18,7 +18,7 @@ function land(index){
  assert(stopRewardSequence(clock));assert(!stopRewardSequence(clock));clock+=ROULETTE_BRAKE_MS;advanceRewardSequence(clock);
  assert.equal(rewardIndex(rewardSequence.angle),index);assert.equal(rewardSequence.phase,'result');
 }
-function resultReturn(){const timer=timers.get(rewardReturnTimer);assert(timer);timer.fn();}
+function resultReturn(){assert.equal(rewardSequence.phase,'result');ui.rewardDialog.events.click();}
 function visibility(hidden){document.hidden=hidden;for(const fn of documentEvents.visibilitychange||[])fn();}
 // Angular area and reward selection share the same 2:2:1:1 geometry.
 const counts=[0,0,0,0];
@@ -51,11 +51,11 @@ for(let index=0;index<4;index++) {
 assert.throws(()=>applyRouletteReward({kind:'wrong',amount:1}),TypeError);assert.throws(()=>startRewardSequence({onGrant:null}),TypeError);
 lives.count=LIFE_MAX;assert(startRewardSequence());land(3);assert.equal(lives.count,LIFE_MAX);assert(ui.rewardResult.textContent.includes('上限'));finishRewardSequence();
 lives.count=2;lives.recoveryAt=Date.now()-LIFE_RECOVERY_MS;assert(startRewardSequence());land(3);assert.equal(lives.count,4);assert.equal(rewardSequence.reward.amount,1);finishRewardSequence();
-// Hidden screens stop spinning and preserve both brake time and result display time.
+// Hidden screens stop spinning and keep a confirmed result until an explicit tap.
 assert(startRewardSequence());clock+=100;advanceRewardSequence(clock);const angle=rewardSequence.angle;
 visibility(true);clock+=50000;advanceRewardSequence(clock);assert.equal(rewardSequence.angle,angle);assert.equal(rewardFrame,null);
-visibility(false);land(1);clock+=400;visibility(true);const remaining=rewardSequence.returnRemaining;assert.equal(remaining,REWARD_RESULT_MS-400);assert.equal(rewardReturnTimer,null);
-clock+=50000;visibility(false);assert.equal(timers.get(rewardReturnTimer).delay,remaining);resultReturn();
+visibility(false);land(1);clock+=60000;advanceRewardSequence(clock);assert.equal(rewardSequence.phase,'result');assert.equal(state,'reward');
+visibility(true);clock+=50000;visibility(false);assert.equal(rewardSequence.phase,'result');assert.equal(rewardFrame,null);resultReturn();
 // Even a second-attempt win today gets the completion ad, then exactly one roulette.
 lives.count=3;showDailyCalendar({openFromMap:true});assert(selectDailyDate(today));finish(false);ui.retry.onclick();assert.equal(state,'ad');ad();assert.equal(dailyRun.attempt,2);
 moveCount=1;finish(true);assert.equal(dailyRecords[today].rewardStatus,'pending');ui.next.onclick();assert.equal(state,'ad');ad();assert.equal(state,'reward');

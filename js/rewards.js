@@ -65,8 +65,13 @@ const ROULETTE_SEGMENTS=Object.freeze(ROULETTE_OPTIONS.map((item,i)=>{
     const end=start+item.weight*360/total;
     return Object.freeze({start,end,center:(start+end)/2});
 }));
-const ROULETTE_SPEED=.42,ROULETTE_BRAKE_MS=2600,REWARD_RESULT_MS=1400;
-let rewardSequence=null,rewardFrame=null,rewardReturnTimer=null;
+const ROULETTE_SPEED=.42,ROULETTE_BRAKE_MS=2600;
+let rewardSequence=null,rewardFrame=null,rewardCoverPending=false;
+function finishRewardCover() {
+    if(!rewardCoverPending)return;
+    rewardCoverPending=false;
+    ui.rewardDialog.close?.();ui.rewardDialog.hidden=true;
+}
 function rewardIndex(angle) {
     const phase=((-angle%360)+360)%360;
     return ROULETTE_SEGMENTS.findIndex(segment=>phase<segment.end);
@@ -93,7 +98,7 @@ function requestRewardFrame() {
 function startRewardSequence({onGrant=()=>{},onReturn=null}={}) {
     if(typeof onGrant!=='function' || (onReturn!==null && typeof onReturn!=='function'))
         throw new TypeError('Reward callbacks must be functions');
-    if(rewardSequence || state==='ad' || state==='life-prompt' || (state==='map' && (mapPreparing || mapTransition || stageStartContext)))return false;
+    if(rewardSequence || rewardCoverPending || state==='ad' || state==='life-prompt' || (state==='map' && (mapPreparing || mapTransition || stageStartContext)))return false;
     const previousState=state,wasResultOpen=!!ui.overlay.open,wasTiming=runStartedAt!==null;
     if(wasTiming){runElapsedMs=runTimeMs();runStartedAt=null;}
     release(true);endPan();bodyTap=null;touchId=null;ignoreTouches=false;
@@ -129,17 +134,6 @@ function applyRouletteReward(option) {
     recoverLives();const before=lives.count;grantLife();
     return {...option,amount:lives.count-before};
 }
-function scheduleRewardReturn(delay=REWARD_RESULT_MS) {
-    if(rewardReturnTimer!==null)window.clearTimeout?.(rewardReturnTimer);
-    rewardReturnTimer=null;
-    const sequence=rewardSequence;
-    if(!sequence || sequence.phase!=='result')return;
-    sequence.returnRemaining=delay;sequence.returnStarted=performance.now();
-    if(!document.hidden)rewardReturnTimer=window.setTimeout?.(()=>{
-        rewardReturnTimer=null;
-        if(rewardSequence===sequence)finishRewardSequence();
-    },delay)??null;
-}
 function advanceRewardSequence(now=performance.now()) {
     rewardFrame=null;
     const sequence=rewardSequence;
@@ -165,36 +159,40 @@ function advanceRewardSequence(now=performance.now()) {
             const icon=playerIconMarkup('reward-player-icon');
             if(icon)ui.rewardResult.innerHTML=icon;
         }
-        ui.rewardStatus.textContent='獲得！';
-        scheduleRewardReturn();return;
+        ui.rewardStatus.textContent='獲得！ タップして進む';
+        ui.rewardDialog.focus();return;
     }
     requestRewardFrame();
 }
 function finishRewardSequence() {
     const sequence=rewardSequence;
-    if(!sequence || sequence.phase!=='result')return false;
-    rewardSequence=null;
-    if(rewardReturnTimer!==null)window.clearTimeout?.(rewardReturnTimer);rewardReturnTimer=null;
-    ui.rewardDialog.close?.();ui.rewardDialog.hidden=true;state=sequence.previousState;
+    if(!sequence || sequence.phase!=='result' || document.hidden)return false;
+    rewardSequence=null;rewardCoverPending=true;state=sequence.previousState;
     if(sequence.wasTiming)runStartedAt=performance.now()-runElapsedMs;
-    if(sequence.onReturn)sequence.onReturn(sequence.reward);
-    else if(sequence.wasResultOpen)showResultModal();else canvas.focus();
+    try {
+        if(sequence.onReturn)sequence.onReturn(sequence.reward);
+        else if(sequence.wasResultOpen)showResultModal();else canvas.focus();
+    } finally {
+        // Cover the old goal frame until async map images and layout are ready.
+        if(state!=='map' || !mapPreparing)finishRewardCover();
+    }
     requestGameRender();schedulePresentationUpdates();return true;
 }
-ui.rewardDialog.addEventListener('click',()=>stopRewardSequence());
+function tapRewardSequence() {
+    if(rewardSequence?.phase==='result')return finishRewardSequence();
+    return stopRewardSequence();
+}
+ui.rewardDialog.addEventListener('click',tapRewardSequence);
 ui.rewardDialog.addEventListener('cancel',e=>e.preventDefault());
 ui.rewardDialog.addEventListener('keydown',e=>{
-    if(e.key==='Enter' || e.key===' '){e.preventDefault();stopRewardSequence();}
+    if(e.key==='Enter' || e.key===' '){e.preventDefault();if(!e.repeat)tapRewardSequence();}
 });
 document.addEventListener?.('visibilitychange',()=>{
     const sequence=rewardSequence;if(!sequence)return;
     if(document.hidden) {
         if(rewardFrame!==null)window.cancelAnimationFrame?.(rewardFrame);rewardFrame=null;
         sequence.lastTime=null;
-        if(sequence.phase==='result') {
-            sequence.returnRemaining=Math.max(0,sequence.returnRemaining-(performance.now()-sequence.returnStarted));
-            if(rewardReturnTimer!==null)window.clearTimeout?.(rewardReturnTimer);rewardReturnTimer=null;
-        }
-    } else if(sequence.phase==='result')scheduleRewardReturn(sequence.returnRemaining);
-    else {sequence.lastTime=performance.now();requestRewardFrame();}
+    } else if(sequence.phase!=='result') {
+        sequence.lastTime=performance.now();requestRewardFrame();
+    }
 });

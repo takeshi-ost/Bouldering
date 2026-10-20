@@ -34,6 +34,14 @@ dummyAd.remaining=0;assert(completeDummyAd());assert.equal(state,'map');
 assert(mapPreparing && adCoverPending && ui.dummyAd.open && !ui.dummyAd.hidden);assert(ui.adComplete.hidden);
 assert(!completeDummyAd());assert(!startDummyAd());adReady();await tick();await finishFrames();
 assert(!mapPreparing && !adCoverPending && !ui.dummyAd.open && ui.dummyAd.hidden);
+// Reward confirmation keeps the roulette above the old goal until map reveal.
+let rewardReady;mapImageWork=[{decode(){return new Promise(r=>rewardReady=r);}}];
+state='won';assert(startRewardSequence({onReturn:()=>showLevelMap({advanceFrom:1})}));
+rewardSequence.phase='result';rewardSequence.reward={kind:'hearts',amount:1};
+assert(finishRewardSequence());assert(mapPreparing && rewardCoverPending && ui.rewardDialog.open && !ui.rewardDialog.hidden);
+assert(!finishRewardSequence());assert(!startRewardSequence());
+rewardReady();await tick();await finishFrames();
+assert(!mapPreparing && !rewardCoverPending && !ui.rewardDialog.open && ui.rewardDialog.hidden);
 mapImageWork=[{decode(){return Promise.reject(Error('offline'));}}];showLevelMap({target:2});assert(mapPreparing);await tick();await finishFrames();assert(!mapPreparing && !ui.levelMap.inert);
 let stale;mapImageWork=[{decode(){return new Promise(r=>stale=r);}}];showLevelMap();assert(mapPreparing);
 showTitleScreen();assert(!mapPreparing && ui.levelMap.inert);stale();await tick();await finishFrames();

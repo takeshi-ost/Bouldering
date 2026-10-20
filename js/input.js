@@ -165,7 +165,7 @@ ui.mapButton.onclick = () => {
 };
 
 function showTitleScreen() {
-    finishDummyAdCover();
+    finishDummyAdCover();finishRewardCover();
     hideStageStart();
     cancelMapReveal();
     settleLifeAttempt(false);

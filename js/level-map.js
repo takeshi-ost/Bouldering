@@ -6,7 +6,7 @@ function readHeartItems() {
         const count=JSON.parse(globalThis.localStorage?.getItem(HEART_ITEMS_KEY)||'null');
         if(Number.isSafeInteger(count) && count>=0)return count;
     } catch(_) {}
-    return 20;
+    return 5;
 }
 let heartItems=readHeartItems();
 function saveHeartItems() {
@@ -74,7 +74,7 @@ function prepareMapReveal() {
         ui.levelMap.classList.toggle('map-preparing',false);
         ui.levelMap.inert=false;
         ui.levelMap.removeAttribute?.('aria-hidden');
-        finishDummyAdCover();
+        finishDummyAdCover();finishRewardCover();
         requestGameRender();
         if(!mapTransition){focusMapLevel();resumePendingMapReward();}
     };

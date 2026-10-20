@@ -14,7 +14,9 @@ function setTimeout(fn,ms){timers.push({fn,ms});return timers.length;}
 function clearTimeout(id){timers[id-1]=null;}
 `;
 new Function('assert',env+source+`
-assert.equal(heartItems,20);assert.equal(readHeartItems(),20);
+assert.equal(heartItems,5);assert.equal(readHeartItems(),5);
+// Existing saved balances remain unchanged by the new initial grant.
+heartItems=20;saveHeartItems();assert.equal(readHeartItems(),20);
 startCourse('existing');assert(openStageStart(1));
 const base=stagePreview(1).stamina;
 assert.equal(stageStartContext.hearts,0);assert(ui.stageHeartReset.disabled);assert.equal(ui.stageHeartOwned.textContent,'20');
@@ -42,8 +44,8 @@ const prepare=prepareCurrentStage,report=console.error;prepareCurrentStage=()=>{
 ui.stageStartButton.onclick();prepareCurrentStage=prepare;console.error=report;assert.equal(state,'map');assert.equal(heartItems,10,'Failed generation must not spend hearts');
 assert(openStageStart(1));setStageHeartItems(10);ui.stageStartButton.onclick();assert.equal(heartItems,0);assert.equal(readHeartItems(),0);showLevelMap();assert(openStageStart(1));assert(ui.stageHeartCount.disabled);assert(ui.stageHeartReset.disabled);closeStageStart();
 const profile=dailyProfile(localToday());assert(launchDailyAttempt(profile,1));assert.equal(stamina,routeStamina(route),'Daily receives no previous bonus');assert.equal(heartItems,0);
-for(const value of ['-1','1.5','null','"20"','broken']){storage[HEART_ITEMS_KEY]=value;assert.equal(readHeartItems(),20);}
+for(const value of ['-1','1.5','null','"20"','broken']){storage[HEART_ITEMS_KEY]=value;assert.equal(readHeartItems(),5);}
 globalThis.localStorage={getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}};
-assert.equal(readHeartItems(),20);assert.doesNotThrow(saveHeartItems);
+assert.equal(readHeartItems(),5);assert.doesNotThrow(saveHeartItems);
 console.log('PASS heart items: initial/persisted inventory, quantity bounds/preview, cancel/life gate/failure, once-only spend, retry/clear/map/daily isolation, empty inventory and unavailable storage');
 `)(assert);
