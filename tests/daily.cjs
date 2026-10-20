@@ -20,6 +20,7 @@ try {
 new Function('assert','storage','data',env+source+`
 assert.equal(utcToday(),'2026-10-17');assert.equal(utcToday(new Date('2026-10-18T08:00:00+09:00')),'2026-10-17');
 for(const bad of ['',null,'2026-2-02','2026-02-30','2025-02-29','2026-13-01','2026-00-01','2026-10-00','2026-10-17x','__proto__'])assert(!validDailyDate(bad));
+assert.equal(dailyDateLabel('2024-01-01'),'01月01日(月)');assert.equal(dailyDateLabel('2024-02-29'),'02月29日(木)');
 assert(validDailyDate('2024-02-29'));assert.deepEqual(dailyProfile('2026-10-17'),dailyProfile('2026-10-17'));
 const counts={0:0,1:0,2:0,3:0};for(let i=0;i<366;i++){const key=utcToday(new Date(Date.UTC(2024,0,1+i)));counts[dailyProfile(key).difficulty]++;}
 for(const count of Object.values(counts))assert(count>65 && count<120,'Unbalanced daily categories');
@@ -27,7 +28,7 @@ startCourse('existing');ui.openDaily.onclick();assert.equal(state,'daily');asser
 assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-17"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(ui.dailyNext.disabled);assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
 // Calendar selection only previews; Start launches the selected seed once.
 assert.equal((ui.dailyGrid.innerHTML.match(/class="daily-cell/g)||[]).length,42);assert.equal(ui.dailyGrid.style.gridTemplateRows,'repeat(6,minmax(0,1fr))');
-assert.equal(dailySelectedDate,'2026-10-17');assert.equal(ui.dailyStartTitle.textContent,'10/17');
+assert.equal(dailySelectedDate,'2026-10-17');assert.equal(ui.dailyStartTitle.textContent,'10月17日(土)');
 ui.dailySettingsButton.onclick();assert(settingsOpen && ui.settingsDialog.open);assert(!ui.mapSettingsControls.hidden && ui.restart.hidden && ui.mapButton.hidden);
 assert(!chooseDailyDate('2026-10-15'));assert(!changeDailyMonth(-1));ui.dailyBack.onclick();assert.equal(state,'daily');
 ui.showHelp.onclick();assert(ui.helpDialog.open);ui.closeHelp.onclick();ui.closeSettings.onclick();assert(!settingsOpen);
@@ -50,7 +51,7 @@ const previewDate='2026-10-16',previewProfile=dailyProfile(previewDate),beforePr
 const previewButton={dataset:{date:previewDate}};
 ui.dailyGrid.onclick({target:{closest:()=>previewButton}});
 assert.equal(state,'daily');assert.equal(dailyRun,null);assert(!dummyAd);assert.equal(JSON.stringify(dailyAttempts),beforePreview);
-assert.equal(dailySelectedDate,previewDate);assert.equal(ui.dailyStartTitle.textContent,'10/16');
+assert.equal(dailySelectedDate,previewDate);assert.equal(ui.dailyStartTitle.textContent,'10月16日(金)');
 assert.equal(ui.dailyStartDifficulty.textContent,difficultyLabel(previewProfile.difficulty));
 assert.equal(ui.dailyStartLength.textContent,{short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(previewProfile.referenceStage,previewProfile.seed).category]);
 assert.equal((ui.dailyGrid.innerHTML.match(/is-selected/g)||[]).length,1);

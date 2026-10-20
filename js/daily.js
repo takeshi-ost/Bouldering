@@ -41,6 +41,10 @@ function returnDailyWithoutClear() {
     if(!dailyRun || !['playing','lost'].includes(state))return;
     setDailyEntryAdPending(true);showDailyCalendar();
 }
+function dailyDateLabel(key) {
+    const weekday='日月火水木金土'[new Date(key+'T00:00:00Z').getUTCDay()];
+    return `${key.slice(5,7)}月${key.slice(8,10)}日(${weekday})`;
+}
 function dailyProfile(key) {
     if(!validDailyDate(key))throw new Error('Invalid daily date');
     const baseSeed=Number(key.replaceAll('-',''));
@@ -144,8 +148,8 @@ function renderDailyCalendar() {
 function renderDailyStart() {
     const profile=dailySelectedDate?dailyProfile(dailySelectedDate):null;
     ui.dailyStartLabel.textContent=profile?`DAILY ${profile.date.slice(0,4)}`:'日付を選択';
-    ui.dailyStartTitle.textContent=profile?profile.date.slice(5).replace('-','/'):'—';
-    ui.dailyStartTitle.setAttribute('aria-label',profile?profile.date.replaceAll('-','/'):'日付を選択');
+    ui.dailyStartTitle.textContent=profile?dailyDateLabel(profile.date):'—';
+    ui.dailyStartTitle.setAttribute('aria-label',profile?`${profile.date.slice(0,4)}年${dailyDateLabel(profile.date)}`:'日付を選択');
     ui.dailyStartDifficulty.textContent=profile?difficultyLabel(profile.difficulty):'—';
     ui.dailyStartLength.textContent=profile?{short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
     const record=profile && dailyRecords[profile.date];

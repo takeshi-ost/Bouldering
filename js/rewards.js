@@ -79,17 +79,17 @@ function rewardIndex(angle) {
 function rewardWheelMarkup() {
     const r=144,icon=createPlayerIcon({colors:playerColors,headColor:playerHeadColor});
     const point=degrees=>{const a=degrees*Math.PI/180;return [160+r*Math.cos(a),160+r*Math.sin(a)];};
-    return `<svg viewBox="0 0 320 320" aria-hidden="true">${ROULETTE_OPTIONS.map((item,i)=>{
+    return `<svg viewBox="0 0 320 320" aria-hidden="true"><circle cx="160" cy="160" r="148" fill="#ffd33d" stroke="#b9721a" stroke-width="5"/>${ROULETTE_OPTIONS.map((item,i)=>{
         const segment=ROULETTE_SEGMENTS[i],theta=-90+segment.center;
         const [x1,y1]=point(-90+segment.start),[x2,y2]=point(-90+segment.end);
         const a=theta*Math.PI/180,x=160+98*Math.cos(a),y=160+98*Math.sin(a);
-        const fill=item.kind==='life'?'#e8bd64':i%2?'#f6decc':'#dce9d8';
-        const player=icon.src?`<image href="${icon.src}" x="-13.5" y="-18" width="27" height="36"/>`:
-            `<g transform="translate(-12 -16)"><circle cx="12" cy="6" r="5.5" fill="${playerHeadColor}"/><rect x="3" y="12" width="18" height="20" rx="4" fill="${playerColors[0]}"/></g>`;
+        const fill=['#ff4b76','#22c4d6','#9a62ed','#ffd33d'][i];
+        const player=icon.src?`<image href="${icon.src}" x="-27" y="-36" width="54" height="72"/>`:
+            `<g transform="translate(-27 -36) scale(2.25)"><circle cx="12" cy="6" r="5.5" fill="${playerHeadColor}"/><rect x="3" y="12" width="18" height="20" rx="4" fill="${playerColors[0]}"/></g>`;
         const label=item.kind==='life'?player:
-            `<image href="${HEART_ITEM_IMAGE_SRC}" x="-24" y="-18" width="32" height="32"/><text class="reward-item-quantity" x="2" y="14" text-anchor="start" stroke-linejoin="round">${String(item.amount).padStart(2,'0')}</text>`;
-        return `<path d="M160 160 L${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}Z" fill="${fill}" stroke="#fffaf0" stroke-width="2"/><g transform="translate(${x} ${y}) rotate(${theta+90})">${label}</g>`;
-    }).join('')}<circle cx="160" cy="160" r="23" fill="#f8f6ee" stroke="#637966" stroke-width="4"/></svg>`;
+            `<image href="${HEART_ITEM_IMAGE_SRC}" x="-36" y="-36" width="64" height="64"/><text class="reward-item-quantity" x="14" y="27" text-anchor="start" stroke-linejoin="round">${String(item.amount).padStart(2,'0')}</text>`;
+        return `<path d="M160 160 L${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}Z" fill="${fill}" stroke="#fffaf0" stroke-width="3"/><g transform="translate(${x} ${y}) rotate(${theta+90})">${label}</g>`;
+    }).join('')}<circle cx="160" cy="160" r="23" fill="#fff6d9" stroke="#b9721a" stroke-width="4"/></svg>`;
 }
 function requestRewardFrame() {
     if(rewardSequence && rewardSequence.phase!=='result' && !document.hidden && rewardFrame===null)

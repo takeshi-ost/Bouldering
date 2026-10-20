@@ -467,7 +467,7 @@ button.modal-close:focus-visible { outline:none; }
 #stageHeartCount .heart-item-icon { width:48px; height:44px; }
 #stageHeartValue { right:1px; bottom:2px; color:#fff; -webkit-text-stroke:3px #797c78; }
 
-.reward-wheel .reward-item-quantity { fill:#fff; stroke:#797c78; stroke-width:3px; paint-order:stroke fill; }
+.reward-wheel .reward-item-quantity { font-size:20px; fill:#fff; stroke:#797c78; stroke-width:3px; paint-order:stroke fill; }
 .reward-result .heart-item-quantity { color:#fff; -webkit-text-stroke-color:#797c78; }
 .reward-result .reward-player-icon { margin-right:0; }
 
