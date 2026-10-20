@@ -55,13 +55,35 @@ function readDailyRecords() {
         for(const [date,record] of Object.entries(saved)) {
             if(validDailyDate(date) && Number.isSafeInteger(record?.moves) && record.moves>0 &&
                 Number.isSafeInteger(record?.timeMs) && record.timeMs>=0 &&
-                Number.isInteger(record?.stars) && record.stars>=1 && record.stars<=3)
+                Number.isInteger(record?.stars) && record.stars>=1 && record.stars<=3) {
                 records[date]={moves:record.moves,timeMs:record.timeMs,stars:record.stars};
+                if(record.rewardStatus==='pending' || record.rewardStatus==='claimed') {
+                    records[date].rewardStatus=record.rewardStatus;
+                    if(record.rewardAdCompleted===true)records[date].rewardAdCompleted=true;
+                }
+            }
         }
     } catch(_) { /* Keep the calendar usable without persistent storage. */ }
     return records;
 }
 let dailyRecords=readDailyRecords();
+function saveDailyRecords() {
+    try {globalThis.localStorage?.setItem(DAILY_RECORDS_KEY,JSON.stringify(dailyRecords));}
+    catch(_) { /* Keep earned records and rewards in this session. */ }
+}
+function startDailyClearReward(date) {
+    const record=dailyRecords[date];
+    if(record?.rewardStatus!=='pending' || rewardSequence || state==='ad')return false;
+    const launch=()=>startRewardSequence({
+        onGrant:()=>{record.rewardStatus='claimed';saveDailyRecords();},
+        onReturn:()=>showDailyCalendar()
+    });
+    if(record.rewardAdCompleted)return launch();
+    return startDummyAd({onComplete:()=>{
+        record.rewardAdCompleted=true;saveDailyRecords();
+        if(dailyRun?.date===date)dailyRun.resultAdCompleted=true;
+    },onReturn:launch});
+}
 let dailyMonth=localToday().slice(0,7);
 let dailySelectedDate=null;
 let dailyCalendarToday=null;
@@ -80,8 +102,8 @@ function recordDailyClear() {
     const date=dailyRun.date;
     const stars=clearStars(moveCount,routeExpectedMoves());
     dailyRecords[date]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars};
-    try {globalThis.localStorage?.setItem(DAILY_RECORDS_KEY,JSON.stringify(dailyRecords));}
-    catch(_) { /* Preserve the earned stars within this session. */ }
+    if(date===localToday())dailyRecords[date].rewardStatus='pending';
+    saveDailyRecords();
 }
 function monthParts(month=dailyMonth) {return month.split('-').map(Number);}
 function shiftedDailyMonth(delta) {
@@ -173,6 +195,8 @@ function showDailyCalendar({openFromMap=false}={}) {
     canvas.setAttribute('tabindex','-1');
     renderDailyCalendar();
     (ui.dailyGrid.querySelector?.(`[data-date="${localToday()}"]:not(:disabled)`)||ui.dailyBack).focus();
+    const pending=Object.keys(dailyRecords).sort().find(date=>dailyRecords[date].rewardStatus==='pending');
+    if(pending)startDailyClearReward(pending);
 }
 function reportDailyGenerationError(error) {
     showDailyCalendar();
@@ -208,6 +232,9 @@ function continueDailyResult(retry=false) {
     if(retry && (state==='won' || dailyRecords[dailyRun.date]))return;
     if(!retry && state==='lost'){returnDailyWithoutClear();return;}
     const run=dailyRun;
+    if(!retry && state==='won' && dailyRecords[run.date]?.rewardStatus==='pending') {
+        startDailyClearReward(run.date);return;
+    }
     const needsAd=run.attempt===1 && !run.resultAdCompleted;
     const resume=()=>{
         showDailyCalendar();

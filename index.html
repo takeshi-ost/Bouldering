@@ -20,6 +20,7 @@
     <script src="js/daily.js" defer></script>
     <script src="js/ads.js" defer></script>
     <script src="js/lives.js" defer></script>
+    <script src="js/rewards.js" defer></script>
     <script src="js/input.js" defer></script>
     <script src="js/renderer.js" defer></script>
     <script src="js/player-icon.js" defer></script>
@@ -205,6 +206,15 @@
                 </div>
             </div>
             <button id="stageStartButton">スタート</button>
+        </dialog>
+        <dialog id="rewardDialog" class="reward-screen" aria-labelledby="rewardTitle" hidden>
+            <section class="reward-card">
+                <h2 id="rewardTitle">アイテム獲得</h2>
+                <p id="rewardStatus" class="reward-status" role="status" aria-live="polite"></p>
+                <div class="reward-roulette"><span class="reward-pointer" aria-hidden="true"></span><div id="rewardWheel" class="reward-wheel"></div></div>
+                <button id="rewardStop">タップしてストップ</button>
+                <div id="rewardResult" class="reward-result" role="status" hidden></div>
+            </section>
         </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
             <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" class="modal-close" aria-label="設定を閉じる" autofocus>✕</button></div>

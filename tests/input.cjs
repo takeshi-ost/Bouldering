@@ -11,7 +11,7 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
  style:{},showModal(){this.open=true;},close(){this.open=false;},classList:{values:{},toggle(key,value){this.values[key]=value;}},focus(){},events:{},addEventListener(name,fn){this.events[name]=fn;},setAttribute(){},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},
  getBoundingClientRect(){return {left:15,top:30,width:300,height:525};}
-};}};const window={events:{},addEventListener(name,fn){this.events[name]=fn;},devicePixelRatio:1};function requestAnimationFrame(){}
+};}};const window={events:{},addEventListener(name,fn){const previous=this.events[name];this.events[name]=previous?e=>{previous(e);fn(e);}:fn;},devicePixelRatio:1};function requestAnimationFrame(){}
 `;
 new Function('assert','html',env+source+`
 // A fixed palette isolates press feedback from randomized first-run appearance.

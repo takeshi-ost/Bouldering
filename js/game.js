@@ -3,7 +3,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
-    "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
+    "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartOwned", "stageHeartCount", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
     "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartLabel", "dailyStartStamina", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
@@ -846,7 +846,7 @@ function finish(won) {
     ui.resultStats.hidden=!won;
     ui.resultStats.textContent=won ? formatStageRecord({moves:moveCount,timeMs:runElapsedMs}) : '';
     ui.next.hidden = dailyRun ? false : !won;
-    ui.next.textContent = dailyRun ? 'カレンダーへ' : '次のステージへ →';
+    ui.next.textContent = dailyRun ? (dailyRecords[dailyRun.date]?.rewardStatus==='pending'?'報酬を受け取る':'カレンダーへ') : '次のステージへ →';
     ui.retry.hidden=!!dailyRun && won;
     ui.retry.textContent=dailyRun?'リトライ':'RETRY';
 

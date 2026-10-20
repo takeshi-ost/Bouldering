@@ -685,7 +685,7 @@ function requestGameRender() {
 }
 function presentationBlocked() {
     return settingsOpen || featureHelpOpen || !ui.overlay.hidden || ui.helpDialog.open ||
-        ui.stageStartDialog.open || state==='ad' || state==='life-prompt';
+        ui.stageStartDialog.open || state==='ad' || state==='reward' || state==='life-prompt';
 }
 function updateGoalEffects() {
     ui.wall.classList.toggle('presentation-paused',presentationBlocked() || !!document.hidden);
