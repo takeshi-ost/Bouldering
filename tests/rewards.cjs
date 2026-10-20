@@ -68,31 +68,33 @@ dailyRecords['2026-10-18']={moves:1,timeMs:100,stars:3,rewardStatus:'pending'};s
 const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-10-01':{rewardStatus:'pending'},'2026-10-02':{moves:1,timeMs:0,stars:3,rewardStatus:'pending'}});assert.deepEqual(Object.keys(readDailyRecords()),['2026-10-02']);data[DAILY_RECORDS_KEY]=saved;
 // Map milestones: fixed stage numbers, one grant, shared goal glints, existing ad interval.
 showLevelMap();
-assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,2);
-assert(hasMapReward(10));assert(hasMapReward(20));assert(!hasMapReward(9));
-stageProgress.existing.cleared=9;showLevelMap({target:10});assert(selectStage(10));
+assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,5);
+assert(hasMapReward(4));assert(hasMapReward(8));assert(hasMapReward(12));assert(hasMapReward(20));assert(!hasMapReward(9));assert(!hasMapReward(10));
+stageProgress.existing.cleared=3;showLevelMap({target:4});assert(selectStage(4));
 clearsSinceAd=4;moveCount=1;finish(true);
-assert.equal(mapRewards[10].status,'pending');assert(mapRewards[10].adRequired);
-ui.next.onclick();assert.equal(state,'ad');ad();assert.equal(state,'reward');assert(mapRewards[10].adCompleted);
-const mapBefore=heartItems;land(1);assert.equal(heartItems,mapBefore+5);assert.equal(mapRewards[10].status,'claimed');
-assert(!hasMapReward(10));assert(hasMapReward(20));assert.deepEqual(readMapRewards(),mapRewards);
-resultReturn();assert.equal(state,'map');assert.deepEqual([mapTransition.from,mapTransition.to],[10,11]);
-assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,1);
+assert.equal(mapRewards[4].status,'pending');assert(mapRewards[4].adRequired);
+ui.next.onclick();assert.equal(state,'ad');ad();assert.equal(state,'reward');assert(mapRewards[4].adCompleted);
+const mapBefore=heartItems;land(1);assert.equal(heartItems,mapBefore+5);assert.equal(mapRewards[4].status,'claimed');
+assert(!hasMapReward(4));assert(hasMapReward(20));assert.deepEqual(readMapRewards(),mapRewards);
+resultReturn();assert.equal(state,'map');assert.deepEqual([mapTransition.from,mapTransition.to],[4,5]);
+assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,4);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();
-assert(selectStage(10));moveCount=1;finish(true);clearsSinceAd=0;ui.next.onclick();assert.equal(state,'map');assert(!rewardSequence);
+assert(selectStage(4));moveCount=1;finish(true);clearsSinceAd=0;ui.next.onclick();assert.equal(state,'map');assert(!rewardSequence);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();
 // The map-return action also delivers rewards; an interrupted ad/roulette resumes on map entry.
 stageProgress.existing.cleared=19;showLevelMap({target:20});assert(selectStage(20));
 clearsSinceAd=0;moveCount=1;finish(true);ui.mapButton.onclick();assert.equal(state,'reward');land(3);resultReturn();assert.equal(state,'map');assert.equal(mapSelected,20);assert(!mapTransition);
-mapRewards[30]={status:'pending',adRequired:true,adCompleted:false};saveMapRewards();mapRewards=readMapRewards();
+mapRewards[12]={status:'pending',adRequired:true,adCompleted:false};saveMapRewards();mapRewards=readMapRewards();
 showLevelMap();assert.equal(state,'ad');ad();assert.equal(state,'reward');
 // Simulate reloading before an unclaimed roulette (completed ad must not repeat).
 rewardSequence=null;ui.rewardDialog.close();ui.rewardDialog.hidden=true;mapRewards=readMapRewards();showLevelMap();assert.equal(state,'reward');assert(!dummyAd);
-land(0);resultReturn();assert.equal(mapRewards[30].status,'claimed');
+land(0);resultReturn();assert.equal(mapRewards[12].status,'claimed');
 // Debug and daily wins never earn map milestones.
 showLevelMap();debugAttempt=true;level=40;recordMapRewardClear();assert(!mapRewards[40]);debugAttempt=false;
 const savedMap=data[MAP_REWARDS_KEY];data[MAP_REWARDS_KEY]=JSON.stringify({'0':{status:'pending'},'11':{status:'pending'},'10':{status:'bad'},'20':{status:'claimed'}});
-assert.deepEqual(readMapRewards(),{'20':{status:'claimed',adRequired:false,adCompleted:false}});data[MAP_REWARDS_KEY]=savedMap;
+assert.deepEqual(readMapRewards(),{'20':{status:'claimed',adRequired:false,adCompleted:false}});data[MAP_REWARDS_KEY]=JSON.stringify({'10':{status:'pending',adRequired:true,adCompleted:true},'20':{status:'claimed'}});
+assert.deepEqual(readMapRewards(),{'10':{status:'pending',adRequired:true,adCompleted:true},'20':{status:'claimed',adRequired:false,adCompleted:false}});
+data[MAP_REWARDS_KEY]=savedMap;
 // Generic callers can insert a reward in a playing stage without restarting it.
 showLevelMap();assert(selectStage(1));cameraIntro=null;runStartedAt=clock-200;const attempt=lifeAttemptId;
 assert(startRewardSequence());assert.equal(runStartedAt,null);land(1);finishRewardSequence();assert.equal(state,'playing');assert.equal(lifeAttemptId,attempt);assert.equal(runTimeMs(),200);

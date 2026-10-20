@@ -656,6 +656,30 @@ function drawJaggedHold(x,y,r,fill,stroke) {
     if (stroke) {ctx.strokeStyle=stroke;ctx.stroke();}
 }
 
+// Course pickups show their recovery amount and a glossy white-edged silhouette.
+function drawCourseHeart(heart) {
+    const x=heart.x,y=heart.y,r=HEART_CONFIG.radius;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x,y+r);
+    ctx.bezierCurveTo(x-r*2,y,x-r,y-r*1.5,x,y-r*.5);
+    ctx.bezierCurveTo(x+r,y-r*1.5,x+r*2,y,x,y+r);
+    ctx.closePath();
+    ctx.fillStyle='#dc4261';ctx.fill();
+    ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();
+    // A static curved highlight provides gloss without another animation loop.
+    ctx.beginPath();
+    ctx.moveTo(x-r*.95,y-r*.14);
+    ctx.bezierCurveTo(x-r*1.05,y-r*.55,x-r*.58,y-r*.86,x-r*.26,y-r*.52);
+    ctx.bezierCurveTo(x-r*.64,y-r*.58,x-r*.73,y-r*.28,x-r*.95,y-r*.14);
+    ctx.fillStyle='#ffffffbf';ctx.fill();
+    ctx.font='900 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.lineWidth=2;ctx.strokeStyle='#a52e4a';
+    ctx.strokeText(String(HEART_CONFIG.recovery),x,y+1);
+    ctx.fillStyle='#ffffff';ctx.fillText(String(HEART_CONFIG.recovery),x,y+1);
+    ctx.restore();
+}
+
 function drawStageIntro() {
     if (featureHelpOpen || !cameraIntro || state!=='playing') return;
     ctx.save();
@@ -668,8 +692,7 @@ function drawStageIntro() {
     ctx.textAlign='center';
     ctx.textBaseline='middle';
     const title=dailyRun ? `DAILY ${dailyRun.date.slice(5).replace('-','/')}` : `STAGE ${level}`;
-    const x=dailyRun?W/2:(W-(ctx.measureText?.('STAGE 0000')?.width || 240))/2;
-    if(!dailyRun)ctx.textAlign='left';
+    const x=W/2;
     ctx.strokeText(title,x,H/2);
     ctx.fillText(title,x,H/2);
     ctx.restore();
@@ -1079,17 +1102,9 @@ function draw(now = 0) {
         }
     }
 
-    // Vector heart avoids relying on an emoji font on each device.
     for (const heart of hearts) {
         if (heart.collected || heart.y < camera-20 || heart.y > camera+H+20) continue;
-        const x=heart.x, y=heart.y, r=HEART_CONFIG.radius;
-        ctx.beginPath();
-        ctx.moveTo(x,y+r);
-        ctx.bezierCurveTo(x-r*2,y, x-r,y-r*1.5, x,y-r*.5);
-        ctx.bezierCurveTo(x+r,y-r*1.5, x+r*2,y, x,y+r);
-        ctx.closePath();
-        ctx.fillStyle='#d85869'; ctx.fill();
-        ctx.strokeStyle='#fff6ed'; ctx.lineWidth=2; ctx.stroke();
+        drawCourseHeart(heart);
     }
 
     const visual=characterPose(performance.now());

@@ -2,6 +2,7 @@
 // A reusable interstitial: callers supply grant/return callbacks, not a destination screen.
 // Map milestones are earned once per stage, independently of daily rewards.
 const MAP_REWARDS_KEY='ascent.map-rewards.v1';
+const MAP_REWARD_INTERVAL=4;
 function readMapRewards() {
     const records={};
     try {
@@ -9,7 +10,8 @@ function readMapRewards() {
         if(saved && typeof saved==='object' && !Array.isArray(saved))
             for(const [key,value] of Object.entries(saved)) {
                 const n=Number(key);
-                if(!/^[1-9]\d*$/.test(key) || !Number.isSafeInteger(n) || n>=Number.MAX_SAFE_INTEGER || n%10!==0)continue;
+                // Preserve already earned rewards from the former 10-stage interval.
+                if(!/^[1-9]\d*$/.test(key) || !Number.isSafeInteger(n) || n>=Number.MAX_SAFE_INTEGER || (n%MAP_REWARD_INTERVAL!==0 && n%10!==0))continue;
                 if(value?.status==='pending' || value?.status==='claimed')
                     records[key]={status:value.status,adRequired:value.adRequired===true,adCompleted:value.adCompleted===true};
             }
@@ -21,7 +23,7 @@ function saveMapRewards() {
     try {globalThis.localStorage?.setItem(MAP_REWARDS_KEY,JSON.stringify(mapRewards));}catch(_) {}
 }
 function hasMapReward(n) {
-    return courseMode==='existing' && n%10===0 && mapRewards[n]?.status!=='claimed';
+    return courseMode==='existing' && n%MAP_REWARD_INTERVAL===0 && mapRewards[n]?.status!=='claimed';
 }
 function recordMapRewardClear() {
     if(dailyRun || debugAttempt || !hasMapReward(level) || mapRewards[level])return;
