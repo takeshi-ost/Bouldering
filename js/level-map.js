@@ -213,7 +213,7 @@ let stageStartContext=null,stageStartTimer=null;
 function renderStageHeartItems() {
     const context=stageStartContext;if(!context)return;
     ui.stageHeartOwned.textContent=`所持 ${heartItems-context.hearts}個`;
-    ui.stageHeartCount.textContent=`❤️${String(context.hearts).padStart(2,'0')}`;
+    ui.stageHeartValue.textContent=String(context.hearts).padStart(2,'0');
     ui.stageHeartCount.setAttribute('aria-label',`使用ハート ${context.hearts}個、タップで1個追加`);
     ui.stageHeartCount.disabled=context.hearts===heartItems;
     ui.stageHeartReset.disabled=context.hearts===0;

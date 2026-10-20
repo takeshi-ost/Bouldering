@@ -1,4 +1,8 @@
 "use strict";
+const HEART_ITEM_IMAGE_SRC = 'assets/heart-item-chalk-bag.png';
+function heartItemIconMarkup() {
+    return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
+}
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
 const RELEASE_VERSION = '0.1.0';
 // 表示サイズと可動域。単位はゲーム内の論理pxです。
