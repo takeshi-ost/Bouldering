@@ -79,10 +79,10 @@ function rewardWheelMarkup() {
         const [x1,y1]=point(-90+segment.start),[x2,y2]=point(-90+segment.end);
         const a=theta*Math.PI/180,x=160+98*Math.cos(a),y=160+98*Math.sin(a);
         const fill=item.kind==='life'?'#e8bd64':i%2?'#f6decc':'#dce9d8';
-        const player=icon.src?`<image href="${icon.src}" x="-23" y="-20" width="27" height="36"/>`:
-            `<g transform="translate(-23 -20)"><circle cx="12" cy="6" r="5.5" fill="${playerHeadColor}"/><rect x="3" y="12" width="18" height="20" rx="4" fill="${playerColors[0]}"/></g>`;
-        const label=item.kind==='life'?`${player}<text x="14" y="0" text-anchor="middle" dominant-baseline="middle">+1</text>`:
-            `<image href="${HEART_ITEM_IMAGE_SRC}" x="-24" y="-18" width="32" height="32"/><text x="2" y="14" text-anchor="start" stroke="#fffaf0" stroke-width="3" stroke-linejoin="round" paint-order="stroke">+${item.amount}</text>`;
+        const player=icon.src?`<image href="${icon.src}" x="-13.5" y="-18" width="27" height="36"/>`:
+            `<g transform="translate(-12 -16)"><circle cx="12" cy="6" r="5.5" fill="${playerHeadColor}"/><rect x="3" y="12" width="18" height="20" rx="4" fill="${playerColors[0]}"/></g>`;
+        const label=item.kind==='life'?player:
+            `<image href="${HEART_ITEM_IMAGE_SRC}" x="-24" y="-18" width="32" height="32"/><text class="reward-item-quantity" x="2" y="14" text-anchor="start" stroke-linejoin="round">${String(item.amount).padStart(2,'0')}</text>`;
         return `<path d="M160 160 L${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}Z" fill="${fill}" stroke="#fffaf0" stroke-width="2"/><g transform="translate(${x} ${y}) rotate(${theta+90})">${label}</g>`;
     }).join('')}<circle cx="160" cy="160" r="23" fill="#f8f6ee" stroke="#637966" stroke-width="4"/></svg>`;
 }
@@ -163,7 +163,7 @@ function advanceRewardSequence(now=performance.now()) {
             ui.rewardResult.innerHTML=`<span class="heart-item-stack">${heartItemIconMarkup()}<span class="heart-item-quantity">+${sequence.reward.amount}</span></span>`;
         if(sequence.reward.kind==='life' && sequence.reward.amount) {
             const icon=playerIconMarkup('reward-player-icon');
-            if(icon)ui.rewardResult.innerHTML=`${icon}<span>+1</span>`;
+            if(icon)ui.rewardResult.innerHTML=icon;
         }
         ui.rewardStatus.textContent='獲得！';
         scheduleRewardReturn();return;

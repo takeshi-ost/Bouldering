@@ -32,6 +32,8 @@ const originalIcon=createPlayerIcon;
 createPlayerIcon=()=>({src:'data:image/png;base64,AAAA'});
 const markup=rewardWheelMarkup();
 assert.equal((markup.match(/<path /g)||[]).length,4);
+assert.equal((markup.match(/<text /g)||[]).length,3,'Life sector has no count');
+assert(markup.includes('>01</text>') && markup.includes('>05</text>') && markup.includes('>10</text>'));
 assert(markup.includes('<image href="data:image/png;base64,AAAA"'));
 createPlayerIcon=originalIcon;
 startCourse('existing');

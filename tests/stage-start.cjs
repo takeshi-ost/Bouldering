@@ -43,10 +43,11 @@ lives.count=0;lives.recoveryAt=Date.now();refreshLives();assert.equal(state,'map
 assert(!openStageStart(99,true));setDebugMode(true);assert(openStageStart(1,true));ui.stageStartButton.onclick();assert.equal(state,'playing');assert(debugAttempt);assert.equal(lives.count,0);
 showLevelMap();assert(openStageStart(1,false,button));const stale=timers.at(-1).fn;showTitleScreen();stale();assert(!stageStartContext && !ui.stageStartDialog.open);assert.equal(state,'choosing');
 startCourse('existing');stageProgress.existing.cleared=21;lives.count=3;lives.recoveryAt=null;
-showLevelMap({advanceFrom:20});advanceLevelMap(100);advanceLevelMap(750);
+const hopPreview=stagePreview;let hopPreviewCalls=0;stagePreview=(...args)=>{hopPreviewCalls++;return hopPreview(...args);};
+showLevelMap({advanceFrom:20});advanceLevelMap(100);advanceLevelMap(750);assert.equal(hopPreviewCalls,0,'Arrival must paint before stamina calculation');
 assert.equal(mapSelected,21);assert.equal(mapPage,1);assert.equal(stageStartContext.n,21);assert(!ui.stageStartDialog.open);assert.equal(timers.at(-1).ms,500);
 assert(!openStageStart(20));ui.mapPrev.onclick();assert.equal(mapPage,1);
-timers.at(-1).fn();assert(ui.stageStartDialog.open);assert.equal(ui.stageStartTitle.textContent,'STAGE 21');assert.equal(state,'map');
+timers.at(-1).fn();assert.equal(hopPreviewCalls,1);stagePreview=hopPreview;assert(ui.stageStartDialog.open);assert.equal(ui.stageStartTitle.textContent,'STAGE 21');assert.equal(state,'map');
 ui.stageStartButton.onclick();assert.equal(level,21);assert.equal(state,'playing');
 showLevelMap({advanceFrom:20});advanceLevelMap(1000);advanceLevelMap(1650);const delayedNext=timers.at(-1).fn;showTitleScreen();delayedNext();assert(!ui.stageStartDialog.open && !stageStartContext);
 console.log('PASS stage start: correct stage/difficulty/length, no item elements, close/backdrop/Escape no life cost, visible tap pulse, Start-only launch and life gate, double-start guard, debug launch and canceled delayed opening');

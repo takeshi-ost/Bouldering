@@ -251,16 +251,17 @@ function openStageStart(n,debug=false,button=null,delay=0) {
     if(debug)ui.debugStage.blur?.();
     const context={n,debug,mode:courseMode,button,hearts:0};
     stageStartContext=context;
-    ui.stageStartTitle.textContent=`STAGE ${n}`;
-    ui.stageStartTitle.setAttribute('aria-label',`STAGE ${n}`);
-    renderStageHeartItems();
-    refreshLives();
-    ui.stageStartDifficulty.textContent=difficultyLabel(difficultyForStage(n));
-    ui.stageStartLength.textContent={short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(n).category];
-    ui.stageStartButton.disabled=false;
     const show=()=>{
         stageStartTimer=null;
         if(stageStartContext!==context || state!=='map' || courseMode!==context.mode)return;
+        // Let the arrival color/effects paint during the delay before solving the course.
+        ui.stageStartTitle.textContent=`STAGE ${n}`;
+        ui.stageStartTitle.setAttribute('aria-label',`STAGE ${n}`);
+        renderStageHeartItems();
+        refreshLives();
+        ui.stageStartDifficulty.textContent=difficultyLabel(difficultyForStage(n));
+        ui.stageStartLength.textContent={short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(n).category];
+        ui.stageStartButton.disabled=false;
         ui.stageStartDialog.showModal?.();
         requestGameRender();
     };
