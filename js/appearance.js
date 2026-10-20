@@ -71,6 +71,8 @@ function bodyStripeGradient(colors=playerColors) {
     return `linear-gradient(to bottom,${colors.map((c,i)=>`${c} ${i*100/colors.length}% ${(i+1)*100/colors.length}%`).join(',')})`;
 }
 function updateMapAppearance() {
+    const markup=playerIconMarkup() || '<i></i><b></b>';
+    if(ui.mapMarker.innerHTML!==markup)ui.mapMarker.innerHTML=markup;
     ui.mapMarker.style.setProperty?.('--body-stripes',bodyStripeGradient());
     ui.mapMarker.style.setProperty?.('--head-color',playerHeadColor);
 }
@@ -179,7 +181,7 @@ function confirmCharacterEditor() {
     const appearanceSaved=saveAppearance({colors:playerColors,headColor:playerHeadColor});
     const saved=appearanceSaved && nameSaved;
     playSound('confirm');
-    updateMapAppearance();returnFromCharacterEditor();
+    updateMapAppearance();returnFromCharacterEditor();refreshLives();
     ui.appearanceStatus.textContent=saved?'名前と配色を保存しました。':'名前と配色を適用しました。この端末への保存はできませんでした。';
     ui.appearanceStatus.hidden=true;
     if(!saved) {ui.mapError.textContent=ui.appearanceStatus.textContent;ui.mapError.hidden=false;}

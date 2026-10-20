@@ -71,7 +71,7 @@ function refreshLives() {
     const text=inMap && lives.count===0
         ? `<span class="life-countdown" role="timer" aria-live="off"><span aria-hidden="true">🕐</span><span>${recoveryTime}</span></span>`
         : inGame || inMap
-        ? `<span class="life-players" aria-hidden="true" style="--head-color:${playerHeadColor};--body-stripes:${bodyStripeGradient()}">${Array.from({length:lives.count},()=>'<span class="life-player"><span class="map-marker"><i></i><b></b></span></span>').join('')}</span>`
+        ? `<span class="life-players" aria-hidden="true" style="--head-color:${playerHeadColor};--body-stripes:${bodyStripeGradient()}">${Array.from({length:lives.count},()=>playerIconMarkup('life-player player-icon') || '<span class="life-player"><span class="map-marker"><i></i><b></b></span></span>').join('')}</span>`
         : `LIFE ${lives.count}/${LIFE_MAX}`+(seconds===null?'':`<small>回復まで ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}</small>`);
     if(ui.lifeStatus.innerHTML!==text)ui.lifeStatus.innerHTML=text;
     if(stageStartContext) {
