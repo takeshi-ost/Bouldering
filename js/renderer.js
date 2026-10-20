@@ -664,8 +664,8 @@ if(courseHeartImage) {
 }
 function drawCourseHeart(heart) {
     if(!courseHeartImage?.complete || !courseHeartImage.naturalWidth)return;
-    const size=HEART_CONFIG.radius*3.2;
-    ctx.drawImage(courseHeartImage,heart.x-size/2,heart.y-size/2,size,size);
+    const width=HEART_CONFIG.radius*3.2,height=width*.9;
+    ctx.drawImage(courseHeartImage,heart.x-width/2,heart.y-height/2,width,height);
 }
 
 function drawStageIntro() {
