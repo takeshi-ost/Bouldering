@@ -440,3 +440,4 @@ button.modal-close:focus-visible { outline:none; }
 .reward-pointer { position:absolute; z-index:1; top:-1px; left:calc(50% - 12px); width:24px; height:25px; background:#bd684b; clip-path:polygon(0 0,100% 0,50% 100%); }
 #rewardStop { min-height:48px; min-width:200px; margin:0; }
 .reward-result { min-height:48px; font-size:30px; font-weight:900; }
+.reward-result .reward-player-icon { display:inline-block; width:30px; height:40px; margin-right:8px; vertical-align:middle; object-fit:contain; }

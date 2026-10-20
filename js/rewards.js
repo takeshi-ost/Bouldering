@@ -1,24 +1,36 @@
 "use strict";
 // A reusable interstitial: callers supply grant/return callbacks, not a destination screen.
 const ROULETTE_OPTIONS=Object.freeze([
-    ...Array.from({length:11},(_,amount)=>Object.freeze({kind:'hearts',amount,label:`❤️+${amount}`})),
-    Object.freeze({kind:'life',amount:1,label:'ライフ+1'})
+    Object.freeze({kind:'hearts',amount:1,label:'❤️+1',weight:2}),
+    Object.freeze({kind:'hearts',amount:5,label:'❤️+5',weight:2}),
+    Object.freeze({kind:'hearts',amount:10,label:'❤️+10',weight:1}),
+    Object.freeze({kind:'life',amount:1,label:'ライフ+1',weight:1})
 ]);
+const ROULETTE_SEGMENTS=Object.freeze(ROULETTE_OPTIONS.map((item,i)=>{
+    const total=ROULETTE_OPTIONS.reduce((sum,option)=>sum+option.weight,0);
+    const start=ROULETTE_OPTIONS.slice(0,i).reduce((sum,option)=>sum+option.weight,0)*360/total;
+    const end=start+item.weight*360/total;
+    return Object.freeze({start,end,center:(start+end)/2});
+}));
 const ROULETTE_SPEED=.42,ROULETTE_BRAKE_MS=2600,REWARD_RESULT_MS=1400;
 let rewardSequence=null,rewardFrame=null,rewardReturnTimer=null;
 function rewardIndex(angle) {
-    const n=ROULETTE_OPTIONS.length;
-    return ((Math.round(-angle/(360/n))%n)+n)%n;
+    const phase=((-angle%360)+360)%360;
+    return ROULETTE_SEGMENTS.findIndex(segment=>phase<segment.end);
 }
 function rewardWheelMarkup() {
-    const n=ROULETTE_OPTIONS.length,r=144;
+    const r=144,icon=createPlayerIcon({colors:playerColors,headColor:playerHeadColor});
     const point=degrees=>{const a=degrees*Math.PI/180;return [160+r*Math.cos(a),160+r*Math.sin(a)];};
     return `<svg viewBox="0 0 320 320" aria-hidden="true">${ROULETTE_OPTIONS.map((item,i)=>{
-        const theta=-90+i*360/n,[x1,y1]=point(theta-180/n),[x2,y2]=point(theta+180/n);
-        const a=theta*Math.PI/180,x=160+108*Math.cos(a),y=160+108*Math.sin(a);
+        const segment=ROULETTE_SEGMENTS[i],theta=-90+segment.center;
+        const [x1,y1]=point(-90+segment.start),[x2,y2]=point(-90+segment.end);
+        const a=theta*Math.PI/180,x=160+98*Math.cos(a),y=160+98*Math.sin(a);
         const fill=item.kind==='life'?'#e8bd64':i%2?'#f6decc':'#dce9d8';
-        const label=item.kind==='life'?`<tspan x="${x}" dy="-6">ライフ</tspan><tspan x="${x}" dy="14">+1</tspan>`:item.label;
-        return `<path d="M160 160 L${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}Z" fill="${fill}" stroke="#fffaf0" stroke-width="2"/><text x="${x}" y="${y}" transform="rotate(${theta+90} ${x} ${y})" text-anchor="middle" dominant-baseline="middle">${label}</text>`;
+        const player=icon.src?`<image href="${icon.src}" x="-23" y="-20" width="27" height="36"/>`:
+            `<g transform="translate(-23 -20)"><circle cx="12" cy="6" r="5.5" fill="${playerHeadColor}"/><rect x="3" y="12" width="18" height="20" rx="4" fill="${playerColors[0]}"/></g>`;
+        const label=item.kind==='life'?`${player}<text x="14" y="0" text-anchor="middle" dominant-baseline="middle">+1</text>`:
+            `<text text-anchor="middle" dominant-baseline="middle">${item.label}</text>`;
+        return `<path d="M160 160 L${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}Z" fill="${fill}" stroke="#fffaf0" stroke-width="2"/><g transform="translate(${x} ${y}) rotate(${theta+90})">${label}</g>`;
     }).join('')}<circle cx="160" cy="160" r="23" fill="#f8f6ee" stroke="#637966" stroke-width="4"/></svg>`;
 }
 function requestRewardFrame() {
@@ -94,6 +106,10 @@ function advanceRewardSequence(now=performance.now()) {
         ui.rewardStop.hidden=true;ui.rewardResult.hidden=false;
         ui.rewardResult.textContent=sequence.reward.kind==='hearts'?`❤️ +${sequence.reward.amount}`:
             sequence.reward.amount?'ライフ +1':`ライフは上限${LIFE_MAX}です`;
+        if(sequence.reward.kind==='life' && sequence.reward.amount) {
+            const icon=playerIconMarkup('reward-player-icon');
+            if(icon)ui.rewardResult.innerHTML=`${icon}<span>+1</span>`;
+        }
         ui.rewardStatus.textContent='獲得！';
         scheduleRewardReturn();return;
     }

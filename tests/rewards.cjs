@@ -14,36 +14,50 @@ try {new Function('assert','data',env+source+`
 const today=localToday();DIFFICULTY_CONFIG.dailyWeights=[100,0,0,0];
 function ad(){clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());}
 function land(index){
- rewardSequence.angle=-index*30-ROULETTE_SPEED*ROULETTE_BRAKE_MS/3;rewardSequence.lastTime=clock;
+ rewardSequence.angle=-ROULETTE_SEGMENTS[index].center-ROULETTE_SPEED*ROULETTE_BRAKE_MS/3;rewardSequence.lastTime=clock;
  assert(stopRewardSequence(clock));assert(!stopRewardSequence(clock));clock+=ROULETTE_BRAKE_MS;advanceRewardSequence(clock);
  assert.equal(rewardIndex(rewardSequence.angle),index);assert.equal(rewardSequence.phase,'result');
 }
 function resultReturn(){const timer=timers.get(rewardReturnTimer);assert(timer);timer.fn();}
 function visibility(hidden){document.hidden=hidden;for(const fn of documentEvents.visibilitychange||[])fn();}
+// Angular area and reward selection share the same 2:2:1:1 geometry.
+const counts=[0,0,0,0];
+for(let degree=0;degree<360;degree++){
+ const index=rewardIndex(-degree-.5);counts[index]++;
+ assert.equal(rewardIndex(-degree-.5+720),index);
+}
+assert.deepEqual(counts,[120,120,60,60]);
+assert.deepEqual([0,120,240,300,360].map(degree=>rewardIndex(-degree)),[0,1,2,3,0]);
+const originalIcon=createPlayerIcon;
+createPlayerIcon=()=>({src:'data:image/png;base64,AAAA'});
+const markup=rewardWheelMarkup();
+assert.equal((markup.match(/<path /g)||[]).length,4);
+assert(markup.includes('<image href="data:image/png;base64,AAAA"'));
+createPlayerIcon=originalIcon;
 startCourse('existing');
 mapPreparing=true;assert(!startRewardSequence());mapPreparing=false;
 assert(openStageStart(1));assert(!startRewardSequence());closeStageStart();
-for(let index=0;index<12;index++) {
+for(let index=0;index<4;index++) {
  const before=heartItems;lives.count=3;lives.recoveryAt=null;let grants=0,returns=0;
  assert(startRewardSequence({onGrant:()=>grants++,onReturn:()=>{returns++;state='map';}}));
  assert.equal(state,'reward');assert(!startRewardSequence());assert(!finishRewardSequence());
  land(index);assert.equal(grants,1);const balance=heartItems,lifeBalance=lives.count;
- assert.equal(balance,before+(index===11?0:index));assert.equal(lifeBalance,index===11?4:3);
+ assert.equal(balance,before+(ROULETTE_OPTIONS[index].kind==='hearts'?ROULETTE_OPTIONS[index].amount:0));assert.equal(lifeBalance,index===3?4:3);
  clock+=100;advanceRewardSequence(clock);assert.equal(grants,1);assert.equal(heartItems,balance);
  resultReturn();assert.equal(returns,1);assert.equal(state,'map');assert(!rewardSequence);assert(!finishRewardSequence());assert.equal(returns,1);
 }
 assert.throws(()=>applyRouletteReward({kind:'wrong',amount:1}),TypeError);assert.throws(()=>startRewardSequence({onGrant:null}),TypeError);
-lives.count=LIFE_MAX;assert(startRewardSequence());land(11);assert.equal(lives.count,LIFE_MAX);assert(ui.rewardResult.textContent.includes('上限'));finishRewardSequence();
-lives.count=2;lives.recoveryAt=Date.now()-LIFE_RECOVERY_MS;assert(startRewardSequence());land(11);assert.equal(lives.count,4);assert.equal(rewardSequence.reward.amount,1);finishRewardSequence();
+lives.count=LIFE_MAX;assert(startRewardSequence());land(3);assert.equal(lives.count,LIFE_MAX);assert(ui.rewardResult.textContent.includes('上限'));finishRewardSequence();
+lives.count=2;lives.recoveryAt=Date.now()-LIFE_RECOVERY_MS;assert(startRewardSequence());land(3);assert.equal(lives.count,4);assert.equal(rewardSequence.reward.amount,1);finishRewardSequence();
 // Hidden screens stop spinning and preserve both brake time and result display time.
 assert(startRewardSequence());clock+=100;advanceRewardSequence(clock);const angle=rewardSequence.angle;
 visibility(true);clock+=50000;advanceRewardSequence(clock);assert.equal(rewardSequence.angle,angle);assert.equal(rewardFrame,null);
-visibility(false);land(5);clock+=400;visibility(true);const remaining=rewardSequence.returnRemaining;assert.equal(remaining,REWARD_RESULT_MS-400);assert.equal(rewardReturnTimer,null);
+visibility(false);land(1);clock+=400;visibility(true);const remaining=rewardSequence.returnRemaining;assert.equal(remaining,REWARD_RESULT_MS-400);assert.equal(rewardReturnTimer,null);
 clock+=50000;visibility(false);assert.equal(timers.get(rewardReturnTimer).delay,remaining);resultReturn();
 // Even a second-attempt win today gets the completion ad, then exactly one roulette.
 lives.count=3;showDailyCalendar({openFromMap:true});assert(selectDailyDate(today));finish(false);ui.retry.onclick();assert.equal(state,'ad');ad();assert.equal(dailyRun.attempt,2);
 moveCount=1;finish(true);assert.equal(dailyRecords[today].rewardStatus,'pending');ui.next.onclick();assert.equal(state,'ad');ad();assert.equal(state,'reward');
-assert(dailyRecords[today].rewardAdCompleted);const beforeDaily=heartItems;land(10);assert.equal(heartItems,beforeDaily+10);assert.equal(dailyRecords[today].rewardStatus,'claimed');resultReturn();assert.equal(state,'daily');assert.equal(dailyRun,null);
+assert(dailyRecords[today].rewardAdCompleted);const beforeDaily=heartItems;land(2);assert.equal(heartItems,beforeDaily+10);assert.equal(dailyRecords[today].rewardStatus,'claimed');resultReturn();assert.equal(state,'daily');assert.equal(dailyRun,null);
 assert.equal(readDailyRecords()[today].rewardStatus,'claimed');assert(!startDailyClearReward(today));assert(!selectDailyDate(today));
 // Earlier dates keep their existing flow and never earn this daily completion reward.
 assert(selectDailyDate('2026-01-01'));moveCount=1;finish(true);assert(!dailyRecords['2026-01-01'].rewardStatus);ui.next.onclick();ad();assert.equal(state,'daily');assert(!rewardSequence);
@@ -55,5 +69,5 @@ const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]=JSON.stringify({'202
 // Generic callers can insert a reward in a playing stage without restarting it.
 showLevelMap();assert(selectStage(1));cameraIntro=null;runStartedAt=clock-200;const attempt=lifeAttemptId;
 assert(startRewardSequence());assert.equal(runStartedAt,null);land(1);finishRewardSequence();assert.equal(state,'playing');assert.equal(lifeAttemptId,attempt);assert.equal(runTimeMs(),200);
-console.log('PASS rewards: all 12 stops, single grant/return, caps, hidden pause, today/past/second-attempt routing, persistence/recovery and generic in-play continuation');
+console.log('PASS rewards: all 4 weighted stops, single grant/return, caps, hidden pause, today/past/second-attempt routing, persistence/recovery and generic in-play continuation');
 `)(assert,data);}finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}
