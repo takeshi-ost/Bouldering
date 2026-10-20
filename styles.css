@@ -472,3 +472,9 @@ button.modal-close:focus-visible { outline:none; }
 .reward-wheel .reward-item-quantity { fill:#fff; stroke:#797c78; stroke-width:3px; paint-order:stroke fill; }
 .reward-result .heart-item-quantity { color:#fff; -webkit-text-stroke-color:#797c78; }
 .reward-result .reward-player-icon { margin-right:0; }
+
+.stage-heart-plus { flex:none; margin:0 8px; font-size:30px; line-height:1; }
+#stageHeartCount.is-empty { border-color:transparent; background:#eee9df; box-shadow:none; }
+#stageHeartCount.is-empty .heart-item-icon { opacity:.38; }
+#stageHeartCount.is-empty .heart-item-quantity { opacity:.55; }
+#stageHeartReset[hidden] { display:none; }

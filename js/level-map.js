@@ -218,6 +218,8 @@ function renderStageHeartItems() {
     ui.stageHeartCount.setAttribute('aria-label',`使用ハート ${context.hearts}個、タップで1個追加`);
     ui.stageHeartCount.disabled=context.hearts===heartItems;
     ui.stageHeartReset.disabled=context.hearts===0;
+    ui.stageHeartReset.hidden=context.hearts===0;
+    ui.stageHeartCount.classList.toggle('is-empty',context.hearts===0);
     ui.stageStartStamina.textContent=previewStaminaText(context.n,context.mode).replace('❤️','');
     ui.stageStartStamina.setAttribute('aria-label',`規定スタミナ ${ui.stageStartStamina.textContent}`);
 }
