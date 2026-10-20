@@ -43,13 +43,13 @@ for(let index=0;index<4;index++) {
  const before=heartItems;lives.count=3;lives.recoveryAt=null;let grants=0,returns=0;
  assert(startRewardSequence({onGrant:()=>grants++,onReturn:()=>{returns++;state='map';}}));
  assert.equal(state,'reward');assert(!startRewardSequence());assert(!finishRewardSequence());
- land(index);assert.equal(grants,1);const balance=heartItems,lifeBalance=lives.count;
+ land(index);assert.equal(grants,1);assert(ui.rewardResult.innerHTML.includes(index===3?'ライフアップ':'チョークバッグ'));assert(ui.rewardResult.innerHTML.includes('reward-rays'));assert(ui.rewardResult.innerHTML.includes('✖️'+(index===3?1:ROULETTE_OPTIONS[index].amount)));const balance=heartItems,lifeBalance=lives.count;
  assert.equal(balance,before+(ROULETTE_OPTIONS[index].kind==='hearts'?ROULETTE_OPTIONS[index].amount:0));assert.equal(lifeBalance,index===3?4:3);
  clock+=100;advanceRewardSequence(clock);assert.equal(grants,1);assert.equal(heartItems,balance);
  resultReturn();assert.equal(returns,1);assert.equal(state,'map');assert(!rewardSequence);assert(!finishRewardSequence());assert.equal(returns,1);
 }
 assert.throws(()=>applyRouletteReward({kind:'wrong',amount:1}),TypeError);assert.throws(()=>startRewardSequence({onGrant:null}),TypeError);
-lives.count=LIFE_MAX;assert(startRewardSequence());land(3);assert.equal(lives.count,LIFE_MAX);assert(ui.rewardResult.textContent.includes('上限'));finishRewardSequence();
+lives.count=LIFE_MAX;assert(startRewardSequence());land(3);assert.equal(lives.count,LIFE_MAX);assert(ui.rewardResult.innerHTML.includes('上限'));finishRewardSequence();
 lives.count=2;lives.recoveryAt=Date.now()-LIFE_RECOVERY_MS;assert(startRewardSequence());land(3);assert.equal(lives.count,4);assert.equal(rewardSequence.reward.amount,1);finishRewardSequence();
 // Hidden screens stop spinning and keep a confirmed result until an explicit tap.
 assert(startRewardSequence());clock+=100;advanceRewardSequence(clock);const angle=rewardSequence.angle;

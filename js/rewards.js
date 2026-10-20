@@ -134,6 +134,15 @@ function applyRouletteReward(option) {
     recoverLives();const before=lives.count;grantLife();
     return {...option,amount:lives.count-before};
 }
+function rewardResultMarkup(reward) {
+    const life=reward.kind==='life';
+    const icon=life?(playerIconMarkup('reward-grant-image') ||
+        `<svg class="reward-grant-image" viewBox="0 0 24 32" aria-hidden="true"><circle cx="12" cy="6" r="5.5" fill="${playerHeadColor}"/><rect x="3" y="12" width="18" height="20" rx="4" fill="${playerColors[0]}"/></svg>`):heartItemIconMarkup();
+    const notice=life && !reward.amount?`<p class="reward-grant-notice">ライフは上限${LIFE_MAX}です</p>`:'';
+    return `<section class="reward-result-card"><h2 id="rewardResultTitle">${life?'ライフアップ':'チョークバッグ'}</h2>
+        <div class="reward-grant-row"><span class="reward-result-icon ${life?'is-life':''}"><span class="reward-rays" aria-hidden="true"></span>${icon}</span><span class="reward-grant-count">✖️${life?1:reward.amount}</span></div>
+        ${notice}<p class="reward-grant-tap">タップして進む</p></section>`;
+}
 function advanceRewardSequence(now=performance.now()) {
     rewardFrame=null;
     const sequence=rewardSequence;
@@ -151,16 +160,9 @@ function advanceRewardSequence(now=performance.now()) {
         sequence.reward=applyRouletteReward(ROULETTE_OPTIONS[rewardIndex(sequence.angle)]);
         sequence.onGrant(sequence.reward);
         ui.rewardStop.hidden=true;ui.rewardResult.hidden=false;
-        ui.rewardResult.textContent=sequence.reward.kind==='hearts'?`ハート +${sequence.reward.amount}`:
-            sequence.reward.amount?'ライフ +1':`ライフは上限${LIFE_MAX}です`;
-        if(sequence.reward.kind==='hearts')
-            ui.rewardResult.innerHTML=`<span class="heart-item-stack">${heartItemIconMarkup()}<span class="heart-item-quantity">+${sequence.reward.amount}</span></span>`;
-        if(sequence.reward.kind==='life' && sequence.reward.amount) {
-            const icon=playerIconMarkup('reward-player-icon');
-            if(icon)ui.rewardResult.innerHTML=icon;
-        }
-        ui.rewardStatus.textContent='獲得！ タップして進む';
-        ui.rewardDialog.focus();return;
+        ui.rewardResult.innerHTML=rewardResultMarkup(sequence.reward);
+        ui.rewardStatus.textContent='';
+        ui.rewardResult.focus();return;
     }
     requestRewardFrame();
 }
@@ -188,6 +190,7 @@ ui.rewardDialog.addEventListener('keydown',e=>{
     if(e.key==='Enter' || e.key===' '){e.preventDefault();if(!e.repeat)tapRewardSequence();}
 });
 document.addEventListener?.('visibilitychange',()=>{
+    ui.rewardDialog.classList.toggle('reward-inactive',!!document.hidden);
     const sequence=rewardSequence;if(!sequence)return;
     if(document.hidden) {
         if(rewardFrame!==null)window.cancelAnimationFrame?.(rewardFrame);rewardFrame=null;
