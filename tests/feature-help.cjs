@@ -17,6 +17,7 @@ try {
 new Function('assert','storage','data',env+source+`
 reset(1);showStageHelp();assert(!featureHelpOpen,'No item means no explanation');
 hearts=[{x:200,y:300}];showStageHelp();assert(featureHelpOpen && ui.featureHelpDialog.open);
+assert(ui.featureHelpContent.innerHTML.includes(COURSE_HEART_IMAGE_SRC));assert(!ui.featureHelpContent.innerHTML.includes('❤️'));
 assert.deepEqual(pendingFeatureHelp,['heart']);assert(ui.featureHelpContent.innerHTML.includes('2回復'));
 const oldCamera=camera;clock=90000;advanceCameraIntro(clock);assert.equal(camera,oldCamera);assert.equal(cameraIntro.start,null);assert.equal(runTimeMs(),0);
 let labels=[];ctx.fillText=t=>labels.push(t);drawStageIntro();assert.equal(labels.length,0);

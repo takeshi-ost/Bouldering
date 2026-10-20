@@ -656,28 +656,16 @@ function drawJaggedHold(x,y,r,fill,stroke) {
     if (stroke) {ctx.strokeStyle=stroke;ctx.stroke();}
 }
 
-// Course pickups show their recovery amount and a glossy white-edged silhouette.
+// The same image, including the digit, is shared by pickups and explanations.
+const courseHeartImage=typeof Image==='function'?new Image():null;
+if(courseHeartImage) {
+    courseHeartImage.onload=()=>requestGameRender();
+    courseHeartImage.src=COURSE_HEART_IMAGE_SRC;
+}
 function drawCourseHeart(heart) {
-    const x=heart.x,y=heart.y,r=HEART_CONFIG.radius;
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(x,y+r);
-    ctx.bezierCurveTo(x-r*2,y,x-r,y-r*1.5,x,y-r*.5);
-    ctx.bezierCurveTo(x+r,y-r*1.5,x+r*2,y,x,y+r);
-    ctx.closePath();
-    ctx.fillStyle='#dc4261';ctx.fill();
-    ctx.strokeStyle='#ffffff';ctx.lineWidth=3;ctx.stroke();
-    // A static curved highlight provides gloss without another animation loop.
-    ctx.beginPath();
-    ctx.moveTo(x-r*.95,y-r*.14);
-    ctx.bezierCurveTo(x-r*1.05,y-r*.55,x-r*.58,y-r*.86,x-r*.26,y-r*.52);
-    ctx.bezierCurveTo(x-r*.64,y-r*.58,x-r*.73,y-r*.28,x-r*.95,y-r*.14);
-    ctx.fillStyle='#ffffffbf';ctx.fill();
-    ctx.font='900 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.lineWidth=2;ctx.strokeStyle='#a52e4a';
-    ctx.strokeText(String(HEART_CONFIG.recovery),x,y+1);
-    ctx.fillStyle='#ffffff';ctx.fillText(String(HEART_CONFIG.recovery),x,y+1);
-    ctx.restore();
+    if(!courseHeartImage?.complete || !courseHeartImage.naturalWidth)return;
+    const size=HEART_CONFIG.radius*3.2;
+    ctx.drawImage(courseHeartImage,heart.x-size/2,heart.y-size/2,size,size);
 }
 
 function drawStageIntro() {
