@@ -2,6 +2,9 @@
     box-sizing: border-box;
 }
 
+/* Preserve repeated taps as button actions instead of Safari double-tap zoom. */
+button, [role="button"] { touch-action:manipulation; }
+
 canvas:active {
     cursor: grabbing;
 }
@@ -445,10 +448,10 @@ button.modal-close:focus-visible { outline:none; }
 
 /* Reuse goal glints around unclaimed map milestones without Canvas updates. */
 .map-reward-effects { left:50%; top:50%; z-index:2; }
-.map-reward-effects i:nth-child(1) { left:-43px; top:-30px; }
-.map-reward-effects i:nth-child(2) { left:30px; top:-12px; }
-.map-reward-effects i:nth-child(3) { left:-36px; top:24px; }
-.map-reward-effects i:nth-child(4) { left:18px; top:-44px; }
+.map-reward-effects i:nth-child(1) { left:-32px; top:-24px; }
+.map-reward-effects i:nth-child(2) { left:22px; top:-9px; }
+.map-reward-effects i:nth-child(3) { left:-28px; top:16px; }
+.map-reward-effects i:nth-child(4) { left:12px; top:-32px; }
 .wall.presentation-paused .map-reward-effects i { animation-play-state:paused; }
 
 .course-heart-icon { display:inline-block; width:24px; height:24px; vertical-align:middle; object-fit:contain; }

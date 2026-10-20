@@ -1207,17 +1207,6 @@ function draw(now = 0) {
         );
     }
 
-    for (const x of [-4, 4]) {
-        for (const y of [-6, 0, 6]) {
-            circle(
-                visual.body.x + x,
-                visual.body.y + y + pressOffset,
-                1.3,
-                '#d9e9db'
-            );
-        }
-    }
-
     ctx.restore();
     ctx.restore();
     drawDebugHoldNumbers();
