@@ -17,10 +17,10 @@ new Function('assert',env+source+`
 assert.equal(heartItems,20);assert.equal(readHeartItems(),20);
 startCourse('existing');assert(openStageStart(1));
 const base=stagePreview(1).stamina;
-assert.equal(stageStartContext.hearts,0);assert(ui.stageHeartReset.disabled);assert.equal(ui.stageHeartOwned.textContent,'所持 20個');
-ui.stageHeartCount.onclick();ui.stageHeartCount.onclick();assert.equal(ui.stageHeartOwned.textContent,'所持 18個');ui.stageHeartReset.onclick();assert.equal(stageStartContext.hearts,0);assert.equal(ui.stageHeartOwned.textContent,'所持 20個');ui.stageHeartCount.onclick();assert.equal(stageStartContext.hearts,1);
+assert.equal(stageStartContext.hearts,0);assert(ui.stageHeartReset.disabled);assert.equal(ui.stageHeartOwned.textContent,'20');
+ui.stageHeartCount.onclick();ui.stageHeartCount.onclick();assert.equal(ui.stageHeartOwned.textContent,'18');ui.stageHeartReset.onclick();assert.equal(stageStartContext.hearts,0);assert.equal(ui.stageHeartOwned.textContent,'20');ui.stageHeartCount.onclick();assert.equal(stageStartContext.hearts,1);
 assert.equal(ui.stageStartStamina.textContent,String(base).padStart(2,'0'));
-setStageHeartItems(999);assert.equal(stageStartContext.hearts,20);assert(ui.stageHeartCount.disabled);assert.equal(ui.stageHeartOwned.textContent,'所持 0個');ui.stageHeartReset.onclick();assert.equal(stageStartContext.hearts,0);assert.equal(ui.stageHeartOwned.textContent,'所持 20個');
+setStageHeartItems(999);assert.equal(stageStartContext.hearts,20);assert(ui.stageHeartCount.disabled);assert.equal(ui.stageHeartOwned.textContent,'0');ui.stageHeartReset.onclick();assert.equal(stageStartContext.hearts,0);assert.equal(ui.stageHeartOwned.textContent,'20');
 setStageHeartItems(-1);assert.equal(stageStartContext.hearts,0);
 setStageHeartItems(NaN);assert.equal(stageStartContext.hearts,0);
 setStageHeartItems(3);assert.equal(stageStartContext.hearts,3);

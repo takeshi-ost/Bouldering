@@ -404,8 +404,8 @@ button.modal-close:focus-visible { outline:none; }
 @media (max-width:350px) { .stage-start-info { padding-left:6px; } .stage-start-info dd { font-size:12px; } }
 #stageStartButton { display:block; width:100%; min-height:44px; margin-top:0; font-size:15px; }
 
-.stage-heart-items { margin:0 0 14px; padding:10px; border-radius:12px; background:#eee9df; }
-#stageHeartOwned { margin-bottom:16px; font-size:12px; font-weight:700; text-align:right; white-space:nowrap; }
+.stage-heart-items { margin:0 0 14px; padding:12px 10px 8px; border-radius:12px; background:#eee9df; }
+#stageHeartOwned { align-self:flex-end; flex:none; min-width:2ch; margin:0 0 2px; font-size:14px; line-height:16px; font-weight:700; text-align:left; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .stage-heart-controls { display:flex; align-items:center; justify-content:center; gap:6px; font-size:20px; line-height:1; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .stage-start-stamina.stamina-heart { position:relative; top:auto; left:auto; flex:none; }
 .stage-heart-quantity { position:relative; }
