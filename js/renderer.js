@@ -150,27 +150,6 @@ function drawGoalHoldSprite(h) {
     return true;
 }
 // World-space effects follow the wall camera, without changing hit areas.
-function drawGoalSparkles(h,now) {
-    // Match the airship: four ivory stars, 2.2s staggered size/opacity pulses.
-    const stars=[[-23,-13,12,300],[24,3,16,1300],[-14,23,10,800],[9,-29,12,1800]];
-    const points=[[.5,0],[.61,.39],[1,.5],[.61,.61],[.5,1],[.39,.61],[0,.5],[.39,.39]];
-    const ease=t=>t*t*(3-2*t);
-    ctx.save();ctx.fillStyle='#fffbdc';
-    for(const [dx,dy,size,delay] of stars) {
-        const phase=((now+delay)%2200)/2200;
-        let scale,alpha;
-        if(phase<.45) {const t=ease(phase/.45);scale=.25+.75*t;alpha=t;}
-        else if(phase<.75) {const t=ease((phase-.45)/.3);scale=1-.55*t;alpha=1-t;}
-        else {scale=.45-.2*ease((phase-.75)/.25);alpha=0;}
-        ctx.globalAlpha=alpha;ctx.beginPath();
-        points.forEach(([x,y],i)=>{
-            const px=h.x+dx+(x-.5)*size*scale,py=h.y+dy+(y-.5)*size*scale;
-            if(i)ctx.lineTo(px,py);else ctx.moveTo(px,py);
-        });
-        ctx.closePath();ctx.fill();
-    }
-    ctx.restore();
-}
 function drawAnchorRings(now) {
     anchorRings=anchorRings.filter(r=>now-r.start<200);
     ctx.save();
@@ -696,17 +675,128 @@ function drawStageIntro() {
     ctx.restore();
 }
 
-function draw(now = 0) {
-    if(typeof refreshLives==='function')refreshLives();
-    if(state==='life-prompt'){requestAnimationFrame(draw);return;}
-    if(state==='ad') {advanceDummyAd(now);requestAnimationFrame(draw);return;}
-    if (state === 'choosing' || state === 'editing' || state === 'map' || state === 'daily') {
-        if (state === 'map') advanceLevelMap(now);
-        if (state === 'daily' || state === 'map') refreshDailyCalendar();
-        requestAnimationFrame(draw);
+// Canvas frames are requested by input/state changes, then continued only for motion.
+// Bootstrap life hooks can run before presentation initialization.
+var presentationEnabled=false;
+let gameFrame=null,presentationTimer=null,presentationStateKey='',lastStagePaintKey='';
+function requestGameRender() {
+    if(!presentationEnabled || document.hidden)return;
+    if(gameFrame===null)gameFrame=requestAnimationFrame(draw);
+}
+function presentationBlocked() {
+    return settingsOpen || featureHelpOpen || !ui.overlay.hidden || ui.helpDialog.open ||
+        ui.stageStartDialog.open || state==='ad' || state==='life-prompt';
+}
+function updateGoalEffects() {
+    ui.wall.classList.toggle('presentation-paused',presentationBlocked() || !!document.hidden);
+    if(!ui.goalEffects)return;
+    const goal=holds.find(h=>h.type==='goal');
+    const visible=['playing','won','lost'].includes(state) && goal &&
+        goal.y>=camera-30 && goal.y<=camera+H+30;
+    ui.goalEffects.hidden=!visible;
+    ui.goalEffects.classList.toggle('is-paused',presentationBlocked() || !!document.hidden);
+    if(!visible)return;
+    const rect=canvas.getBoundingClientRect(),wall=ui.wall.getBoundingClientRect();
+    ui.goalEffects.style.left=(rect.left-wall.left+goal.x*rect.width/W)+'px';
+    ui.goalEffects.style.top=(rect.top-wall.top+(goal.y-camera)*rect.height/H)+'px';
+    ui.goalEffects.style.transform=`scale(${rect.width/W})`;
+}
+function schedulePresentationUpdates() {
+    if(!presentationEnabled)return;
+    if(presentationTimer!==null)window.clearTimeout?.(presentationTimer);
+    presentationTimer=null;
+    if(document.hidden)return;
+    let delay=Infinity;
+    if(dummyAd && dummyAd.remaining>0) {
+        const elapsed=Math.max(0,performance.now()-dummyAd.start);
+        delay=Math.max(1,1000-elapsed%1000);
+    }
+    if(lives.count<LIFE_RECOVERY_CAP && lives.recoveryAt!==null) {
+        const untilRecovery=Math.max(1,lives.recoveryAt+LIFE_RECOVERY_MS-Date.now());
+        const countdown=lives.count===0 && state==='map';
+        delay=Math.min(delay,countdown?Math.min(1000,untilRecovery):untilRecovery);
+    }
+    if(state==='map' || state==='daily') {
+        const midnight=new Date();midnight.setHours(24,0,0,0);
+        delay=Math.min(delay,Math.max(1,midnight.getTime()-Date.now()));
+    }
+    if(Number.isFinite(delay))presentationTimer=window.setTimeout?.(()=>{
+        presentationTimer=null;
+        const recoveryDue=lives.recoveryAt!==null && Date.now()>=lives.recoveryAt+LIFE_RECOVERY_MS;
+        if(recoveryDue || (lives.count===0 && state==='map'))refreshLives();
+        if((state==='map' && localToday()!==dailyEntryToday) ||
+            (state==='daily' && localToday()!==dailyCalendarToday))refreshDailyCalendar();
+        if(dummyAd)advanceDummyAd();
+        schedulePresentationUpdates();
+    },delay)??null;
+}
+function syncPresentationState() {
+    const key=[state,courseMode,debugAttempt,!!dailyRun,!!stageStartContext,!!lifePrompt].join(':');
+    if(key!==presentationStateKey) {
+        presentationStateKey=key;
+        refreshLives();refreshDailyCalendar();schedulePresentationUpdates();
+    }
+}
+function continueGameAnimation(now) {
+    if(!presentationEnabled || document.hidden)return;
+    if(state==='map') {
+        if(mapTransition && !mapPreparing)requestGameRender();
         return;
     }
-    advanceCameraIntro(now);
+    if(!['playing','won','lost'].includes(state) || presentationBlocked())return;
+    const a=characterAnimation,elapsed=a?Math.max(0,now-a.start):0;
+    const poseMoving=a && (a.kind==='settle'?elapsed<240:
+        a.kind==='fall'?FALL_CONFIG.gravity*(elapsed/1000)**2/2<a.maxDrop:true);
+    const cameraMoving=state==='playing' && !drag && !bodyTap && !inspecting &&
+        Math.abs(camera-clamp(body.y-H*CAMERA_CONFIG.bodyScreenRatio,cameraTop(),HEIGHT-H))>.05;
+    if(cameraIntro || cameraMoving || poseMoving || grips.some(h=>!h) ||
+        anchorRings.some(r=>now-r.start<200) ||
+        heartPopups.some(p=>now-p.start<HEART_CONFIG.popupDuration) ||
+        (hazardShakeStart!==null && now-hazardShakeStart<HAZARD_CONFIG.shakeDuration))requestGameRender();
+}
+function startPresentation() {
+    presentationEnabled=true;
+    const wake=()=>{requestGameRender();schedulePresentationUpdates();};
+    for(const event of ['mousedown','mouseup','touchstart','touchend','touchcancel','click','keydown','wheel','input','change','close'])
+        document.addEventListener?.(event,wake,{capture:true,passive:true});
+    for(const event of ['mousemove','touchmove'])document.addEventListener?.(event,()=>{
+        if(drag || bodyTap || pan)requestGameRender();
+    },{capture:true,passive:true});
+    const resume=()=>{refreshLives();refreshDailyCalendar();if(dummyAd)advanceDummyAd();wake();};
+    document.addEventListener?.('visibilitychange',()=>{
+        if(document.hidden) {
+            if(gameFrame!==null)window.cancelAnimationFrame?.(gameFrame);
+            gameFrame=null;
+            if(presentationTimer!==null)window.clearTimeout?.(presentationTimer);
+            presentationTimer=null;
+            updateGoalEffects();
+        } else resume();
+    });
+    window.addEventListener('focus',resume);
+    window.addEventListener('pageshow',resume);
+    window.addEventListener('resize',requestGameRender);
+    window.addEventListener('blur',requestGameRender);
+    window.visualViewport?.addEventListener('resize',requestGameRender);
+    for(const image of [gameWallImage,gymFloorImage,holdShapesImage,wideHoldImage,hazardHoldImage])
+        image?.addEventListener?.('load',requestGameRender);
+    wake();
+}
+
+function draw(now = 0) {
+    gameFrame=null;
+    if(document.hidden)return;
+    if(presentationEnabled)syncPresentationState();
+    if(!['playing','won','lost'].includes(state)) {
+        updateGoalEffects();
+        if(state==='map')advanceLevelMap(now);
+        continueGameAnimation(now);
+        return;
+    }
+    const paintKey=lifeAttemptId+':'+state;
+    if(presentationEnabled && presentationBlocked() && lastStagePaintKey===paintKey) {
+        updateGoalEffects();return;
+    }
+    if(!presentationBlocked())advanceCameraIntro(now);
     if(characterAnimation?.kind==='fall')camera=characterAnimation.camera;
 
     const desired = clamp(
@@ -723,9 +813,8 @@ function draw(now = 0) {
         !inspecting && !settingsOpen &&
         state === 'playing'
     ) {
-        camera +=
-            (desired - camera) *
-            CAMERA_CONFIG.followRate;
+        camera = Math.abs(desired-camera)<.05 ? desired :
+            camera+(desired-camera)*CAMERA_CONFIG.followRate;
     }
 
     const ratio = Math.min(
@@ -973,7 +1062,6 @@ function draw(now = 0) {
             );
         }
 
-        if(gold)drawGoalSparkles(h,now);
         if (gold || (green && h.wide)) {
             ctx.fillStyle = gold ? '#9e7b2c' : '#526659';
 
@@ -1138,6 +1226,8 @@ function draw(now = 0) {
         ctx.fillRect(pan.side==='left'?0:W-STAGE_SAFE_WIDTH,0,STAGE_SAFE_WIDTH,H);
     }
     drawStageIntro();
+    lastStagePaintKey=paintKey;
 
-    requestAnimationFrame(draw);
+    updateGoalEffects();
+    continueGameAnimation(now);
 }

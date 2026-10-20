@@ -37,12 +37,14 @@ function startDummyAd({onComplete=()=>{},onReturn=null}={}) {
     state='ad';ui.dummyAd.hidden=false;
     ui.adCounter.textContent='10';ui.adComplete.hidden=true;
     ui.dummyAd.showModal?.();ui.dummyAd.focus();
+    requestGameRender();schedulePresentationUpdates();
     return true;
 }
 function advanceDummyAd(now=performance.now()) {
     if(!dummyAd)return;
     const remaining=Math.max(0,Math.ceil((DUMMY_AD_DURATION-Math.max(0,now-dummyAd.start))/1000));
-    dummyAd.remaining=remaining;ui.adCounter.textContent=String(remaining);
+    dummyAd.remaining=remaining;
+    if(ui.adCounter.textContent!==String(remaining))ui.adCounter.textContent=String(remaining);
     if(remaining===0 && ui.adComplete.hidden) {
         ui.adComplete.hidden=false;ui.adComplete.focus();
     }
@@ -60,6 +62,7 @@ function completeDummyAd() {
         else canvas.focus();
         if(state!=='map' || !mapPreparing)finishDummyAdCover();
     }
+    requestGameRender();schedulePresentationUpdates();
     return true;
 }
 ui.adComplete.onclick=completeDummyAd;

@@ -165,6 +165,7 @@ function showDailyCalendar({openFromMap=false}={}) {
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
     leaveDailyRun();hideStageHelp();hideSettings();hideResultModal();
     state='daily';mapTransition=null;
+    requestGameRender();
     ui.titleScreen.hidden=ui.characterEditor.hidden=ui.levelMap.hidden=ui.hud.hidden=true;
     ui.dailyCalendar.hidden=false;ui.dailyError.hidden=true;
     ui.wall.classList.toggle('map-open',true);

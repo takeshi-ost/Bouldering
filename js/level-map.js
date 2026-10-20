@@ -75,6 +75,7 @@ function prepareMapReveal() {
         ui.levelMap.inert=false;
         ui.levelMap.removeAttribute?.('aria-hidden');
         finishDummyAdCover();
+        requestGameRender();
         if(!mapTransition)focusMapLevel();
     };
     const images=Array.from(ui.mapNodes.querySelectorAll?.('img')||[]);
@@ -237,6 +238,7 @@ function hideStageStart() {
     stageStartContext?.button?.classList.toggle('is-tapped',false);
     stageStartContext=null;
     if(ui.stageStartDialog.open)ui.stageStartDialog.close?.();
+    if(typeof requestGameRender==='function')requestGameRender();
 }
 function closeStageStart() {
     const selected=stageStartContext?.n;
@@ -259,6 +261,7 @@ function openStageStart(n,debug=false,button=null,delay=0) {
         stageStartTimer=null;
         if(stageStartContext!==context || state!=='map' || courseMode!==context.mode)return;
         ui.stageStartDialog.showModal?.();
+        requestGameRender();
     };
     if(button || delay>0) {
         button?.classList.toggle('is-tapped',true);

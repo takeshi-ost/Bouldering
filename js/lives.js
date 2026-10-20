@@ -57,6 +57,7 @@ function settleLifeAttempt(won) {
 }
 function refreshLives() {
     recoverLives();
+    if(typeof schedulePresentationUpdates==='function')schedulePresentationUpdates();
     ui.lifeStatus.classList.toggle('title-lives',state==='choosing');
     const inGame=['playing','won','lost'].includes(state);
     const inMap=state==='map';

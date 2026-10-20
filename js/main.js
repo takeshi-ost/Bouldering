@@ -63,4 +63,4 @@ function enterPreparedMap() {
 ui.titleScreen.onclick=enterPreparedMap;
 ui.titleScreen.onkeydown=e=>{if(e.key==='Enter' || e.key===' '){e.preventDefault();enterPreparedMap();}};
 showTitleScreen();
-requestAnimationFrame(draw);
+startPresentation();

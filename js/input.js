@@ -274,6 +274,7 @@ function openSettings() {
     syncDebugCourseControls();
     settingsOpen=true;
     ui.settingsDialog.showModal?.();
+    requestGameRender();
 }
 ui.settingsButton.onclick=openSettings;
 ui.mapSettingsButton.onclick=openSettings;

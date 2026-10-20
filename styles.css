@@ -408,3 +408,16 @@ button.modal-close:focus-visible { outline:none; }
 .stage-heart-quantity { position:relative; }
 #stageHeartCount { display:block; min-width:88px; height:58px; margin:0; padding:8px 12px; border:1px solid #cecbbf; border-radius:10px; background:#fffdf7; color:inherit; box-shadow:none; font:inherit; }
 #stageHeartReset { position:absolute; top:-12px; right:-12px; display:grid; place-items:center; width:30px; height:30px; min-height:30px; margin:0; padding:0; border:2px solid #fffdf7; border-radius:50%; background:#66786b; color:white; box-shadow:0 1px 3px #25372f33; font-size:15px; line-height:1; }
+
+/* Goal glints animate independently, so a still stage needs no Canvas frames. */
+.goal-effects { position:absolute; width:0; height:0; pointer-events:none; transform-origin:0 0; }
+.goal-effects[hidden] { display:none; }
+.goal-effects i { position:absolute; background:#fffbdc; clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%); animation:daily-sparkle 2.2s ease-in-out infinite; }
+.goal-effects i:nth-child(1) { left:-29px; top:-19px; width:12px; height:12px; animation-delay:-.3s; }
+.goal-effects i:nth-child(2) { left:16px; top:-5px; width:16px; height:16px; animation-delay:-1.3s; }
+.goal-effects i:nth-child(3) { left:-19px; top:18px; width:10px; height:10px; animation-delay:-.8s; }
+.goal-effects i:nth-child(4) { left:3px; top:-35px; width:12px; height:12px; animation-delay:-1.8s; }
+.goal-effects.is-paused i { animation-play-state:paused; }
+
+.wall.presentation-paused .daily-airship,.wall.presentation-paused .daily-sparkle,
+.wall.presentation-paused .map-node::before,.wall.presentation-paused .map-node::after { animation-play-state:paused; }

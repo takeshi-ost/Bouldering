@@ -3,7 +3,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
-    "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
+    "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartOwned", "stageHeartCount", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
     "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartLabel", "dailyStartStamina", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
@@ -15,6 +15,7 @@ const debugDisplay={route:true,holdNumbers:true,courseInfo:true};
 let settingsOpen = false;
 function hideSettings() {
     settingsOpen=false;
+    if(typeof requestGameRender==='function')requestGameRender();
     if(ui.settingsDialog.open)ui.settingsDialog.close?.();
 }
 // First encounters are shared by both courses and retained across launches.
@@ -58,6 +59,7 @@ function dismissStageHelp() {
         return;
     }
     hideStageHelp();
+    requestGameRender();
     // Start the full opening sequence on the next frame, excluding reading time.
     if(cameraIntro)cameraIntro.start=null;
     canvas.focus();
@@ -118,6 +120,7 @@ function hideResultModal() {
     ui.overlay.hidden=true;
 }
 function showResultModal() {
+    requestGameRender();
     ui.overlay.hidden=false;
     if(!ui.overlay.open)ui.overlay.showModal?.();
 }
@@ -573,6 +576,7 @@ function reset(n,staminaBonus=0) {
 }
 
 function updateUI() {
+    if(typeof requestGameRender==='function')requestGameRender();
     ui.settingsButton.disabled = !!cameraIntro || state!=='playing';
     ui.stamina.textContent = String(stamina);
     ui.stamina.setAttribute('aria-label',`スタミナ ${stamina} 手`);
