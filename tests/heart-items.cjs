@@ -17,13 +17,13 @@ new Function('assert',env+source+`
 assert.equal(heartItems,20);assert.equal(readHeartItems(),20);
 startCourse('existing');assert(openStageStart(1));
 const base=stagePreview(1).stamina;
-assert.equal(stageStartContext.hearts,0);assert(ui.stageHeartMinus.disabled);assert.equal(ui.stageHeartOwned.textContent,'所持 20個');
-ui.stageHeartPlus.onclick();ui.stageHeartPlus.onclick();ui.stageHeartMinus.onclick();assert.equal(stageStartContext.hearts,1);
-assert.equal(ui.stageStartStamina.textContent,'❤️'+String(base).padStart(2,'0'));
-setStageHeartItems(999);assert.equal(stageStartContext.hearts,20);assert(ui.stageHeartPlus.disabled);
+assert.equal(stageStartContext.hearts,0);assert(ui.stageHeartReset.disabled);assert.equal(ui.stageHeartOwned.textContent,'所持 20個');
+ui.stageHeartCount.onclick();ui.stageHeartCount.onclick();assert.equal(ui.stageHeartOwned.textContent,'所持 18個');ui.stageHeartReset.onclick();assert.equal(stageStartContext.hearts,0);assert.equal(ui.stageHeartOwned.textContent,'所持 20個');ui.stageHeartCount.onclick();assert.equal(stageStartContext.hearts,1);
+assert.equal(ui.stageStartStamina.textContent,String(base).padStart(2,'0'));
+setStageHeartItems(999);assert.equal(stageStartContext.hearts,20);assert(ui.stageHeartCount.disabled);assert.equal(ui.stageHeartOwned.textContent,'所持 0個');ui.stageHeartReset.onclick();assert.equal(stageStartContext.hearts,0);assert.equal(ui.stageHeartOwned.textContent,'所持 20個');
 setStageHeartItems(-1);assert.equal(stageStartContext.hearts,0);
 setStageHeartItems(NaN);assert.equal(stageStartContext.hearts,0);
-ui.stageHeartCount.value='3';ui.stageHeartCount.oninput();assert.equal(stageStartContext.hearts,3);
+setStageHeartItems(3);assert.equal(stageStartContext.hearts,3);
 closeStageStart();assert.equal(heartItems,20);assert.equal(readHeartItems(),20);
 assert(openStageStart(1));assert.equal(stageStartContext.hearts,0);setStageHeartItems(3);ui.stageStartButton.onclick();
 assert.equal(state,'playing');assert.equal(stamina,base+3);assert.equal(heartItems,17);assert.equal(readHeartItems(),17);
@@ -40,7 +40,7 @@ grantLife();ui.lifeWatchAd.onclick();assert.equal(state,'playing');assert.equal(
 showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(2);
 const prepare=prepareCurrentStage,report=console.error;prepareCurrentStage=()=>{throw Error('intentional generation failure');};console.error=()=>{};
 ui.stageStartButton.onclick();prepareCurrentStage=prepare;console.error=report;assert.equal(state,'map');assert.equal(heartItems,10,'Failed generation must not spend hearts');
-assert(openStageStart(1));setStageHeartItems(10);ui.stageStartButton.onclick();assert.equal(heartItems,0);assert.equal(readHeartItems(),0);showLevelMap();assert(openStageStart(1));assert(ui.stageHeartPlus.disabled);assert(ui.stageHeartMinus.disabled);closeStageStart();
+assert(openStageStart(1));setStageHeartItems(10);ui.stageStartButton.onclick();assert.equal(heartItems,0);assert.equal(readHeartItems(),0);showLevelMap();assert(openStageStart(1));assert(ui.stageHeartCount.disabled);assert(ui.stageHeartReset.disabled);closeStageStart();
 const profile=dailyProfile(localToday());assert(launchDailyAttempt(profile,1));assert.equal(stamina,routeStamina(route),'Daily receives no previous bonus');assert.equal(heartItems,0);
 for(const value of ['-1','1.5','null','"20"','broken']){storage[HEART_ITEMS_KEY]=value;assert.equal(readHeartItems(),20);}
 globalThis.localStorage={getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}};

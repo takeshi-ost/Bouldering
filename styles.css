@@ -402,9 +402,9 @@ button.modal-close:focus-visible { outline:none; }
 #stageStartButton { display:block; width:100%; min-height:44px; margin-top:0; font-size:15px; }
 
 .stage-heart-items { margin:0 0 14px; padding:10px; border-radius:12px; background:#eee9df; }
-#stageHeartOwned { margin-bottom:6px; font-size:12px; font-weight:700; text-align:right; white-space:nowrap; }
+#stageHeartOwned { margin-bottom:16px; font-size:12px; font-weight:700; text-align:right; white-space:nowrap; }
 .stage-heart-controls { display:flex; align-items:center; justify-content:center; gap:6px; font-size:20px; line-height:1; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
-.stage-heart-quantity { display:flex; align-items:center; border:1px solid #cecbbf; border-radius:8px; background:#fffdf7; }
-.stage-heart-controls button { flex:none; width:36px; min-height:44px; padding:0; margin:0; background:transparent; color:inherit; box-shadow:none; font:inherit; }
-#stageHeartCount { width:2.1ch; min-height:44px; padding:0; border:0; border-radius:0; background:transparent; color:inherit; font:inherit; text-align:left; appearance:textfield; -moz-appearance:textfield; }
-#stageHeartCount::-webkit-inner-spin-button,#stageHeartCount::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+.stage-start-stamina.stamina-heart { position:relative; top:auto; left:auto; flex:none; }
+.stage-heart-quantity { position:relative; }
+#stageHeartCount { display:block; min-width:88px; height:58px; margin:0; padding:8px 12px; border:1px solid #cecbbf; border-radius:10px; background:#fffdf7; color:inherit; box-shadow:none; font:inherit; }
+#stageHeartReset { position:absolute; top:-12px; right:-12px; display:grid; place-items:center; width:30px; height:30px; min-height:30px; margin:0; padding:0; border:2px solid #fffdf7; border-radius:50%; background:#66786b; color:white; box-shadow:0 1px 3px #25372f33; font-size:15px; line-height:1; }

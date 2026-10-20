@@ -181,11 +181,24 @@
             <div class="stage-heart-items" role="group" aria-label="開始スタミナと使用するハート">
                 <div id="stageHeartOwned"></div>
                 <div class="stage-heart-controls">
-                    <span id="stageStartStamina">❤️00</span><span aria-hidden="true">+</span>
+                    <div class="stamina-heart stage-start-stamina">
+                    <svg viewBox="0 0 100 90" aria-hidden="true">
+                        <defs>
+                            <path id="stageBaseHeartShape" d="M50 84C38 73 5 51 5 28C5 4 34-2 50 19C66-2 95 4 95 28C95 51 62 73 50 84Z"/>
+                            <linearGradient id="stageBaseHeartLight" x1="0" y1="0" x2=".35" y2="1">
+                                <stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".38" stop-color="#fff" stop-opacity=".08"/><stop offset="1" stop-color="#51222b" stop-opacity=".32"/>
+                            </linearGradient>
+                        </defs>
+                        <use href="#stageBaseHeartShape" fill="currentColor"/>
+                        <use href="#stageBaseHeartShape" fill="url(#stageBaseHeartLight)" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+                        <path d="M16 26C16 18 23 13 30 15" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="4" stroke-linecap="round"/>
+                    </svg>
+                        <strong id="stageStartStamina" aria-label="規定スタミナ">00</strong>
+                    </div>
+                    <span aria-hidden="true">+</span>
                     <div class="stage-heart-quantity">
-                        <button id="stageHeartMinus" class="secondary" aria-label="使用するハートを1個減らす">−</button>
-                        <span aria-hidden="true">❤️</span><input id="stageHeartCount" type="number" inputmode="numeric" min="0" max="20" step="1" value="00" aria-label="使用するハートの数">
-                        <button id="stageHeartPlus" class="secondary" aria-label="使用するハートを1個増やす">+</button>
+                        <button id="stageHeartCount" aria-label="ハートを1個追加">❤️00</button>
+                        <button id="stageHeartReset" aria-label="使用するハートを0個に戻す">✖︎</button>
                     </div>
                 </div>
             </div>

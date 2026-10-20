@@ -29,12 +29,12 @@ ui.stageStartDialog.events.click({target:ui.stageStartDialog,clientX:-1,clientY:
 assert(openStageStart(1));let canceled=false;ui.stageStartDialog.events.cancel({preventDefault(){canceled=true;}});assert(canceled && !stageStartContext);
 stageProgress.existing.cleared=40;
 for(const [n,length,label] of [[2,'ミドル','EASY'],[5,'ロング','NORMAL'],[20,'ロング','NORMAL'],[40,'ロング','HARD']]) {
- assert(openStageStart(n));assert.equal(ui.stageStartLength.textContent,length);assert.equal(ui.stageStartDifficulty.textContent,label);assert.match(ui.stageStartStamina.textContent,/^❤️[0-9]{2,}$/);closeStageStart();
+ assert(openStageStart(n));assert.equal(ui.stageStartLength.textContent,length);assert.equal(ui.stageStartDifficulty.textContent,label);assert.match(ui.stageStartStamina.textContent,/^[0-9]{2,}$/);closeStageStart();
 }
 let pulsing=false;const button={classList:{toggle(_,on){pulsing=on;}}};
 assert(openStageStart(1,false,button));assert(pulsing && !ui.stageStartDialog.open);assert.equal(timers.at(-1).ms,140);
 timers.at(-1).fn();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();
-assert.equal(state,'playing');assert.equal(level,1);assert(!stageStartContext && !ui.stageStartDialog.open && !pulsing);assert(lives.inProgress);assert.equal(stamina,routeStamina(route));assert.equal(ui.stageStartStamina.textContent,'❤️'+String(stamina).padStart(2,'0'));
+assert.equal(state,'playing');assert.equal(level,1);assert(!stageStartContext && !ui.stageStartDialog.open && !pulsing);assert(lives.inProgress);assert.equal(stamina,routeStamina(route));assert.equal(ui.stageStartStamina.textContent,String(stamina).padStart(2,'0'));
 const attempt=lifeAttemptId;ui.stageStartButton.onclick();assert.equal(lifeAttemptId,attempt,'Double Start must not restart');
 showLevelMap();lives.count=0;lives.recoveryAt=Date.now();
 assert(openStageStart(1));assert.match(ui.stageStartLives.innerHTML,/30:00/);

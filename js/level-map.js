@@ -210,12 +210,13 @@ function advanceLevelMap(now) {
 let stageStartContext=null,stageStartTimer=null;
 function renderStageHeartItems() {
     const context=stageStartContext;if(!context)return;
-    ui.stageHeartOwned.textContent=`所持 ${heartItems}個`;
-    ui.stageHeartCount.value=String(context.hearts).padStart(2,'0');
-    ui.stageHeartCount.max=String(heartItems);
-    ui.stageHeartMinus.disabled=context.hearts===0;
-    ui.stageHeartPlus.disabled=context.hearts===heartItems;
-    ui.stageStartStamina.textContent=previewStaminaText(context.n,context.mode);
+    ui.stageHeartOwned.textContent=`所持 ${heartItems-context.hearts}個`;
+    ui.stageHeartCount.textContent=`❤️${String(context.hearts).padStart(2,'0')}`;
+    ui.stageHeartCount.setAttribute('aria-label',`使用ハート ${context.hearts}個、タップで1個追加`);
+    ui.stageHeartCount.disabled=context.hearts===heartItems;
+    ui.stageHeartReset.disabled=context.hearts===0;
+    ui.stageStartStamina.textContent=previewStaminaText(context.n,context.mode).replace('❤️','');
+    ui.stageStartStamina.setAttribute('aria-label',`規定スタミナ ${ui.stageStartStamina.textContent}`);
 }
 function setStageHeartItems(value) {
     if(!stageStartContext || !ui.stageStartDialog.open)return;
@@ -223,9 +224,8 @@ function setStageHeartItems(value) {
     stageStartContext.hearts=Number.isFinite(count)?clamp(Math.trunc(count),0,heartItems):0;
     renderStageHeartItems();
 }
-ui.stageHeartMinus.onclick=()=>setStageHeartItems((stageStartContext?.hearts??0)-1);
-ui.stageHeartPlus.onclick=()=>setStageHeartItems((stageStartContext?.hearts??0)+1);
-ui.stageHeartCount.oninput=()=>setStageHeartItems(ui.stageHeartCount.value);
+ui.stageHeartCount.onclick=()=>setStageHeartItems((stageStartContext?.hearts??0)+1);
+ui.stageHeartReset.onclick=()=>setStageHeartItems(0);
 function canSelectStage(n,debug=false) {
     return state==='map' && !mapPreparing && !mapTransition && !stageStartContext &&
         Number.isSafeInteger(n) && n>=1 && n<Number.MAX_SAFE_INTEGER &&
