@@ -137,7 +137,11 @@ function onlineMapPlayers(first,last,mode) {
     return page.players.filter(row=>row.id!==online.uid);
 }
 function resumeOnline() {
-    if(accountDeletion.marker || !online.adapter)return;
+    if(!online.adapter)return;
+    if(accountDeletion.marker) {
+        if(accountDeletion.marker.phase==='pending' && !accountDeletion.busy)void restoreDeletionSession(online.adapter);
+        return;
+    }
     if(!online.ready)void startOnline(online.adapter);
     else {if(online.dirty)void flushOnlineProfile();void flushOnlineScores();refreshOpenScoreViews();if(state==='map' || state==='choosing')renderMapPlayers();}
 }

@@ -40,7 +40,7 @@ async function restoreDeletionSession(adapter) {
         online.uid=user.uid;online.ready=false;
         setOnlineStatus('ユーザーデータの削除を待っています');showDeleteUserDialog();
     } catch(error) {
-        setOnlineStatus('削除を再開できません。元の認証情報が必要です');
+        setOnlineStatus('削除の認証を確認できません。接続を確認して再読み込みしてください');
         console.warn('Account deletion restore:',error?.code || error?.message);
     } finally {accountDeletion.restoreBusy=false;updateDeleteUserButton();}
 }
