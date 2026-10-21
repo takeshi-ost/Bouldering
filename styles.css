@@ -498,14 +498,15 @@ button.modal-close:focus-visible { outline:none; }
 #overlay .modal-tap { margin:20px 0 0; }
 #overlay #resultTap[hidden],#overlay #next[hidden],#overlay #retry[hidden],#overlay #closeResult[hidden] { display:none; }
 
-/* Stage clears show five compact score rows; daily results retain their layout. */
+/* Clear headings share one row; normal stages add compact score rankings. */
 #overlay.has-ranking .card { padding:18px 14px 16px; }
 #overlay .result-heading { display:contents; }
-#overlay.has-ranking .result-heading { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:12px; white-space:nowrap; }
-#overlay.has-ranking .card h1 { flex:none; font-size:22px; line-height:34px; margin:0; }
-#overlay.has-ranking .result-stars { flex:none; margin:0; font-size:28px; line-height:34px; }
-@media (max-width:350px) { #overlay.has-ranking .result-heading { gap:8px; } #overlay.has-ranking .card h1 { font-size:20px; } #overlay.has-ranking .result-stars { font-size:26px; } }
+#overlay.is-clear .result-heading { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:12px; white-space:nowrap; }
+#overlay.is-clear .card h1 { flex:none; font-size:22px; line-height:34px; margin:0; }
+#overlay.is-clear .result-stars { flex:none; margin:0; font-size:28px; line-height:34px; }
+@media (max-width:350px) { #overlay.is-clear .result-heading { gap:8px; } #overlay.is-clear .card h1 { font-size:20px; } #overlay.is-clear .result-stars { font-size:26px; } }
 #overlay .result-ranking[hidden] { display:none; }
+.result-ranking,.stage-start-ranking { padding:8px; border-radius:12px; background:#eee9df; }
 .result-leaderboard { list-style:none; padding:0; margin:0; text-align:left; }
 .score-row { display:grid; grid-template-columns:20px 24px minmax(0,1fr) max-content 70px; align-items:center; gap:6px; min-height:34px; font-size:12px; line-height:18px; font-weight:400; font-variant-numeric:tabular-nums; }
 .score-row.is-player { font-weight:900; color:#2d6850; }
@@ -523,4 +524,5 @@ button.modal-close:focus-visible { outline:none; }
 .stage-start-ranking { margin:0 0 16px; }
 .stage-start-stars[hidden],.stage-start-ranking[hidden] { display:none; }
 
-.map-inventory { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 42px); left:calc(max(12px,env(safe-area-inset-left,0px)) + 8px); pointer-events:none; }
+.map-inventory { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 42px); left:calc(max(12px,env(safe-area-inset-left,0px)) + 20.48px); width:24px; height:24px; pointer-events:none; }
+.map-inventory .heart-item-stack { transform:scale(.48); transform-origin:top left; }
