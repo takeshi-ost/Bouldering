@@ -37,6 +37,27 @@ async function bootFirebase() {
                     return profile;
                 });
             },
+            async saveScore(uid,board,score) {
+                const ref=dbSDK.doc(db,'stageScores',board,'entries',uid);
+                return dbSDK.runTransaction(db,async transaction=>{
+                    const snapshot=await transaction.get(ref),previous=snapshot.exists()?snapshot.data():null;
+                    if(previous && !validStageScore(previous))throw new Error('Invalid stored score');
+                    if(previous && compareStageScores(previous,score)<=0)return {moves:previous.moves,timeMs:previous.timeMs};
+                    transaction.set(ref,{moves:score.moves,timeMs:score.timeMs,updatedAt:dbSDK.serverTimestamp()});
+                    return score;
+                });
+            },
+            async scores(uid,board) {
+                const collection=dbSDK.collection(db,'stageScores',board,'entries');
+                const query=dbSDK.query(collection,dbSDK.orderBy('moves'),dbSDK.orderBy('timeMs'),dbSDK.limit(100));
+                const [snapshot,own]=await Promise.all([dbSDK.getDocs(query),dbSDK.getDoc(dbSDK.doc(collection,uid))]);
+                const rows=snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));
+                if(own.exists() && !rows.some(row=>row.id===uid))rows.push({...own.data(),id:uid});
+                const ids=rows.filter(row=>row.id!==uid).slice(0,5).map(row=>row.id);
+                const profiles=await Promise.all(ids.map(id=>dbSDK.getDoc(dbSDK.doc(db,'players',id))));
+                profiles.forEach((profile,i)=>{const row=rows.find(row=>row.id===ids[i]);row.profile=profile.exists()?profile.data():null;});
+                return rows;
+            },
             async players(first,last,mode) {
                 const field=mode==='prototype'?'reachedPrototypeLevel':'reachedLevel',rows=[];
                 let next=first;

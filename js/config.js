@@ -5,6 +5,8 @@ function heartItemIconMarkup() {
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
 const RELEASE_VERSION = '0.1.0';
+// Bump whenever generation/gameplay changes make stage scores incomparable.
+const COURSE_VERSION = 'v1';
 // 表示サイズと可動域。単位はゲーム内の論理pxです。
 const W = 400;
 const H = 700;

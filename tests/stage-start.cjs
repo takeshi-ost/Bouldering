@@ -52,10 +52,10 @@ ui.stageStartButton.onclick();assert.equal(level,21);assert.equal(state,'playing
 showLevelMap({advanceFrom:20});advanceLevelMap(1000);advanceLevelMap(1650);const delayedNext=timers.at(-1).fn;showTitleScreen();delayedNext();assert(!ui.stageStartDialog.open && !stageStartContext);
 // Cleared-stage preview uses saved player data and freshly selected opponents.
 startCourse('existing');stageProgress.existing.cleared=1;
-stageRecords.existing[1]={moves:5,timeMs:12345,stars:3};
+stageRecords.existing[1]={moves:5,timeMs:12345,stars:3,version:COURSE_VERSION};
 const savedSource=currentStageScores;let reads=0;
 currentStageScores=(n,mode,expected)=>{
- assert.equal(n,1);assert.equal(mode,'existing');assert(Number.isFinite(expected));reads++;
+ assert.equal(n,1);assert.equal(mode,'existing');reads++;
  return Array.from({length:8},(_,i)=>({name:'Fresh'+reads+'-'+i,moves:reads===1?1:20,timeMs:1000+i,avatar:i}));
 };
 assert(openStageStart(1));assert.equal(reads,1);
@@ -70,7 +70,7 @@ closeStageStart();assert(openStageStart(1));assert.equal(reads,2);
 assert(ui.stageStartLeaderboard.innerHTML.includes('Fresh2-0'));
 assert(!ui.stageStartLeaderboard.innerHTML.includes('Fresh1-0'));
 assert(ui.stageStartLeaderboard.innerHTML.startsWith('<li class="score-row is-player"'));
-assert.deepEqual(stageRecords.existing[1],{moves:5,timeMs:12345,stars:3});
+assert.deepEqual(stageRecords.existing[1],{moves:5,timeMs:12345,stars:3,version:COURSE_VERSION});
 closeStageStart();assert(openStageStart(2));assert.equal(reads,2);
 assert(ui.stageStartRanking.hidden && ui.stageStartStars.hidden);assert.equal(ui.stageStartLeaderboard.innerHTML,'');
 closeStageStart();currentStageScores=savedSource;

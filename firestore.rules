@@ -60,5 +60,25 @@ service cloud.firestore {
 
       allow delete: if false;
     }
+
+    match /stageScores/{board}/entries/{uid} {
+      function validScore() {
+        let data = request.resource.data;
+        return board.matches('^v1_(existing|prototype)_[1-9][0-9]{0,5}$')
+          && data.keys().hasAll(['moves', 'timeMs', 'updatedAt'])
+          && data.keys().hasOnly(['moves', 'timeMs', 'updatedAt'])
+          && data.moves is int && data.moves >= 1 && data.moves <= 1000000
+          && data.timeMs is int && data.timeMs >= 0 && data.timeMs <= 604800000
+          && data.updatedAt == request.time;
+      }
+      allow get: if signedIn();
+      allow list: if signedIn() && request.query.limit <= 100;
+      allow create: if signedIn() && request.auth.uid == uid && validScore();
+      allow update: if signedIn() && request.auth.uid == uid && validScore()
+        && (request.resource.data.moves < resource.data.moves
+          || (request.resource.data.moves == resource.data.moves
+            && request.resource.data.timeMs < resource.data.timeMs));
+      allow delete: if false;
+    }
   }
 }

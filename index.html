@@ -27,6 +27,7 @@
     <script src="js/appearance.js" defer></script>
     <script src="js/leaderboard.js" defer></script>
     <script src="js/online.js" defer></script>
+    <script src="js/online-scores.js" defer></script>
     <script src="js/main.js" defer></script>
     <script type="module" src="js/firebase-client.js"></script>
 </head>
@@ -171,6 +172,7 @@
                     <p id="resultStats" class="result-stats" hidden></p>
                     <section id="resultRanking" class="result-ranking" aria-label="ステージハイスコア" hidden>
                         <ol id="resultLeaderboard" class="result-leaderboard"></ol>
+                        <p id="resultScoreStatus" class="score-status" role="status"></p>
                     </section>
                     <p id="resultTap" class="modal-tap" hidden>TAP</p>
                     <button id="next" hidden>カレンダーへ</button>
@@ -196,6 +198,7 @@
             </div>
             <section id="stageStartRanking" class="stage-start-ranking" aria-label="ステージハイスコア" hidden>
                 <ol id="stageStartLeaderboard" class="result-leaderboard"></ol>
+                <p id="stageScoreStatus" class="score-status" role="status"></p>
             </section>
             <div class="stage-heart-items" role="group" aria-label="開始スタミナと使用するハート">
                 <div class="stage-heart-controls">
@@ -235,6 +238,7 @@
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
             <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" class="modal-close" aria-label="設定を閉じる" autofocus>✕</button></div>
             <p id="onlineStatus" class="online-status" role="status">オンライン接続を準備中…</p>
+            <p id="onlineScoreStatus" class="online-status" role="status" hidden></p>
             <button id="restart">RESTART</button>
             <button id="mapButton" class="secondary">MAPにもどる</button>
             <div id="mapSettingsControls" class="map-settings-controls" hidden>
