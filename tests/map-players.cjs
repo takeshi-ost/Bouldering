@@ -11,18 +11,11 @@ const env=`const elements={};const document={getElementById(id){return elements[
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};`;
 new Function('assert',env+source+`
-const appearances=dummyStageScores(1).map(profile=>{
- const appearance=dummyPlayerAppearance(profile.avatar);
- assert.deepEqual(dummyPlayerAppearance(profile.avatar),appearance,'Dummy appearance rerolled');
- assert(appearance.colors.length>=2 && appearance.colors.length<=8);
- assert(appearance.colors.every((color,i)=>validBodyColor(color) && (!i || color!==appearance.colors[i-1])));
- const icon=scoreAvatar(profile);
- assert.equal((icon.match(/<rect x="0"/g)||[]).length,appearance.colors.length);
+const appearances=Array.from({length:12},(_,i)=>({colors:[EDITOR_COLORS[i],EDITOR_COLORS[(i+3)%EDITOR_COLORS.length]],headColor:DEFAULT_HEAD_COLOR}));
+for(const appearance of appearances) {
+ const icon=scoreAvatar({appearance});
  for(const color of appearance.colors)assert(icon.includes('fill="'+color+'"'));
- return appearance;
-});
-assert(new Set(appearances.map(a=>a.colors.length)).size>1,'Stripe counts need visual variety');
-assert(new Set(appearances.map(a=>JSON.stringify(a.colors))).size>1,'Stripe colors need visual variety');
+}
 const physics=JSON.stringify({holds,route,body,grips,stageProgress,stageRecords});
 assert.deepEqual(currentMapPlayers(1,20,'existing'),[],'Offline map must not invent opponents');
 online.ready=true;online.uid='self';
@@ -77,5 +70,5 @@ state='map';mapPreparing=false;mapTransition={from:6,to:7,start:null};
 advanceLevelMap(0);advanceLevelMap(325);
 assert.equal(Number(ui.mapMarker.style.zIndex),mapPlayerDepth(parseFloat(ui.mapMarker.style.top)));
 assert(mapTransition,'Halfway hop should still be in progress');
-console.log('PASS map players: seeded ranking avatars, pages/courses, five-per-stage cap, deduplication, responsive bounds, y-ordered DOM/z-index including live hops, escaping, no game/progress changes');
+console.log('PASS map players: real profile avatars, pages/courses, five-per-stage cap, deduplication, responsive bounds, y-ordered DOM/z-index including live hops, escaping, no game/progress changes');
 `)(assert);

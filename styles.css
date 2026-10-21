@@ -514,7 +514,7 @@ button.modal-close:focus-visible { outline:none; }
 #overlay .result-ranking[hidden] { display:none; }
 .result-ranking,.stage-start-ranking { padding:8px; border-radius:12px; background:#eee9df; }
 .result-leaderboard { list-style:none; padding:0; margin:0; text-align:left; }
-.score-row { display:grid; grid-template-columns:20px 24px minmax(0,1fr) max-content 70px; align-items:center; gap:6px; min-height:34px; font-size:12px; line-height:18px; font-weight:400; font-variant-numeric:tabular-nums; }
+.score-row { display:grid; grid-template-columns:28px 24px minmax(0,1fr) max-content 70px; align-items:center; gap:6px; min-height:34px; font-size:12px; line-height:18px; font-weight:400; font-variant-numeric:tabular-nums; }
 .score-row.is-player { font-weight:900; color:#2d6850; }
 .score-rank { text-align:center; }
 .score-player-icon { display:block; width:21px; height:28px; object-fit:contain; }
@@ -532,3 +532,6 @@ button.modal-close:focus-visible { outline:none; }
 
 .map-inventory { position:absolute; z-index:3; top:calc(env(safe-area-inset-top,0px) + 42px); left:calc(max(12px,env(safe-area-inset-left,0px)) + 20.48px); width:24px; height:24px; pointer-events:none; }
 .map-inventory .heart-item-stack { transform:scale(.48); transform-origin:top left; }
+
+.score-status { margin:4px 0 0; font-size:11px; color:#637267; text-align:center; }
+.score-status:empty { display:none; }

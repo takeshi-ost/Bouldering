@@ -17,6 +17,7 @@ Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true
 try {
 new Function('assert','data','storage',env+source+`
 // Rankings preserve exact player data and always put the player in one of five rows.
+const originalName=playerName;playerName='<PLAYER>';
 const opponents=Array.from({length:8},(_,i)=>({name:'Dummy '+i,moves:10+i,timeMs:10000+i}));
 for(const [moves,timeMs,rank,index] of [[9,10000,1,0],[13,9000,4,3],[14,9000,5,4],[20,10000,9,4],[13,20000,5,4]]) {
  const rows=stageLeaderboardRows({name:'<PLAYER>',moves,timeMs},opponents);
@@ -24,6 +25,7 @@ for(const [moves,timeMs,rank,index] of [[9,10000,1,0],[13,9000,4,3],[14,9000,5,4
  assert.equal(rows[index].rank,rank);assert.equal(rows[index].name,'<PLAYER>');assert.equal(rows[index].timeMs,timeMs);
  if(rank>5)assert.deepEqual(rows.map(row=>row.rank),[1,2,3,4,rank]);
 }
+playerName=originalName;
 assert.equal(scoreText('<img src=x onerror="x">'),'&lt;img src=x onerror=&quot;x&quot;&gt;');
 function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);}
 function begin(n=1){reset(n);advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);assert(!cameraIntro);}
@@ -37,9 +39,9 @@ clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(ru
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
 assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
 assert(ui.resultStats.hidden && !ui.resultStars.hidden && ui.resultDifficulty.hidden);assert(!ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
-const result={moves:moveCount,timeMs:Math.floor(clock-1100),stars:3};
+const result={moves:moveCount,timeMs:Math.floor(clock-1100),stars:3,version:COURSE_VERSION};
 assert.deepEqual(stageRecords.existing[1],result);
-assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert(ui.resultLeaderboard.innerHTML.includes(formatClearTime(result.timeMs)));assert.equal((ui.resultLeaderboard.innerHTML.match(/class="score-row/g)||[]).length,5);assert.equal((ui.resultLeaderboard.innerHTML.match(/is-player/g)||[]).length,1);
+assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert(ui.resultLeaderboard.innerHTML.includes(formatClearTime(result.timeMs)));assert.equal((ui.resultLeaderboard.innerHTML.match(/class="score-row/g)||[]).length,1);assert.equal((ui.resultLeaderboard.innerHTML.match(/is-player/g)||[]).length,1);
 assert.equal(formatClearTime(0),'00:00:00');assert.equal(formatClearTime(999),'00:00:99');
 assert.equal(formatClearTime(60000),'01:00:00');assert.equal(formatClearTime(61029),'01:01:02');
 assert.equal(formatClearTime(3600010),'60:00:01');
@@ -98,9 +100,9 @@ for(const [value,label] of [[0,'EASY'],[1,'NORMAL'],[2,'NORMAL'],[3,'HARD']]) {
 finish(false);assert(ui.resultStars.hidden && ui.resultStars.textContent==='');
 assert(ui.resultDifficulty.hidden);assert.equal(ui.resultDifficulty.textContent,'');
 debugMode=false;
-// Map stars retain the highest earned rating while moves/time remain the latest run.
+// Map stars retain the highest rating and slower clears cannot replace a best.
 debugAttempt=false;reset(1);moveCount=route.length-2;finish(true);assert.equal(stageRecords.existing[1].stars,3);
-moveCount=route.length+2;finish(true);assert.equal(stageRecords.existing[1].stars,3);assert.equal(stageRecords.existing[1].moves,moveCount);
+const bestBefore=stageRecords.existing[1].moves;moveCount=route.length+2;finish(true);assert.equal(stageRecords.existing[1].stars,3);assert.equal(stageRecords.existing[1].moves,bestBefore);
 assert.equal(readStageRecords().existing[1].stars,3);
 showLevelMap();assert(ui.mapNodes.innerHTML.includes('⭐️⭐️⭐️'));assert(ui.mapNodes.innerHTML.includes('3つ星'));
 const savedRecords=data[RECORDS_KEY];
@@ -126,7 +128,7 @@ for(const key of ['Enter',' ']) {
 }
 assert.equal(continuations,5);continueNormalClear=continueSaved;
 `)(assert,data);
-console.log('PASS results: centered native modal, background guards, intro-excluded timer, cancel/Undo timing, frozen results, formatting, latest per-course records, map labels, reload, legacy/invalid/blocked storage, debug isolation');
+console.log('PASS results: centered native modal, background guards, intro-excluded timer, cancel/Undo timing, frozen results, formatting, versioned per-course best records, map labels, reload, legacy/invalid/blocked storage, debug isolation');
 } finally {
  if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);
  else delete globalThis.localStorage;

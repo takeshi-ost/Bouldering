@@ -71,8 +71,8 @@ currentMapPlayers(21,40,'existing');const resolveOld=resolveRows;
 mapPage=2;renderLevelMap();const currentMarkup=ui.mapPlayers.innerHTML,position=ui.mapMarker.style.top;
 resolveOld([{...remote,id:'old-page',reachedLevel:22}]);await tick();
 assert.equal(ui.mapPlayers.innerHTML,currentMarkup);assert.equal(ui.mapMarker.style.top,position);
-// All ranking fixtures are deliberately unchanged by this first online phase.
-assert.equal(currentStageScores(2,'existing',10).length,12);
+// Ranking also stays empty while no score adapter/data exists.
+assert.equal(currentStageScores(2,'existing',10).length,0);
 console.log('PASS online profile migration/restore, UID ownership, pending offline changes, concurrent saves/progress, draft preservation, invalid public data, real map avatars, per-stage caps, bounded cached requests and stale-page isolation');
 })();`)(assert,data);
 }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}})().catch(e=>{console.error(e);process.exitCode=1;});

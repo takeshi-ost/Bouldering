@@ -48,6 +48,7 @@ function readStageRecords() {
                 if(Number.isSafeInteger(value?.moves) && value.moves>0 &&
                     Number.isSafeInteger(value?.timeMs) && value.timeMs>=0) {
                     result[mode][key]={moves:value.moves,timeMs:value.timeMs};
+                    if(value.version===COURSE_VERSION)result[mode][key].version=value.version;
                     if(Number.isInteger(value.stars) && value.stars>=1 && value.stars<=3)
                         result[mode][key].stars=value.stars;
                 }
@@ -105,7 +106,11 @@ function recordStageClear() {
     if (debugAttempt) return;
     if(moveCount>0) {
         const stars=Math.max(stageRecords[courseMode][level]?.stars||0,clearStars(moveCount,routeExpectedMoves()));
-        stageRecords[courseMode][level]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars};
+        const candidate={moves:moveCount,timeMs:Math.floor(runElapsedMs),version:COURSE_VERSION};
+        const previous=stageRecords[courseMode][level];
+        const best=previous?.version===COURSE_VERSION && compareStageScores(previous,candidate)<=0?previous:candidate;
+        stageRecords[courseMode][level]={...best,stars};
+        queueOnlineScore(level,courseMode,candidate);
     }
     stageProgress[courseMode].cleared = Math.max(stageProgress[courseMode].cleared,level);
     try { globalThis.localStorage?.setItem(PROGRESS_KEY,JSON.stringify(stageProgress)); }

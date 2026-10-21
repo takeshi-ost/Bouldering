@@ -1,5 +1,5 @@
 "use strict";
-// Public profiles only. Rankings, inventory, lives and rewards remain local.
+// Public profiles. Scores have their own queue; inventory/lives/rewards stay local.
 const ONLINE_PROFILE_KEY='ascent.online-profile.v1',ONLINE_CACHE_MS=60000;
 const online={adapter:null,uid:null,ready:false,connecting:false,saving:false,dirty:false,
     revision:0,pages:new Map(),status:'オンライン接続を準備中…'};
@@ -96,6 +96,7 @@ async function startOnline(adapter) {
         const preferLocal=checkpoint?.uid!==user.uid || checkpoint?.key!==onlineProfileKey(onlineProfile());
         online.ready=true;online.dirty=true;
         await flushOnlineProfile(preferLocal);
+        connectOnlineScores(user.uid);
         renderMapPlayers();
     } catch(error) {onlineError(error);}
     finally {online.connecting=false;}
@@ -131,7 +132,7 @@ function onlineMapPlayers(first,last,mode) {
 function resumeOnline() {
     if(!online.adapter)return;
     if(!online.ready)void startOnline(online.adapter);
-    else {if(online.dirty)void flushOnlineProfile();if(state==='map' || state==='choosing')renderMapPlayers();}
+    else {if(online.dirty)void flushOnlineProfile();void flushOnlineScores();refreshOpenScoreViews();if(state==='map' || state==='choosing')renderMapPlayers();}
 }
 window.addEventListener('online',resumeOnline);
 window.addEventListener('focus',resumeOnline);
