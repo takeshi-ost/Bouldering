@@ -25,6 +25,7 @@
     <script src="js/renderer.js" defer></script>
     <script src="js/player-icon.js" defer></script>
     <script src="js/appearance.js" defer></script>
+    <script src="js/leaderboard.js" defer></script>
     <script src="js/main.js" defer></script>
 </head>
 <body>
@@ -165,6 +166,10 @@
                     <div id="resultDifficulty" class="result-difficulty" hidden></div>
                     <div id="resultStars" class="result-stars" hidden></div>
                     <p id="resultStats" class="result-stats" hidden></p>
+                    <section id="resultRanking" class="result-ranking" aria-label="ステージハイスコア" hidden>
+                        <h2>TOP 5</h2>
+                        <ol id="resultLeaderboard" class="result-leaderboard"></ol>
+                    </section>
                     <p id="resultTap" class="modal-tap" hidden>TAP</p>
                     <button id="next" hidden>カレンダーへ</button>
                     <button class="secondary" id="retry">RETRY</button>

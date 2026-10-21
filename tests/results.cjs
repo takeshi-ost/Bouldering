@@ -16,6 +16,15 @@ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
 Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {
 new Function('assert','data','storage',env+source+`
+// Rankings preserve exact player data and always put the player in one of five rows.
+const opponents=Array.from({length:8},(_,i)=>({name:'Dummy '+i,moves:10+i,timeMs:10000+i}));
+for(const [moves,timeMs,rank,index] of [[9,10000,1,0],[13,9000,4,3],[14,9000,5,4],[20,10000,9,4],[13,20000,5,4]]) {
+ const rows=stageLeaderboardRows({name:'<PLAYER>',moves,timeMs},opponents);
+ assert.equal(rows.length,5);assert.equal(rows.filter(row=>row.isPlayer).length,1);
+ assert.equal(rows[index].rank,rank);assert.equal(rows[index].name,'<PLAYER>');assert.equal(rows[index].timeMs,timeMs);
+ if(rank>5)assert.deepEqual(rows.map(row=>row.rank),[1,2,3,4,rank]);
+}
+assert.equal(scoreText('<img src=x onerror="x">'),'&lt;img src=x onerror=&quot;x&quot;&gt;');
 function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);}
 function begin(n=1){reset(n);advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);assert(!cameraIntro);}
 reset(1);assert.equal(runTimeMs(),0);advanceCameraIntro(100);clock=1099;advanceCameraIntro(clock);
@@ -27,10 +36,10 @@ assert.equal(moveCount,0);assert.equal(runTimeMs(),6000,'Canceled drag must not 
 clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(runTimeMs(),usedTime,'Undo must not erase time');
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
 assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
-assert.equal(ui.resultStats.hidden,false);assert(!ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
+assert(ui.resultStats.hidden && ui.resultStars.hidden && ui.resultDifficulty.hidden);assert(!ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
 const result={moves:moveCount,timeMs:Math.floor(clock-1100),stars:3};
 assert.deepEqual(stageRecords.existing[1],result);
-assert.equal(ui.resultStats.textContent,formatStageRecord(result));
+assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert(ui.resultLeaderboard.innerHTML.includes(formatClearTime(result.timeMs)));assert.equal((ui.resultLeaderboard.innerHTML.match(/class="score-row/g)||[]).length,5);assert.equal((ui.resultLeaderboard.innerHTML.match(/is-player/g)||[]).length,1);
 assert.equal(formatClearTime(0),'00:00:00');assert.equal(formatClearTime(999),'00:00:99');
 assert.equal(formatClearTime(60000),'01:00:00');assert.equal(formatClearTime(61029),'01:01:02');
 assert.equal(formatClearTime(3600010),'60:00:01');
@@ -74,16 +83,16 @@ new Function('assert','data',env+source+`
 for(const moves of [0,1,5,9,10,20,30,40,100])assert.equal(stageStamina(moves),moves+3);
 for(const [difference,stars] of [[-1,3],[0,3],[1,2],[2,2],[3,1],[8,1]]) {
  reset(1);cameraIntro=null;debugAttempt=true;moveCount=route.length-1+difference;finish(true);
- assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden);
+ assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(ui.resultStars.hidden && !ui.resultRanking.hidden);
 }
 // Display labels use the selected rule profile, including daily runs.
 for(const [value,label] of [[0,'EASY'],[1,'NORMAL'],[2,'NORMAL'],[3,'HARD']]) {
  difficulty=value;finish(true);
  assert.equal(difficultyLabel(value),label);
- assert.equal(ui.resultDifficulty.textContent,label);assert(!ui.resultDifficulty.hidden);
+ assert.equal(ui.resultDifficulty.textContent,label);assert(ui.resultDifficulty.hidden && !ui.resultRanking.hidden);
  debugMode=true;updateUI();assert(ui.progress.textContent.endsWith('/ '+label));
  dailyRun={...dailyProfile('2026-10-17'),difficulty:value,returnCourse:'existing'};
- finish(true);assert.equal(ui.resultDifficulty.textContent,label);assert(!ui.resultDifficulty.hidden);
+ finish(true);assert.equal(ui.resultDifficulty.textContent,label);assert(!ui.resultDifficulty.hidden && ui.resultRanking.hidden);
  dailyRun=null;
 }
 finish(false);assert(ui.resultStars.hidden && ui.resultStars.textContent==='');
