@@ -38,15 +38,26 @@ function stageLeaderboardRows(record,others) {
 function scoreText(value) {
     return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 }
+// Seed by profile, not render/stage: the same dummy looks alike in every UI.
+function dummyPlayerAppearance(avatar) {
+    const random=mulberry32((Number.isSafeInteger(avatar)?avatar:0) ^ 0x6A3F918D);
+    const count=2+Math.floor(random()*7),colors=[];
+    for(let i=0;i<count;i++) {
+        let index=Math.floor(random()*EDITOR_COLORS.length);
+        if(EDITOR_COLORS[index]===colors.at(-1))index=(index+1)%EDITOR_COLORS.length;
+        colors.push(EDITOR_COLORS[index]);
+    }
+    return {colors,headColor:'#f3e4cd'};
+}
 function scoreAvatar(row) {
     if(row.isPlayer) {
         const icon=playerIconMarkup('score-player-icon');
         if(icon)return icon;
     }
-    const colors=['#4e9685','#d78c6b','#718db3','#ac82b6','#cbad58','#7e9c63'];
-    const color=row.isPlayer?playerColors[0]:colors[row.avatar%colors.length];
-    const head=row.isPlayer?playerHeadColor:'#f3e4cd';
-    return `<svg class="score-player-icon" viewBox="0 0 24 32" aria-hidden="true"><circle cx="12" cy="6" r="5.5" fill="${head}" stroke="#fff7e9"/><rect x="3" y="12" width="18" height="20" rx="4" fill="${color}" stroke="#fff7e9" stroke-width="2"/></svg>`;
+    const appearance=row.isPlayer?{colors:playerColors,headColor:playerHeadColor}:dummyPlayerAppearance(row.avatar);
+    const stripes=appearance.colors.map((color,i)=>
+        `<rect x="0" y="${20*i/appearance.colors.length}" width="18" height="${20/appearance.colors.length}" fill="${color}"/>`).join('');
+    return `<svg class="score-player-icon" viewBox="0 0 24 32" aria-hidden="true"><circle cx="12" cy="6" r="5.5" fill="${appearance.headColor}" stroke="#fff7e9"/><svg x="3" y="12" width="18" height="20" viewBox="0 0 18 20" style="overflow:hidden;border-radius:4px">${stripes}</svg><rect x="3" y="12" width="18" height="20" rx="4" fill="none" stroke="#fff7e9" stroke-width="2"/></svg>`;
 }
 function stageLeaderboardMarkup(record,others) {
     const rows=stageLeaderboardRows({...record,name:playerName},others);
