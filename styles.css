@@ -542,6 +542,6 @@ button.modal-close:focus-visible { outline:none; }
 /* Keep daily clear results compact while retaining the shared title and stars. */
 #overlay.is-daily-clear .card { padding:18px 22px 16px; }
 #overlay.is-daily-clear .result-heading { margin-bottom:6px; }
-#overlay.is-daily-clear .result-difficulty { margin:4px 0; letter-spacing:0; }
+#overlay.is-daily-clear .result-difficulty { margin:4px 0; font-size:24px; font-weight:900; line-height:1.4; letter-spacing:0; }
 #overlay.is-daily-clear .result-stats { margin:6px 0; font-size:16px; line-height:1.5; }
 #overlay.is-daily-clear #resultTap { margin-top:12px; }
