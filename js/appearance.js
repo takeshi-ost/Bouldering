@@ -121,7 +121,6 @@ function renderCharacterEditor() {
     ui.bodyStripeControls.hidden=false;
     if(selectedPart!==null) {
         const color=selectedPart==='head'?draftHeadColor:draftColors[selectedStripe];
-        ui.selectedStripeLabel.textContent=selectedPart==='head'?'頭の色（単色）':`上から${selectedStripe+1}番目の色`;
         ui.paletteSwatches.innerHTML=EDITOR_COLORS.map(c=>`<button type="button" data-color="${c}" style="background:${c}" aria-label="色 ${c}" aria-pressed="${c===color}"></button>`).join('');
     }
 }
