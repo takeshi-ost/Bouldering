@@ -4,6 +4,7 @@ const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m
 const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
 assert(html.includes('id="mapPlayers"'));assert(/\.map-players,\.map-players \*\s*\{\s*pointer-events:none/.test(css));
 assert(/\.map-players\s*\{[^}]*position:absolute/.test(css));
+assert(/\.map-opponent\s*\{\s*width:19\.2px;\s*height:25\.6px;/.test(css),'Opponents must be 80% of the 24x32 local marker');
 const env=`const elements={};const document={getElementById(id){return elements[id]||={
  style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}})},
@@ -27,7 +28,8 @@ for(const mode of ['existing','prototype'])for(const page of [0,1,49]) {
  }
  assert(placements.length>0 && placements.length<=100);
  assert([...counts.values()].every(n=>n<=5));
- assert([...counts.values()].some(n=>n===5),'Cap fixture not exercised');
+ assert(counts.size<MAP_PAGE_SIZE,'Sparse fixture must include empty stages');
+ assert(placements.length<40,'Sparse fixture should average fewer than two opponents per stage');
  renderLevelMap();const markup=ui.mapPlayers.innerHTML;
  assert.equal((markup.match(/class="map-marker map-opponent"/g)||[]).length,placements.length);
  renderLevelMap();assert.equal(ui.mapPlayers.innerHTML,markup);

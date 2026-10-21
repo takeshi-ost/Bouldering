@@ -15,12 +15,18 @@ function currentStageScores(stage,mode,expectedMoves) {
 function currentMapPlayers(first,last,mode) {
     const profiles=dummyStageScores(1,first);
     const random=mulberry32(first ^ (mode==='prototype'?0x53A7C91B:0x2B8D104F));
-    const count=(last-first+1)*4;
-    return Array.from({length:count},(_,i)=>{
-        const profile=profiles[i%profiles.length],group=Math.floor(i/profiles.length);
-        return {id:`map-${mode}-${first}-${i}`,name:profile.name+(group?` ${group+1}`:''),
-            avatar:profile.avatar,isPlayer:false,reachedLevel:first+Math.floor(random()*(last-first+1))};
-    });
+    // Empty stages and single climbers dominate; groups of four/five are rare.
+    const counts=[0,0,0,0,0,0,0,0,1,1,1,1,1,1,2,2,2,3,4,5];
+    const players=[];
+    for(let n=first;n<=last;n++) {
+        const count=counts[Math.floor(random()*counts.length)];
+        for(let i=0;i<count;i++) {
+            const index=players.length,profile=profiles[index%profiles.length],group=Math.floor(index/profiles.length);
+            players.push({id:`map-${mode}-${n}-${i}`,name:profile.name+(group?` ${group+1}`:''),
+                avatar:profile.avatar,isPlayer:false,reachedLevel:n});
+        }
+    }
+    return players;
 }
 function stageLeaderboardRows(record,others) {
     const sorted=[...others.map(row=>({...row,isPlayer:false})),{...record,isPlayer:true}]
