@@ -163,24 +163,27 @@ button:disabled { opacity: .45; cursor: default; }
 #overlay .result-stats { font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; color:#39785b; }
 
 .character-editor { position:absolute; inset:0; z-index:3; background:#f8f6ee; padding:8px 16px; display:flex; flex-direction:column; gap:6px; overflow:hidden; }
-.character-editor > :not(.editor-preview) { flex-shrink:0; }
+.character-editor > :not(.editor-workspace) { flex-shrink:0; }
 .character-editor[hidden],.editor-palette[hidden] { display:none; }
 .editor-hint { color:#637267; font-size:11px; margin:0; text-align:center; }
-/* Palette/error rows keep their size; the character uses the remaining height. */
-.editor-preview { display:block; width:100%; height:0; flex:1 1 0; min-height:0; max-height:340px; background:radial-gradient(ellipse,#e2e8dc 0,transparent 65%); }
+/* Reserve the right side for the modal; opening it never resizes the character. */
+.editor-workspace { display:flex; flex:1 1 0; min-height:0; max-height:420px; }
+.editor-preview { display:block; width:62%; height:100%; min-height:0; background:radial-gradient(ellipse,#e2e8dc 0,transparent 65%); }
 .editor-preview [data-stripe],.editor-preview [data-part="head"] { cursor:pointer; }
 .editor-preview [data-stripe]:focus-visible,.editor-preview [data-part="head"]:focus-visible { outline:2px solid #d4a63d; }
 .stripe-slider { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; }
 .stripe-slider output { color:#39785b; font-size:18px; }
 .stripe-slider span { margin-left:auto; font-size:11px; color:#637267; }
 #stripeCount { width:100%; margin:0; accent-color:#39785b; min-height:28px; }
-.editor-palette { display:grid; grid-template-columns:1fr auto; align-items:center; gap:6px 10px; background:#ebece2; padding:8px; border-radius:10px; }
-.editor-palette p { font-size:11px; margin:0; }
-.palette-swatches { grid-column:1 / -1; display:grid; grid-template-columns:repeat(8,1fr); gap:4px; }
+.editor-stripe-row { display:flex; align-items:center; gap:12px; }
+.editor-stripe-row > #bodyStripeControls { flex:1; min-width:0; }
+#editorRandom { min-height:44px; padding:10px 14px; background:#dde5d6; color:#3f5b47; white-space:nowrap; }
+.editor-palette { position:fixed; inset:auto; left:min(calc(50% + 48px),calc(100% - 140px)); top:50%; transform:translateY(-50%); margin:0; width:128px; max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px); overflow-y:auto; background:#ebece2; color:#25372f; padding:12px; border:1px solid #bcc8ba; border-radius:12px; box-shadow:0 8px 24px #25372f33; }
+.editor-palette::backdrop { background:#23372d14; }
+.editor-palette p { font-size:11px; margin:0 0 10px; text-align:center; }
+.palette-swatches { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
 .palette-swatches button { min-height:36px; padding:0; border:2px solid #fff; border-radius:6px; }
 .palette-swatches button[aria-pressed="true"] { outline:2px solid #d4a63d; outline-offset:1px; }
-.custom-color { display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; margin:0; }
-#customColor { width:52px; height:32px; padding:0; border:0; background:transparent; }
 .editor-actions { display:flex; gap:10px; margin-top:auto; }
 .editor-actions button { flex:1; min-height:44px; }
 .editor-actions .secondary { background:#dde5d6; color:#3f5b47; }

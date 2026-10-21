@@ -3,7 +3,7 @@ const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.
 const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
 const elements={};const document={getElementById(id){return elements[id] ||= {
- style:{setProperty(k,v){this[k]=v;}},classList:{toggle(){}},focus(){this.focused=true;},setAttribute(){},addEventListener(){},contains(){return true;},
+ style:{setProperty(k,v){this[k]=v;}},classList:{toggle(){}},focus(){this.focused=true;},setAttribute(){},events:{},addEventListener(k,f){this.events[k]=f;},showModal(){this.open=true;},close(){this.open=false;},contains(){return true;},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){}
@@ -29,6 +29,25 @@ const originalSave=data[APPEARANCE_KEY];
 const physics=JSON.stringify({body,holds,grips,route});
 startCourse('existing');showCharacterEditor();assert.equal(state,'editing');assert(!ui.characterEditor.hidden && ui.titleScreen.hidden);
 assert(ui.editorPalette.hidden);assert.equal(ui.stripeCount.value,'1');
+const unchangedName=ui.playerName.value;
+for(let n=1;n<=8;n++) {
+ let draws=0;assert(randomizeEditorAppearance(()=>draws++===0?(n-.5)/8:.1));
+ assert.equal(draftStripeCount,n);assert(draftColors.every(validBodyColor));assert(validBodyColor(draftHeadColor));
+ assert(ui.editorPalette.hidden && !ui.editorPalette.open);assert.equal(ui.playerName.value,unchangedName);
+ assert.deepEqual(playerColors,['#39785b']);assert.equal(data[APPEARANCE_KEY],originalSave);
+}
+let prior=JSON.stringify({colors:draftColors,headColor:draftHeadColor});ui.editorRandom.onclick();
+assert.notEqual(JSON.stringify({colors:draftColors,headColor:draftHeadColor}),prior);
+randomizeEditorAppearance(()=>.3);prior=JSON.stringify({colors:draftColors,headColor:draftHeadColor});
+randomizeEditorAppearance(()=>.3);assert.notEqual(JSON.stringify({colors:draftColors,headColor:draftHeadColor}),prior);
+assert(draftColors.every((color,i)=>!i || color!==draftColors[i-1]));
+selectEditorStripe(0);const colorBeforeCancel=draftColors[0];let canceled=false;
+ui.editorPalette.events.cancel({preventDefault(){canceled=true;}});
+assert(canceled && ui.editorPalette.hidden && !ui.editorPalette.open);assert.equal(draftColors[0],colorBeforeCancel);
+selectEditorHead();ui.editorPalette.events.click({target:ui.editorPalette,clientX:-1,clientY:-1});
+assert(ui.editorPalette.hidden && !ui.editorPalette.open);
+ui.editorCancel.onclick();showCharacterEditor();assert.equal(draftStripeCount,1);
+
 for(const n of [0,-1,9,1.5,NaN])assert.equal(resizeEditorStripes(n),false);
 for(let n=1;n<=8;n++) {
  ui.stripeCount.value=String(n);ui.stripeCount.oninput();
@@ -42,12 +61,15 @@ assert.equal(EDITOR_POSES.length,8);assert.equal(new Set(EDITOR_POSES.map(p=>p.n
 assert.equal(new Set(EDITOR_POSES.map(p=>JSON.stringify(p))).size,8);
 for(let n=1;n<=8;n++) {
  resizeEditorStripes(n);assert(ui.editorPreview.innerHTML.includes('data-pose="'+n+'"'));
- assert.equal((ui.editorPreview.innerHTML.match(/<path d="M/g)||[]).length,5,'Four limbs and neck only; no foreground limb duplicates');
+ assert.equal((ui.editorPreview.innerHTML.match(/<path d="M/g)||[]).length,9,'Two segments per limb and one neck');
+ assert.equal((ui.editorPreview.innerHTML.match(/data-editor-root=/g)||[]).length,4,'Only shoulder/hip dots');
+ assert(!ui.editorPreview.innerHTML.includes('#fff9ed'),'No white stripe borders');
+ assert(ui.editorPreview.innerHTML.includes(PLAYER_SILHOUETTE_STYLE.color));
  assert(ui.editorPreview.innerHTML.lastIndexOf('pointer-events="none"><path')<ui.editorPreview.innerHTML.indexOf('data-stripe="0"'),'Every limb must be behind the body');
  const pose=EDITOR_POSES[n-1];
  for(let i=0;i<4;i++) {
   const root=editorPoseRoot(i,pose),[x,y,tx,ty]=pose.limbs[i];
-  for(const p of [root,{x,y},{x:tx,y:ty}])assert(p.x*1.5+160>6 && p.x*1.5+160<314 && p.y*1.5+140>6 && p.y*1.5+140<364,'Pose clipped by preview');
+  for(const p of [root,{x,y},{x:tx,y:ty}])assert(p.x*1.5+105>4 && p.x*1.5+105<206 && p.y*1.5+140>6 && p.y*1.5+140<364,'Pose clipped by preview');
  }
  selectEditorHead();paintEditorColor('#765432');assert(ui.editorPreview.innerHTML.includes('data-pose="'+n+'"'));
 }
@@ -56,22 +78,22 @@ assert.deepEqual(playerColors,['#39785b']);
 ui.editorPreview.onclick({target:{closest(){return {dataset:{stripe:'3'}};}}});
 assert.equal(selectedStripe,3);assert(!ui.editorPalette.hidden);
 assert.equal((ui.paletteSwatches.innerHTML.match(/data-color=/g)||[]).length,16);
-ui.customColor.value='#1234AB';ui.customColor.oninput();assert.equal(draftColors[3],'#1234ab');
-ui.paletteSwatches.onclick({target:{closest(){return {dataset:{color:'#df865a'}};}}});assert.equal(draftColors[3],'#df865a');
+paintEditorColor('#1234AB');assert.equal(draftColors[3],'#1234ab');assert(ui.editorPalette.hidden && !ui.editorPalette.open);selectEditorStripe(3);
+ui.paletteSwatches.onclick({target:{closest(){return {dataset:{color:'#df865a'}};}}});assert.equal(draftColors[3],'#df865a');assert(ui.editorPalette.hidden && !ui.editorPalette.open);
 assert.equal(paintEditorColor('red'),false);assert.equal(paintEditorColor('#000000;bad'),false);
 assert.equal(selectEditorStripe(8),false);
 const bodyDraftBefore=[...draftColors];
 ui.editorPreview.onclick({target:{closest(){return {dataset:{part:'head'}};}}});
-assert.equal(selectedPart,'head');assert.equal(selectedStripe,null);assert(ui.bodyStripeControls.hidden);
+assert.equal(selectedPart,'head');assert.equal(selectedStripe,null);assert(!ui.bodyStripeControls.hidden);
 assert.equal(ui.selectedStripeLabel.textContent,'頭の色（単色）');assert(!ui.editorPalette.hidden);
-ui.customColor.value='#765432';ui.customColor.oninput();assert.equal(draftHeadColor,'#765432');assert.deepEqual(draftColors,bodyDraftBefore);
+paintEditorColor('#765432');assert.equal(draftHeadColor,'#765432');assert.deepEqual(draftColors,bodyDraftBefore);selectEditorHead();
 ui.paletteSwatches.onclick({target:{closest(){return {dataset:{color:'#263849'}};}}});assert.equal(draftHeadColor,'#263849');
-let headKey=false;ui.editorPreview.onkeydown({key:'Enter',preventDefault(){headKey=true;},target:{closest(){return {dataset:{part:'head'}};}}});assert(headKey && selectedPart==='head' && ui.customColor.focused);
+let headKey=false;ui.editorPreview.onkeydown({key:'Enter',preventDefault(){headKey=true;},target:{closest(){return {dataset:{part:'head'}};}}});assert(headKey && selectedPart==='head' && ui.editorPalette.open);
 resizeEditorStripes(2);assert.equal(draftHeadColor,'#263849');resizeEditorStripes(8);
 selectEditorStripe(3);assert(!ui.bodyStripeControls.hidden);
 resizeEditorStripes(1);assert.equal(selectedStripe,0);resizeEditorStripes(8);assert.equal(draftColors[3],'#df865a');
 let prevented=false;ui.editorPreview.onkeydown({key:'Enter',preventDefault(){prevented=true;},target:{closest(){return {dataset:{stripe:'4'}};}}});
-assert(prevented && ui.customColor.focused);assert.equal(selectedStripe,4);
+assert(prevented && ui.editorPalette.open);assert.equal(selectedStripe,4);
 assert.equal(JSON.stringify({body,holds,grips,route}),physics,'Editor must not change game geometry');
 ui.editorCancel.onclick();assert.equal(state,'map');assert(ui.characterEditor.hidden);assert.deepEqual(playerColors,['#39785b']);assert.equal(data[APPEARANCE_KEY],originalSave);assert.equal(playerHeadColor,DEFAULT_HEAD_COLOR);
 // Confirm creates precisely the chosen three-color palette, not hidden draft slots.
@@ -136,7 +158,7 @@ const set=storage.setItem;storage.setItem=()=>{throw Error('full');};showCharact
 assert.equal(readPlayerName(),'岳志');
 `)(assert,data,storage);
 new Function('assert',env+source+`assert.equal(playerName,'岳志');startCourse('existing');showCharacterEditor();assert.equal(ui.playerName.value,'岳志');`)(assert);
-console.log('PASS character editor: randomized saved first run, single head color, legacy body migration, map entry and same-map return, 1-8 equal stripes, mouse/keyboard palette and custom colors, hidden slot retention, draft/cancel/confirm, game and map fills, press feedback, reload, malformed/blocked storage, unchanged physics');
+console.log('PASS character editor: randomized saved first run, single head color, legacy body migration, map entry and same-map return, 1-8 equal stripes, mouse/keyboard one-tap modal palette, random drafts, hidden slot retention, draft/cancel/confirm, game and map fills, press feedback, reload, malformed/blocked storage, unchanged physics');
 } finally {
  if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);
  else delete globalThis.localStorage;
