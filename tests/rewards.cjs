@@ -58,11 +58,11 @@ visibility(false);land(1);clock+=60000;advanceRewardSequence(clock);assert.equal
 visibility(true);clock+=50000;visibility(false);assert.equal(rewardSequence.phase,'result');assert.equal(rewardFrame,null);resultReturn();
 // Even a second-attempt win today gets the completion ad, then exactly one roulette.
 lives.count=3;showDailyCalendar({openFromMap:true});assert(selectDailyDate(today));finish(false);ui.retry.onclick();assert.equal(state,'ad');ad();assert.equal(dailyRun.attempt,2);
-moveCount=1;finish(true);assert.equal(dailyRecords[today].rewardStatus,'pending');ui.next.onclick();assert.equal(state,'ad');ad();assert.equal(state,'reward');
+moveCount=1;finish(true);assert.equal(dailyRecords[today].rewardStatus,'pending');ui.overlay.events.click({target:ui.overlay});assert.equal(state,'ad');ad();assert.equal(state,'reward');
 assert(dailyRecords[today].rewardAdCompleted);const beforeDaily=heartItems;land(2);assert.equal(heartItems,beforeDaily+10);assert.equal(dailyRecords[today].rewardStatus,'claimed');resultReturn();assert.equal(state,'daily');assert.equal(dailyRun,null);
 assert.equal(readDailyRecords()[today].rewardStatus,'claimed');assert(!startDailyClearReward(today));assert(!selectDailyDate(today));
 // Earlier dates keep their existing flow and never earn this daily completion reward.
-assert(selectDailyDate('2026-01-01'));moveCount=1;finish(true);assert(!dailyRecords['2026-01-01'].rewardStatus);ui.next.onclick();ad();assert.equal(state,'daily');assert(!rewardSequence);
+assert(selectDailyDate('2026-01-01'));moveCount=1;finish(true);assert(!dailyRecords['2026-01-01'].rewardStatus);ui.overlay.events.click({target:ui.overlay});ad();assert.equal(state,'daily');assert(!rewardSequence);
 // A reload after the ad resumes an unclaimed roulette without another ad.
 dailyRecords['2026-10-19']={moves:1,timeMs:100,stars:3,rewardStatus:'pending',rewardAdCompleted:true};saveDailyRecords();dailyRecords=readDailyRecords();showDailyCalendar();assert.equal(state,'reward');assert(!dummyAd);land(0);resultReturn();assert.equal(dailyRecords['2026-10-19'].rewardStatus,'claimed');
 // A reload before the ad resumes with the ad still required.
@@ -75,13 +75,13 @@ assert(hasMapReward(4));assert(hasMapReward(8));assert(hasMapReward(12));assert(
 stageProgress.existing.cleared=3;showLevelMap({target:4});assert(selectStage(4));
 clearsSinceAd=4;moveCount=1;finish(true);
 assert.equal(mapRewards[4].status,'pending');assert(mapRewards[4].adRequired);
-ui.next.onclick();assert.equal(state,'ad');ad();assert.equal(state,'reward');assert(mapRewards[4].adCompleted);
+ui.overlay.events.click({target:ui.overlay});assert.equal(state,'ad');ad();assert.equal(state,'reward');assert(mapRewards[4].adCompleted);
 const mapBefore=heartItems;land(1);assert.equal(heartItems,mapBefore+5);assert.equal(mapRewards[4].status,'claimed');
 assert(!hasMapReward(4));assert(hasMapReward(20));assert.deepEqual(readMapRewards(),mapRewards);
 resultReturn();assert.equal(state,'map');assert.deepEqual([mapTransition.from,mapTransition.to],[4,5]);
 assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,4);assert.equal((ui.mapNodes.innerHTML.match(/map-reward-gift/g)||[]).length,4);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();
-assert(selectStage(4));moveCount=1;finish(true);clearsSinceAd=0;ui.next.onclick();assert.equal(state,'map');assert(!rewardSequence);
+assert(selectStage(4));moveCount=1;finish(true);clearsSinceAd=0;ui.overlay.events.click({target:ui.overlay});assert.equal(state,'map');assert(!rewardSequence);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();
 // The map-return action also delivers rewards; an interrupted ad/roulette resumes on map entry.
 stageProgress.existing.cleared=19;showLevelMap({target:20});assert(selectStage(20));

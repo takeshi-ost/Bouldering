@@ -489,3 +489,10 @@ button.modal-close:focus-visible { outline:none; }
 .daily-stage-meta { display:flex; align-items:center; gap:4px; min-width:0; }
 .daily-stage-meta .stage-start-info { flex:1; min-width:0; }
 .daily-stage-gift { flex:none; width:32px; height:32px; }
+
+/* A clear has one continuation; the full dialog is the tap target. */
+#overlay.is-clear { touch-action:manipulation; cursor:pointer; }
+#overlay:focus { outline:none; }
+#overlay.is-clear .card { padding-top:24px; }
+#overlay .modal-tap { margin:20px 0 0; font-size:12px; letter-spacing:.18em; }
+#overlay #resultTap[hidden],#overlay #next[hidden],#overlay #retry[hidden],#overlay #closeResult[hidden] { display:none; }

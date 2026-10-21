@@ -101,7 +101,7 @@ function closeLifePrompt() {
 function cancelLifePrompt() {
     const prompt=closeLifePrompt();if(!prompt)return;
     if(prompt.onCancel)prompt.onCancel();
-    else if(prompt.wasResultOpen){showResultModal();ui.retry.focus();}
+    else if(prompt.wasResultOpen){showResultModal();}
     else focusMapLevel();
     refreshLives();
 }

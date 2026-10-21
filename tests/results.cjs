@@ -26,7 +26,7 @@ down({clientX:body.x,clientY:body.y-camera});clock+=1000;release(true);
 assert.equal(moveCount,0);assert.equal(runTimeMs(),6000,'Canceled drag must not erase time');
 clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(runTimeMs(),usedTime,'Undo must not erase time');
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
-assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(!ui.next.hidden);
+assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
 assert.equal(ui.resultStats.hidden,false);assert(!ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
 const result={moves:moveCount,timeMs:Math.floor(clock-1100),stars:3};
 assert.deepEqual(stageRecords.existing[1],result);
@@ -36,14 +36,15 @@ assert.equal(formatClearTime(60000),'01:00:00');assert.equal(formatClearTime(610
 assert.equal(formatClearTime(3600010),'60:00:01');
 clock+=30000;assert.equal(runTimeMs(),result.timeMs,'Result wait must not count');
 
+ui.retry.onclick();assert.equal(state,'won','Clear cannot retry');
 beginPointer({clientX:body.x,clientY:body.y-camera});assert.equal(bodyTap,null);assert.equal(canScrollStage(),false);
-let canceled=false;ui.overlay.events.cancel({preventDefault(){canceled=true;}});assert(canceled);assert.equal(state,'map');assert(!ui.overlay.open && ui.overlay.hidden);
+ui.overlay.events.click({target:ui.resultStars});assert.equal(state,'map');assert(!ui.overlay.open && ui.overlay.hidden);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);
 assert(!ui.mapNodes.innerHTML.includes(formatStageRecord(result)));assert(!ui.mapNodes.innerHTML.includes('map-record'));assert(ui.mapNodes.innerHTML.includes('map-node-stars'));assert(ui.mapNodes.innerHTML.includes('⭐️⭐️'));
 assert.deepEqual(readStageRecords(),stageRecords);
 const firstRecord=JSON.stringify(stageRecords.existing[1]);
 // Failing and retrying never overwrite a completed record.
-begin();stamina=1;clock+=500;play(1);assert.equal(state,'lost');assert(ui.overlay.open);assert(ui.resultStats.hidden);assert(ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'');
+begin();stamina=1;clock+=500;play(1);assert.equal(state,'lost');assert(ui.overlay.open);assert(ui.resultStats.hidden);assert(ui.resultTap.hidden && !ui.retry.hidden && !ui.closeResult.hidden);assert(ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'');
 clock+=5000;assert.equal(runTimeMs(),500);assert.equal(JSON.stringify(stageRecords.existing[1]),firstRecord);
 ui.retry.onclick();assert(!ui.overlay.open && ui.overlay.hidden);assert.equal(runStartedAt,null);assert.equal(runTimeMs(),0);
 advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);
@@ -99,6 +100,22 @@ for(const stars of [0,4,1.5,'3',null]) {
  assert.deepEqual(readStageRecords().existing[1],{moves:2,timeMs:100});
 }
 data[RECORDS_KEY]=savedRecords;
+// Card, backdrop and keyboard all use the same continuation, once per visible clear.
+const continueSaved=continueNormalClear;let continuations=0;
+continueNormalClear=()=>{continuations++;state='map';hideResultModal();};
+for(const target of [ui.overlay,ui.resultTitle,ui.resultTap]) {
+ state='won';showResultModal();ui.overlay.events.click({target});
+ ui.overlay.events.click({target});
+}
+assert.equal(continuations,3);
+for(const key of ['Enter',' ']) {
+ state='won';showResultModal();let prevented=0;
+ ui.overlay.events.keydown({key,repeat:true,preventDefault(){prevented++;}});
+ assert.equal(state,'won');
+ ui.overlay.events.keydown({key,repeat:false,preventDefault(){prevented++;}});
+ assert.equal(state,'map');assert.equal(prevented,2);
+}
+assert.equal(continuations,5);continueNormalClear=continueSaved;
 `)(assert,data);
 console.log('PASS results: centered native modal, background guards, intro-excluded timer, cancel/Undo timing, frozen results, formatting, latest per-course records, map labels, reload, legacy/invalid/blocked storage, debug isolation');
 } finally {

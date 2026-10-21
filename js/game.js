@@ -4,7 +4,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
-    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartOwned", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
+    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartOwned", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTap", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapEditCharacter", "mapDebugMode",
     "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "selectedStripeLabel", "paletteSwatches", "customColor", "editorConfirm", "editorCancel", "appearanceStatus",
     "titleScreen", "releaseVersion", "playerUuid", "titleTap", "prototypeCourse", "prototypeDescription", "showHelp", "helpDialog", "closeHelp"
@@ -123,6 +123,7 @@ function showResultModal() {
     requestGameRender();
     ui.overlay.hidden=false;
     if(!ui.overlay.open)ui.overlay.showModal?.();
+    (state==='won'?ui.overlay:dailyRun?ui.next:ui.retry).focus();
 }
 
 
@@ -567,7 +568,6 @@ function reset(n,staminaBonus=0) {
     ui.mapButton.textContent=dailyRun?'カレンダーにもどる':'MAPにもどる';
     ui.retry.hidden=false;
     ui.dailyCalendar.hidden=true;
-    ui.next.textContent = '次のステージへ →';
     ui.levelMap.hidden = true;
     ui.wall.classList.toggle('map-open',false);
     ui.mapButton.disabled = false;
@@ -845,9 +845,12 @@ function finish(won) {
     ui.resultDifficulty.textContent=won ? difficultyLabel(difficulty) : '';
     ui.resultStats.hidden=!won;
     ui.resultStats.textContent=won ? formatStageRecord({moves:moveCount,timeMs:runElapsedMs}) : '';
-    ui.next.hidden = dailyRun ? false : !won;
-    ui.next.textContent = dailyRun ? (dailyRecords[dailyRun.date]?.rewardStatus==='pending'?'報酬を受け取る':'カレンダーへ') : '次のステージへ →';
-    ui.retry.hidden=!!dailyRun && won;
+    ui.next.hidden=won || !dailyRun;
+    ui.next.textContent='カレンダーへ';
+    ui.retry.hidden=won;
+    ui.closeResult.hidden=won;
+    ui.resultTap.hidden=!won;
+    ui.overlay.classList.toggle('is-clear',won);
     ui.retry.textContent=dailyRun?'リトライ':'RETRY';
 
     const expectedMoves=routeExpectedMoves();
@@ -864,7 +867,6 @@ function finish(won) {
     hideSettings();
     updateUI();
     showResultModal();
-    (won || dailyRun ? ui.next : ui.retry).focus();
 }
 
 // RAF time is injected so tests can advance the opening without real waits.

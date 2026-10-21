@@ -148,6 +148,7 @@ ui.next.onclick = () => {
     else if(state==='won')continueNormalClear();
 };
 ui.retry.onclick=()=>{
+    if(state!=='lost')return;
     if(dailyRun)continueDailyResult(true);
     else restartNormalStage();
 };
@@ -230,9 +231,19 @@ function dismissOutside(dialog,close,card=false) {
         close();
     });
 }
-ui.closeResult.onclick=()=>ui.mapButton.onclick();
+ui.closeResult.onclick=()=>state==='won'?ui.next.onclick():ui.mapButton.onclick();
 ui.overlay.addEventListener('cancel',e=>{e.preventDefault();ui.closeResult.onclick();});
-dismissOutside(ui.overlay,()=>ui.closeResult.onclick(),true);
+ui.overlay.addEventListener('click',e=>{
+    if(ui.overlay.hidden)return;
+    if(state==='won')ui.next.onclick();
+    else if(e.target===ui.overlay)ui.closeResult.onclick();
+});
+ui.overlay.addEventListener('keydown',e=>{
+    if(state==='won' && (e.key==='Enter' || e.key===' ')) {
+        e.preventDefault();
+        if(!e.repeat && !ui.overlay.hidden)ui.next.onclick();
+    }
+});
 ui.closeStageStart.onclick=closeStageStart;
 ui.stageStartDialog.addEventListener('cancel',e=>{e.preventDefault();closeStageStart();});
 dismissOutside(ui.stageStartDialog,closeStageStart);

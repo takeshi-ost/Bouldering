@@ -15,14 +15,14 @@ new Function('assert','data','storage',env+source+`
 function clearStage(){reset(1);cameraIntro=null;for(let i=1;i<route.length;i++) {camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();}assert.equal(state,'won');}
 for(let i=1;i<=10;i++) {
  clearStage();assert.equal(clearsSinceAd,(i-1)%5+1);finish(true);assert.equal(clearsSinceAd,(i-1)%5+1,'Count each run only once');
- const record=JSON.stringify(stageRecords);ui.next.onclick();
+ const record=JSON.stringify(stageRecords);ui.overlay.events.click({target:ui.overlay});
  if(i%5){assert.equal(state,'map');continue;}
  assert.equal(state,'ad');assert(ui.dummyAd.open && !ui.dummyAd.hidden && !ui.overlay.open);assert.equal(ui.adCounter.textContent,'10');assert(ui.adComplete.hidden);
  assert(!completeDummyAd());assert(!startDummyAd());assert(!canUndoMove() && !canScrollStage());
  let canceled=false;ui.dummyAd.events.cancel({preventDefault(){canceled=true;}});assert(canceled);
  const start=dummyAd.start;for(const [ms,remaining] of [[999,10],[1000,9],[9999,1],[10000,0]]){clock=start+ms;advanceDummyAd(clock);assert.equal(ui.adCounter.textContent,String(remaining));}
  assert(!ui.adComplete.hidden);assert.equal(clearsSinceAd,5,'Counter resets only after completion tap');
- ui.next.onclick();ui.restart.onclick();ui.mapButton.onclick();assert.equal(state,'ad');
+ ui.overlay.events.click({target:ui.overlay});ui.restart.onclick();ui.mapButton.onclick();assert.equal(state,'ad');
  assert(completeDummyAd());assert(!completeDummyAd());assert.equal(state,'map');assert(ui.dummyAd.hidden && !ui.dummyAd.open);assert.equal(clearsSinceAd,0);assert.equal(JSON.stringify(stageRecords),record);
  assert.deepEqual([mapTransition.from,mapTransition.to],[1,2]);advanceLevelMap(clock);advanceLevelMap(clock+650);assert.equal(mapSelected,2);
 }

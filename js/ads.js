@@ -58,7 +58,7 @@ function completeDummyAd() {
     try {ad.onComplete();}
     finally {
         if(ad.onReturn)ad.onReturn();
-        else if(ad.wasResultOpen){showResultModal();(state==='won'?ui.next:ui.retry).focus();}
+        else if(ad.wasResultOpen){showResultModal();}
         else canvas.focus();
         if(state!=='map' || !mapPreparing)finishDummyAdCover();
     }
