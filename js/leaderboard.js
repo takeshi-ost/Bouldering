@@ -10,6 +10,18 @@ function dummyStageScores(expectedMoves,stage=level) {
 function currentStageScores(stage,mode,expectedMoves) {
     return dummyStageScores(expectedMoves,stage);
 }
+// Page-scoped fixture roster: stable identities/arrival stages across rerenders.
+// Reuse ranking names and avatar colors; no course generation or PNG encoding.
+function currentMapPlayers(first,last,mode) {
+    const profiles=dummyStageScores(1,first);
+    const random=mulberry32(first ^ (mode==='prototype'?0x53A7C91B:0x2B8D104F));
+    const count=(last-first+1)*4;
+    return Array.from({length:count},(_,i)=>{
+        const profile=profiles[i%profiles.length],group=Math.floor(i/profiles.length);
+        return {id:`map-${mode}-${first}-${i}`,name:profile.name+(group?` ${group+1}`:''),
+            avatar:profile.avatar,isPlayer:false,reachedLevel:first+Math.floor(random()*(last-first+1))};
+    });
+}
 function stageLeaderboardRows(record,others) {
     const sorted=[...others.map(row=>({...row,isPlayer:false})),{...record,isPlayer:true}]
         .sort((a,b)=>a.moves-b.moves || a.timeMs-b.timeMs || Number(a.isPlayer)-Number(b.isPlayer))

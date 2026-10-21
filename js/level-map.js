@@ -128,6 +128,30 @@ function mapPoint(n) {
 function positionMapMarker(point) {
     ui.mapMarker.style.left = `calc(${point.x}% + 22px)`;
     ui.mapMarker.style.top = (point.y+12)+'px';
+    ui.mapMarker.style.zIndex = String(mapPlayerDepth(point.y+12));
+}
+// Feet lower on the map paint over higher figures, including the local climber.
+function mapPlayerDepth(y) { return 1+Math.round(y*100); }
+function layoutMapPlayers(players) {
+    const {first,last}=mapBounds(),width=ui.mapTrack.clientWidth||400;
+    // Leave the local marker's upper-right spot free, and keep stage numbers clear.
+    const slots=[[-25,12],[-40,28],[-12,36],[17,40],[42,31]];
+    const counts=new Map(),seen=new Set(),placed=[];
+    for(const player of players) {
+        const n=player.reachedLevel,count=counts.get(n)||0;
+        if(player.isPlayer || seen.has(player.id) || !Number.isSafeInteger(n) || n<first || n>last || count>=slots.length)continue;
+        const p=mapPoint(n),[dx,dy]=slots[count];
+        const x=clamp(p.x*width/100+dx,12,width-12),y=p.y+dy;
+        placed.push({...player,x,y,depth:mapPlayerDepth(y)});
+        counts.set(n,count+1);seen.add(player.id);
+    }
+    return placed.sort((a,b)=>a.y-b.y || a.x-b.x);
+}
+function renderMapPlayers() {
+    const {first,last}=mapBounds();
+    const players=layoutMapPlayers(currentMapPlayers(first,last,courseMode));
+    ui.mapPlayers.innerHTML=players.map(player=>
+        `<span class="map-marker map-opponent" data-player="${scoreText(player.id)}" data-reached-level="${player.reachedLevel}" title="${scoreText(player.name)} · STAGE ${player.reachedLevel}" style="left:${player.x}px;top:${player.y}px;z-index:${player.depth}">${scoreAvatar(player)}</span>`).join('');
 }
 function renderLevelMap() {
     const {first,last} = mapBounds();
@@ -152,6 +176,7 @@ function renderLevelMap() {
     }
     ui.mapRoad.innerHTML = '';
     ui.mapNodes.innerHTML = nodes.join('');
+    renderMapPlayers();
     // The page-boundary hop starts on the entry path, without duplicating a stage button.
     ui.mapMarker.hidden = (mapSelected<first || mapSelected>last) && !mapTransition;
     if (!ui.mapMarker.hidden) positionMapMarker(mapPoint(mapSelected));
