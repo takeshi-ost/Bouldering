@@ -85,7 +85,7 @@ assert.equal(selectEditorStripe(8),false);
 const bodyDraftBefore=[...draftColors];
 ui.editorPreview.onclick({target:{closest(){return {dataset:{part:'head'}};}}});
 assert.equal(selectedPart,'head');assert.equal(selectedStripe,null);assert(!ui.bodyStripeControls.hidden);
-assert.equal(ui.selectedStripeLabel.textContent,'頭の色（単色）');assert(!ui.editorPalette.hidden);
+assert(!ui.editorPalette.hidden);
 paintEditorColor('#765432');assert.equal(draftHeadColor,'#765432');assert.deepEqual(draftColors,bodyDraftBefore);selectEditorHead();
 ui.paletteSwatches.onclick({target:{closest(){return {dataset:{color:'#263849'}};}}});assert.equal(draftHeadColor,'#263849');
 let headKey=false;ui.editorPreview.onkeydown({key:'Enter',preventDefault(){headKey=true;},target:{closest(){return {dataset:{part:'head'}};}}});assert(headKey && selectedPart==='head' && ui.editorPalette.open);

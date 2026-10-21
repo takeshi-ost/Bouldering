@@ -165,22 +165,20 @@ button:disabled { opacity: .45; cursor: default; }
 .character-editor { position:absolute; inset:0; z-index:3; background:#f8f6ee; padding:8px 16px; display:flex; flex-direction:column; gap:6px; overflow:hidden; }
 .character-editor > :not(.editor-workspace) { flex-shrink:0; }
 .character-editor[hidden],.editor-palette[hidden] { display:none; }
-.editor-hint { color:#637267; font-size:11px; margin:0; text-align:center; }
-/* Reserve the right side for the modal; opening it never resizes the character. */
+/* Keep the character centered; opening the modal never resizes the preview. */
 .editor-workspace { display:flex; flex:1 1 0; min-height:0; max-height:420px; }
-.editor-preview { display:block; width:62%; height:100%; min-height:0; background:radial-gradient(ellipse,#e2e8dc 0,transparent 65%); }
+.editor-preview { display:block; width:100%; height:100%; min-height:0; background:radial-gradient(ellipse,#e2e8dc 0,transparent 65%); }
 .editor-preview [data-stripe],.editor-preview [data-part="head"] { cursor:pointer; }
 .editor-preview [data-stripe]:focus-visible,.editor-preview [data-part="head"]:focus-visible { outline:2px solid #d4a63d; }
 .stripe-slider { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; }
 .stripe-slider output { color:#39785b; font-size:18px; }
-.stripe-slider span { margin-left:auto; font-size:11px; color:#637267; }
 #stripeCount { width:100%; margin:0; accent-color:#39785b; min-height:28px; }
 .editor-stripe-row { display:flex; align-items:center; gap:12px; }
 .editor-stripe-row > #bodyStripeControls { flex:1; min-width:0; }
 #editorRandom { min-height:44px; padding:10px 14px; background:#dde5d6; color:#3f5b47; white-space:nowrap; }
 .editor-palette { position:fixed; inset:auto; left:min(calc(50% + 48px),calc(100% - 140px)); top:50%; transform:translateY(-50%); margin:0; width:128px; max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px); overflow-y:auto; background:#ebece2; color:#25372f; padding:12px; border:1px solid #bcc8ba; border-radius:12px; box-shadow:0 8px 24px #25372f33; }
 .editor-palette::backdrop { background:#23372d14; }
-.editor-palette p { font-size:11px; margin:0 0 10px; text-align:center; }
+@media (max-width:350px) { .editor-palette { width:112px; left:calc(100% - 124px); padding:10px; } }
 .palette-swatches { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
 .palette-swatches button { min-height:36px; padding:0; border:2px solid #fff; border-radius:6px; }
 .palette-swatches button[aria-pressed="true"] { outline:2px solid #d4a63d; outline-offset:1px; }
@@ -288,8 +286,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .level-map > .map-error { position:absolute; z-index:4; top:116px; left:14px; right:14px; margin:0; padding:8px; border-radius:8px; background:#fffdf3ed; }
 
 .player-name-label { display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:700; }
-.player-name-label span { font-size:11px; font-weight:400; color:#637267; }
-#playerName { width:100%; min-height:44px; padding:9px 12px; border:1px solid #adb9ad; border-radius:8px; font:inherit; font-size:16px; color:#263e32; background:#fffdf3; }
+#playerName { width:calc(10em + 26px); max-width:100%; min-height:46px; padding:9px 12px; border:1px solid #adb9ad; border-radius:8px; font:inherit; font-size:20px; color:#263e32; background:#fffdf3; }
 .player-name-error { margin:0; color:#ae433d; font-size:12px; }
 .player-name-error[hidden] { display:none; }
 
