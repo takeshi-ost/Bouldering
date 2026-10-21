@@ -94,41 +94,68 @@ function editorPoseRoot(i,pose) {
 }
 function previewLimb(i,pose) {
     const root=editorPoseRoot(i,pose),[x,y,tx,ty]=pose.limbs[i];
-    return `<g pointer-events="none"><path d="M${root.x} ${root.y} L${x} ${y} L${tx} ${ty}" fill="none" stroke="#435c50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    return `<g pointer-events="none"><path d="M${root.x} ${root.y} L${x} ${y}" fill="none" stroke="${PLAYER_OUTLINE_COLOR}" stroke-width="6" stroke-linecap="round"/>
+        <path d="M${x} ${y} L${tx} ${ty}" fill="none" stroke="${PLAYER_OUTLINE_COLOR}" stroke-width="5" stroke-linecap="round"/>
         <circle cx="${x}" cy="${y}" r="3.5" fill="#f3f0e7"/><circle cx="${tx}" cy="${ty}" r="4" fill="#2f5d46"/></g>`;
 }
 function renderCharacterEditor() {
-    const w=TORSO.width,h=TORSO.height,pose=EDITOR_POSES[draftStripeCount-1];
+    const w=TORSO.width,h=TORSO.height,pose=EDITOR_POSES[draftStripeCount-1],outline=PLAYER_SILHOUETTE_STYLE;
     const bands=draftColors.slice(0,draftStripeCount).map((color,i)=>{
         const selected=selectedPart==='body' && i===selectedStripe;
-        return `<rect data-stripe="${i}" x="${-w/2}" y="${-h/2+h*i/draftStripeCount}" width="${w}" height="${h/draftStripeCount}" fill="${color}" stroke="${selected?'#d4a63d':'#fff9ed'}" stroke-width="${selected?1.5:.5}" role="button" tabindex="0" aria-label="上から${i+1}番目の色 ${color}" aria-pressed="${selected}"/>`;
+        return `<rect data-stripe="${i}" x="${-w/2}" y="${-h/2+h*i/draftStripeCount}" width="${w}" height="${h/draftStripeCount}" fill="${color}" role="button" tabindex="0" aria-label="上から${i+1}番目の色 ${color}" aria-pressed="${selected}" aria-haspopup="dialog" aria-controls="editorPalette"/>`;
     }).join('');
     ui.editorPreview.setAttribute('aria-label',`${draftStripeCount}色・${pose.name}のキャラクター配色プレビュー`);
-    ui.editorPreview.innerHTML=`<g data-pose="${draftStripeCount}" transform="translate(160 140) scale(1.5)">
+    ui.editorPreview.innerHTML=`<defs><filter id="editor-outline-shadow" x="-100%" y="-100%" width="300%" height="300%"><feDropShadow dx="0" dy="${outline.shadowOffsetY}" stdDeviation="${outline.shadowBlur/2}" flood-color="${outline.shadowColor}"/></filter></defs>
+        <g data-pose="${draftStripeCount}" transform="translate(105 140) scale(1.5)">
         ${[2,3,0,1].map(i=>previewLimb(i,pose)).join('')}
         <g transform="rotate(${pose.tilt})">
-        <path d="M0 ${-h/2} V${-h/2-9}" stroke="#435c50" stroke-width="5"/>
-        <circle data-part="head" cx="0" cy="${-h/2-13}" r="10" fill="${draftHeadColor}" stroke="${selectedPart==='head'?'#d4a63d':'none'}" stroke-width="1.5" role="button" tabindex="0" aria-label="頭の色 ${draftHeadColor}" aria-pressed="${selectedPart==='head'}"/>
-        ${bands}<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" fill="none" stroke="#fff9ed" stroke-width="1.5" pointer-events="none"/>
-        ${[-4,4].flatMap(x=>[-6,0,6].map(y=>`<circle cx="${x}" cy="${y}" r="1.3" fill="#d9e9db" pointer-events="none"/>`)).join('')}
+        <path d="M0 ${-h/2} V${-h/2-9}" stroke="${PLAYER_OUTLINE_COLOR}" stroke-width="5"/>
+        <circle data-part="head" cx="0" cy="${-h/2-13}" r="10" fill="${draftHeadColor}" role="button" tabindex="0" aria-label="頭の色 ${draftHeadColor}" aria-pressed="${selectedPart==='head'}" aria-haspopup="dialog" aria-controls="editorPalette"/>
+        <circle cx="0" cy="${-h/2-13}" r="10" fill="none" stroke="${outline.color}" stroke-width="${outline.width}" filter="url(#editor-outline-shadow)" pointer-events="none"/>
+        ${bands}<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" fill="none" stroke="${outline.color}" stroke-width="${outline.width}" filter="url(#editor-outline-shadow)" pointer-events="none"/>
+        ${[0,1,2,3].map(i=>{const root=limbRoot({x:0,y:0},i);return `<circle data-editor-root="${i}" cx="${root.x}" cy="${root.y}" r="${outline.rootRadius}" fill="${outline.rootColor}" pointer-events="none"/>`;}).join('')}
         </g>
         </g>`;
     ui.stripeCount.value=String(draftStripeCount);
     ui.stripeCountValue.textContent=String(draftStripeCount);
-    ui.bodyStripeControls.hidden=selectedPart==='head';
-    ui.editorPalette.hidden=selectedPart===null;
+    ui.bodyStripeControls.hidden=false;
     if(selectedPart!==null) {
         const color=selectedPart==='head'?draftHeadColor:draftColors[selectedStripe];
         ui.selectedStripeLabel.textContent=selectedPart==='head'?'頭の色（単色）':`上から${selectedStripe+1}番目の色`;
-        ui.customColor.value=color;
         ui.paletteSwatches.innerHTML=EDITOR_COLORS.map(c=>`<button type="button" data-color="${c}" style="background:${c}" aria-label="色 ${c}" aria-pressed="${c===color}"></button>`).join('');
     }
+}
+function openEditorPalette() {
+    ui.editorPalette.hidden=false;
+    if(!ui.editorPalette.open)ui.editorPalette.showModal?.();
+    (ui.paletteSwatches.querySelector?.('[aria-pressed="true"]') || ui.paletteSwatches.querySelector?.('button'))?.focus({preventScroll:true});
+}
+function closeEditorPalette() {
+    const selector=selectedPart==='head'?'[data-part="head"]':`[data-stripe="${selectedStripe}"]`;
+    if(ui.editorPalette.open)ui.editorPalette.close?.();
+    ui.editorPalette.hidden=true;selectedPart=null;selectedStripe=null;
+    if(state==='editing') {
+        renderCharacterEditor();
+        ui.editorPreview.querySelector?.(selector)?.focus({preventScroll:true});
+    }
+}
+function randomizeEditorAppearance(random=Math.random) {
+    if(state!=='editing')return false;
+    closeEditorPalette();
+    const previous=JSON.stringify({colors:draftColors.slice(0,draftStripeCount),headColor:draftHeadColor});
+    const next=randomAppearance(random);
+    if(JSON.stringify(next)===previous) {
+        next.colors[0]=EDITOR_COLORS.find(color=>color!==next.colors[0] && color!==next.colors[1]);
+    }
+    draftColors=[...next.colors];draftStripeCount=next.colors.length;draftHeadColor=next.headColor;
+    renderCharacterEditor();return true;
 }
 let editorMapReturn=null;
 function showCharacterEditor() {
     if(!['map','daily'].includes(state) || mapPreparing || stageStartContext || mapTransition)return false;
     editorMapReturn=state==='daily'?{daily:true}:{page:mapPage,selected:mapSelected,scrollTop:ui.mapScroll.scrollTop};
     cancelMapReveal();
+    closeEditorPalette();
     hideSettings();ui.dailyCalendar.hidden=true;ui.levelMap.hidden=true;ui.wall.classList.toggle('map-open',false);
     draftColors=[...playerColors];draftHeadColor=playerHeadColor;draftStripeCount=playerColors.length;selectedStripe=null;selectedPart=null;
     ui.playerName.value=playerName;ui.playerNameError.hidden=true;
@@ -139,6 +166,7 @@ function showCharacterEditor() {
     return true;
 }
 function returnFromCharacterEditor() {
+    closeEditorPalette();
     const destination=editorMapReturn;editorMapReturn=null;
     if(destination?.daily) {
         showDailyCalendar();ui.dailySettingsButton.focus({preventScroll:true});
@@ -158,17 +186,17 @@ function resizeEditorStripes(n) {
 }
 function selectEditorStripe(n) {
     if(state!=='editing' || !Number.isInteger(n) || n<0 || n>=draftStripeCount)return false;
-    selectedPart='body';selectedStripe=n;renderCharacterEditor();return true;
+    selectedPart='body';selectedStripe=n;renderCharacterEditor();openEditorPalette();return true;
 }
 function selectEditorHead() {
     if(state!=='editing')return false;
-    selectedPart='head';selectedStripe=null;renderCharacterEditor();return true;
+    selectedPart='head';selectedStripe=null;renderCharacterEditor();openEditorPalette();return true;
 }
 function paintEditorColor(color) {
     if(state!=='editing' || selectedPart===null || !validBodyColor(color))return false;
     if(selectedPart==='head')draftHeadColor=color.toLowerCase();
     else draftColors[selectedStripe]=color.toLowerCase();
-    renderCharacterEditor();return true;
+    closeEditorPalette();return true;
 }
 function confirmCharacterEditor() {
     if(state!=='editing')return false;
@@ -200,14 +228,15 @@ ui.editorPreview.onkeydown=e=>{
     if(band && ui.editorPreview.contains(band)) {
         e.preventDefault();
         if(band.dataset.part==='head')selectEditorHead();else selectEditorStripe(Number(band.dataset.stripe));
-        ui.customColor.focus();
     }
 };
 ui.paletteSwatches.onclick=e=>{
     const swatch=e.target.closest('button[data-color]');
     if(swatch && ui.paletteSwatches.contains(swatch))paintEditorColor(swatch.dataset.color);
 };
-ui.customColor.oninput=()=>paintEditorColor(ui.customColor.value);
+ui.editorPalette.addEventListener('cancel',e=>{e.preventDefault();closeEditorPalette();});
+dismissOutside(ui.editorPalette,closeEditorPalette);
+ui.editorRandom.onclick=()=>randomizeEditorAppearance();
 ui.playerName.oninput=e=>{if(!e.isComposing)limitPlayerNameInput();};
 ui.playerName.oncompositionend=limitPlayerNameInput;
 ui.editorConfirm.onclick=confirmCharacterEditor;

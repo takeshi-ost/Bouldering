@@ -191,12 +191,12 @@ const PLAYER_OUTLINE_COLOR='#435c50';
 function drawSoftPlayerOutline() {
     // Stroke the current silhouette only, so body stripes do not cast individual shadows.
     ctx.save();
-    ctx.lineWidth=1.5;
-    ctx.strokeStyle='rgba(67,92,80,.22)';
-    ctx.shadowColor='rgba(67,92,80,.28)';
-    ctx.shadowBlur=3;
+    ctx.lineWidth=PLAYER_SILHOUETTE_STYLE.width;
+    ctx.strokeStyle=PLAYER_SILHOUETTE_STYLE.color;
+    ctx.shadowColor=PLAYER_SILHOUETTE_STYLE.shadowColor;
+    ctx.shadowBlur=PLAYER_SILHOUETTE_STYLE.shadowBlur;
     ctx.shadowOffsetX=0;
-    ctx.shadowOffsetY=1.5;
+    ctx.shadowOffsetY=PLAYER_SILHOUETTE_STYLE.shadowOffsetY;
     ctx.stroke();
     ctx.restore();
 }
@@ -1198,12 +1198,12 @@ function draw(now = 0) {
         circle(
             root.x,
             root.y,
-            2.5,
+            PLAYER_SILHOUETTE_STYLE.rootRadius,
             drag &&
             drag.anchor !== null &&
             !visualFixed.includes(i)
                 ? '#c39037'
-                : '#d9e9db'
+                : PLAYER_SILHOUETTE_STYLE.rootColor
         );
     }
 

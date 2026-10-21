@@ -66,16 +66,17 @@
                 <label class="player-name-label" for="playerName">プレイヤー名 <span>最大10文字</span></label>
                 <input id="playerName" type="text" autocomplete="off" spellcheck="false" aria-describedby="playerNameError" enterkeyhint="done">
                 <p id="playerNameError" class="player-name-error" hidden>プレイヤー名を入力してください。</p>
-                <svg id="editorPreview" viewBox="0 0 320 370" class="editor-preview" role="group" aria-label="キャラクターの配色プレビュー"></svg>
-                <div id="bodyStripeControls">
+                <div class="editor-workspace">
+                <svg id="editorPreview" viewBox="0 0 210 370" preserveAspectRatio="xMinYMid meet" class="editor-preview" role="group" aria-label="キャラクターの配色プレビュー"></svg>
+                </div>
+                <div class="editor-stripe-row"><div id="bodyStripeControls">
                 <label class="stripe-slider" for="stripeCount">ボディの塗り分け <output id="stripeCountValue" for="stripeCount">1</output><span>1〜8</span></label>
                 <input id="stripeCount" type="range" min="1" max="8" step="1" value="1">
-                </div>
-                <div id="editorPalette" class="editor-palette" hidden>
+                </div><button id="editorRandom" class="secondary" type="button">おまかせ</button></div>
+                <dialog id="editorPalette" class="editor-palette" aria-labelledby="selectedStripeLabel" hidden>
                     <p id="selectedStripeLabel"></p>
-                    <label class="custom-color" for="customColor">自由な色 <input id="customColor" type="color" value="#39785b"></label>
                     <div id="paletteSwatches" class="palette-swatches" aria-label="カラーパレット"></div>
-                </div>
+                </dialog>
                 <p id="appearanceStatus" role="status" hidden></p>
                 <p class="editor-hint">配色は「決定」で保存されます。</p>
                 <div class="editor-actions"><button id="editorCancel" class="secondary">戻る</button><button id="editorConfirm">決定</button></div>

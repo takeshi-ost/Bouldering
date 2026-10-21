@@ -12,6 +12,10 @@ const STAGE_SAFE_WIDTH = 16;
 const R = 112;
 const MAX_HEIGHT = H * 3;
 const TORSO = { width: 40, height: 72, hitPadding: 8 };
+// Shared by the live Canvas player and the editor's SVG preview.
+const PLAYER_SILHOUETTE_STYLE = { color:'rgba(67,92,80,.22)', width:1.5,
+    shadowColor:'rgba(67,92,80,.28)', shadowBlur:3, shadowOffsetY:1.5,
+    rootColor:'#d9e9db', rootRadius:2.5 };
 const limbs = [
     { x: -52, y: -68, name: "左手" },
     { x: 52, y: -68, name: "右手" },
