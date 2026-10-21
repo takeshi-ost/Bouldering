@@ -65,7 +65,10 @@ for(let n=1;n<=8;n++) {
  assert.equal((ui.editorPreview.innerHTML.match(/data-editor-root=/g)||[]).length,4,'Only shoulder/hip dots');
  assert(!ui.editorPreview.innerHTML.includes('#fff9ed'),'No white stripe borders');
  assert(ui.editorPreview.innerHTML.includes(PLAYER_SILHOUETTE_STYLE.color));
- assert(ui.editorPreview.innerHTML.lastIndexOf('pointer-events="none"><path')<ui.editorPreview.innerHTML.indexOf('data-stripe="0"'),'Every limb must be behind the body');
+ for(let i=0;i<4;i++) {
+  const limbIndex=ui.editorPreview.innerHTML.indexOf('data-editor-limb="'+i+'"');
+  assert(limbIndex>=0 && limbIndex<ui.editorPreview.innerHTML.indexOf('data-stripe="0"'),'Every arm and leg must be behind the body in all eight poses');
+ }
  const pose=EDITOR_POSES[n-1];
  for(let i=0;i<4;i++) {
   const root=editorPoseRoot(i,pose),[x,y,tx,ty]=pose.limbs[i];

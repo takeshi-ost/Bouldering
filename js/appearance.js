@@ -76,17 +76,19 @@ function updateMapAppearance() {
     ui.mapMarker.style.setProperty?.('--body-stripes',bodyStripeGradient());
     ui.mapMarker.style.setProperty?.('--head-color',playerHeadColor);
 }
-// Editor-only fashion poses, inspired by the reference sheet; gameplay IK is unchanged.
+// Editor-only poses selected from the reference sheet; gameplay IK is unchanged.
 // Each limb stores [elbow/knee x, y, hand/foot x, y] in preview coordinates.
+// Reference positions: top-left, top-center-right, top-right, middle-left,
+// middle-center-left, bottom-left, bottom-center-left, bottom-right.
 const EDITOR_POSES=[
-    {name:'自然に立つ',tilt:0,limbs:[[-30,10,-30,60],[30,10,30,60],[-23,85,-32,136],[23,85,32,136]]},
-    {name:'片足に重心をかける',tilt:-7,limbs:[[-27,10,-20,61],[27,12,29,62],[-37,80,-20,135],[29,80,14,135]]},
-    {name:'腰に手を当てる',tilt:6,limbs:[[-59,-5,-20,22],[35,14,30,64],[-25,83,-30,136],[27,86,38,136]]},
-    {name:'前で手を組む',tilt:0,limbs:[[-43,3,-4,26],[44,4,4,26],[-27,87,-44,136],[20,86,19,136]]},
-    {name:'頭に手を添える',tilt:10,limbs:[[-48,-18,-4,-53],[45,11,35,60],[-13,83,-18,134],[36,80,23,135]]},
-    {name:'脚を交差して立つ',tilt:-4,limbs:[[-36,6,-10,22],[36,5,10,22],[-9,87,18,136],[34,84,-3,136]]},
-    {name:'腕を組む',tilt:0,limbs:[[-37,6,19,-14],[37,7,-19,-9],[-23,86,-32,136],[23,86,35,136]]},
-    {name:'脚を広げて胸に手を添える',tilt:-8,limbs:[[-47,11,-1,-2],[30,12,26,61],[-37,83,-67,133],[40,84,57,136]]}
+    {name:'大きく脚を開き片手を顔へ',tilt:8,limbs:[[-46,-3,-62,17],[40,-25,16,-64],[-44,83,-61,142],[46,82,61,137]]},
+    {name:'両腕で顔を囲む',tilt:-12,limbs:[[-57,-78,-8,-81],[58,-56,10,-49],[-18,88,-29,142],[36,85,7,126]]},
+    {name:'片腕を前へ突き出す',tilt:-16,limbs:[[-43,10,-27,37],[43,-29,62,-62],[-30,85,-44,141],[38,87,60,140]]},
+    {name:'深く踏み込み片腕を掲げる',tilt:14,limbs:[[-45,-10,34,-23],[33,-68,24,-84],[-55,82,-62,142],[59,66,29,113]]},
+    {name:'頭上に腕を回し腰をひねる',tilt:18,limbs:[[-38,-81,19,-71],[48,17,37,67],[-25,86,-13,142],[28,84,2,129]]},
+    {name:'両手を広げ片脚を上げる',tilt:-14,limbs:[[-55,-10,-61,-48],[52,-12,60,-52],[-25,88,-10,143],[48,82,16,105]]},
+    {name:'両手を頭の後ろで組む',tilt:10,limbs:[[-53,-77,-9,-82],[56,-76,12,-81],[-32,87,-6,145],[32,90,14,139]]},
+    {name:'顎に手を添え片脚を折る',tilt:13,limbs:[[-41,7,28,20],[48,0,18,-56],[-44,88,-7,113],[17,92,19,144]]}
 ];
 function editorPoseRoot(i,pose) {
     const root=limbRoot({x:0,y:0},i),angle=pose.tilt*Math.PI/180;
@@ -94,7 +96,7 @@ function editorPoseRoot(i,pose) {
 }
 function previewLimb(i,pose) {
     const root=editorPoseRoot(i,pose),[x,y,tx,ty]=pose.limbs[i];
-    return `<g pointer-events="none"><path d="M${root.x} ${root.y} L${x} ${y}" fill="none" stroke="${PLAYER_OUTLINE_COLOR}" stroke-width="6" stroke-linecap="round"/>
+    return `<g data-editor-limb="${i}" pointer-events="none"><path d="M${root.x} ${root.y} L${x} ${y}" fill="none" stroke="${PLAYER_OUTLINE_COLOR}" stroke-width="6" stroke-linecap="round"/>
         <path d="M${x} ${y} L${tx} ${ty}" fill="none" stroke="${PLAYER_OUTLINE_COLOR}" stroke-width="5" stroke-linecap="round"/>
         <circle cx="${x}" cy="${y}" r="3.5" fill="#f3f0e7"/><circle cx="${tx}" cy="${ty}" r="4" fill="#2f5d46"/></g>`;
 }
