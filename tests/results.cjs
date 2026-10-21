@@ -94,7 +94,7 @@ for(const [value,label] of [[0,'EASY'],[1,'NORMAL'],[2,'NORMAL'],[3,'HARD']]) {
  assert.equal(ui.resultDifficulty.textContent,label);assert(ui.resultDifficulty.hidden && !ui.resultRanking.hidden);
  debugMode=true;updateUI();assert(ui.progress.textContent.endsWith('/ '+label));
  dailyRun={...dailyProfile('2026-10-17'),difficulty:value,returnCourse:'existing'};
- finish(true);assert.equal(ui.resultDifficulty.textContent,label);assert(!ui.resultDifficulty.hidden && ui.resultRanking.hidden);
+ finish(true);assert.equal(ui.resultDifficulty.textContent,'10月17日（土）');assert(!ui.resultDifficulty.hidden && ui.resultRanking.hidden);
  dailyRun=null;
 }
 finish(false);assert(ui.resultStars.hidden && ui.resultStars.textContent==='');
