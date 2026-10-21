@@ -63,17 +63,19 @@ function applyOnlineProfile(profile,keepAppearance=false) {
     }
 }
 function queueOnlineProfileSave() {
+    if(accountDeletion.marker)return;
     online.revision++;online.dirty=true;
     void flushOnlineProfile();
 }
 async function flushOnlineProfile(preferLocal=true) {
-    if(!online.ready || online.saving)return;
+    if(accountDeletion.marker || !online.ready || online.saving)return;
     online.saving=true;
     try {
-        while(online.dirty) {
+        while(online.dirty && !accountDeletion.marker) {
             const revision=online.revision,profile=onlineProfile();online.dirty=false;
             setOnlineStatus('オンラインに保存中…');
             const saved=await online.adapter.sync(online.uid,profile,preferLocal);
+            if(accountDeletion.marker){online.dirty=false;return;}
             // A delayed first download must not replace an edit/clear made while loading.
             const changed=revision!==online.revision || onlineProfileKey(profile)!==onlineProfileKey(onlineProfile());
             const keepAppearance=changed || state==='editing';
@@ -87,11 +89,16 @@ async function flushOnlineProfile(preferLocal=true) {
     finally {online.saving=false;}
 }
 async function startOnline(adapter) {
+    if(accountDeletion.marker){await restoreDeletionSession(adapter);return;}
     if(online.connecting || online.ready)return;
     online.connecting=true;online.adapter=adapter;
     try {
         setOnlineStatus('オンラインに接続中…');
         const user=await adapter.authenticate();online.uid=user.uid;
+        if(accountDeletion.marker || await adapter.isDeletionLocked?.(user.uid)) {
+            if(!accountDeletion.marker)markAccountDeletion(user.uid,'pending');
+            online.ready=false;showDeleteUserDialog();return;
+        }
         const checkpoint=readOnlineCheckpoint();
         const preferLocal=checkpoint?.uid!==user.uid || checkpoint?.key!==onlineProfileKey(onlineProfile());
         online.ready=true;online.dirty=true;
@@ -130,7 +137,7 @@ function onlineMapPlayers(first,last,mode) {
     return page.players.filter(row=>row.id!==online.uid);
 }
 function resumeOnline() {
-    if(!online.adapter)return;
+    if(accountDeletion.marker || !online.adapter)return;
     if(!online.ready)void startOnline(online.adapter);
     else {if(online.dirty)void flushOnlineProfile();void flushOnlineScores();refreshOpenScoreViews();if(state==='map' || state==='choosing')renderMapPlayers();}
 }

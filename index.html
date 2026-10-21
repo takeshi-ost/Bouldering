@@ -28,6 +28,7 @@
     <script src="js/leaderboard.js" defer></script>
     <script src="js/online.js" defer></script>
     <script src="js/online-scores.js" defer></script>
+    <script src="js/account-deletion.js" defer></script>
     <script src="js/main.js" defer></script>
     <script type="module" src="js/firebase-client.js"></script>
 </head>
@@ -250,6 +251,7 @@
             <div id="mapSettingsFooter" class="map-settings-footer" hidden>
                 <button id="mapCourses" class="secondary">タイトル画面へ</button>
                 <label class="settings-row" for="mapDebugMode"><span>デバッグモード</span><input id="mapDebugMode" type="checkbox"></label>
+                <button id="debugDeleteUser" class="account-delete-button" hidden>自分のユーザーデータを削除</button>
                 <button id="prototypeCourse" class="secondary" hidden>ロジハラ（検証用）</button>
             </div>
             <div id="stageDebugDisplay" hidden>
@@ -257,6 +259,15 @@
                 <label class="settings-row" for="debugHoldNumbers"><span>ホールドNo</span><input id="debugHoldNumbers" type="checkbox" checked></label>
                 <label class="settings-row" for="debugCourseInfo"><span>コース情報</span><input id="debugCourseInfo" type="checkbox" checked></label>
             </div>
+        </dialog>
+        <dialog id="deleteUserDialog" class="settings-dialog" aria-labelledby="deleteUserTitle">
+            <h2 id="deleteUserTitle">自分のユーザーデータを削除</h2>
+            <p id="deleteUserSummary" class="delete-user-summary"></p>
+            <p id="deleteUserWarning">名前・配色・進行状況・全ステージのスコア・認証アカウントと、この端末のゲームデータを削除します。この操作は取り消せません。</p>
+            <p id="deleteUserStatus" role="status" aria-live="polite"></p>
+            <button id="deleteUserConfirm" class="account-delete-button">削除する</button>
+            <button id="deleteUserCancel" class="secondary">戻る</button>
+            <button id="deleteUserNew" hidden>新しいユーザーで開始</button>
         </dialog>
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
             <div class="help-heading"><h2 id="helpTitle">詳しい説明</h2></div>

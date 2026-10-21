@@ -34,6 +34,7 @@ function connectOnlineScores(uid) {
     onlineScores.owner=uid;persistPendingScores();void flushOnlineScores();refreshOpenScoreViews();
 }
 function queueOnlineScore(stage,mode,score) {
+    if(accountDeletion.marker)return false;
     const board=scoreBoardKey(stage,mode);
     if(!validScoreBoard(board) || !validStageScore(score))return false;
     const existing=onlineScores.pending.get(board);
@@ -45,13 +46,14 @@ function queueOnlineScore(stage,mode,score) {
     void flushOnlineScores();return true;
 }
 async function flushOnlineScores() {
-    if(!online.ready || !online.adapter.saveScore || onlineScores.saving)return;
+    if(accountDeletion.marker || !online.ready || !online.adapter.saveScore || onlineScores.saving)return;
     onlineScores.saving=true;
     try {
-        while(onlineScores.pending.size) {
+        while(onlineScores.pending.size && !accountDeletion.marker) {
             const [board,score]=onlineScores.pending.entries().next().value;
             if(onlineScores.owner!==online.uid)return;
             const saved=await online.adapter.saveScore(online.uid,board,score);
+            if(accountDeletion.marker)return;
             if(!validStageScore(saved))throw new Error('Invalid saved score');
             if(onlineScores.pending.get(board)===score)onlineScores.pending.delete(board);
             const [version,mode,n]=board.split('_'),stage=Number(n);

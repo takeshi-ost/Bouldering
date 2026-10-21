@@ -535,3 +535,7 @@ button.modal-close:focus-visible { outline:none; }
 
 .score-status { margin:4px 0 0; font-size:11px; color:#637267; text-align:center; }
 .score-status:empty { display:none; }
+
+.account-delete-button { background:#963e45; color:#fff; }
+.delete-user-summary { overflow-wrap:anywhere; font-size:13px; }
+#deleteUserDialog p { font-size:13px; line-height:1.6; }

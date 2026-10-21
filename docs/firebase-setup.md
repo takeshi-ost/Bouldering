@@ -63,3 +63,23 @@ GitHub Pages deploys the game but **does not deploy Firebase rules/indexes**.
 5. Replay more slowly or with more moves; verify the prior best remains. A lower move count beats a shorter time; for equal moves the shorter time wins.
 
 Additional local validation: `node tests/online-scores.cjs`, `node tests/firebase-client.cjs`, `node tests/results.cjs` and `node tests/stage-start.cjs`. Tests inject SDK/transport and do not change cloud accounts or publish rules. Live rule/index verification is performed after console setup.
+
+## Debug self-deletion
+
+Map/Daily Settings > Debug mode reveals **自分のユーザーデータを削除**. The confirmation shows the current name and authenticated UID and explains the irreversible scope. It operates on the current authenticated user only; it cannot delete old orphan guests after their credentials have been lost.
+
+Publish the updated `firestore.rules` before testing deletion. The rules allow deletion of **only the authenticated UID's** public profile and stage scores. They also permit bounded collection-group list queries on `entries`; that collection ID is reserved for public stage scores, so do not reuse it for private data.
+
+The operation:
+
+1. Records a local pending marker and creates an idempotent, private `accountDeletionLocks/{UID}` document with `requestedAt` (server timestamp).
+2. The lock prevents all subsequent profile/score creates and updates by this UID, including stale tabs/tokens. In-flight local write results are discarded; new local saves are suspended.
+3. Waits for local writes to finish. Reads public score entries from the server in pages of 100, deleting only `stageScores/{any board}/entries/{own UID}` in acknowledged batches. This includes old course versions and records absent from local history.
+4. Deletes `players/{UID}`, then calls Firebase Auth `deleteUser` only after all Firestore deletes succeed.
+5. Clears the game's explicitly enumerated `ascent.*` data keys, leaving unrelated same-origin data untouched. Marks completion persistently and shows a modal inviting the user to close the window. Reloads do not create another anonymous user; **新しいユーザーで開始** is an explicit, separate action that clears the guard and reloads.
+
+Only before deletion starts can the confirmation be canceled. After a partial failure it remains suspended and can be retried; auth is retained until database cleanup is complete. Reopening a pending deletion restores existing auth with anonymous account creation disabled. If the original auth is gone, console/admin cleanup is needed. Other tabs observe the local deletion marker; the server lock additionally prevents them from resurrecting records.
+
+The private lock is intentionally retained with only UID and request timestamp to reject stale authenticated writes. Player names, colors, progress, scores and Auth user are deleted; this lock is not a playable user/profile. Do not remove a lock while stale tokens might still be used. Console administrators retain control of these locks.
+
+This client-side debug cleanup scans the public score collection group, so its read cost grows with total scores. It is designed for this small test environment; a production deletion service should use a server-maintained owner index. No live account is deleted by automated tests. `tests/account-deletion.cjs` covers confirmation, cancel, write fencing, failure/retry, local cleanup and no automatic recreation; SDK adapter tests cover multi-page scans, UID isolation, all-version deletion and database-before-Auth ordering.
