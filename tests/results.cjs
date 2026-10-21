@@ -36,7 +36,7 @@ assert.equal(moveCount,0);assert.equal(runTimeMs(),6000,'Canceled drag must not 
 clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(runTimeMs(),usedTime,'Undo must not erase time');
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
 assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
-assert(ui.resultStats.hidden && ui.resultStars.hidden && ui.resultDifficulty.hidden);assert(!ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
+assert(ui.resultStats.hidden && !ui.resultStars.hidden && ui.resultDifficulty.hidden);assert(!ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
 const result={moves:moveCount,timeMs:Math.floor(clock-1100),stars:3};
 assert.deepEqual(stageRecords.existing[1],result);
 assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert(ui.resultLeaderboard.innerHTML.includes(formatClearTime(result.timeMs)));assert.equal((ui.resultLeaderboard.innerHTML.match(/class="score-row/g)||[]).length,5);assert.equal((ui.resultLeaderboard.innerHTML.match(/is-player/g)||[]).length,1);
@@ -83,7 +83,7 @@ new Function('assert','data',env+source+`
 for(const moves of [0,1,5,9,10,20,30,40,100])assert.equal(stageStamina(moves),moves+3);
 for(const [difference,stars] of [[-1,3],[0,3],[1,2],[2,2],[3,1],[8,1]]) {
  reset(1);cameraIntro=null;debugAttempt=true;moveCount=route.length-1+difference;finish(true);
- assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(ui.resultStars.hidden && !ui.resultRanking.hidden);
+ assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden && !ui.resultRanking.hidden);
 }
 // Display labels use the selected rule profile, including daily runs.
 for(const [value,label] of [[0,'EASY'],[1,'NORMAL'],[2,'NORMAL'],[3,'HARD']]) {

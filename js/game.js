@@ -859,7 +859,7 @@ function finish(won) {
     const expectedMoves=routeExpectedMoves();
     const stars=clearStars(moveCount,expectedMoves);
     if(showRanking)renderStageLeaderboard(expectedMoves);
-    ui.resultStars.hidden=!won || showRanking;
+    ui.resultStars.hidden=!won;
     ui.resultStars.textContent=won ? '⭐️'.repeat(stars) : '';
     ui.resultStars.setAttribute('aria-label',won ? `${stars}つ星` : '');
 
