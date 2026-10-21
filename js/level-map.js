@@ -112,6 +112,7 @@ function recordStageClear() {
     catch (_) { /* Completing a level must still work without storage. */ }
     try {globalThis.localStorage?.setItem(RECORDS_KEY,JSON.stringify(stageRecords));}
     catch(_) { /* Keep records in memory when storage is unavailable. */ }
+    queueOnlineProfileSave();
 }
 function unlockedLevel() { return stageProgress[courseMode].cleared + 1; }
 function mapBounds() {

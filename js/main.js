@@ -29,7 +29,7 @@ async function beginTitlePreparation() {
     titleReady=false;ui.titleTap.hidden=true;
     ui.titleScreen.setAttribute('aria-disabled','true');
     ui.releaseVersion.textContent=`VERSION ${RELEASE_VERSION}`;
-    ui.playerUuid.textContent=`UUID ${playerUuid}`;
+    ui.playerUuid.textContent=online.uid?`UID ${online.uid}`:`UUID ${playerUuid}`;
     ui.wall.classList.toggle('title-open',true);
     prepareTitleMapLayout();refreshLives();
     const sources=[`assets/stage-map.webp?v=${MAP_BACKGROUND_VERSION}`,'assets/map-sky.webp','assets/daily-airship.webp','assets/reward-gift.png',
@@ -58,7 +58,7 @@ function enterPreparedMap() {
     ui.levelMap.inert=false;ui.levelMap.removeAttribute?.('aria-hidden');
     ui.wall.classList.toggle('title-open',false);
     ui.wall.classList.toggle('map-open',true);
-    refreshDailyEntry();refreshLives();focusMapLevel();
+    refreshDailyEntry();refreshLives();focusMapLevel();renderMapPlayers();
 }
 ui.titleScreen.onclick=enterPreparedMap;
 ui.titleScreen.onkeydown=e=>{if(e.key==='Enter' || e.key===' '){e.preventDefault();enterPreparedMap();}};

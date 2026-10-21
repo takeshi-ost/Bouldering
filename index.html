@@ -26,7 +26,9 @@
     <script src="js/player-icon.js" defer></script>
     <script src="js/appearance.js" defer></script>
     <script src="js/leaderboard.js" defer></script>
+    <script src="js/online.js" defer></script>
     <script src="js/main.js" defer></script>
+    <script type="module" src="js/firebase-client.js"></script>
 </head>
 <body>
     <main>
@@ -232,6 +234,7 @@
         </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
             <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" class="modal-close" aria-label="設定を閉じる" autofocus>✕</button></div>
+            <p id="onlineStatus" class="online-status" role="status">オンライン接続を準備中…</p>
             <button id="restart">RESTART</button>
             <button id="mapButton" class="secondary">MAPにもどる</button>
             <div id="mapSettingsControls" class="map-settings-controls" hidden>

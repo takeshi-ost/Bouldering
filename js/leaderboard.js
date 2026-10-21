@@ -10,24 +10,11 @@ function dummyStageScores(expectedMoves,stage=level) {
 function currentStageScores(stage,mode,expectedMoves) {
     return dummyStageScores(expectedMoves,stage);
 }
-// Page-scoped fixture roster: stable identities/arrival stages across rerenders.
-// Reuse ranking names and avatar colors; no course generation or PNG encoding.
+// Online roster is cached independently of local/dummy score records.
 function currentMapPlayers(first,last,mode) {
-    const profiles=dummyStageScores(1,first);
-    const random=mulberry32(first ^ (mode==='prototype'?0x53A7C91B:0x2B8D104F));
-    // Empty stages and single climbers dominate; groups of four/five are rare.
-    const counts=[0,0,0,0,0,0,0,0,1,1,1,1,1,1,2,2,2,3,4,5];
-    const players=[];
-    for(let n=first;n<=last;n++) {
-        const count=counts[Math.floor(random()*counts.length)];
-        for(let i=0;i<count;i++) {
-            const index=players.length,profile=profiles[index%profiles.length],group=Math.floor(index/profiles.length);
-            players.push({id:`map-${mode}-${n}-${i}`,name:profile.name+(group?` ${group+1}`:''),
-                avatar:profile.avatar,isPlayer:false,reachedLevel:n});
-        }
-    }
-    return players;
+    return onlineMapPlayers(first,last,mode);
 }
+
 function stageLeaderboardRows(record,others) {
     const sorted=[...others.map(row=>({...row,isPlayer:false})),{...record,isPlayer:true}]
         .sort((a,b)=>a.moves-b.moves || a.timeMs-b.timeMs || Number(a.isPlayer)-Number(b.isPlayer))
@@ -54,7 +41,7 @@ function scoreAvatar(row) {
         const icon=playerIconMarkup('score-player-icon');
         if(icon)return icon;
     }
-    const appearance=row.isPlayer?{colors:playerColors,headColor:playerHeadColor}:dummyPlayerAppearance(row.avatar);
+    const appearance=row.isPlayer?{colors:playerColors,headColor:playerHeadColor}:(row.appearance || dummyPlayerAppearance(row.avatar));
     const stripes=appearance.colors.map((color,i)=>
         `<rect x="0" y="${20*i/appearance.colors.length}" width="18" height="${20/appearance.colors.length}" fill="${color}"/>`).join('');
     return `<svg class="score-player-icon" viewBox="0 0 24 32" aria-hidden="true"><circle cx="12" cy="6" r="5.5" fill="${appearance.headColor}" stroke="#fff7e9"/><svg x="3" y="12" width="18" height="20" viewBox="0 0 18 20" style="overflow:hidden;border-radius:4px">${stripes}</svg><rect x="3" y="12" width="18" height="20" rx="4" fill="none" stroke="#fff7e9" stroke-width="2"/></svg>`;
