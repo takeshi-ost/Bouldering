@@ -14,7 +14,7 @@ function setTimeout(fn,ms){timers.push({fn,ms});return timers.length;}
 function clearTimeout(id){timers[id-1]=null;}
 `;
 new Function('assert',env+source+`
-assert.equal(heartItems,5);assert.equal(readHeartItems(),5);
+assert.equal(heartItems,5);assert.equal(ui.mapItemCount.textContent,'5');assert.equal(readHeartItems(),5);
 // Existing saved balances remain unchanged by the new initial grant.
 heartItems=20;saveHeartItems();assert.equal(readHeartItems(),20);
 startCourse('existing');assert(openStageStart(1));
@@ -28,7 +28,7 @@ setStageHeartItems(NaN);assert.equal(stageStartContext.hearts,0);
 setStageHeartItems(3);assert.equal(stageStartContext.hearts,3);
 closeStageStart();assert.equal(heartItems,20);assert.equal(readHeartItems(),20);
 assert(openStageStart(1));assert.equal(stageStartContext.hearts,0);setStageHeartItems(3);ui.stageStartButton.onclick();
-assert.equal(state,'playing');assert.equal(stamina,base+3);assert.equal(heartItems,17);assert.equal(readHeartItems(),17);
+assert.equal(state,'playing');assert.equal(stamina,base+3);assert.equal(heartItems,17);assert.equal(readHeartItems(),17);assert.equal(ui.mapItemCount.textContent,'17');
 ui.stageStartButton.onclick();assert.equal(heartItems,17,'Double start never charges twice');
 ui.restart.onclick();assert.equal(stamina,base,'Restart drops the bonus');assert.equal(heartItems,17);
 showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(2);ui.stageStartButton.onclick();assert.equal(stamina,base+2);
@@ -42,7 +42,7 @@ grantLife();ui.lifeWatchAd.onclick();assert.equal(state,'playing');assert.equal(
 showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(2);
 const prepare=prepareCurrentStage,report=console.error;prepareCurrentStage=()=>{throw Error('intentional generation failure');};console.error=()=>{};
 ui.stageStartButton.onclick();prepareCurrentStage=prepare;console.error=report;assert.equal(state,'map');assert.equal(heartItems,10,'Failed generation must not spend hearts');
-assert(openStageStart(1));setStageHeartItems(10);ui.stageStartButton.onclick();assert.equal(heartItems,0);assert.equal(readHeartItems(),0);showLevelMap();assert(openStageStart(1));assert(ui.stageHeartCount.disabled);assert(ui.stageHeartReset.disabled);closeStageStart();
+assert(openStageStart(1));setStageHeartItems(10);ui.stageStartButton.onclick();assert.equal(heartItems,0);assert.equal(readHeartItems(),0);assert.equal(ui.mapItemCount.textContent,'0');showLevelMap();assert(openStageStart(1));assert(ui.stageHeartCount.disabled);assert(ui.stageHeartReset.disabled);closeStageStart();
 const profile=dailyProfile(localToday());assert(launchDailyAttempt(profile,1));assert.equal(stamina,routeStamina(route),'Daily receives no previous bonus');assert.equal(heartItems,0);
 for(const value of ['-1','1.5','null','"20"','broken']){storage[HEART_ITEMS_KEY]=value;assert.equal(readHeartItems(),5);}
 globalThis.localStorage={getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}};

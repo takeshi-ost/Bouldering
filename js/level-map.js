@@ -9,8 +9,14 @@ function readHeartItems() {
     return 5;
 }
 let heartItems=readHeartItems();
+function renderMapInventory() {
+    const count=String(heartItems);
+    if(ui.mapItemCount.textContent!==count)ui.mapItemCount.textContent=count;
+    ui.mapInventory.setAttribute('aria-label',`チョークバッグ 所持数 ${count}個`);
+}
 function saveHeartItems() {
     try {globalThis.localStorage?.setItem(HEART_ITEMS_KEY,JSON.stringify(heartItems));}catch(_) {}
+    renderMapInventory();
 }
 saveHeartItems();
 const PROGRESS_KEY = 'ascent.progress.v1';
