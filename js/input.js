@@ -274,7 +274,7 @@ function openSettings() {
     if(settingsOpen || stageStartContext || (onMap ? !!mapTransition || mapPreparing : state!=='playing' || cameraIntro || featureHelpOpen))return;
     if(!onMap) {endPointer(null,true);endPan();touchId=null;ignoreTouches=false;}
     ui.restart.hidden=ui.mapButton.hidden=onMap;
-    ui.mapSettingsControls.hidden=!onMap;
+    ui.mapSettingsControls.hidden=ui.mapSettingsFooter.hidden=!onMap;
     ui.stageDebugDisplay.hidden=onMap || !debugMode;
     for(const [key,control] of Object.entries(debugDisplayControls))control.checked=debugDisplay[key];
     ui.mapDebugMode.checked=debugMode;

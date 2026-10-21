@@ -45,7 +45,7 @@ startCourse('existing');assert(ui.debugControls.hidden);assert(selectStage(1));a
 ui.settingsButton.onclick();assert(!settingsOpen,'Cannot open settings during intro');
 fixture();const menuBefore=JSON.stringify({body,grips,stamina,moveCount});
 mouse('mousedown',visibleEvent());assert(bodyTap);
-const menuTime=runTimeMs();ui.settingsButton.onclick();assert(settingsOpen && ui.settingsDialog.open && !bodyTap && !drag);
+const menuTime=runTimeMs();ui.settingsButton.onclick();assert(settingsOpen && ui.settingsDialog.open && !bodyTap && !drag && ui.mapSettingsFooter.hidden);
 clock+=500;assert.equal(runTimeMs(),menuTime+500,'Settings do not pause the timer');
 assert(!canScrollStage() && !canUndoMove());
 mouse('mousedown',visibleEvent());down(eventAt(body));assert(!bodyTap && !drag);
@@ -54,7 +54,7 @@ ui.settingsDialog.events.cancel({preventDefault(){}});assert(!settingsOpen && !u
 assert(canUndoMove());
 ui.settingsButton.onclick();ui.restart.onclick();assert(!settingsOpen && !ui.settingsDialog.open && cameraIntro && moveCount===0);
 fixture();ui.settingsButton.onclick();ui.mapButton.onclick();assert(!settingsOpen && !ui.settingsDialog.open && state==='map' && ui.hud.hidden);
-showLevelMap();ui.mapSettingsButton.onclick();assert(settingsOpen && !ui.mapSettingsControls.hidden && ui.restart.hidden && ui.mapButton.hidden);
+showLevelMap();ui.mapSettingsButton.onclick();assert(settingsOpen && !ui.mapSettingsControls.hidden && ui.restart.hidden && ui.mapButton.hidden && !ui.mapSettingsFooter.hidden);
 ui.mapDebugMode.checked=true;ui.mapDebugMode.onchange();assert(debugMode && ui.mapDebugMode.checked && !ui.debugControls.hidden);
 ui.mapDebugMode.checked=false;ui.mapDebugMode.onchange();assert(!debugMode && !ui.mapDebugMode.checked && ui.debugControls.hidden);
 ui.closeSettings.onclick();assert(!settingsOpen && !ui.settingsDialog.open);
