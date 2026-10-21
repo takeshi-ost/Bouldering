@@ -251,8 +251,6 @@ function advanceLevelMap(now) {
 let stageStartContext=null,stageStartTimer=null;
 function renderStageHeartItems() {
     const context=stageStartContext;if(!context)return;
-    ui.stageHeartOwned.textContent=String(heartItems-context.hearts);
-    ui.stageHeartOwned.setAttribute('aria-label',`所持ハート ${heartItems-context.hearts}個`);
     ui.stageHeartValue.textContent=String(context.hearts).padStart(2,'0');
     ui.stageHeartCount.setAttribute('aria-label',`使用ハート ${context.hearts}個、タップで1個追加`);
     ui.stageHeartCount.disabled=context.hearts===heartItems;

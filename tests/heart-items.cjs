@@ -19,10 +19,10 @@ assert.equal(heartItems,5);assert.equal(ui.mapItemCount.textContent,'5');assert.
 heartItems=20;saveHeartItems();assert.equal(readHeartItems(),20);
 startCourse('existing');assert(openStageStart(1));
 const base=stagePreview(1).stamina;
-assert.equal(stageStartContext.hearts,0);assert(ui.stageHeartReset.disabled);assert.equal(ui.stageHeartOwned.textContent,'20');
-ui.stageHeartCount.onclick();ui.stageHeartCount.onclick();assert.equal(ui.stageHeartOwned.textContent,'18');ui.stageHeartReset.onclick();assert.equal(stageStartContext.hearts,0);assert.equal(ui.stageHeartOwned.textContent,'20');ui.stageHeartCount.onclick();assert.equal(stageStartContext.hearts,1);
+assert.equal(stageStartContext.hearts,0);assert(ui.stageHeartReset.disabled);
+ui.stageHeartCount.onclick();ui.stageHeartCount.onclick();assert.equal(stageStartContext.hearts,2);ui.stageHeartReset.onclick();assert.equal(stageStartContext.hearts,0);ui.stageHeartCount.onclick();assert.equal(stageStartContext.hearts,1);
 assert.equal(ui.stageStartStamina.textContent,String(base).padStart(2,'0'));
-setStageHeartItems(999);assert.equal(stageStartContext.hearts,20);assert(ui.stageHeartCount.disabled);assert.equal(ui.stageHeartOwned.textContent,'0');ui.stageHeartReset.onclick();assert.equal(stageStartContext.hearts,0);assert.equal(ui.stageHeartOwned.textContent,'20');
+setStageHeartItems(999);assert.equal(stageStartContext.hearts,20);assert(ui.stageHeartCount.disabled);ui.stageHeartReset.onclick();assert.equal(stageStartContext.hearts,0);
 setStageHeartItems(-1);assert.equal(stageStartContext.hearts,0);
 setStageHeartItems(NaN);assert.equal(stageStartContext.hearts,0);
 setStageHeartItems(3);assert.equal(stageStartContext.hearts,3);
