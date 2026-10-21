@@ -330,8 +330,8 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .modal-close:hover { background:transparent; }
 /* Native dialog autofocus must not draw a circular button frame. */
 button.modal-close:focus-visible { outline:none; }
-.modal-tap { display:block; width:100%; margin:12px 0 0; padding:4px 0;
-    background:transparent; color:#637267; font-size:12px; font-weight:700;
+.modal-tap,dialog .modal-tap { display:block; width:100%; margin:12px 0 0; padding:4px 0;
+    background:transparent; color:#637267; font:700 12px/20px system-ui,-apple-system,sans-serif;
     text-align:center; letter-spacing:.18em; box-shadow:none; }
 .feature-help .modal-tap { grid-column:1 / -1; margin-top:4px; }
 
@@ -450,7 +450,7 @@ button.modal-close:focus-visible { outline:none; }
 .reward-result-icon > .heart-item-icon,.reward-result-icon > .reward-grant-image { position:relative; z-index:1; display:block; width:100%; height:100%; object-fit:contain; }
 .reward-grant-count { position:relative; z-index:1; font-size:30px; line-height:1; font-weight:900; color:#fff; -webkit-text-stroke:3px #797c78; paint-order:stroke fill; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .reward-rays { position:absolute; z-index:0; left:50%; top:50%; width:200px; height:200px; margin:-100px 0 0 -100px; border-radius:50%; background:repeating-conic-gradient(#ffd36c99 0deg 14deg,#fff6d800 14deg 30deg); -webkit-mask-image:radial-gradient(closest-side,#000 20%,transparent 100%); mask-image:radial-gradient(closest-side,#000 20%,transparent 100%); animation:reward-rays-turn 24s linear infinite; pointer-events:none; }
-.reward-grant-tap { position:relative; z-index:1; margin:26px 0 0; font-size:13px; color:#637267; }
+.reward-grant-tap { position:relative; z-index:1; margin:26px 0 0; }
 .reward-grant-notice { position:relative; z-index:1; margin:18px 0 0; font-size:14px; }
 .reward-screen.reward-inactive .reward-rays { animation-play-state:paused; }
 @keyframes reward-rays-turn { to { transform:rotate(360deg); } }
@@ -494,7 +494,7 @@ button.modal-close:focus-visible { outline:none; }
 #overlay.is-clear { touch-action:manipulation; cursor:pointer; }
 #overlay:focus { outline:none; }
 #overlay.is-clear .card { padding-top:24px; }
-#overlay .modal-tap { margin:20px 0 0; font-size:12px; letter-spacing:.18em; }
+#overlay .modal-tap { margin:20px 0 0; }
 #overlay #resultTap[hidden],#overlay #next[hidden],#overlay #retry[hidden],#overlay #closeResult[hidden] { display:none; }
 
 /* Stage clears show five compact score rows; daily results retain their layout. */

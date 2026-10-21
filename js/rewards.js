@@ -108,8 +108,8 @@ function startRewardSequence({onGrant=()=>{},onReturn=null}={}) {
     state='reward';
     ui.rewardWheel.innerHTML=rewardWheelMarkup();
     ui.rewardWheel.style.transform=`rotate(${rewardSequence.angle}deg)`;
-    ui.rewardStatus.textContent='タップでストップ';ui.rewardResult.hidden=true;
-    ui.rewardStop.hidden=false;ui.rewardStop.disabled=false;ui.rewardStop.textContent='タップしてストップ';
+    ui.rewardStatus.textContent='';ui.rewardResult.hidden=true;
+    ui.rewardStop.hidden=false;ui.rewardStop.disabled=false;ui.rewardStop.textContent='TAP';
     ui.rewardDialog.hidden=false;ui.rewardDialog.showModal?.();ui.rewardStop.focus();
     requestGameRender();schedulePresentationUpdates();requestRewardFrame();
     return true;
@@ -120,7 +120,7 @@ function stopRewardSequence(now=performance.now()) {
     // Include the interval since the last frame so the visible stopping point follows the tap.
     if(sequence.lastTime!==null)sequence.angle+=Math.max(0,now-sequence.lastTime)*ROULETTE_SPEED;
     sequence.lastTime=now;sequence.from=sequence.angle;sequence.brakeElapsed=0;sequence.phase='braking';
-    ui.rewardStop.disabled=true;ui.rewardStop.textContent='ストップ…';ui.rewardStatus.textContent='';
+    ui.rewardStop.disabled=true;ui.rewardStop.textContent='TAP';ui.rewardStatus.textContent='';
     requestRewardFrame();return true;
 }
 function applyRouletteReward(option) {
@@ -141,7 +141,7 @@ function rewardResultMarkup(reward) {
     const notice=life && !reward.amount?`<p class="reward-grant-notice">ライフは上限${LIFE_MAX}です</p>`:'';
     return `<section class="reward-result-card"><h2 id="rewardResultTitle">${life?'ライフアップ':'チョークバッグ'}</h2>
         <div class="reward-grant-row"><span class="reward-result-icon ${life?'is-life':''}"><span class="reward-rays" aria-hidden="true"></span>${icon}</span><span class="reward-grant-count">✖️${life?1:reward.amount}</span></div>
-        ${notice}<p class="reward-grant-tap">タップして進む</p></section>`;
+        ${notice}<p class="reward-grant-tap modal-tap">TAP</p></section>`;
 }
 function advanceRewardSequence(now=performance.now()) {
     rewardFrame=null;
