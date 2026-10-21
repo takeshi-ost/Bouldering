@@ -234,23 +234,25 @@
             <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" class="modal-close" aria-label="設定を閉じる" autofocus>✕</button></div>
             <button id="restart">RESTART</button>
             <button id="mapButton" class="secondary">MAPにもどる</button>
-            <button id="showHelp" class="secondary" aria-haspopup="dialog" aria-controls="helpDialog">くわしい説明</button>
+            <div id="mapSettingsControls" class="map-settings-controls" hidden>
+                <button id="mapEditCharacter" class="secondary">キャラクターエディット</button>
+                <label class="settings-row settings-control-plate" for="soundEnabled"><span>サウンド</span><input id="soundEnabled" type="checkbox" checked></label>
+                <label class="settings-row settings-control-plate" for="languageChoice"><span>言語</span><select id="languageChoice"><option value="ja">日本語</option><option value="en">English</option></select></label>
+            </div>
+            <button id="showHelp" class="secondary" aria-haspopup="dialog" aria-controls="helpDialog">詳しい説明</button>
+            <div id="mapSettingsFooter" class="map-settings-footer" hidden>
+                <button id="mapCourses">タイトル画面へ</button>
+                <label class="settings-row" for="mapDebugMode"><span>デバッグモード</span><input id="mapDebugMode" type="checkbox"></label>
+                <button id="prototypeCourse" class="secondary" hidden>ロジハラ（検証用）</button>
+            </div>
             <div id="stageDebugDisplay" hidden>
                 <label class="settings-row" for="debugRoute"><span>想定ルート</span><input id="debugRoute" type="checkbox" checked></label>
                 <label class="settings-row" for="debugHoldNumbers"><span>ホールドNo</span><input id="debugHoldNumbers" type="checkbox" checked></label>
                 <label class="settings-row" for="debugCourseInfo"><span>コース情報</span><input id="debugCourseInfo" type="checkbox" checked></label>
             </div>
-            <div id="mapSettingsControls" class="map-settings-controls" hidden>
-                <button id="mapCourses">タイトル画面へ</button>
-                <button id="mapEditCharacter" class="secondary">キャラクターエディット</button>
-                <button id="prototypeCourse" class="secondary" hidden>ロジハラ（検証用）</button>
-                <label class="settings-row" for="soundEnabled"><span>サウンド</span><input id="soundEnabled" type="checkbox" checked></label>
-                <label class="settings-row" for="languageChoice"><span>言語</span><select id="languageChoice"><option value="ja">日本語</option><option value="en">English</option></select></label>
-                <label class="settings-row" for="mapDebugMode"><span>デバッグモード</span><input id="mapDebugMode" type="checkbox"></label>
-            </div>
         </dialog>
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
-            <div class="help-heading"><h2 id="helpTitle">くわしい説明</h2></div>
+            <div class="help-heading"><h2 id="helpTitle">詳しい説明</h2></div>
             <h3>キャラエディット</h3>
             <p>マップ設定の「キャラクターエディット」からボディを1〜8段の横ストライプに塗り分けられます。頭は単色、ボディは各段をタップして色を選び、「決定」でゲーム中とマップへ反映・保存します。「戻る」では変更を破棄します。初回はボディの段数と色・頭の色がランダムに設定されます。</p>
             <h3>登り方</h3>
