@@ -331,7 +331,8 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 /* Native dialog autofocus must not draw a circular button frame. */
 button.modal-close:focus-visible { outline:none; }
 .modal-tap,dialog .modal-tap { display:block; width:100%; margin:12px 0 0; padding:4px 0;
-    background:transparent; color:#637267; font:700 12px/20px system-ui,-apple-system,sans-serif;
+    background:transparent; color:#555; font:900 18px/26px system-ui,-apple-system,sans-serif;
+    -webkit-text-stroke:2px #fff; paint-order:stroke fill;
     text-align:center; letter-spacing:.18em; box-shadow:none; }
 .feature-help .modal-tap { grid-column:1 / -1; margin-top:4px; }
 
