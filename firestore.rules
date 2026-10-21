@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function validColor(color) {
+      return color is string
+        && color.matches('^#[0-9a-fA-F]{6}$');
+    }
+
+    function validBand(colors, index) {
+      return colors.size() <= index || validColor(colors[index]);
+    }
+
+    function validProfile(data) {
+      return data.keys().hasAll([
+          'name', 'colors', 'headColor',
+          'reachedLevel', 'reachedPrototypeLevel', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'name', 'colors', 'headColor',
+          'reachedLevel', 'reachedPrototypeLevel', 'updatedAt'
+        ])
+        && data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 40
+        && data.colors is list
+        && data.colors.size() >= 1
+        && data.colors.size() <= 8
+        && validBand(data.colors, 0)
+        && validBand(data.colors, 1)
+        && validBand(data.colors, 2)
+        && validBand(data.colors, 3)
+        && validBand(data.colors, 4)
+        && validBand(data.colors, 5)
+        && validBand(data.colors, 6)
+        && validBand(data.colors, 7)
+        && validColor(data.headColor)
+        && data.reachedLevel is int
+        && data.reachedLevel >= 1
+        && data.reachedLevel <= 1000000
+        && data.reachedPrototypeLevel is int
+        && data.reachedPrototypeLevel >= 1
+        && data.reachedPrototypeLevel <= 1000000
+        && data.updatedAt == request.time;
+    }
+
+    match /players/{uid} {
+      allow get: if signedIn();
+
+      allow list: if signedIn()
+        && request.query.limit <= 100;
+
+      allow create, update: if signedIn()
+        && request.auth.uid == uid
+        && validProfile(request.resource.data);
+
+      allow delete: if false;
+    }
+  }
+}

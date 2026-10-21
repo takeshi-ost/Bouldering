@@ -24,8 +24,13 @@ const appearances=dummyStageScores(1).map(profile=>{
 assert(new Set(appearances.map(a=>a.colors.length)).size>1,'Stripe counts need visual variety');
 assert(new Set(appearances.map(a=>JSON.stringify(a.colors))).size>1,'Stripe colors need visual variety');
 const physics=JSON.stringify({holds,route,body,grips,stageProgress,stageRecords});
+assert.deepEqual(currentMapPlayers(1,20,'existing'),[],'Offline map must not invent opponents');
+online.ready=true;online.uid='self';
 for(const mode of ['existing','prototype'])for(const page of [0,1,49]) {
  courseMode=mode;mapPage=page;const {first,last}=mapBounds();
+ const testPlayers=Array.from({length:21},(_,i)=>({id:mode+'-'+page+'-'+i,name:'Player '+i,
+  appearance:appearances[i%appearances.length],reachedLevel:first+Math.floor(i/3)*2,isPlayer:false}));
+ online.pages.set(mode+':'+first+':'+last,{players:testPlayers,at:Date.now(),pending:false});
  const roster=currentMapPlayers(first,last,mode);
  assert.deepEqual(currentMapPlayers(first,last,mode),roster,'Roster rerolled');
  assert.equal(new Set(roster.map(p=>p.id)).size,roster.length);
@@ -36,12 +41,12 @@ for(const mode of ['existing','prototype'])for(const page of [0,1,49]) {
   assert(p.reachedLevel>=first && p.reachedLevel<=last);
   assert.equal(p.depth,mapPlayerDepth(p.y));
   if(i)assert(placements[i-1].y<=p.y && placements[i-1].depth<=p.depth);
-  assert.equal(scoreAvatar(p),scoreAvatar(dummyStageScores(1).find(r=>r.avatar===p.avatar)),'Ranking icon mismatch');
+  for(const color of p.appearance.colors)assert(scoreAvatar(p).includes(color),'Use the real profile colors');
  }
  assert(placements.length>0 && placements.length<=100);
  assert([...counts.values()].every(n=>n<=5));
- assert(counts.size<MAP_PAGE_SIZE,'Sparse fixture must include empty stages');
- assert(placements.length<40,'Sparse fixture should average fewer than two opponents per stage');
+ assert(counts.size<MAP_PAGE_SIZE,'Test roster includes empty stages');
+ assert(placements.length<40,'Test roster should average fewer than two opponents per stage');
  renderLevelMap();const markup=ui.mapPlayers.innerHTML;
  assert.equal((markup.match(/class="map-marker map-opponent"/g)||[]).length,placements.length);
  renderLevelMap();assert.equal(ui.mapPlayers.innerHTML,markup);
