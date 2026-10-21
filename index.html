@@ -62,8 +62,7 @@
                     <div id="titleTap" class="title-tap" aria-live="polite" hidden>TAP</div>
                 </div>
             </div>
-            <section id="characterEditor" class="character-editor" aria-labelledby="editorTitle" hidden>
-                <div class="editor-heading"><div class="eyebrow">YOUR CLIMBER</div><h1 id="editorTitle">キャラエディット</h1><p>頭やボディをタップして、色を選ぼう。</p></div>
+            <section id="characterEditor" class="character-editor" aria-label="キャラエディット" hidden>
                 <label class="player-name-label" for="playerName">プレイヤー名 <span>最大10文字</span></label>
                 <input id="playerName" type="text" autocomplete="off" spellcheck="false" aria-describedby="playerNameError" enterkeyhint="done">
                 <p id="playerNameError" class="player-name-error" hidden>プレイヤー名を入力してください。</p>
@@ -74,8 +73,8 @@
                 </div>
                 <div id="editorPalette" class="editor-palette" hidden>
                     <p id="selectedStripeLabel"></p>
-                    <div id="paletteSwatches" class="palette-swatches" aria-label="カラーパレット"></div>
                     <label class="custom-color" for="customColor">自由な色 <input id="customColor" type="color" value="#39785b"></label>
+                    <div id="paletteSwatches" class="palette-swatches" aria-label="カラーパレット"></div>
                 </div>
                 <p id="appearanceStatus" role="status" hidden></p>
                 <p class="editor-hint">配色は「決定」で保存されます。</p>
