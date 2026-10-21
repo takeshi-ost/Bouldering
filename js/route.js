@@ -90,6 +90,75 @@ function replayRoute(path) {
     } finally { committed = saved.committed; startGrips = saved.startGrips; moveCount=saved.moveCount; }
 }
 
+// Re-search the finished hold layout by bypassing intermediate body positions.
+// Every accepted shortcut replays its suffix with the live selector/snapping rules;
+// a changed contact is allowed only when the rest still reaches the goal.
+function optimizeRoute(path, config = ROUTE_OPTIMIZATION_CONFIG) {
+    const saved = { committed, startGrips };
+    const byId = new Map(holds.map(h => [h.id, h]));
+    const first = [...initialGrips];
+    for (const pair of [[0,1],[2,3]]) {
+        const sorted = pair.map(i => first[i]).sort((a,b) => a.x-b.x);
+        pair.forEach((i,j) => first[i] = sorted[j]);
+    }
+    let best = path, transitions = 0;
+    const began = performance.now();
+    const maxSpan = Math.max(...LIMB_LENGTHS)*2;
+    const hasTraverse = candidate => level === 1 || candidate.slice(1).some((p,i) => isTraverse(candidate[i],p));
+    const attempt = (from, to) => {
+        if (transitions >= config.maxTransitions) return null;
+        transitions++;
+        if (distance(from,to)<5) return null;
+        const anchor = selectAnchor(to.x-from.x,to.y-from.y);
+        if (supportMotionFraction(from,to,anchor) < 1-1e-9) return null;
+        const stance = attachMoving(to,anchor);
+        if (!stance?.every(Boolean) || (!bothHandsOnGoal(stance) && sameContacts(stance,startGrips))) return null;
+        return { ...to, anchor, grips: stance.map(h => h.id) };
+    };
+    try {
+        for (let pass = 0; pass < config.passes && transitions < config.maxTransitions; pass++) {
+            const before = best.length;
+            for (let i = 0; i < best.length-2 && transitions < config.maxTransitions; i++) {
+                for (let j = best.length-1; j > i+1 && transitions < config.maxTransitions; j--) {
+                    // A fixed limb cannot span more than twice its full length.
+                    if (distance(best[i],best[j]) > maxSpan) continue;
+                    // Nearby body positions explore other support pairs/contacts,
+                    // instead of only following the original guide's endpoints.
+                    const q = best[j];
+                    const targets = [q, {x:q.x-24,y:q.y}, {x:q.x+24,y:q.y},
+                        {x:q.x,y:q.y+24}, {x:q.x,y:q.y-24}];
+                    let improved = false;
+                    for (const target of targets) {
+                        if (target.x<STAGE_SAFE_WIDTH+TORSO.width/2 || target.x>W-STAGE_SAFE_WIDTH-TORSO.width/2 || target.y<80 || target.y>HEIGHT-40) continue;
+                        const candidate = best.slice(0,i+1);
+                        committed = best[i];
+                        startGrips = i ? best[i].grips.map(id => byId.get(id)) : first;
+                        let complete = false;
+                        for (let k = j; k < best.length; k++) {
+                            const step = attempt(committed,k===j ? target : best[k]);
+                            if (!step) break;
+                            candidate.push(step);
+                            committed = step;
+                            startGrips = step.grips.map(id => byId.get(id));
+                            if (bothHandsOnGoal(startGrips)) { complete = true; break; }
+                        }
+                        if (complete && candidate.length < best.length && hasTraverse(candidate)) {
+                            best = candidate;
+                            improved = true;
+                            break;
+                        }
+                    }
+                    if (improved) break;
+                }
+            }
+            if (best.length === before) break;
+        }
+        densityStats.routeOptimization = { before: path.length-1, after: best.length-1,
+            transitions, limit: config.maxTransitions, elapsedMs: performance.now()-began };
+        return best;
+    } finally { committed = saved.committed; startGrips = saved.startGrips; }
+}
+
 
 function prepareStage() {
     generate(level);
