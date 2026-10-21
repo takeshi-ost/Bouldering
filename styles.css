@@ -460,7 +460,7 @@ button.modal-close:focus-visible { outline:none; }
 .map-reward-effects { left:50%; top:50%; z-index:2; }
 .map-reward-effects i:nth-child(1) { left:-32px; top:-24px; }
 .map-reward-effects i:nth-child(2) { left:22px; top:-9px; }
-.map-reward-effects i:nth-child(3) { left:-28px; top:16px; }
+.map-reward-effects i:nth-child(3) { left:-28px; top:4px; }
 .map-reward-effects i:nth-child(4) { left:12px; top:-32px; }
 .wall.presentation-paused .map-reward-effects i { animation-play-state:paused; }
 
@@ -484,7 +484,8 @@ button.modal-close:focus-visible { outline:none; }
 /* A shared static badge indicates an available, unclaimed reward. */
 .reward-gift-icon { display:block; object-fit:contain; pointer-events:none; user-select:none; }
 .reward-gift-icon[hidden] { display:none; }
-.map-reward-gift { position:absolute; z-index:3; right:-7px; top:-7px; width:30px; height:30px; }
+.map-reward-gift { position:absolute; z-index:3; right:-7px; top:-4px; width:30px; height:30px; }
+.map-wall[data-variant$="-right"] ~ .map-reward-gift { left:-7px; right:auto; }
 .daily-stage-meta { display:flex; align-items:center; gap:4px; min-width:0; }
 .daily-stage-meta .stage-start-info { flex:1; min-width:0; }
 .daily-stage-gift { flex:none; width:32px; height:32px; }
