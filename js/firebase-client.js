@@ -1,6 +1,7 @@
 // Load after the local game has started. Network/SDK failures never gate TAP.
 let firebaseBooting=false;
 async function bootFirebase() {
+    if(accountDeletion.marker?.phase==='done'){showDeleteUserDialog();return;}
     if(firebaseBooting || online.adapter)return;
     firebaseBooting=true;
     try {
@@ -19,11 +20,48 @@ async function bootFirebase() {
         });
         const auth=authSDK.getAuth(app),db=dbSDK.getFirestore(app);
         const adapter={
-            async authenticate() {
+            async authenticate(create=true) {
                 // Require persistent identity; do not silently create a new guest each visit.
                 await authSDK.setPersistence(auth,authSDK.browserLocalPersistence);
                 await auth.authStateReady();
-                return auth.currentUser || (await authSDK.signInAnonymously(auth)).user;
+                return auth.currentUser || (create?(await authSDK.signInAnonymously(auth)).user:null);
+            },
+            async isDeletionLocked(uid) {
+                try {return (await dbSDK.getDocFromServer(dbSDK.doc(db,'accountDeletionLocks',uid))).exists();}
+                catch(error) {
+                    // Older published rules have no lock reads. Keep normal play working;
+                    // deletion itself still requires the new lock/write/delete permissions.
+                    if(error.code==='permission-denied')return false;
+                    throw error;
+                }
+            },
+            async lockDeletion(uid) {
+                if(auth.currentUser?.uid!==uid)throw new Error('Authentication does not match deletion target');
+                const ref=dbSDK.doc(db,'accountDeletionLocks',uid);
+                await dbSDK.runTransaction(db,async transaction=>{
+                    if(!(await transaction.get(ref)).exists())transaction.set(ref,{requestedAt:dbSDK.serverTimestamp()});
+                });
+            },
+            async deleteAccount(uid,onProgress) {
+                if(auth.currentUser?.uid!==uid)throw new Error('Authentication does not match deletion target');
+                // Debug cleanup includes legacy scores without an owner field, all versions.
+                // Public score entries are scanned in bounded pages; only our UID is deleted.
+                let cursor=null,removed=0;
+                while(true) {
+                    const options=[dbSDK.limit(100)]; // Default document-path ordering, no field filter.
+                    if(cursor)options.push(dbSDK.startAfter(cursor));
+                    const page=await dbSDK.getDocsFromServer(dbSDK.query(dbSDK.collectionGroup(db,'entries'),...options));
+                    const own=page.docs.filter(doc=>/^stageScores\/[^/]+\/entries\/[^/]+$/.test(doc.ref.path) && doc.id===uid);
+                    if(own.length) {
+                        const batch=dbSDK.writeBatch(db);own.forEach(doc=>batch.delete(doc.ref));await batch.commit();removed+=own.length;
+                    }
+                    onProgress?.(removed);
+                    if(page.docs.length<100)break;
+                    cursor=page.docs.at(-1);
+                }
+                await dbSDK.deleteDoc(dbSDK.doc(db,'players',uid));
+                // Keep authentication until every Firestore deletion has been acknowledged.
+                await authSDK.deleteUser(auth.currentUser);
             },
             async sync(uid,local,preferLocal) {
                 const ref=dbSDK.doc(db,'players',uid);

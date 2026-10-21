@@ -206,6 +206,7 @@ ui.prototypeCourse.onclick = () => {
     if(debugMode && ['map','daily'].includes(state) && settingsOpen)startCourse(courseMode==='prototype'?'existing':'prototype');
 };
 function syncDebugCourseControls() {
+    if(typeof updateDeleteUserButton==='function')updateDeleteUserButton();
     ui.prototypeCourse.hidden=!debugMode;
     ui.prototypeCourse.textContent=courseMode==='prototype'?'通常コースへ':'ロジハラ（検証用）';
     ui.prototypeDescription.hidden=!debugMode;

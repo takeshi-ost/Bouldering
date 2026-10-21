@@ -6,6 +6,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function activeAccount() {
+      return signedIn()
+        && !exists(/databases/$(database)/documents/accountDeletionLocks/$(request.auth.uid));
+    }
+
     function validColor(color) {
       return color is string
         && color.matches('^#[0-9a-fA-F]{6}$');
@@ -54,11 +59,11 @@ service cloud.firestore {
       allow list: if signedIn()
         && request.query.limit <= 100;
 
-      allow create, update: if signedIn()
+      allow create, update: if activeAccount()
         && request.auth.uid == uid
         && validProfile(request.resource.data);
 
-      allow delete: if false;
+      allow delete: if signedIn() && request.auth.uid == uid;
     }
 
     match /stageScores/{board}/entries/{uid} {
@@ -73,12 +78,26 @@ service cloud.firestore {
       }
       allow get: if signedIn();
       allow list: if signedIn() && request.query.limit <= 100;
-      allow create: if signedIn() && request.auth.uid == uid && validScore();
-      allow update: if signedIn() && request.auth.uid == uid && validScore()
+      allow create: if activeAccount() && request.auth.uid == uid && validScore();
+      allow update: if activeAccount() && request.auth.uid == uid && validScore()
         && (request.resource.data.moves < resource.data.moves
           || (request.resource.data.moves == resource.data.moves
             && request.resource.data.timeMs < resource.data.timeMs));
-      allow delete: if false;
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    // entries is reserved for public stage scores; group reads support debug cleanup.
+    match /{path=**}/entries/{uid} {
+      allow list: if signedIn() && request.query.limit <= 100;
+    }
+
+    match /accountDeletionLocks/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasAll(['requestedAt'])
+        && request.resource.data.keys().hasOnly(['requestedAt'])
+        && request.resource.data.requestedAt == request.time;
+      allow update, delete: if false;
     }
   }
 }
