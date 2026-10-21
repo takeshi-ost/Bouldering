@@ -512,3 +512,7 @@ button.modal-close:focus-visible { outline:none; }
 .score-time { letter-spacing:0; }
 #overlay.has-ranking #resultTap { margin-top:12px; }
 #overlay.has-ranking #resultDifficulty,#overlay.has-ranking #resultStats { display:none; }
+
+.stage-start-stars { text-align:center; font-size:28px; line-height:34px; margin:0 0 10px; }
+.stage-start-ranking { margin:0 0 16px; }
+.stage-start-stars[hidden],.stage-start-ranking[hidden] { display:none; }

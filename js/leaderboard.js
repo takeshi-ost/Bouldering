@@ -6,6 +6,10 @@ function dummyStageScores(expectedMoves,stage=level) {
         moves:Math.max(1,expectedMoves-1+Math.floor(i/3)),
         timeMs:20000+i*9137+(stage%7)*1100,avatar:i,isPlayer:false}));
 }
+// Called on every result/selection; never persist opponents with the player record.
+function currentStageScores(stage,mode,expectedMoves) {
+    return dummyStageScores(expectedMoves,stage);
+}
 function stageLeaderboardRows(record,others) {
     const sorted=[...others.map(row=>({...row,isPlayer:false})),{...record,isPlayer:true}]
         .sort((a,b)=>a.moves-b.moves || a.timeMs-b.timeMs || Number(a.isPlayer)-Number(b.isPlayer))
@@ -26,7 +30,25 @@ function scoreAvatar(row) {
     const head=row.isPlayer?playerHeadColor:'#f3e4cd';
     return `<svg class="score-player-icon" viewBox="0 0 24 32" aria-hidden="true"><circle cx="12" cy="6" r="5.5" fill="${head}" stroke="#fff7e9"/><rect x="3" y="12" width="18" height="20" rx="4" fill="${color}" stroke="#fff7e9" stroke-width="2"/></svg>`;
 }
+function stageLeaderboardMarkup(record,others) {
+    const rows=stageLeaderboardRows({...record,name:playerName},others);
+    return rows.map(row=>`<li class="score-row${row.isPlayer?' is-player':''}"${row.isPlayer?' aria-current="true"':''}><span class="score-rank">${row.rank}</span>${scoreAvatar(row)}<span class="score-name" title="${scoreText(row.name)}">${scoreText(row.name)}</span><span class="score-moves">${row.moves}手</span><span class="score-time">${formatClearTime(row.timeMs)}</span></li>`).join('');
+}
+
 function renderStageLeaderboard(expectedMoves) {
-    const rows=stageLeaderboardRows({name:playerName,moves:moveCount,timeMs:runElapsedMs},dummyStageScores(expectedMoves));
-    ui.resultLeaderboard.innerHTML=rows.map(row=>`<li class="score-row${row.isPlayer?' is-player':''}"${row.isPlayer?' aria-current="true"':''}><span class="score-rank">${row.rank}</span>${scoreAvatar(row)}<span class="score-name" title="${scoreText(row.name)}">${scoreText(row.name)}</span><span class="score-moves">${row.moves}手</span><span class="score-time">${formatClearTime(row.timeMs)}</span></li>`).join('');
+    ui.resultLeaderboard.innerHTML=stageLeaderboardMarkup(
+        {moves:moveCount,timeMs:runElapsedMs},currentStageScores(level,courseMode,expectedMoves));
+}
+function renderStageStartRecord(context) {
+    const record=context.n<=stageProgress[context.mode].cleared?stageRecords[context.mode][context.n]:null;
+    ui.stageStartStars.hidden=!record?.stars;
+    ui.stageStartStars.textContent=record?.stars?'⭐️'.repeat(record.stars):'';
+    ui.stageStartStars.setAttribute('aria-label',record?.stars?`${record.stars}つ星`:'');
+    ui.stageStartRanking.hidden=!record;
+    ui.stageStartLeaderboard.innerHTML='';
+    if(!record)return;
+    // Course metadata may be cached; opponents are fetched anew for this selection.
+    const expectedMoves=stagePreview(context.n,context.mode).expectedMoves;
+    ui.stageStartLeaderboard.innerHTML=stageLeaderboardMarkup(record,
+        currentStageScores(context.n,context.mode,expectedMoves));
 }

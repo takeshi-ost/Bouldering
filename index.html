@@ -180,6 +180,7 @@
         </dialog>
         <dialog id="stageStartDialog" class="stage-start-dialog" aria-labelledby="stageStartTitle" aria-describedby="stageStartDifficulty stageStartLength stageStartStamina">
             <button id="closeStageStart" class="modal-close" aria-label="閉じる">✕</button>
+            <div id="stageStartStars" class="stage-start-stars" hidden></div>
             <div id="stageStartLives" class="stage-start-lives" role="status"></div>
             <div class="stage-start-heading">
                 <div class="stage-start-title"><h2 id="stageStartTitle">STAGE 1</h2></div>
@@ -188,6 +189,9 @@
                     <div><dt>コースの長さ</dt><dd id="stageStartLength"></dd></div>
                 </dl>
             </div>
+            <section id="stageStartRanking" class="stage-start-ranking" aria-label="ステージハイスコア" hidden>
+                <ol id="stageStartLeaderboard" class="result-leaderboard"></ol>
+            </section>
             <div class="stage-heart-items" role="group" aria-label="開始スタミナと使用するハート">
                 <div class="stage-heart-controls">
                     <div class="stamina-heart stage-start-stamina">

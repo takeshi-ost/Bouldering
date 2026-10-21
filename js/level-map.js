@@ -261,6 +261,7 @@ function openStageStart(n,debug=false,button=null,delay=0) {
         ui.stageStartTitle.textContent=`STAGE ${n}`;
         ui.stageStartTitle.setAttribute('aria-label',`STAGE ${n}`);
         renderStageHeartItems();
+        renderStageStartRecord(context);
         refreshLives();
         ui.stageStartDifficulty.textContent=difficultyLabel(difficultyForStage(n));
         ui.stageStartLength.textContent={short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(n).category];
