@@ -162,13 +162,14 @@
                     <button id="adComplete" hidden>完了</button>
                 </div>
             </dialog>
-            <dialog class="overlay" id="overlay" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultDifficulty resultStars resultStats" tabindex="-1" hidden>
+            <dialog class="overlay" id="overlay" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultTipText resultDifficulty resultStars resultStats" tabindex="-1" hidden>
                 <div class="card">
                     <button id="closeResult" class="modal-close" aria-label="閉じて戻る">✕</button>
                     <div class="result-heading">
                         <h1 id="resultTitle"></h1>
                         <div id="resultStars" class="result-stars" hidden></div>
                     </div>
+                    <aside id="resultTip" class="result-tip" aria-label="Tips" hidden><strong>Tips</strong><p id="resultTipText"></p></aside>
                     <div id="resultDifficulty" class="result-difficulty" hidden></div>
                     <p id="resultStats" class="result-stats" hidden></p>
                     <section id="resultRanking" class="result-ranking" aria-label="ステージハイスコア" hidden>

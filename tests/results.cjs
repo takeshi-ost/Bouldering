@@ -128,6 +128,23 @@ for(const key of ['Enter',' ']) {
 }
 assert.equal(continuations,5);continueNormalClear=continueSaved;
 `)(assert,data);
+new Function('assert',env+source+`
+reset(1);debugAttempt=true;
+const originalRandom=Math.random;
+try {
+ assert.equal(GAMEPLAY_TIPS.length,8);
+ for(let i=0;i<GAMEPLAY_TIPS.length;i++) {
+  Math.random=()=>(i+.5)/GAMEPLAY_TIPS.length;
+  finish(false);
+  assert.equal(ui.resultTitle.textContent,'登頂失敗…');
+  assert(!ui.resultTip.hidden);
+  assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
+  updateUI();assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
+ }
+ dailyRun={...dailyProfile('2026-10-17'),returnCourse:'existing'};finish(false);assert(!ui.resultTip.hidden);
+ dailyRun=null;finish(true);assert(ui.resultTip.hidden);assert.equal(ui.resultTipText.textContent,'');
+} finally {Math.random=originalRandom;}
+`)(assert);
 console.log('PASS results: centered native modal, background guards, intro-excluded timer, cancel/Undo timing, frozen results, formatting, versioned per-course best records, map labels, reload, legacy/invalid/blocked storage, debug isolation');
 } finally {
  if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);

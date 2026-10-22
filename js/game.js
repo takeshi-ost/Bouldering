@@ -4,7 +4,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
-    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapEditCharacter", "mapDebugMode",
+    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapEditCharacter", "mapDebugMode",
     "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "mapButton", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "paletteSwatches", "editorRandom", "editorConfirm", "editorCancel", "appearanceStatus",
     "titleScreen", "releaseVersion", "playerUuid", "titleTap", "prototypeCourse", "prototypeDescription", "showHelp", "helpDialog", "closeHelp"
@@ -868,7 +868,9 @@ function finish(won) {
     ui.resultTitle.textContent =
         won
             ? '登頂成功！'
-            : 'あと、もう少し。';
+            : '登頂失敗…';
+    ui.resultTip.hidden=won;
+    ui.resultTipText.textContent=won ? '' : GAMEPLAY_TIPS[Math.floor(Math.random()*GAMEPLAY_TIPS.length)];
 
     hideSettings();
     updateUI();

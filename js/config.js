@@ -5,6 +5,16 @@ function heartItemIconMarkup() {
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
 const RELEASE_VERSION = '0.1.0';
+const GAMEPLAY_TIPS = [
+    'ステージの端か2本指スワイプでスクロールできるよ！',
+    '背中をタップで1ムーブだけ戻せるよ！',
+    '思ったところに行けないときは、手足が伸びきっていないか見てみよう！',
+    '横長のホールドは、両手や両足でいっしょにつかめるよ！',
+    'ゴールは両手でつかもう！両足の支えも忘れずに！',
+    'ハートは背中でタッチ！スタミナが2回復するよ！',
+    '真上だけでなく、横に動くと道が開けることも！',
+    '歯車ボタンからプレイヤーの見た目が変えられるよ！'
+];
 // Bump whenever generation/gameplay changes make stage scores incomparable.
 const COURSE_VERSION = 'v1';
 // 表示サイズと可動域。単位はゲーム内の論理pxです。
