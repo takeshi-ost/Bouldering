@@ -1,7 +1,7 @@
 // Validate bounded refinement against actual drag/release, including retry/preview.
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const html=fs.readFileSync('index.html','utf8');
-const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)]
+const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)]
     .map(m=>fs.readFileSync(m[1],'utf8')).join('\n');
 const env=`const elements={};const document={getElementById(id){return elements[id]||={
  style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},

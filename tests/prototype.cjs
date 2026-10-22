@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path');
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const source = [...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)]
+const source = [...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)]
     .map(m => fs.readFileSync(path.join(root, m[1]), 'utf8')).join('\n');
 const environment = `
 const elements = {};

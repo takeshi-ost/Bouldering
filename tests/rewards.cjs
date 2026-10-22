@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`let clock=1000;const NativeDate=globalThis.Date;const Date=class extends NativeDate {constructor(...args){super(...(args.length?args:['2026-10-20T12:00:00Z']));}static now(){return new NativeDate('2026-10-20T12:00:00Z').getTime();}};const performance={now:()=>clock};
 const documentEvents={};const elements={};const document={hidden:false,addEventListener(k,f){(documentEvents[k] ||= []).push(f);},getElementById(id){return elements[id] ||= {
  style:{},classList:{toggle(){}},focus(){},events:{},addEventListener(k,f){this.events[k]=f;},setAttribute(){},contains(){return true;},

@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 assert(!html.includes('id="undo"') && !html.includes('id="changeCourse"'));
-const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const environment=`
 const elements={};const document={getElementById(id){return elements[id] ||= {
  style:{},classList:{toggle(){}},focus(){},events:{},addEventListener(name,fn){this.events[name]=fn;},setAttribute(){},

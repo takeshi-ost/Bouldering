@@ -40,7 +40,7 @@ vm.runInContext("assert.equal(soundContext.state,'running');assert.equal(pending
 safariEvents.touchend();vm.runInContext("assert.equal(soundContext.state,'running');setSoundEnabled(false);soundContext.state='interrupted';",safari);
 safariEvents.touchend();vm.runInContext("assert.equal(soundContext.state,'interrupted');assert.equal(pendingSound,null);",safari);
 // Exercise the actual game hooks, without a sound device or changing game rules.
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 new Function('assert',`
 const elements={};const document={getElementById(id){return elements[id] ||= {style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};
 const window={addEventListener(){}};function requestAnimationFrame(){}

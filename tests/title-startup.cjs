@@ -4,7 +4,7 @@ const title=html.slice(html.indexOf('id="titleScreen"'),html.indexOf('<section i
 assert(!/<(?:button|input|label)\b/.test(title));
 assert(!/id="(?:existingCourse|editCharacter|debugMode)"/.test(html));
 assert(html.indexOf('id="showHelp"')>html.indexOf('id="settingsDialog"'));
-const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
 const elements={},frames=[],pendingImages=[];
 const document={getElementById(id){return elements[id] ||= {

@@ -4,7 +4,7 @@ assert(!/<(?:header|footer)[ >]/.test(html));
 assert(!/id="(?:showPath|mapDebug|courseMenu)"/.test(html));
 assert.equal((html.match(/type="checkbox"/g)||[]).length,5);
 assert(/<dialog id="settingsDialog"[\s\S]*id="restart"[\s\S]*id="mapButton"[\s\S]*?<\/dialog>/.test(html));
-const source=[...html.matchAll(/<script src="([^"]+)" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
 let clock=0;const performance={now:()=>clock};
 const elements={};const document={getElementById(id){return elements[id] ||= {
