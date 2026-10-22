@@ -5,7 +5,7 @@ const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
 assert(html.includes('id="mapPlayers"'));assert(/\.map-players,\.map-players \*\s*\{\s*pointer-events:none/.test(css));
 assert(/\.map-players\s*\{[^}]*position:absolute/.test(css));
 assert(/\.map-opponent\s*\{\s*width:19\.2px;\s*height:25\.6px;/.test(css),'Opponents must be 80% of the 24x32 local marker');
-const env=`const elements={};const document={getElementById(id){return elements[id]||={
+const env=`const timers=[];function setTimeout(fn,ms){timers.push({fn,ms,canceled:false});return timers.length;}function clearTimeout(id){timers[id-1].canceled=true;}const elements={};const document={getElementById(id){return elements[id]||={
  style:{},events:{},classList:{toggle(){}},focus(){},addEventListener(k,fn){this.events[k]=fn;},setAttribute(){},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}})},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
@@ -65,13 +65,16 @@ renderMapPlayers();assert(!ui.mapPlayers.innerHTML.includes('<img onerror'));
 assert(ui.mapPlayers.innerHTML.includes('&lt;img onerror=bad&gt;'));
 assert(!ui.mapPlayers.innerHTML.includes('data-level='));currentMapPlayers=originalSource;
 assert.equal(JSON.stringify({holds,route,body,grips,stageProgress,stageRecords}),physics);
-// Hold names appear immediately, then disappear on release, drag, cancel or rerender.
+// Names stay visible for one second after release; new holds cancel the old timer.
 state='map';settingsOpen=false;mapPreparing=false;
 let visible=false;const icon={classList:{toggle(name,value){assert.equal(name,'is-name-visible');visible=value;}}};
 const press={target:{closest:()=>icon},pointerId:7,clientX:20,clientY:30,button:0};
 const hold=()=>ui.mapPlayers.events.pointerdown(press);
 hold();assert(visible);window.events.pointerup[0]({pointerId:8});assert(visible);
-window.events.pointerup[0]({pointerId:7});assert(!visible);
+window.events.pointerup[0]({pointerId:7});assert(visible);assert.equal(timers.at(-1).ms,1000);
+window.events.pointermove[0]({pointerId:7,clientX:100,clientY:100});assert(visible);
+timers.at(-1).fn();assert(!visible);
+hold();window.events.pointerup[0]({pointerId:7});const oldTimer=timers.at(-1);hold();assert(oldTimer.canceled && visible);
 hold();window.events.pointermove[0]({pointerId:7,clientX:22,clientY:32});assert(visible);
 window.events.pointermove[0]({pointerId:7,clientX:20,clientY:50});assert(!visible);
 hold();window.events.pointercancel[0]({});assert(!visible);
@@ -79,7 +82,7 @@ hold();ui.mapScroll.events.scroll();assert(!visible);
 hold();renderMapPlayers();assert(!visible);
 hold();ui.mapPlayers.events.focusout();assert(!visible);
 let prevented=false;ui.mapPlayers.events.keydown({...press,key:' ',preventDefault(){prevented=true;}});assert(visible && prevented);
-ui.mapPlayers.events.keyup({key:' '});assert(!visible);
+ui.mapPlayers.events.keyup({key:' '});assert(visible);assert.equal(timers.at(-1).ms,1000);timers.at(-1).fn();assert(!visible);
 settingsOpen=true;hold();assert(!visible);settingsOpen=false;
 
 // Moving the local icon updates depth every animation frame, not just on rerender.

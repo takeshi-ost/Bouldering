@@ -153,8 +153,10 @@ function layoutMapPlayers(players) {
     }
     return placed.sort((a,b)=>a.y-b.y || a.x-b.x);
 }
-let mapPlayerNameHold=null;
+let mapPlayerNameHold=null,mapPlayerNameTimer=null;
 function hideMapPlayerName() {
+    if(mapPlayerNameTimer!==null)clearTimeout(mapPlayerNameTimer);
+    mapPlayerNameTimer=null;
     if(!mapPlayerNameHold)return;
     mapPlayerNameHold.element.classList.toggle('is-name-visible',false);
     mapPlayerNameHold=null;
@@ -164,13 +166,20 @@ function showMapPlayerName(element,event) {
     element.classList.toggle('is-name-visible',true);
     mapPlayerNameHold={element,pointerId:event.pointerId,x:event.clientX,y:event.clientY};
 }
+function releaseMapPlayerName() {
+    if(!mapPlayerNameHold || mapPlayerNameTimer!==null)return;
+    mapPlayerNameHold.pointerId=null;
+    mapPlayerNameTimer=setTimeout(()=>{
+        mapPlayerNameTimer=null;hideMapPlayerName();
+    },1000);
+}
 ui.mapPlayers.addEventListener('pointerdown',event=>{
     const element=event.target.closest?.('.map-opponent');
     if(state!=='map' || settingsOpen || mapPreparing || !element || (event.button!==undefined && event.button!==0))return;
     showMapPlayerName(element,event);
 });
 window.addEventListener('pointerup',event=>{
-    if(mapPlayerNameHold?.pointerId===event.pointerId)hideMapPlayerName();
+    if(mapPlayerNameHold?.pointerId===event.pointerId)releaseMapPlayerName();
 });
 window.addEventListener('pointercancel',hideMapPlayerName);
 window.addEventListener('pointermove',event=>{
@@ -185,7 +194,7 @@ ui.mapPlayers.addEventListener('keydown',event=>{
     event.preventDefault();if(!event.repeat)showMapPlayerName(element,event);
 });
 ui.mapPlayers.addEventListener('keyup',event=>{
-    if(['Enter',' '].includes(event.key))hideMapPlayerName();
+    if(['Enter',' '].includes(event.key))releaseMapPlayerName();
 });
 ui.mapPlayers.addEventListener('focusout',hideMapPlayerName);
 ui.mapPlayers.addEventListener('contextmenu',event=>event.preventDefault());
