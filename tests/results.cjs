@@ -142,7 +142,11 @@ try {
   updateUI();assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
  }
  dailyRun={...dailyProfile('2026-10-17'),returnCourse:'existing'};finish(false);assert(!ui.resultTip.hidden);
- dailyRun=null;finish(true);assert(ui.resultTip.hidden);assert.equal(ui.resultTipText.textContent,'');
+ for(const daily of [null,{...dailyProfile('2026-10-17'),returnCourse:'existing'}]) {
+  dailyRun=daily;finish(true);assert(!ui.resultTip.hidden);assert(GAMEPLAY_TIPS.includes(ui.resultTipText.textContent));
+  const tip=ui.resultTipText.textContent;updateUI();assert.equal(ui.resultTipText.textContent,tip);
+ }
+ dailyRun=null;
 } finally {Math.random=originalRandom;}
 `)(assert);
 console.log('PASS results: centered native modal, background guards, intro-excluded timer, cancel/Undo timing, frozen results, formatting, versioned per-course best records, map labels, reload, legacy/invalid/blocked storage, debug isolation');

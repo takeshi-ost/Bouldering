@@ -869,8 +869,8 @@ function finish(won) {
         won
             ? '登頂成功！'
             : '登頂失敗…';
-    ui.resultTip.hidden=won;
-    ui.resultTipText.textContent=won ? '' : GAMEPLAY_TIPS[Math.floor(Math.random()*GAMEPLAY_TIPS.length)];
+    ui.resultTip.hidden=false;
+    ui.resultTipText.textContent=GAMEPLAY_TIPS[Math.floor(Math.random()*GAMEPLAY_TIPS.length)];
 
     hideSettings();
     updateUI();
