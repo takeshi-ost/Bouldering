@@ -203,7 +203,7 @@ function showDailyCalendar({openFromMap=false}={}) {
     ui.titleScreen.hidden=ui.characterEditor.hidden=ui.levelMap.hidden=ui.hud.hidden=true;
     ui.dailyCalendar.hidden=false;ui.dailyError.hidden=true;
     ui.wall.classList.toggle('map-open',true);
-    ui.restart.disabled=ui.mapButton.disabled=true;
+    ui.restart.disabled=true;
     canvas.setAttribute('tabindex','-1');
     renderDailyCalendar();
     (ui.dailyGrid.querySelector?.(`[data-date="${localToday()}"]:not(:disabled)`)||ui.dailyBack).focus();

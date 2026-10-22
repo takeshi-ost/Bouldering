@@ -271,7 +271,7 @@ function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
         ? {from:advanceFrom,to:destination,start:null} : null;
     ui.levelMap.hidden=false;
     ui.mapError.hidden=true;
-    ui.restart.disabled=ui.mapButton.disabled=true;
+    ui.restart.disabled=true;
     canvas.setAttribute('tabindex','-1');
     renderLevelMap();
     const viewportHeight=ui.mapScroll.clientHeight||H;

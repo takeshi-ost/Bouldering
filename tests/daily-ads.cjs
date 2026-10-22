@@ -44,8 +44,8 @@ const saved=data[DAILY_ATTEMPTS_KEY];data[DAILY_ATTEMPTS_KEY]=JSON.stringify({'b
 // Leaving a failed run defers the ad to the next date tap, even a different first-time date.
 assert(selectDailyDate('2026-01-03'));assert.equal(state,'playing');finish(false);ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd);assert(dailyEntryAdPending);
 dailyMonth='2026-01';renderDailyCalendar();assert(chooseDailyDate('2026-01-04'));assert.equal(state,'daily');assert(!dummyAd);assert(dailyEntryAdPending);assert(!dailyAttempts['2026-01-04']);ui.dailyStartButton.onclick();assert.equal(state,'ad');assert(dailyEntryAdPending);assert(!completeDummyAd());done();assert.equal(state,'playing');assert.equal(dailyRun.date,'2026-01-04');assert.equal(dailyRun.attempt,1);assert(!dailyEntryAdPending);
-// The in-game Calendar action also defers, and survives reloads.
-ui.mapButton.onclick();assert.equal(state,'daily');assert(dailyEntryAdPending);assert(!dummyAd);assert(readDailyEntryAdPending());
+// Retiring uses the failure sequence; leaving that result defers the next ad.
+ui.restart.onclick();assert.equal(state,'lost');assert(!ui.resultTip.hidden && ui.overlay.open);assert(!dummyAd);ui.closeResult.onclick();assert.equal(state,'daily');assert(dailyEntryAdPending);assert(!dummyAd);assert(readDailyEntryAdPending());
 const set=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(saveDailyAttempts);assert.doesNotThrow(()=>setDailyEntryAdPending(true));storage.setItem=set;
 `)(assert,data,storage);
 new Function('assert',env+source+`assert.equal(dailyAttempts['2026-01-01'],1);assert.equal(dailyAttempts['2026-01-10'],6);assert.equal(dailyAttempts['2026-01-02'],4);assert(dailyEntryAdPending);`)(assert);

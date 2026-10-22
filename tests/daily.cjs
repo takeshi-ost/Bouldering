@@ -29,7 +29,7 @@ assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-17"'));assert(!ui.dai
 // Calendar selection only previews; Start launches the selected seed once.
 assert.equal((ui.dailyGrid.innerHTML.match(/class="daily-cell/g)||[]).length,42);assert.equal(ui.dailyGrid.style.gridTemplateRows,'repeat(6,minmax(0,1fr))');
 assert(!ui.dailyStartGift.hidden);assert.equal(dailySelectedDate,'2026-10-17');assert.equal(ui.dailyStartTitle.textContent,'10月17日(土)');
-ui.dailySettingsButton.onclick();assert(settingsOpen && ui.settingsDialog.open);assert(!ui.mapSettingsControls.hidden && !ui.mapSettingsFooter.hidden && ui.restart.hidden && ui.mapButton.hidden);
+ui.dailySettingsButton.onclick();assert(settingsOpen && ui.settingsDialog.open);assert(!ui.mapSettingsControls.hidden && !ui.mapSettingsFooter.hidden && ui.restart.hidden);
 assert(!chooseDailyDate('2026-10-15'));assert(!changeDailyMonth(-1));ui.dailyBack.onclick();assert.equal(state,'daily');
 ui.showHelp.onclick();assert(ui.helpDialog.open);ui.closeHelp.onclick();ui.closeSettings.onclick();assert(!settingsOpen);
 ui.dailySettingsButton.onclick();ui.mapEditCharacter.onclick();assert.equal(state,'editing');assert(ui.dailyCalendar.hidden);ui.editorCancel.onclick();assert.equal(state,'daily');assert.equal(dailySelectedDate,'2026-10-17');

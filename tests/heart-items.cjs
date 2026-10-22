@@ -30,7 +30,7 @@ closeStageStart();assert.equal(heartItems,20);assert.equal(readHeartItems(),20);
 assert(openStageStart(1));assert.equal(stageStartContext.hearts,0);setStageHeartItems(3);ui.stageStartButton.onclick();
 assert.equal(state,'playing');assert.equal(stamina,base+3);assert.equal(heartItems,17);assert.equal(readHeartItems(),17);assert.equal(ui.mapItemCount.textContent,'17');
 ui.stageStartButton.onclick();assert.equal(heartItems,17,'Double start never charges twice');
-ui.restart.onclick();assert.equal(stamina,base,'Restart drops the bonus');assert.equal(heartItems,17);
+ui.restart.onclick();assert.equal(state,'lost');ui.retry.onclick();assert.equal(stamina,base,'Retry after retiring drops the bonus');assert.equal(heartItems,17);
 showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(2);ui.stageStartButton.onclick();assert.equal(stamina,base+2);
 finish(false);ui.retry.onclick();assert.equal(stamina,base,'Retry drops the bonus');assert.equal(heartItems,15);
 showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(1);ui.stageStartButton.onclick();finish(true);

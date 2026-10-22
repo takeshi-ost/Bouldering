@@ -153,17 +153,17 @@ ui.retry.onclick=()=>{
     else restartNormalStage();
 };
 ui.restart.onclick=()=>{
-    if(!['playing','won','lost'].includes(state))return;
-    if(dailyRun) {if(!dailyRecords[dailyRun.date])restartInput(level);}else restartNormalStage();
+    if(state!=='playing')return;
+    finish(false);
 };
-ui.mapButton.onclick = () => {
+function returnFromStage() {
     if(!['playing','won','lost'].includes(state))return;
     if(dailyRun) {
         if(state==='won')continueDailyResult();else returnDailyWithoutClear();
     } else if(state==='won' && !debugAttempt && courseMode==='existing' && mapRewards[level]?.status==='pending')
         continueNormalClear({advance:false});
     else showLevelMap({target:level});
-};
+}
 
 function showTitleScreen() {
     finishDummyAdCover();finishRewardCover();
@@ -184,7 +184,6 @@ function showTitleScreen() {
     mapTransition = null;
     ui.levelMap.hidden = true;
     ui.wall.classList.toggle('map-open',false);
-    ui.mapButton.disabled = true;
     hideResultModal();
     ui.titleScreen.hidden = false;
 
@@ -232,7 +231,7 @@ function dismissOutside(dialog,close,card=false) {
         close();
     });
 }
-ui.closeResult.onclick=()=>state==='won'?ui.next.onclick():ui.mapButton.onclick();
+ui.closeResult.onclick=()=>state==='won'?ui.next.onclick():returnFromStage();
 ui.overlay.addEventListener('cancel',e=>{e.preventDefault();ui.closeResult.onclick();});
 ui.overlay.addEventListener('click',e=>{
     if(ui.overlay.hidden)return;
@@ -274,7 +273,7 @@ function openSettings() {
     const onMap=['map','daily'].includes(state);
     if(settingsOpen || stageStartContext || (onMap ? !!mapTransition || mapPreparing : state!=='playing' || cameraIntro || featureHelpOpen))return;
     if(!onMap) {endPointer(null,true);endPan();touchId=null;ignoreTouches=false;}
-    ui.restart.hidden=ui.mapButton.hidden=onMap;
+    ui.restart.hidden=onMap;
     ui.mapSettingsControls.hidden=ui.mapSettingsFooter.hidden=!onMap;
     ui.stageDebugDisplay.hidden=onMap || !debugMode;
     for(const [key,control] of Object.entries(debugDisplayControls))control.checked=debugDisplay[key];

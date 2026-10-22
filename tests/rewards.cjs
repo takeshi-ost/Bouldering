@@ -85,7 +85,7 @@ assert(selectStage(4));moveCount=1;finish(true);clearsSinceAd=0;ui.overlay.event
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();
 // The map-return action also delivers rewards; an interrupted ad/roulette resumes on map entry.
 stageProgress.existing.cleared=19;showLevelMap({target:20});assert(selectStage(20));
-clearsSinceAd=0;moveCount=1;finish(true);ui.mapButton.onclick();assert.equal(state,'reward');land(3);resultReturn();assert.equal(state,'map');assert.equal(mapSelected,20);assert(!mapTransition);
+clearsSinceAd=0;moveCount=1;finish(true);returnFromStage();assert.equal(state,'reward');land(3);resultReturn();assert.equal(state,'map');assert.equal(mapSelected,20);assert(!mapTransition);
 mapRewards[12]={status:'pending',adRequired:true,adCompleted:false};saveMapRewards();mapRewards=readMapRewards();
 showLevelMap();assert.equal(state,'ad');ad();assert.equal(state,'reward');
 // Simulate reloading before an unclaimed roulette (completed ad must not repeat).

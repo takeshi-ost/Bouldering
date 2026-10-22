@@ -22,7 +22,7 @@ for(let i=1;i<=10;i++) {
  let canceled=false;ui.dummyAd.events.cancel({preventDefault(){canceled=true;}});assert(canceled);
  const start=dummyAd.start;for(const [ms,remaining] of [[999,10],[1000,9],[9999,1],[10000,0]]){clock=start+ms;advanceDummyAd(clock);assert.equal(ui.adCounter.textContent,String(remaining));}
  assert(!ui.adComplete.hidden);assert.equal(clearsSinceAd,5,'Counter resets only after completion tap');
- ui.overlay.events.click({target:ui.overlay});ui.restart.onclick();ui.mapButton.onclick();assert.equal(state,'ad');
+ ui.overlay.events.click({target:ui.overlay});ui.restart.onclick();returnFromStage();assert.equal(state,'ad');
  assert(completeDummyAd());assert(!completeDummyAd());assert.equal(state,'map');assert(ui.dummyAd.hidden && !ui.dummyAd.open);assert.equal(clearsSinceAd,0);assert.equal(JSON.stringify(stageRecords),record);
  assert.deepEqual([mapTransition.from,mapTransition.to],[1,2]);advanceLevelMap(clock);advanceLevelMap(clock+650);assert.equal(mapSelected,2);
 }

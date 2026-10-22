@@ -66,7 +66,7 @@ for(const n of [0,-1,1.5,2,NaN])assert.equal(selectStage(n),false);
 ui.mapNodes.onclick({target:{closest(){return {dataset:{level:'2'}};}}});assert.equal(state,'map');
 ui.mapNodes.onclick({target:{closest(){return {dataset:{level:'1'},classList:{toggle(){}}};}}});assert.equal(state,'map');assert.equal(stageStartContext.n,1);
 ui.stageStartDialog.showModal();ui.stageStartButton.onclick();assert.equal(state,'playing');
-assert(ui.levelMap.hidden);assert(!ui.mapButton.disabled);
+assert(ui.levelMap.hidden);assert(!ui.restart.disabled);
 function complete() {
  while(featureHelpOpen)dismissStageHelp();
  cameraIntro=null;
@@ -93,7 +93,7 @@ ui.next.onclick();assert.equal(mapSelected,2);assert.equal(selectStage(3),false)
 assert(selectStage(1));complete();assert.equal(unlockedLevel(),2);
 ui.next.onclick();advanceLevelMap(1000);advanceLevelMap(1650);closeStageStart();
 assert(selectStage(2));assert.equal(level,2);assert.equal(stamina,stageStamina(route.length-1));
-ui.mapButton.onclick();assert.equal(state,'map');assert.equal(mapSelected,2);assert.equal(drag,null);
+returnFromStage();assert.equal(state,'map');assert.equal(mapSelected,2);assert.equal(drag,null);
 ui.mapCourses.onclick();assert.equal(state,'choosing');
 startCourse('prototype');assert.equal(unlockedLevel(),1);assert.equal(selectStage(2),false);
 startCourse('existing');assert.equal(unlockedLevel(),2);

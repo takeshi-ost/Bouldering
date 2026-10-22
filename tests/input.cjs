@@ -3,7 +3,8 @@ const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.
 assert(!/<(?:header|footer)[ >]/.test(html));
 assert(!/id="(?:showPath|mapDebug|courseMenu)"/.test(html));
 assert.equal((html.match(/type="checkbox"/g)||[]).length,5);
-assert(/<dialog id="settingsDialog"[\s\S]*id="restart"[\s\S]*id="mapButton"[\s\S]*?<\/dialog>/.test(html));
+assert(/<dialog id="settingsDialog"[\s\S]*id="restart"[\s\S]*?<\/dialog>/.test(html));
+assert(!html.includes('id="mapButton"'));assert(html.includes('id="restart">リタイヤ</button>'));
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
 let clock=0;const performance={now:()=>clock};
@@ -52,9 +53,9 @@ mouse('mousedown',visibleEvent());down(eventAt(body));assert(!bodyTap && !drag);
 assert.equal(JSON.stringify({body,grips,stamina,moveCount}),menuBefore);
 ui.settingsDialog.events.cancel({preventDefault(){}});assert(!settingsOpen && !ui.settingsDialog.open);
 assert(canUndoMove());
-ui.settingsButton.onclick();ui.restart.onclick();assert(!settingsOpen && !ui.settingsDialog.open && cameraIntro && moveCount===0);
-fixture();ui.settingsButton.onclick();ui.mapButton.onclick();assert(!settingsOpen && !ui.settingsDialog.open && state==='map' && ui.hud.hidden);
-showLevelMap();ui.mapSettingsButton.onclick();assert(settingsOpen && !ui.mapSettingsControls.hidden && ui.restart.hidden && ui.mapButton.hidden && !ui.mapSettingsFooter.hidden);
+ui.settingsButton.onclick();ui.restart.onclick();assert(!settingsOpen && !ui.settingsDialog.open && state==='lost');assert.equal(ui.resultTitle.textContent,'登頂失敗…');assert(!ui.resultTip.hidden);const retiredLives=lives.count;ui.restart.onclick();assert.equal(lives.count,retiredLives);
+fixture();ui.settingsButton.onclick();returnFromStage();assert(!settingsOpen && !ui.settingsDialog.open && state==='map' && ui.hud.hidden);
+showLevelMap();ui.mapSettingsButton.onclick();assert(settingsOpen && !ui.mapSettingsControls.hidden && ui.restart.hidden && !ui.mapSettingsFooter.hidden);
 ui.mapDebugMode.checked=true;ui.mapDebugMode.onchange();assert(debugMode && ui.mapDebugMode.checked && !ui.debugControls.hidden);
 ui.mapDebugMode.checked=false;ui.mapDebugMode.onchange();assert(!debugMode && !ui.mapDebugMode.checked && ui.debugControls.hidden);
 ui.closeSettings.onclick();assert(!settingsOpen && !ui.settingsDialog.open);
