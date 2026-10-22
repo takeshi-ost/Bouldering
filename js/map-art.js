@@ -5,8 +5,8 @@ const MAP_BACKGROUND_VERSION='sage-extended-v2';
 // A page contains twenty stages; past pages keep their own season when revisited.
 const MAP_BACKGROUNDS=[
     {season:'spring',src:'assets/stage-map.webp',version:MAP_BACKGROUND_VERSION,saturation:1.2},
-    {season:'summer',src:'assets/stage-map-summer.webp',version:'summer-v1',saturation:0.7},
-    {season:'autumn',src:'assets/stage-map-autumn.webp',version:'autumn-v1',saturation:0.7},
+    {season:'summer',src:'assets/stage-map-summer.webp',version:'summer-v1',saturation:0.35},
+    {season:'autumn',src:'assets/stage-map-autumn.webp',version:'autumn-v1',saturation:0.35},
     {season:'winter',src:'assets/stage-map-winter.webp',version:'winter-v1',saturation:1}
 ];
 function mapBackground(page=mapPage) { return MAP_BACKGROUNDS[page%MAP_BACKGROUNDS.length]; }
