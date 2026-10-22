@@ -47,6 +47,15 @@ let shown=stageLeaderboardRows({moves:20,timeMs:100},rows);assert.equal(shown.le
 const markup=stageLeaderboardMarkup(null,rows);assert(markup.includes('&lt;Other&gt;'));assert(markup.includes('#abcdef'));assert(!markup.includes('Dummy'));
 shown=stageLeaderboardRows({moves:1,timeMs:100},rows);assert(shown[0].isPlayer);assert.equal(shown[0].rank,1);
 const longRows=Array.from({length:100},(_,i)=>({id:'p'+i,moves:i+1,timeMs:100}));longRows.push({id:'self',moves:200,timeMs:100});assert.equal(stageLeaderboardRows(null,longRows).at(-1).rank,'100+');
+// Empty boards reserve all five places without inventing players or score values.
+for(let count=0;count<=5;count++) {
+ const boardRows=rows.filter(row=>row.id!=='self').slice(0,count);
+ const html=stageLeaderboardMarkup(null,boardRows);
+ assert.equal((html.match(/class="score-row/g)||[]).length,5);
+ assert.equal((html.match(/is-empty/g)||[]).length,5-count);
+ assert.equal((html.match(/<svg class="score-player-icon"/g)||[]).length,count);
+ for(let rank=count+1;rank<=5;rank++)assert(html.includes('aria-label="'+rank+'位 記録なし"'));
+}
 // Unknown ranks must not claim 1st place while a request is still pending.
 const waiting=Object.defineProperty([],'rankingReady',{value:false});assert(stageLeaderboardMarkup({moves:1,timeMs:0},waiting).includes('score-rank">—</span>'));
 // Slow request for one modal cannot repaint the currently selected other stage.

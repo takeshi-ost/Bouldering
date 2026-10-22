@@ -545,3 +545,8 @@ button.modal-close:focus-visible { outline:none; }
 #overlay.is-daily-clear .result-difficulty { margin:4px 0; font-size:24px; font-weight:900; line-height:1.4; letter-spacing:0; }
 #overlay.is-daily-clear .result-stats { margin:6px 0; font-size:16px; line-height:1.5; }
 #overlay.is-daily-clear #resultTap { margin-top:12px; }
+
+/* Reserve five score rows and one status line, including empty/loading boards. */
+.result-leaderboard .score-row { height:34px; }
+.score-row.is-empty { color:#9a9f95; }
+.result-ranking .score-status,.stage-start-ranking .score-status { display:block; height:16px; margin:4px 0 0; line-height:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }

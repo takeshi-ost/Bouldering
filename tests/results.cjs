@@ -41,7 +41,7 @@ assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(u
 assert(ui.resultStats.hidden && !ui.resultStars.hidden && ui.resultDifficulty.hidden);assert(!ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
 const result={moves:moveCount,timeMs:Math.floor(clock-1100),stars:3,version:COURSE_VERSION};
 assert.deepEqual(stageRecords.existing[1],result);
-assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert(ui.resultLeaderboard.innerHTML.includes(formatClearTime(result.timeMs)));assert.equal((ui.resultLeaderboard.innerHTML.match(/class="score-row/g)||[]).length,1);assert.equal((ui.resultLeaderboard.innerHTML.match(/is-player/g)||[]).length,1);
+assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert(ui.resultLeaderboard.innerHTML.includes(formatClearTime(result.timeMs)));assert.equal((ui.resultLeaderboard.innerHTML.match(/class="score-row/g)||[]).length,5);assert.equal((ui.resultLeaderboard.innerHTML.match(/is-player/g)||[]).length,1);
 assert.equal(formatClearTime(0),'00:00:00');assert.equal(formatClearTime(999),'00:00:99');
 assert.equal(formatClearTime(60000),'01:00:00');assert.equal(formatClearTime(61029),'01:01:02');
 assert.equal(formatClearTime(3600010),'60:00:01');
