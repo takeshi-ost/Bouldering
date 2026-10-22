@@ -6,10 +6,10 @@ assert(html.includes('id="mapPlayers"'));assert(/\.map-players,\.map-players \*\
 assert(/\.map-players\s*\{[^}]*position:absolute/.test(css));
 assert(/\.map-opponent\s*\{\s*width:19\.2px;\s*height:25\.6px;/.test(css),'Opponents must be 80% of the 24x32 local marker');
 const env=`const elements={};const document={getElementById(id){return elements[id]||={
- style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},
+ style:{},events:{},classList:{toggle(){}},focus(){},addEventListener(k,fn){this.events[k]=fn;},setAttribute(){},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}})},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
-};}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};`;
+};}};const window={events:{},addEventListener(k,fn){(this.events[k]||=[]).push(fn);},devicePixelRatio:1};function requestAnimationFrame(){};`;
 new Function('assert',env+source+`
 const appearances=Array.from({length:12},(_,i)=>({colors:[EDITOR_COLORS[i],EDITOR_COLORS[(i+3)%EDITOR_COLORS.length]],headColor:DEFAULT_HEAD_COLOR}));
 for(const appearance of appearances) {
@@ -58,13 +58,30 @@ for(const width of [320,390,768]) {
   positionMapMarker({x:50,y:p.y-11});assert(Number(ui.mapMarker.style.zIndex)>p.depth);
  }
 }
-// Names/IDs use the same escaping as rankings, and never become interactive targets.
+// Names/IDs are escaped and cannot become stage-selection targets.
 const originalSource=currentMapPlayers;
 currentMapPlayers=()=>[{id:'\"<x>',name:'<img onerror=bad>',avatar:1,reachedLevel:6}];
 renderMapPlayers();assert(!ui.mapPlayers.innerHTML.includes('<img onerror'));
 assert(ui.mapPlayers.innerHTML.includes('&lt;img onerror=bad&gt;'));
 assert(!ui.mapPlayers.innerHTML.includes('data-level='));currentMapPlayers=originalSource;
 assert.equal(JSON.stringify({holds,route,body,grips,stageProgress,stageRecords}),physics);
+// Hold names appear immediately, then disappear on release, drag, cancel or rerender.
+state='map';settingsOpen=false;mapPreparing=false;
+let visible=false;const icon={classList:{toggle(name,value){assert.equal(name,'is-name-visible');visible=value;}}};
+const press={target:{closest:()=>icon},pointerId:7,clientX:20,clientY:30,button:0};
+const hold=()=>ui.mapPlayers.events.pointerdown(press);
+hold();assert(visible);window.events.pointerup[0]({pointerId:8});assert(visible);
+window.events.pointerup[0]({pointerId:7});assert(!visible);
+hold();window.events.pointermove[0]({pointerId:7,clientX:22,clientY:32});assert(visible);
+window.events.pointermove[0]({pointerId:7,clientX:20,clientY:50});assert(!visible);
+hold();window.events.pointercancel[0]({});assert(!visible);
+hold();ui.mapScroll.events.scroll();assert(!visible);
+hold();renderMapPlayers();assert(!visible);
+hold();ui.mapPlayers.events.focusout();assert(!visible);
+let prevented=false;ui.mapPlayers.events.keydown({...press,key:' ',preventDefault(){prevented=true;}});assert(visible && prevented);
+ui.mapPlayers.events.keyup({key:' '});assert(!visible);
+settingsOpen=true;hold();assert(!visible);settingsOpen=false;
+
 // Moving the local icon updates depth every animation frame, not just on rerender.
 state='map';mapPreparing=false;mapTransition={from:6,to:7,start:null};
 advanceLevelMap(0);advanceLevelMap(325);

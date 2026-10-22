@@ -550,3 +550,10 @@ button.modal-close:focus-visible { outline:none; }
 .result-leaderboard .score-row { height:34px; }
 .score-row.is-empty { color:#9a9f95; }
 .result-ranking .score-status,.stage-start-ranking .score-status { display:block; height:16px; margin:4px 0 0; line-height:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* Only opponent figures accept presses; the surrounding map remains scrollable. */
+.map-players .map-opponent { pointer-events:auto; cursor:pointer; touch-action:pan-y; user-select:none; -webkit-touch-callout:none; }
+.map-opponent.is-name-visible { z-index:2147483647 !important; }
+.map-player-name { display:none; position:absolute; top:50%; left:calc(100% + 5px); transform:translateY(-50%); max-width:min(140px,calc(50vw - 20px)); padding:3px 6px; border:1px solid #bdc5b5; border-radius:5px; background:#fffdf4f5; color:#25372f; font:700 11px/16px system-ui,-apple-system,sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:0 1px 3px #25372f25; }
+.map-opponent[data-name-side="left"] .map-player-name { left:auto; right:calc(100% + 5px); }
+.map-opponent.is-name-visible .map-player-name { display:block; }

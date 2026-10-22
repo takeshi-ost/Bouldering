@@ -153,11 +153,48 @@ function layoutMapPlayers(players) {
     }
     return placed.sort((a,b)=>a.y-b.y || a.x-b.x);
 }
+let mapPlayerNameHold=null;
+function hideMapPlayerName() {
+    if(!mapPlayerNameHold)return;
+    mapPlayerNameHold.element.classList.toggle('is-name-visible',false);
+    mapPlayerNameHold=null;
+}
+function showMapPlayerName(element,event) {
+    hideMapPlayerName();
+    element.classList.toggle('is-name-visible',true);
+    mapPlayerNameHold={element,pointerId:event.pointerId,x:event.clientX,y:event.clientY};
+}
+ui.mapPlayers.addEventListener('pointerdown',event=>{
+    const element=event.target.closest?.('.map-opponent');
+    if(state!=='map' || settingsOpen || mapPreparing || !element || (event.button!==undefined && event.button!==0))return;
+    showMapPlayerName(element,event);
+});
+window.addEventListener('pointerup',event=>{
+    if(mapPlayerNameHold?.pointerId===event.pointerId)hideMapPlayerName();
+});
+window.addEventListener('pointercancel',hideMapPlayerName);
+window.addEventListener('pointermove',event=>{
+    const hold=mapPlayerNameHold;
+    if(hold && hold.pointerId===event.pointerId && Math.hypot(event.clientX-hold.x,event.clientY-hold.y)>8)hideMapPlayerName();
+});
+window.addEventListener('blur',hideMapPlayerName);
+ui.mapScroll.addEventListener('scroll',hideMapPlayerName,{passive:true});
+ui.mapPlayers.addEventListener('keydown',event=>{
+    const element=event.target.closest?.('.map-opponent');
+    if(!element || !['Enter',' '].includes(event.key))return;
+    event.preventDefault();if(!event.repeat)showMapPlayerName(element,event);
+});
+ui.mapPlayers.addEventListener('keyup',event=>{
+    if(['Enter',' '].includes(event.key))hideMapPlayerName();
+});
+ui.mapPlayers.addEventListener('focusout',hideMapPlayerName);
+ui.mapPlayers.addEventListener('contextmenu',event=>event.preventDefault());
 function renderMapPlayers() {
-    const {first,last}=mapBounds();
+    hideMapPlayerName();
+    const {first,last}=mapBounds(),width=ui.mapTrack.clientWidth||400;
     const players=layoutMapPlayers(currentMapPlayers(first,last,courseMode));
     ui.mapPlayers.innerHTML=players.map(player=>
-        `<span class="map-marker map-opponent" data-player="${scoreText(player.id)}" data-reached-level="${player.reachedLevel}" title="${scoreText(player.name)} · STAGE ${player.reachedLevel}" style="left:${player.x}px;top:${player.y}px;z-index:${player.depth}">${scoreAvatar(player)}</span>`).join('');
+        `<span class="map-marker map-opponent" role="button" tabindex="0" aria-label="${scoreText(player.name)}の名前を表示" data-player="${scoreText(player.id)}" data-reached-level="${player.reachedLevel}" data-name-side="${player.x>width/2?'left':'right'}" style="left:${player.x}px;top:${player.y}px;z-index:${player.depth}">${scoreAvatar(player)}<span class="map-player-name" aria-hidden="true">${scoreText(player.name)}</span></span>`).join('');
 }
 function renderLevelMap() {
     const {first,last} = mapBounds();
