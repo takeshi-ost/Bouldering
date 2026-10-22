@@ -224,7 +224,7 @@ function renderLevelMap() {
         const hasReward=hasMapReward(n);
         const gift=hasReward?'<img class="reward-gift-icon map-reward-gift" src="assets/reward-gift.png" width="30" height="30" alt="" aria-hidden="true" draggable="false">':'';
         const reward=hasReward?'<span class="goal-effects map-reward-effects" aria-hidden="true"><i></i><i></i><i></i><i></i></span>':'';
-        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="STAGE ${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'}${stars?' '+stars+'つ星':''}${hasReward?' 報酬あり':''}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}>${mapWallMarkup(n,done?'cleared':locked?'unplayed':'active')}<small>${done?'✓':locked?'未解放':'PLAY'}</small>${rating}${reward}${gift}</button>`);
+        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="STAGE ${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'}${stars?' '+stars+'スター':''}${hasReward?' 報酬あり':''}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}>${mapWallMarkup(n,done?'cleared':locked?'unplayed':'active')}<small>${done?'✓':locked?'未解放':'PLAY'}</small>${rating}${reward}${gift}</button>`);
     }
     ui.mapRoad.innerHTML = '';
     ui.mapNodes.innerHTML = nodes.join('');

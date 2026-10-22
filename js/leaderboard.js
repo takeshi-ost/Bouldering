@@ -41,7 +41,7 @@ function stageLeaderboardMarkup(record,others) {
     const rows=stageLeaderboardRows(record,others);
     if(others.rankingReady===false)rows.forEach(row=>row.rank='—');
     const placeholders=Array.from({length:5-rows.length},(_,i)=>`<li class="score-row is-empty" aria-label="${rows.length+i+1}位 記録なし"><span class="score-rank">${rows.length+i+1}</span><span class="score-player-icon" aria-hidden="true"></span><span class="score-name">--</span><span class="score-moves">--</span><span class="score-time">--</span></li>`).join('');
-    return rows.map(row=>`<li class="score-row${row.isPlayer?' is-player':''}"${row.isPlayer?' aria-current="true"':''}><span class="score-rank">${row.rank}</span>${scoreAvatar(row)}<span class="score-name" title="${scoreText(row.name)}">${scoreText(row.name)}</span><span class="score-moves">${row.moves}手</span><span class="score-time">${formatClearTime(row.timeMs)}</span></li>`).join('')+placeholders;
+    return rows.map(row=>`<li class="score-row${row.isPlayer?' is-player':''}"${row.isPlayer?' aria-current="true"':''}><span class="score-rank">${row.rank}</span>${scoreAvatar(row)}<span class="score-name" title="${scoreText(row.name)}">${scoreText(row.name)}</span><span class="score-moves">${row.moves}ムーブ</span><span class="score-time">${formatClearTime(row.timeMs)}</span></li>`).join('')+placeholders;
 }
 
 function renderStageLeaderboard(expectedMoves) {
@@ -54,7 +54,7 @@ function renderStageStartRecord(context) {
     const record=context.n<=stageProgress[context.mode].cleared?stageRecords[context.mode][context.n]:null;
     ui.stageStartStars.hidden=!record?.stars;
     ui.stageStartStars.textContent=record?.stars?'⭐️'.repeat(record.stars):'';
-    ui.stageStartStars.setAttribute('aria-label',record?.stars?`${record.stars}つ星`:'');
+    ui.stageStartStars.setAttribute('aria-label',record?.stars?`${record.stars}スター`:'');
     ui.stageStartRanking.hidden=context.n>stageProgress[context.mode].cleared;
     ui.stageStartLeaderboard.innerHTML='';
     document.getElementById('stageScoreStatus').textContent='';

@@ -109,8 +109,8 @@ function startRewardSequence({onGrant=()=>{},onReturn=null}={}) {
     ui.rewardWheel.innerHTML=rewardWheelMarkup();
     ui.rewardWheel.style.transform=`rotate(${rewardSequence.angle}deg)`;
     ui.rewardStatus.textContent='';ui.rewardResult.hidden=true;
-    ui.rewardStop.hidden=false;ui.rewardStop.disabled=false;ui.rewardStop.textContent='TAP';
-    ui.rewardDialog.hidden=false;ui.rewardDialog.showModal?.();ui.rewardStop.focus();
+    ui.rewardStop.hidden=false;ui.rewardStop.textContent='TAP';
+    ui.rewardDialog.hidden=false;ui.rewardDialog.showModal?.();ui.rewardDialog.focus();
     requestGameRender();schedulePresentationUpdates();requestRewardFrame();
     return true;
 }
@@ -120,7 +120,7 @@ function stopRewardSequence(now=performance.now()) {
     // Include the interval since the last frame so the visible stopping point follows the tap.
     if(sequence.lastTime!==null)sequence.angle+=Math.max(0,now-sequence.lastTime)*ROULETTE_SPEED;
     sequence.lastTime=now;sequence.from=sequence.angle;sequence.brakeElapsed=0;sequence.phase='braking';
-    ui.rewardStop.disabled=true;ui.rewardStop.textContent='TAP';ui.rewardStatus.textContent='';
+    ui.rewardStop.textContent='TAP';ui.rewardStatus.textContent='';
     requestRewardFrame();return true;
 }
 function applyRouletteReward(option) {

@@ -4,28 +4,28 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>ASCENT — クライミングパズル</title>
-    <link rel="stylesheet" href="styles.css?v=96804a3ba571">
+    <link rel="stylesheet" href="styles.css?v=09ae3c0845a6">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
-    <script src="js/config.js?v=a52ef165eb37" defer></script>
+    <script src="js/config.js?v=e80b9de7ef04" defer></script>
     <script src="js/audio.js?v=52c1ebe7bb2f" defer></script>
     <script src="js/utils.js?v=d73670fd1f8d" defer></script>
     <script src="js/difficulty.js?v=f6a252ffb7ce" defer></script>
     <script src="js/stage.js?v=4ed4c46b77b7" defer></script>
-    <script src="js/game.js?v=b68acd3abee8" defer></script>
+    <script src="js/game.js?v=c32cbadbedf4" defer></script>
     <script src="js/route.js?v=397db283387b" defer></script>
     <script src="js/prototype.js?v=3bf8c483863a" defer></script>
     <script src="js/hazards.js?v=ea9dff866ff3" defer></script>
     <script src="js/map-art.js?v=3ef0d0d5e933" defer></script>
-    <script src="js/level-map.js?v=cc467f214465" defer></script>
-    <script src="js/daily.js?v=a135ebc9acb9" defer></script>
+    <script src="js/level-map.js?v=beaf684f2916" defer></script>
+    <script src="js/daily.js?v=a24d25d0c76b" defer></script>
     <script src="js/ads.js?v=c85000058e34" defer></script>
     <script src="js/lives.js?v=085bfd68d47d" defer></script>
-    <script src="js/rewards.js?v=b6a648ebaa1e" defer></script>
-    <script src="js/input.js?v=c3f6cb99ee0b" defer></script>
+    <script src="js/rewards.js?v=c7d0a3683fd9" defer></script>
+    <script src="js/input.js?v=16934fcaa52f" defer></script>
     <script src="js/renderer.js?v=d595c8688862" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
     <script src="js/appearance.js?v=44fbe172ed0f" defer></script>
-    <script src="js/leaderboard.js?v=e7fd44e25eee" defer></script>
+    <script src="js/leaderboard.js?v=41d8857f8206" defer></script>
     <script src="js/online.js?v=d7fb7b011fe9" defer></script>
     <script src="js/online-scores.js?v=34157c9a16dc" defer></script>
     <script src="js/account-deletion.js?v=e5486839f9b3" defer></script>
@@ -55,7 +55,7 @@
                 </div>
                 <div class="level" id="level">STAGE 1</div>
                 <button id="settingsButton" class="settings-button" aria-label="設定を開く" aria-haspopup="dialog" aria-controls="settingsDialog"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
-                <div class="progress" id="progress" hidden>0 手 / 準備中</div>
+                <div class="progress" id="progress" hidden>0 ムーブ / 準備中</div>
             </div>
 
             <div class="title-screen" id="titleScreen" role="button" tabindex="0" aria-label="準備完了後にタップしてマップへ" aria-disabled="true">
@@ -63,7 +63,7 @@
                     <h1 class="brand">ASCENT<span class="brand-dot">.</span></h1>
                     <p id="releaseVersion" class="release-version"></p>
                     <p id="playerUuid" class="player-uuid"></p>
-                    <div id="titleTap" class="title-tap" aria-live="polite" hidden>TAP</div>
+                    <div id="titleTap" class="title-tap modal-tap" aria-live="polite" hidden>TAP</div>
                 </div>
             </div>
             <section id="characterEditor" class="character-editor" aria-label="キャラエディット" hidden>
@@ -227,12 +227,12 @@
             </div>
             <button id="stageStartButton">スタート</button>
         </dialog>
-        <dialog id="rewardDialog" class="reward-screen" aria-labelledby="rewardTitle" hidden>
+        <dialog id="rewardDialog" tabindex="-1" class="reward-screen" aria-labelledby="rewardTitle" hidden>
             <section class="reward-card">
                 <h2 id="rewardTitle">アイテム獲得</h2>
                 <p id="rewardStatus" class="reward-status" role="status" aria-live="polite"></p>
                 <div class="reward-roulette"><span class="reward-pointer" aria-hidden="true"></span><div id="rewardWheel" class="reward-wheel"></div></div>
-                <button id="rewardStop" class="modal-tap" aria-label="ルーレットをストップ">TAP</button>
+                <p id="rewardStop" class="modal-tap" aria-hidden="true">TAP</p>
                 <div id="rewardResult" class="reward-result" role="dialog" aria-modal="true" aria-labelledby="rewardResultTitle" tabindex="-1" hidden></div>
             </section>
         </dialog>
@@ -269,28 +269,29 @@
             <button id="deleteUserNew" hidden>新しいユーザーで開始</button>
         </dialog>
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
-            <div class="help-heading"><h2 id="helpTitle">詳しい説明</h2></div>
+            <div class="help-heading"><h2 id="helpTitle">詳しい説明</h2><button id="closeHelp" class="modal-close" aria-label="説明を閉じる">✖️</button></div>
+            <div id="helpScroll" class="help-scroll">
             <h3>ステージ内の操作</h3>
-            <p>壁をスワイプして体を動かします。2本の手足で支え、残りの2本は近くのホールドへ自動で移ります。4本ともつかめる位置で指を離すと1手です。両足で支え、両手で黄色いゴールをつかむとクリア！</p>
-            <p>ボディを短くタップすると直前の1手と消費スタミナを戻せます。1手進むと再び使えます。壁の上下スクロールは2本指、または画面の左右端をスワイプします。</p>
+            <p>壁をスワイプして体を動かします。2本の手足で支え、残りの2本は近くのホールドへ自動で移ります。4本ともつかめる位置で指を離すと1ムーブです。両足で支え、両手で黄色いゴールをつかむとクリア！</p>
+            <p>ボディを短くタップすると直前の1ムーブと消費スタミナを戻せます。1ムーブ進むと再び使えます。壁の上下スクロールは2本指、または画面の左右端をスワイプします。</p>
             <h3>ホールドとスタミナ</h3>
             <ul>
-                <li><strong>丸いホールド：</strong>手か足を1本置けます。緑色はスタートです。</li>
-                <li><strong>横長のホールド：</strong>両手か両足で共有できます。</li>
-                <li><strong>紫の消費ホールド：</strong>新たにつかんで1手を確定すると、1個につきスタミナを追加で1消費します。持ち替え・つかみ直しも対象です。</li>
-                <li><strong>回復ハート：</strong>ボディで触れるとスタミナが2回復します。手を戻しても回復は残ります。</li>
+                <li><strong>ホールド：</strong>手か足を1本置けます。緑色はスタートです。</li>
+                <li><strong>大きなホールド：</strong>両手か両足で共有できます。</li>
+                <li><strong>小さくとがったホールド：</strong>新たにつかんで1ムーブを確定すると、1個につきスタミナを追加で1消費します。持ち替え・つかみ直しも対象です。</li>
+                <li><strong>ハート：</strong>ボディで触れるとスタミナが2回復します。ムーブを戻しても回復は残ります。</li>
             </ul>
-            <p>1手ごとにスタミナを1消費し、ゴール前に0になると失敗です。0になる手でもゴールできればクリア。残りスタミナは次のステージへ持ち越しません。</p>
+            <p>1ムーブごとにスタミナを1消費し、ゴール前に0になると失敗です。0になるムーブでもゴールできればクリア。残りスタミナは次のステージへ持ち越しません。</p>
             <h3>マップとデイリー</h3>
             <p><strong>ステージマップ：</strong>ステージを選び「スタート」で挑戦します。クリアすると次が開き、クリア済みのステージも何度でも遊べます。開始前にチョークバッグを使うと、1個につきスタミナを1追加できます。</p>
             <p><strong>ライフ：</strong>通常ステージの失敗・途中退出・やり直しで1消費します。30分に1回、3個まで自然回復します。0のときは広告で回復できます。</p>
-            <p><strong>星とランキング：</strong>少ない手数で登るほど星が増えます。ランキングは手数が少ない順、同じ手数ならタイムが短い順です。</p>
+            <p><strong>スターとランキング：</strong>少ないムーブ数で登るほどスターが増えます。ランキングはムーブ数が少ない順、同じムーブ数ならタイムが短い順です。</p>
             <p><strong>デイリーチャレンジ：</strong>飛行船からカレンダーを開き、日付を選んで挑戦します。同じ日付は同じコースで、ライフは不要です。各日1回クリアでき、当日分のクリアでは報酬を受け取れます。</p>
             <p id="prototypeDescription" hidden><strong>デバッグ用のロジハラ：</strong>クリアルートを保ちながらホールドを絞った検証用コースです。</p>
             <h3>キャラエディット</h3>
             <p>設定の「キャラクターエディット」で名前と配色を変えられます。スライダーでボディを1〜8段に分け、頭や各段をタップして色を選びます。「おまかせ」で配色と段数をランダムに変更できます。</p>
             <p>「決定」で保存し、「戻る」で変更を取り消します。</p>
-            <button id="closeHelp" class="modal-tap" aria-label="説明を閉じる">TAP</button>
+            </div>
         </dialog>
     </main>
 </body>

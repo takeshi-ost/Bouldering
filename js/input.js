@@ -214,10 +214,10 @@ function syncDebugCourseControls() {
 ui.showHelp.onclick = () => {
     if (mapPreparing || !settingsOpen || !['map','daily','playing'].includes(state) || ui.helpDialog.open) return;
     ui.helpDialog.showModal();
-    ui.helpDialog.scrollTop = 0;
+    ui.helpScroll.scrollTop = 0;
 };
 ui.closeHelp.onclick = () => ui.helpDialog.close();
-ui.helpDialog.onclick = () => {if(ui.helpDialog.open)ui.helpDialog.close();};
+ui.helpDialog.onclick = e => {if(e.target===ui.helpDialog && ui.helpDialog.open)ui.helpDialog.close();};
 ui.helpDialog.addEventListener('close', () => ui.showHelp.focus());
 
 // Full-screen dialogs use a card; compact dialogs use their own bounds.

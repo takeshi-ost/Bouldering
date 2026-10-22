@@ -104,7 +104,7 @@ debugMode=false;
 debugAttempt=false;reset(1);moveCount=route.length-2;finish(true);assert.equal(stageRecords.existing[1].stars,3);
 const bestBefore=stageRecords.existing[1].moves;moveCount=route.length+2;finish(true);assert.equal(stageRecords.existing[1].stars,3);assert.equal(stageRecords.existing[1].moves,bestBefore);
 assert.equal(readStageRecords().existing[1].stars,3);
-showLevelMap();assert(ui.mapNodes.innerHTML.includes('⭐️⭐️⭐️'));assert(ui.mapNodes.innerHTML.includes('3つ星'));
+showLevelMap();assert(ui.mapNodes.innerHTML.includes('⭐️⭐️⭐️'));assert(ui.mapNodes.innerHTML.includes('3スター'));
 const savedRecords=data[RECORDS_KEY];
 for(const stars of [0,4,1.5,'3',null]) {
  data[RECORDS_KEY]=JSON.stringify({existing:{'1':{moves:2,timeMs:100,stars}}});

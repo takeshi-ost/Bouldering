@@ -7,7 +7,7 @@ const ui = Object.fromEntries([
     "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapEditCharacter", "mapDebugMode",
     "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "paletteSwatches", "editorRandom", "editorConfirm", "editorCancel", "appearanceStatus",
-    "titleScreen", "releaseVersion", "playerUuid", "titleTap", "prototypeCourse", "prototypeDescription", "showHelp", "helpDialog", "closeHelp"
+    "titleScreen", "releaseVersion", "playerUuid", "titleTap", "prototypeCourse", "prototypeDescription", "showHelp", "helpDialog", "helpScroll", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
 let debugMode = false;
@@ -46,7 +46,7 @@ function showStageHelp() {
 function renderStageHelp() {
     const heart=pendingFeatureHelp[0]==='heart';
     const icon=heart ? `<img class="course-heart-icon" src="${COURSE_HEART_IMAGE_SRC}" width="36" height="36" alt="">` : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
-    ui.featureHelpContent.innerHTML=`<div class="feature-help-icon" aria-hidden="true">${icon}</div><h1 id="featureHelpTitle">${heart?'回復ハート':'紫ホールド'}</h1><p>${heart?'ボディで触れるとスタミナが2回復する':'新しく手足を固定するとスタミナを追加で1消費する'}</p><div class="modal-tap">TAP</div>`;
+    ui.featureHelpContent.innerHTML=`<div class="feature-help-icon" aria-hidden="true">${icon}</div><h1 id="featureHelpTitle">${heart?'ハート':'小さくとがったホールド'}</h1><p>${heart?'ボディで触れるとスタミナが2回復する':'新しく手足を固定するとスタミナを追加で1消費する'}</p><div class="modal-tap">TAP</div>`;
     if(!heart)paintHazardHelpIcon(ui.featureHelpContent.querySelector?.('.feature-hold-image'));
 }
 function dismissStageHelp() {
@@ -114,7 +114,7 @@ function formatClearTime(ms) {
     return [Math.floor(ticks/6000),Math.floor(ticks/100)%60,ticks%100]
         .map(n=>String(n).padStart(2,'0')).join(':');
 }
-function formatStageRecord(record) { return `${record.moves}手 ${formatClearTime(record.timeMs)}`; }
+function formatStageRecord(record) { return `${record.moves}ムーブ ${formatClearTime(record.timeMs)}`; }
 function hideResultModal() {
     if(ui.overlay.open)ui.overlay.close?.();
     ui.overlay.hidden=true;
@@ -578,13 +578,13 @@ function updateUI() {
     if(typeof requestGameRender==='function')requestGameRender();
     ui.settingsButton.disabled = !!cameraIntro || state!=='playing';
     ui.stamina.textContent = String(stamina);
-    ui.stamina.setAttribute('aria-label',`スタミナ ${stamina} 手`);
+    ui.stamina.setAttribute('aria-label',`スタミナ ${stamina} ムーブ`);
     ui.stamina.style.color = '#fffaf0';
     ui.staminaGauge.style.color = stamina <= 4 ? '#bc5144' : '#cf6676';
 
     ui.progress.hidden=!(debugMode && debugDisplay.courseInfo);
     ui.progress.textContent =
-        `${moveCount} 手 / 想定 ${routeExpectedMoves()} 手 / ${difficultyLabel(difficulty)}`;
+        `${moveCount} ムーブ / 想定 ${routeExpectedMoves()} ムーブ / ${difficultyLabel(difficulty)}`;
 }
 
 function point(e) {
@@ -861,7 +861,7 @@ function finish(won) {
     if(showRanking)renderStageLeaderboard(expectedMoves);
     ui.resultStars.hidden=!won;
     ui.resultStars.textContent=won ? '⭐️'.repeat(stars) : '';
-    ui.resultStars.setAttribute('aria-label',won ? `${stars}つ星` : '');
+    ui.resultStars.setAttribute('aria-label',won ? `${stars}スター` : '');
 
     ui.resultTitle.textContent =
         won

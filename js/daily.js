@@ -133,7 +133,7 @@ function renderDailyCalendar() {
         const key=dailyMonth+'-'+String(day).padStart(2,'0');
         if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${year}年${month}月${day}日">${day}</div>`);continue;}
         const record=dailyRecords[key];
-        cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'つ星・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?'<span class="daily-clear-icon" aria-hidden="true">✓</span>':day}</button></div>`);
+        cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'スター・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?'<span class="daily-clear-icon" aria-hidden="true">✓</span>':day}</button></div>`);
     }
     while(cells.length<42)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');
@@ -158,7 +158,7 @@ function renderDailyStart() {
     ui.dailyStartButton.disabled=!profile || !!record;
     ui.dailyClearRecord.hidden=!record;
     ui.dailyClearStars.textContent=record?'⭐️'.repeat(record.stars):'';
-    ui.dailyClearStars.setAttribute('aria-label',record?`${record.stars}つ星`:'');
+    ui.dailyClearStars.setAttribute('aria-label',record?`${record.stars}スター`:'');
     ui.dailyClearStats.textContent=record?formatStageRecord(record):'';
 }
 function chooseDailyDate(key) {

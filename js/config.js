@@ -4,12 +4,12 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.2.0';
+const RELEASE_VERSION = '0.2.1';
 const GAMEPLAY_TIPS = [
     'ステージの端か2本指スワイプでスクロールできるよ！',
     '背中をタップで1ムーブだけ戻せるよ！',
     '思ったところに行けないときは、手足が伸びきっていないか見てみよう！',
-    '横長のホールドは、両手や両足でいっしょにつかめるよ！',
+    '大きなホールドは、両手や両足でいっしょにつかめるよ！',
     'ゴールは両手でつかもう！両足の支えも忘れずに！',
     'ハートは背中でタッチ！スタミナが2回復するよ！',
     '真上だけでなく、横に動くと道が開けることも！',
@@ -41,7 +41,7 @@ const POSE_CONFIG = {
 };
 const HIGH_FOOT_REACH_RATIO = Math.sin(POSE_CONFIG.highFootMinKneeAngle * Math.PI / 360);
 const limbArrows = ["↖", "↗", "↙", "↘"];
-// 初期配置の生成。実際の想定手数は現行ルールで探索して決定します。
+// 初期配置の生成。実際の想定ムーブ数は現行ルールで探索して決定します。
 const STAGE_CONFIG = {
     introGuideSteps: 5,
     baseMoves: 20,
