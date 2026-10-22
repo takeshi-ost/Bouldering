@@ -848,7 +848,7 @@ function finish(won) {
     ui.overlay.classList.toggle('is-daily-clear',won && !!dailyRun);
     ui.resultStats.hidden=!won || showRanking;
     ui.resultStats.textContent=won ? formatStageRecord({moves:moveCount,timeMs:runElapsedMs}) : '';
-    ui.next.hidden=won || !dailyRun;
+    ui.next.hidden=true;
     ui.next.textContent='カレンダーへ';
     ui.retry.hidden=won;
     ui.closeResult.hidden=won;

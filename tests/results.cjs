@@ -142,6 +142,9 @@ try {
   updateUI();assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
  }
  dailyRun={...dailyProfile('2026-10-17'),returnCourse:'existing'};finish(false);assert(!ui.resultTip.hidden);
+ assert(ui.next.hidden,'Daily failure must not show a calendar button');
+ assert(!ui.retry.hidden && !ui.closeResult.hidden);
+ ui.closeResult.onclick();assert.equal(state,'daily');assert(ui.overlay.hidden);
  for(const daily of [null,{...dailyProfile('2026-10-17'),returnCourse:'existing'}]) {
   dailyRun=daily;finish(true);assert(!ui.resultTip.hidden);assert(GAMEPLAY_TIPS.includes(ui.resultTipText.textContent));
   const tip=ui.resultTipText.textContent;updateUI();assert.equal(ui.resultTipText.textContent,tip);
