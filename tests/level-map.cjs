@@ -121,6 +121,20 @@ level=1;recordStageClear();assert.equal(stageProgress.existing.cleared,20);
 // Explicit debug play can jump beyond unlocks without changing saved progress.
 showTitleScreen();setDebugMode(true);startCourse('existing');assert.equal(ui.debugControls.hidden,false);
 const progressBefore=JSON.stringify(stageProgress),savedBefore=data[PROGRESS_KEY];
+// Debug opens future pages and icons without changing real progress.
+for(const [page,season] of [[2,'autumn'],[3,'winter'],[4,'spring']]) {
+ assert(!ui.mapNext.hidden && !ui.mapNext.disabled);ui.mapNext.onclick();
+ assert.equal(mapPage,page);assert.equal(mapBackground().season,season);
+ assert(!ui.mapNodes.innerHTML.includes('is-locked'));
+ assert(!ui.mapNodes.innerHTML.includes('未解放'));
+}
+const futureButton={dataset:{level:'81'},classList:{toggle(){}}};
+ui.mapNodes.onclick({target:{closest:()=>futureButton}});
+assert.equal(stageStartContext.n,81);assert.equal(stageStartContext.debug,true);closeStageStart();
+assert.equal(JSON.stringify(stageProgress),progressBefore);assert.equal(data[PROGRESS_KEY],savedBefore);
+setDebugMode(false);assert.equal(mapPage,1);assert(ui.mapNext.hidden);
+assert(ui.mapNodes.innerHTML.includes('is-locked'));assert.equal(selectStage(81),false);
+setDebugMode(true);
 for(const n of [0,-1,1.5,NaN,Infinity,Number.MAX_SAFE_INTEGER])assert.equal(selectStage(n,true),false);
 assert.equal(selectStage(22),false);
 ui.debugStage.value='22';ui.debugControls.onsubmit({preventDefault(){}});

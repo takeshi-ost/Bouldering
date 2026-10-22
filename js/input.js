@@ -255,7 +255,13 @@ function setDebugMode(enabled) {
     ui.mapDebugMode.checked=debugMode;
     syncDebugCourseControls();
     updateUI();
-    if(state==='map')renderLevelMap();
+    if(state==='map') {
+        const lastPage=Math.floor((unlockedLevel()-1)/MAP_PAGE_SIZE);
+        const returnToProgress=!debugMode && mapPage>lastPage;
+        if(returnToProgress)mapPage=lastPage;
+        renderLevelMap();
+        if(returnToProgress)ui.mapScroll.scrollTop=ui.mapTrack.clientHeight;
+    }
 }
 ui.mapDebugMode.onchange=()=>{
     if(!['map','daily'].includes(state) || !settingsOpen) {ui.mapDebugMode.checked=debugMode;return;}

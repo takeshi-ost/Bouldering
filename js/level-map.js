@@ -123,6 +123,10 @@ function unlockedLevel() { return stageProgress[courseMode].cleared + 1; }
 function mapBounds() {
     return {first:mapPage*MAP_PAGE_SIZE+1,last:(mapPage+1)*MAP_PAGE_SIZE};
 }
+function canBrowseNextMap() {
+    return Number.isSafeInteger((mapPage+2)*MAP_PAGE_SIZE) &&
+        (debugMode || mapBounds().last<unlockedLevel());
+}
 function mapHeight() {
     return (ui.mapTrack.clientWidth||400)*MAP_IMAGE_HEIGHT/MAP_IMAGE_WIDTH+MAP_EDGE_SPACE+MAP_BOTTOM_SPACE;
 }
@@ -217,7 +221,7 @@ function renderLevelMap() {
     const nodes=[];
     // The route is painted into the approved wallpaper; never draw a replacement road.
     for (let n=first;n<=last;n++) {
-        const p=mapPoint(n),locked=n>unlocked,done=n<=cleared;
+        const p=mapPoint(n),locked=!debugMode && n>unlocked,done=n<=cleared;
         const record=done && stageRecords[courseMode][n];
         const stars=record?.stars || 0;
         const rating=stars ? `<span class="map-node-stars" aria-hidden="true">${'⭐️'.repeat(stars)}</span>` : '';
@@ -236,7 +240,7 @@ function renderLevelMap() {
     ui.mapCourse.hidden=courseMode!=='prototype';
     ui.mapCourse.textContent=courseMode==='prototype'?'ロジハラ（検証用）':'';
     ui.mapPrev.hidden=mapPage===0;
-    ui.mapNext.hidden=last>=unlocked;
+    ui.mapNext.hidden=!canBrowseNextMap();
     ui.mapPrev.disabled = ui.mapPrev.hidden || !!mapTransition;
     ui.mapNext.disabled = ui.mapNext.hidden || !!mapTransition;
     ui.mapCourses.disabled = !!mapTransition;
@@ -400,7 +404,10 @@ function selectStage(n,debug=false,heartsUsed=0) {
 }
 ui.mapNodes.onclick = e => {
     const button=e.target.closest('button[data-level]');
-    if (button && ui.mapNodes.contains(button)) openStageStart(Number(button.dataset.level),false,button);
+    if (button && ui.mapNodes.contains(button)) {
+        const n=Number(button.dataset.level);
+        openStageStart(n,debugMode && n>unlockedLevel(),button);
+    }
 };
 ui.mapCourses.onclick=()=>{if(!mapTransition)showTitleScreen();};
 ui.mapPrev.onclick=()=>{
@@ -408,7 +415,7 @@ ui.mapPrev.onclick=()=>{
     mapPage--;renderLevelMap();ui.mapScroll.scrollTop=0;
 };
 ui.mapNext.onclick=()=>{
-    if (state!=='map' || mapPreparing || stageStartContext || mapTransition || mapBounds().last>=unlockedLevel()) return;
+    if (state!=='map' || mapPreparing || stageStartContext || mapTransition || !canBrowseNextMap()) return;
     mapPage++;renderLevelMap();ui.mapScroll.scrollTop=ui.mapTrack.clientHeight;
 };
 
