@@ -558,7 +558,6 @@ button.modal-close:focus-visible { outline:none; }
 .map-opponent[data-name-side="left"] .map-player-name { left:auto; right:calc(100% + 5px); }
 .map-opponent.is-name-visible .map-player-name { display:block; }
 
-#overlay .result-tip { margin:16px 0 18px; padding:10px 12px; border-radius:10px; background:#eee9df; text-align:left; }
+#overlay .result-tip { margin:16px 0 18px; text-align:left; }
 #overlay .result-tip[hidden] { display:none; }
-#overlay .result-tip strong { display:block; margin-bottom:4px; color:#526b59; font-size:12px; letter-spacing:.06em; }
 #overlay .result-tip p { margin:0; color:#395343; font-size:13px; line-height:1.6; overflow-wrap:anywhere; }
