@@ -2,6 +2,15 @@
 // Approved raster artwork; mirror the art only, keeping the live stage number upright.
 const MAP_ART_VERSION='wall-hold-count-v3';
 const MAP_BACKGROUND_VERSION='sage-extended-v2';
+// A page contains twenty stages; past pages keep their own season when revisited.
+const MAP_BACKGROUNDS=[
+    {season:'spring',src:'assets/stage-map.webp',version:MAP_BACKGROUND_VERSION,saturation:1.2},
+    {season:'summer',src:'assets/stage-map-summer.webp',version:'summer-v1',saturation:1},
+    {season:'autumn',src:'assets/stage-map-autumn.webp',version:'autumn-v1',saturation:1},
+    {season:'winter',src:'assets/stage-map-winter.webp',version:'winter-v1',saturation:1}
+];
+function mapBackground(page=mapPage) { return MAP_BACKGROUNDS[page%MAP_BACKGROUNDS.length]; }
+function mapBackgroundSource(background=mapBackground()) { return `${background.src}?v=${background.version}`; }
 const MAP_ICON_ASSETS={"active-100":{"width":512,"height":512,"renderWidth":66.873,"renderHeight":66.873,"left":-1.437,"top":-11.308},"active-125":{"width":512,"height":512,"renderWidth":66.602,"renderHeight":66.602,"left":-1.301,"top":-15.221},"active-150":{"width":512,"height":614,"renderWidth":68.267,"renderHeight":81.867,"left":-2.133,"top":-30.853},"cleared-100":{"width":512,"height":512,"renderWidth":66.602,"renderHeight":66.602,"left":-1.301,"top":-11.058},"cleared-125":{"width":512,"height":512,"renderWidth":66.467,"renderHeight":66.467,"left":-1.168,"top":-15.088},"cleared-150":{"width":512,"height":614,"renderWidth":67.983,"renderHeight":81.527,"left":-1.992,"top":-30.518},"unplayed-100":{"width":512,"height":512,"renderWidth":66.602,"renderHeight":66.602,"left":-1.301,"top":-11.188},"unplayed-125":{"width":512,"height":512,"renderWidth":66.467,"renderHeight":66.467,"left":-1.168,"top":-15.088},"unplayed-150":{"width":512,"height":614,"renderWidth":67.983,"renderHeight":81.527,"left":-1.992,"top":-30.65}};
 function mapStageVariant(n) {
     const pointIndex=(n-1)%20;
@@ -39,11 +48,12 @@ function mapTrailPoint(t) {
 }
 
 function mapSceneryMarkup() {
+    const background=mapBackground();
     const width=ui.mapTrack.clientWidth||400;
     const imageHeight=width*MAP_IMAGE_HEIGHT/MAP_IMAGE_WIDTH;
     // The asset includes drawn top/bottom scenery; never reflect or stretch edge copies.
     return `<defs>
-        <filter id="map-palette" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="1.2"/></filter>
+        <filter id="map-palette" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="${background.saturation}"/></filter>
         <filter id="map-icon-soft-outline" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
             <feComponentTransfer in="SourceGraphic" result="dark-channels">
                 <feFuncR type="discrete" tableValues="1 0 0 0"/><feFuncG type="discrete" tableValues="1 0 0 0"/><feFuncB type="discrete" tableValues="1 0 0 0"/>
@@ -60,6 +70,6 @@ function mapSceneryMarkup() {
             <feComposite in2="outline-shadow-mask" operator="in" result="outline-shadow"/>
             <feMerge><feMergeNode in="outline-shadow"/><feMergeNode in="soft-outline"/><feMergeNode in="fill-only"/></feMerge>
         </filter>
-        <image id="map-artwork" href="assets/stage-map.webp?v=${MAP_BACKGROUND_VERSION}" x="0" y="0" width="400" height="${imageHeight}" preserveAspectRatio="none"/></defs>
+        <image id="map-artwork" href="${mapBackgroundSource(background)}" x="0" y="0" width="400" height="${imageHeight}" preserveAspectRatio="none"/></defs>
         <use href="#map-artwork" filter="url(#map-palette)"/>`;
 }
