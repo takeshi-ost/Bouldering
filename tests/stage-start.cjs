@@ -37,11 +37,20 @@ timers.at(-1).fn();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick(
 assert.equal(state,'playing');assert.equal(level,1);assert(!stageStartContext && !ui.stageStartDialog.open && !pulsing);assert(lives.inProgress);assert.equal(stamina,routeStamina(route));assert.equal(ui.stageStartStamina.textContent,String(stamina).padStart(2,'0'));
 const attempt=lifeAttemptId;ui.stageStartButton.onclick();assert.equal(lifeAttemptId,attempt,'Double Start must not restart');
 showLevelMap();lives.count=0;lives.recoveryAt=Date.now();
-assert(openStageStart(1));assert.match(ui.stageStartLives.innerHTML,/30:00/);
-lives.recoveryAt=Date.now()-LIFE_RECOVERY_MS;refreshLives();assert.equal(lives.count,1);assert.match(ui.stageStartLives.innerHTML,/life-player/);
-lives.count=0;lives.recoveryAt=Date.now();refreshLives();assert.equal(state,'map');assert(!lifePrompt);ui.stageStartButton.onclick();assert.equal(state,'life-prompt');assert(!ui.stageStartDialog.open);ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
+assert(openStageStart(1));assert.equal(state,'life-prompt');assert(ui.lifeDialog.open);assert(!ui.stageStartDialog.open && !stageStartContext);
+assert(!openStageStart(1));assert(!selectStage(1));ui.lifeCancel.onclick();assert.equal(state,'map');assert(!stageStartContext && !ui.stageStartDialog.open);
+assert(openStageStart(1));ui.lifeWatchAd.onclick();assert.equal(state,'ad');assert(!ui.stageStartDialog.open);assert(!lives.inProgress);
+advanceDummyAd(dummyAd.start+10000);assert(completeDummyAd());
+assert.equal(state,'map');assert.equal(lives.count,1);assert(ui.stageStartDialog.open);assert.equal(stageStartContext.n,1);assert(!lives.inProgress);
+closeStageStart();assert.equal(lives.count,1);
+// Natural recovery while the offer is open skips the ad and still opens stage confirmation.
+lives.count=0;lives.recoveryAt=Date.now();assert(openStageStart(1));
+lives.recoveryAt=Date.now()-LIFE_RECOVERY_MS;refreshLives();assert.equal(lives.count,1);
+ui.lifeWatchAd.onclick();assert.equal(state,'map');assert(ui.stageStartDialog.open);assert(!dummyAd);closeStageStart();
+// A last-moment depletion repeats confirmation after recovery instead of launching.
+assert(openStageStart(1));lives.count=0;lives.recoveryAt=Date.now();ui.stageStartButton.onclick();assert.equal(state,'life-prompt');assert(!ui.stageStartDialog.open);ui.lifeCancel.onclick();assert.equal(state,'map');
 assert(!openStageStart(99,true));setDebugMode(true);assert(openStageStart(1,true));ui.stageStartButton.onclick();assert.equal(state,'playing');assert(debugAttempt);assert.equal(lives.count,0);
-showLevelMap();assert(openStageStart(1,false,button));const stale=timers.at(-1).fn;showTitleScreen();stale();assert(!stageStartContext && !ui.stageStartDialog.open);assert.equal(state,'choosing');
+showLevelMap();lives.count=3;lives.recoveryAt=null;assert(openStageStart(1,false,button));const stale=timers.at(-1).fn;showTitleScreen();stale();assert(!stageStartContext && !ui.stageStartDialog.open);assert.equal(state,'choosing');
 startCourse('existing');stageProgress.existing.cleared=21;lives.count=3;lives.recoveryAt=null;
 const hopPreview=stagePreview;let hopPreviewCalls=0;stagePreview=(...args)=>{hopPreviewCalls++;return hopPreview(...args);};
 showLevelMap({advanceFrom:20});advanceLevelMap(100);advanceLevelMap(750);assert.equal(hopPreviewCalls,0,'Arrival must paint before stamina calculation');

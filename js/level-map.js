@@ -323,6 +323,11 @@ function closeStageStart() {
 }
 function openStageStart(n,debug=false,button=null,delay=0) {
     if(!canSelectStage(n,debug))return false;
+    recoverLives();
+    if(courseMode==='existing' && !debug && lives.count===0) {
+        requestLifeStart(()=>openStageStart(n,debug));
+        return !!lifePrompt;
+    }
     if(debug)ui.debugStage.blur?.();
     const context={n,debug,mode:courseMode,button,hearts:0};
     stageStartContext=context;
@@ -378,7 +383,11 @@ function selectStage(n,debug=false,heartsUsed=0) {
             return false;
         }
     };
-    return requestLifeStart(launch,{enabled:courseMode==='existing' && !debug});
+    recoverLives();
+    // Reconfirm items and stage details after recovery, even if lives ran out while this dialog was open.
+    if(courseMode==='existing' && !debug && lives.count===0)
+        return requestLifeStart(()=>openStageStart(n,debug));
+    return launch();
 }
 ui.mapNodes.onclick = e => {
     const button=e.target.closest('button[data-level]');

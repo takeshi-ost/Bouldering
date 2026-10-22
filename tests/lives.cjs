@@ -27,7 +27,7 @@ for(const escape of [false,true]) {
  if(escape){let prevented=false;ui.lifeDialog.events.cancel({preventDefault(){prevented=true;}});assert(prevented);}else ui.lifeCancel.onclick();
  assert.equal(state,'map');assert(ui.overlay.hidden && !ui.overlay.open);assert(ui.lifeDialog.hidden && !ui.lifeDialog.open);assert.equal(lives.count,0);assert(!dummyAd);
 }
-assert(!selectStage(1));ui.lifeWatchAd.onclick();assert.equal(state,'ad');assert.equal(lives.count,0);assert(!completeDummyAd());ad();assert.equal(lives.count,1);assert.equal(state,'playing');assert(lives.inProgress);
+assert(!selectStage(1));ui.lifeWatchAd.onclick();assert.equal(state,'ad');assert.equal(lives.count,0);assert(!completeDummyAd());ad();assert.equal(lives.count,1);assert.equal(state,'map');assert(ui.stageStartDialog.open);assert(!lives.inProgress);ui.stageStartButton.onclick();assert.equal(state,'playing');assert(lives.inProgress);
 moveCount=1;finish(true);assert.equal(lives.count,1);map();assert.equal(lives.count,1);assert(selectStage(1));ui.mapButton.onclick();assert.equal(state,'map');assert.equal(lives.count,0);ui.mapButton.onclick();assert.equal(lives.count,0);
 // Recovery keeps its fractional progress across additional failures and stops at 3.
 wallNow=anchor+LIFE_RECOVERY_MS-1;recoverLives();assert.equal(lives.count,0);wallNow++;recoverLives();assert.equal(lives.count,1);
@@ -36,13 +36,13 @@ wallNow=anchor+2*LIFE_RECOVERY_MS;recoverLives();assert.equal(lives.count,1);wal
 lives.count=5;saveLives();wallNow+=10*LIFE_RECOVERY_MS;recoverLives();assert.equal(lives.count,5);grantLife();assert.equal(lives.count,5);
 lives.count=4;consumeLife();assert.equal(lives.count,3);assert.equal(lives.recoveryAt,null);consumeLife();assert.equal(lives.count,2);assert.equal(lives.recoveryAt,wallNow);
 // Natural recovery during a prompt starts without an ad when the button is tapped.
-lives.count=0;lives.recoveryAt=wallNow;map();selectStage(1);assert.equal(state,'life-prompt');wallNow+=LIFE_RECOVERY_MS;refreshLives();assert.equal(ui.lifeWatchAd.textContent,'ステージを開始');ui.lifeWatchAd.onclick();assert.equal(state,'playing');assert.equal(lives.count,1);assert(!dummyAd);finish(true);map();
+lives.count=0;lives.recoveryAt=wallNow;map();selectStage(1);assert.equal(state,'life-prompt');wallNow+=LIFE_RECOVERY_MS;refreshLives();assert.equal(ui.lifeWatchAd.textContent,'ステージを開始');ui.lifeWatchAd.onclick();assert.equal(state,'map');assert(ui.stageStartDialog.open);assert.equal(lives.count,1);assert(!dummyAd);ui.stageStartButton.onclick();finish(true);map();
 // Daily and verification/debug runs ignore zero lives, and cannot spend them.
 lives.count=0;lives.recoveryAt=wallNow;saveLives();DIFFICULTY_CONFIG.dailyWeights=[100,0,0,0];ui.openDaily.onclick();assert(selectDailyDate('2026-01-01'));assert.equal(state,'playing');finish(false);assert.equal(lives.count,0);assert(!lives.inProgress);showDailyCalendar();ui.dailyBack.onclick();
 debugMode=true;assert(selectStage(99,true));finish(false);assert.equal(lives.count,0);map();startCourse('prototype');assert(selectStage(1));finish(false);assert.equal(lives.count,0);map();startCourse('existing');
 // A failed generation never spends a life; a completed reward remains available.
 lives.count=1;saveLives();const original=reset,log=console.error;console.error=()=>{};reset=()=>{throw Error('no course');};assert(!selectStage(1));assert.equal(state,'map');assert.equal(lives.count,1);assert(!lives.inProgress);
-lives.count=0;selectStage(1);ui.lifeWatchAd.onclick();ad();assert.equal(state,'map');assert.equal(lives.count,1);reset=original;console.error=log;
+lives.count=0;selectStage(1);ui.lifeWatchAd.onclick();ad();assert.equal(state,'map');assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'map');assert.equal(lives.count,1);reset=original;console.error=log;
 // Persistence rejects malformed state and continues in memory when writes fail.
 const saved=data[LIVES_KEY];for(const bad of ['null','{bad','{}','{"count":-1}','{"count":6}','{"count":"3"}']){data[LIVES_KEY]=bad;assert.equal(readLives().count,3);}data[LIVES_KEY]=saved;
 const set=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(consumeLife);assert.equal(lives.count,0);storage.setItem=set;

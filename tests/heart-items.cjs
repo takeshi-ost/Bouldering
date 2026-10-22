@@ -35,10 +35,11 @@ showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(2);ui.
 finish(false);ui.retry.onclick();assert.equal(stamina,base,'Retry drops the bonus');assert.equal(heartItems,15);
 showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(1);ui.stageStartButton.onclick();finish(true);
 showLevelMap();assert(openStageStart(2));assert.equal(stageStartContext.hearts,0);ui.stageStartButton.onclick();assert.equal(stamina,routeStamina(route),'Clear never carries bonus to the next stage');assert.equal(heartItems,14);
-showLevelMap();lives.count=0;lives.recoveryAt=Date.now();assert(openStageStart(1));setStageHeartItems(4);ui.stageStartButton.onclick();
-assert.equal(state,'life-prompt');assert.equal(heartItems,14);ui.lifeCancel.onclick();assert.equal(heartItems,14);
-assert(openStageStart(1));assert.equal(stageStartContext.hearts,0);setStageHeartItems(4);ui.stageStartButton.onclick();
-grantLife();ui.lifeWatchAd.onclick();assert.equal(state,'playing');assert.equal(stamina,base+4);assert.equal(heartItems,10);
+showLevelMap();lives.count=0;lives.recoveryAt=Date.now();assert(openStageStart(1));
+assert.equal(state,'life-prompt');assert(!stageStartContext);assert.equal(heartItems,14);ui.lifeCancel.onclick();assert.equal(heartItems,14);
+assert(openStageStart(1));grantLife();ui.lifeWatchAd.onclick();assert.equal(state,'map');assert(ui.stageStartDialog.open);
+assert.equal(stageStartContext.hearts,0);setStageHeartItems(4);assert.equal(heartItems,14);ui.stageStartButton.onclick();
+assert.equal(state,'playing');assert.equal(stamina,base+4);assert.equal(heartItems,10);
 showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(2);
 const prepare=prepareCurrentStage,report=console.error;prepareCurrentStage=()=>{throw Error('intentional generation failure');};console.error=()=>{};
 ui.stageStartButton.onclick();prepareCurrentStage=prepare;console.error=report;assert.equal(state,'map');assert.equal(heartItems,10,'Failed generation must not spend hearts');
