@@ -28,19 +28,19 @@ async function bootFirebase() {
             },
             async prepareTransferIdentity(identity) {
                 const user=auth.currentUser;
-                if(!user || user.uid!==identity.uid)throw new Error('UIDを確認できません。再読み込みしてください。');
+                if(!user || user.uid!==identity.uid)throw new Error(gameText("firebase-client.bootFirebase.5"));
                 const credential=authSDK.EmailAuthProvider.credential(identity.email,identity.password);
                 const linked=user.providerData?.some(provider=>provider.providerId==='password');
                 const result=linked?await authSDK.reauthenticateWithCredential(user,credential):await authSDK.linkWithCredential(user,credential);
-                if(result.user.uid!==identity.uid)throw new Error('引き継ぎ情報のUIDが一致しません。');
+                if(result.user.uid!==identity.uid)throw new Error(gameText("firebase-client.bootFirebase.4"));
             },
             async importTransferIdentity(identity,apply) {
                 const previous=auth.currentUser;
                 await authSDK.setPersistence(auth,authSDK.browserLocalPersistence);
                 try {
                     const result=await authSDK.signInWithEmailAndPassword(auth,identity.email,identity.password);
-                    if(result.user.uid!==identity.uid)throw new Error('ファイルのUIDと認証情報が一致しません。');
-                    if(await adapter.isDeletionLocked(identity.uid))throw new Error('削除済みユーザーのデータは引き継げません。');
+                    if(result.user.uid!==identity.uid)throw new Error(gameText("firebase-client.bootFirebase.3"));
+                    if(await adapter.isDeletionLocked(identity.uid))throw new Error(gameText("firebase-client.bootFirebase.2"));
                     await apply();
                 } catch(error) {
                     // Never leave the previous local save signed into a different UID.
@@ -139,7 +139,7 @@ async function bootFirebase() {
         };
         await startOnline(adapter);
     } catch(error) {
-        setOnlineStatus('オフライン（端末内でプレイ）');
+        setOnlineStatus(gameText("firebase-client.bootFirebase"));
         console.warn('Firebase setup:',error?.code || error?.message || 'SDK unavailable');
     } finally {firebaseBooting=false;}
 }

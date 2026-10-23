@@ -79,14 +79,14 @@ function updateMapAppearance() {
 // Editor-only fashion poses, inspired by the reference sheet; gameplay IK is unchanged.
 // Each limb stores [elbow/knee x, y, hand/foot x, y] in preview coordinates.
 const EDITOR_POSES=[
-    {name:'自然に立つ',tilt:0,limbs:[[-30,10,-30,60],[30,10,30,60],[-23,85,-32,136],[23,85,32,136]]},
-    {name:'片足に重心をかける',tilt:-7,limbs:[[-27,10,-20,61],[27,12,29,62],[-37,80,-20,135],[29,80,14,135]]},
-    {name:'腰に手を当てる',tilt:6,limbs:[[-59,-5,-20,22],[35,14,30,64],[-25,83,-30,136],[27,86,38,136]]},
-    {name:'前で手を組む',tilt:0,limbs:[[-43,3,-4,26],[44,4,4,26],[-27,87,-44,136],[20,86,19,136]]},
-    {name:'頭に手を添える',tilt:10,limbs:[[-48,-18,-4,-53],[45,11,35,60],[-13,83,-18,134],[36,80,23,135]]},
-    {name:'脚を交差して立つ',tilt:-4,limbs:[[-36,6,-10,22],[36,5,10,22],[-9,87,18,136],[34,84,-3,136]]},
-    {name:'腕を組む',tilt:0,limbs:[[-37,6,19,-14],[37,7,-19,-9],[-23,86,-32,136],[23,86,35,136]]},
-    {name:'脚を広げて胸に手を添える',tilt:-8,limbs:[[-47,11,-1,-2],[30,12,26,61],[-37,83,-67,133],[40,84,57,136]]}
+    {name:gameText("editor.pose.standing"),tilt:0,limbs:[[-30,10,-30,60],[30,10,30,60],[-23,85,-32,136],[23,85,32,136]]},
+    {name:gameText("editor.pose.weightShift"),tilt:-7,limbs:[[-27,10,-20,61],[27,12,29,62],[-37,80,-20,135],[29,80,14,135]]},
+    {name:gameText("editor.pose.hip"),tilt:6,limbs:[[-59,-5,-20,22],[35,14,30,64],[-25,83,-30,136],[27,86,38,136]]},
+    {name:gameText("editor.pose.joinedHands"),tilt:0,limbs:[[-43,3,-4,26],[44,4,4,26],[-27,87,-44,136],[20,86,19,136]]},
+    {name:gameText("editor.pose.head"),tilt:10,limbs:[[-48,-18,-4,-53],[45,11,35,60],[-13,83,-18,134],[36,80,23,135]]},
+    {name:gameText("editor.pose.crossedLegs"),tilt:-4,limbs:[[-36,6,-10,22],[36,5,10,22],[-9,87,18,136],[34,84,-3,136]]},
+    {name:gameText("editor.pose.foldedArms"),tilt:0,limbs:[[-37,6,19,-14],[37,7,-19,-9],[-23,86,-32,136],[23,86,35,136]]},
+    {name:gameText("editor.pose.chest"),tilt:-8,limbs:[[-47,11,-1,-2],[30,12,26,61],[-37,83,-67,133],[40,84,57,136]]}
 ];
 function editorPoseRoot(i,pose) {
     const root=limbRoot({x:0,y:0},i),angle=pose.tilt*Math.PI/180;
@@ -102,15 +102,15 @@ function renderCharacterEditor() {
     const w=TORSO.width,h=TORSO.height,pose=EDITOR_POSES[draftStripeCount-1],outline=PLAYER_SILHOUETTE_STYLE;
     const bands=draftColors.slice(0,draftStripeCount).map((color,i)=>{
         const selected=selectedPart==='body' && i===selectedStripe;
-        return `<rect data-stripe="${i}" x="${-w/2}" y="${-h/2+h*i/draftStripeCount}" width="${w}" height="${h/draftStripeCount}" fill="${color}" role="button" tabindex="0" aria-label="上から${i+1}番目の色 ${color}" aria-pressed="${selected}" aria-haspopup="dialog" aria-controls="editorPalette"/>`;
+        return `<rect data-stripe="${i}" x="${-w/2}" y="${-h/2+h*i/draftStripeCount}" width="${w}" height="${h/draftStripeCount}" fill="${color}" role="button" tabindex="0" aria-label="${gameText("appearance.renderCharacterEditor.4", {value6: i+1, value7: color})}" aria-pressed="${selected}" aria-haspopup="dialog" aria-controls="editorPalette"/>`;
     }).join('');
-    ui.editorPreview.setAttribute('aria-label',`${draftStripeCount}色・${pose.name}のキャラクター配色プレビュー`);
+    ui.editorPreview.setAttribute('aria-label',gameText("appearance.renderCharacterEditor.3", {value0: draftStripeCount, value1: pose.name}));
     ui.editorPreview.innerHTML=`<defs><filter id="editor-outline-shadow" x="-100%" y="-100%" width="300%" height="300%"><feDropShadow dx="0" dy="${outline.shadowOffsetY}" stdDeviation="${outline.shadowBlur/2}" flood-color="${outline.shadowColor}"/></filter></defs>
         <g data-pose="${draftStripeCount}" transform="translate(105 140) scale(1.5)">
         ${[2,3,0,1].map(i=>previewLimb(i,pose)).join('')}
         <g transform="rotate(${pose.tilt})">
         <path d="M0 ${-h/2} V${-h/2-9}" stroke="${PLAYER_OUTLINE_COLOR}" stroke-width="5"/>
-        <circle data-part="head" cx="0" cy="${-h/2-13}" r="10" fill="${draftHeadColor}" role="button" tabindex="0" aria-label="頭の色 ${draftHeadColor}" aria-pressed="${selectedPart==='head'}" aria-haspopup="dialog" aria-controls="editorPalette"/>
+        <circle data-part="head" cx="0" cy="${-h/2-13}" r="10" fill="${draftHeadColor}" role="button" tabindex="0" aria-label="${gameText("appearance.renderCharacterEditor.2", {value11: draftHeadColor})}" aria-pressed="${selectedPart==='head'}" aria-haspopup="dialog" aria-controls="editorPalette"/>
         <circle cx="0" cy="${-h/2-13}" r="10" fill="none" stroke="${outline.color}" stroke-width="${outline.width}" filter="url(#editor-outline-shadow)" pointer-events="none"/>
         ${bands}<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" fill="none" stroke="${outline.color}" stroke-width="${outline.width}" filter="url(#editor-outline-shadow)" pointer-events="none"/>
         ${[0,1,2,3].map(i=>{const root=limbRoot({x:0,y:0},i);return `<circle data-editor-root="${i}" cx="${root.x}" cy="${root.y}" r="${outline.rootRadius}" fill="${outline.rootColor}" pointer-events="none"/>`;}).join('')}
@@ -121,7 +121,7 @@ function renderCharacterEditor() {
     ui.bodyStripeControls.hidden=false;
     if(selectedPart!==null) {
         const color=selectedPart==='head'?draftHeadColor:draftColors[selectedStripe];
-        ui.paletteSwatches.innerHTML=EDITOR_COLORS.map(c=>`<button type="button" data-color="${c}" style="background:${c}" aria-label="色 ${c}" aria-pressed="${c===color}"></button>`).join('');
+        ui.paletteSwatches.innerHTML=EDITOR_COLORS.map(c=>`<button type="button" data-color="${c}" style="background:${c}" aria-label="${gameText("appearance.renderCharacterEditor", {value2: c})}" aria-pressed="${c===color}"></button>`).join('');
     }
 }
 function openEditorPalette() {
@@ -210,7 +210,7 @@ function confirmCharacterEditor() {
     queueOnlineProfileSave();
     playSound('confirm');
     updateMapAppearance();returnFromCharacterEditor();refreshLives();
-    ui.appearanceStatus.textContent=saved?'名前と配色を保存しました。':'名前と配色を適用しました。この端末への保存はできませんでした。';
+    ui.appearanceStatus.textContent=saved?gameText("appearance.confirmCharacterEditor.2"):gameText("appearance.confirmCharacterEditor");
     ui.appearanceStatus.hidden=true;
     if(!saved) {ui.mapError.textContent=ui.appearanceStatus.textContent;ui.mapError.hidden=false;}
     return true;

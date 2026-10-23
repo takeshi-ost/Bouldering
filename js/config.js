@@ -4,16 +4,16 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.2.17';
+const RELEASE_VERSION = '0.2.18';
 const GAMEPLAY_TIPS = [
-    'ステージの端か2本指スワイプでスクロールできるよ！',
-    '背中をタップで1ムーブだけ戻せるよ！',
-    '思ったところに行けないときは、手足が伸びきっていないか見てみよう！',
-    '大きなホールドは、両手や両足でいっしょにつかめるよ！',
-    'ゴールは両手でつかもう！両足の支えも忘れずに！',
-    'ハートは背中でタッチ！スタミナが2回復するよ！',
-    '真上だけでなく、横に動くと道が開けることも！',
-    '歯車ボタンからプレイヤーの見た目が変えられるよ！'
+    gameText("tips.scroll"),
+    gameText("tips.undo"),
+    gameText("tips.reach"),
+    gameText("tips.wideHold"),
+    gameText("tips.goal"),
+    gameText("tips.heart"),
+    gameText("tips.sideways"),
+    gameText("tips.appearance")
 ];
 // Bump whenever generation/gameplay changes make stage scores incomparable.
 const COURSE_VERSION = 'v1';
@@ -29,10 +29,10 @@ const PLAYER_SILHOUETTE_STYLE = { color:'rgba(67,92,80,.22)', width:1.5,
     shadowColor:'rgba(67,92,80,.28)', shadowBlur:3, shadowOffsetY:1.5,
     rootColor:'#d9e9db', rootRadius:2.5 };
 const limbs = [
-    { x: -52, y: -68, name: "左手" },
-    { x: 52, y: -68, name: "右手" },
-    { x: -40, y: 78, name: "左足" },
-    { x: 40, y: 78, name: "右足" },
+    { x: -52, y: -68, name: gameText("limb.leftHand") },
+    { x: 52, y: -68, name: gameText("limb.rightHand") },
+    { x: -40, y: 78, name: gameText("limb.leftFoot") },
+    { x: 40, y: 78, name: gameText("limb.rightFoot") },
 ];
 const LIMB_LENGTHS = [100, 100, 110, 110];
 const POSE_CONFIG = {

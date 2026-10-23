@@ -1,6 +1,6 @@
 "use strict";
 function difficultyLabel(value) {
-    return ['EASY','NORMAL','NORMAL','HARD'][value];
+    return [gameText("difficulty.easy"),gameText("difficulty.normal"),gameText("difficulty.normal"),gameText("difficulty.hard")][value];
 }
 function weightedDifficulty(weights,seed) {
     if(!Array.isArray(weights) || weights.length!==DIFFICULTY_RULES.length ||

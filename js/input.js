@@ -206,7 +206,7 @@ ui.prototypeCourse.onclick = () => {
 function syncDebugCourseControls() {
     if(typeof updateDeleteUserButton==='function')updateDeleteUserButton();
     ui.prototypeCourse.hidden=!debugMode;
-    ui.prototypeCourse.textContent=courseMode==='prototype'?'通常コースへ':'ロジハラ（検証用）';
+    ui.prototypeCourse.textContent=courseMode==='prototype'?gameText("input.syncDebugCourseControls.2"):gameText("input.syncDebugCourseControls");
     ui.prototypeDescription.hidden=!debugMode;
 }
 

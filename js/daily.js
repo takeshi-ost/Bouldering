@@ -45,8 +45,8 @@ function returnDailyWithoutClear() {
     showDailyCalendar();
 }
 function dailyDateLabel(key) {
-    const weekday='日月火水木金土'[new Date(key+'T00:00:00Z').getUTCDay()];
-    return `${key.slice(5,7)}月${key.slice(8,10)}日(${weekday})`;
+    const weekday=['sun','mon','tue','wed','thu','fri','sat'].map(day=>gameText('date.weekday.'+day))[new Date(key+'T00:00:00Z').getUTCDay()];
+    return gameText("date.monthDayWeekday", {value0: key.slice(5,7), value1: key.slice(8,10), value2: weekday});
 }
 function dailyProfile(key) {
     if(!validDailyDate(key))throw new Error('Invalid daily date');
@@ -100,7 +100,7 @@ function refreshDailyEntry() {
     if(today===dailyEntryToday)return;
     dailyEntryToday=today;
     ui.dailyEntryDate.textContent=today.slice(5).replace('-','/');
-    ui.openDaily.setAttribute('aria-label',`デイリーチャレンジ ${today.replaceAll('-','/')}`);
+    ui.openDaily.setAttribute('aria-label',gameText("daily.refreshDailyEntry", {value0: today.replaceAll('-','/')}));
 }
 function recordDailyClear() {
     if(!dailyRun || moveCount<1 || dailyRecords[dailyRun.date])return;
@@ -147,23 +147,23 @@ function renderDailyCalendar() {
     const firstDay=new Date(Date.UTC(year,month-1,1)).getUTCDay();
     const days=new Date(Date.UTC(year,month,0)).getUTCDate();
     const streak=currentDailyStreak(today);
-    ui.dailyStreak.textContent=`ストリーク ${streak.count}日`;
+    ui.dailyStreak.textContent=gameText("daily.renderDailyCalendar.9", {value0: streak.count});
     const cells=Array.from({length:firstDay},()=>'<div class="daily-cell" aria-hidden="true"></div>');
     for(let day=1;day<=days;day++) {
         const key=dailyMonth+'-'+String(day).padStart(2,'0');
-        if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${year}年${month}月${day}日">${day}</div>`);continue;}
+        if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${gameText("daily.renderDailyCalendar.8", {value1: year, value2: month, value3: day})}">${day}</div>`);continue;}
         const record=dailyRecords[key];
         const medal=record?dailyMedal(key,record):null;
         const column=(firstDay+day-1)%7;
         const inStreak=streak.count>0 && key>=streak.start && key<=streak.end;
         const streakClasses=inStreak?' is-streak'+(key===streak.start || day===1 || column===0?' streak-start':'')+(key===streak.end || day===days || column===6?' streak-end':''):'';
-        cells.push(`<div class="daily-cell daily-playable${streakClasses}"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み・'+(medal==='gold'?'金貨':'銀貨')+' '+record.stars+'スター・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?`<img class="daily-clear-icon" src="assets/daily-medal-${medal}-v2.webp" width="32" height="32" alt="" aria-hidden="true" draggable="false">`:day}</button></div>`);
+        cells.push(`<div class="daily-cell daily-playable${streakClasses}"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${gameText("daily.renderDailyCalendar.7", {value5: year, value6: month, value7: day, value8: record?gameText("daily.renderDailyCalendar.6")+(medal==='gold'?gameText("daily.renderDailyCalendar.5"):gameText("daily.renderDailyCalendar.4"))+' '+record.stars+gameText("daily.renderDailyCalendar.3"):gameText("daily.renderDailyCalendar.2")})}" ${key===today?'aria-current="date"':''}>${record?`<img class="daily-clear-icon" src="assets/daily-medal-${medal}-v2.webp" width="32" height="32" alt="" aria-hidden="true" draggable="false">`:day}</button></div>`);
     }
     while(cells.length<42)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');
     ui.dailyPlate.style.height=(6*43+102)+'px';
     ui.dailyGrid.style.gridTemplateRows='repeat(6,minmax(0,1fr))';
-    ui.dailyMonthTitle.textContent=`${year}年 ${month}月`;
+    ui.dailyMonthTitle.textContent=gameText("daily.renderDailyCalendar", {value0: year, value1: month});
     ui.dailyPrev.disabled=dailyMonth<='1000-01';
     ui.dailyNext.disabled=dailyMonth>=today.slice(0,7);
     ui.dailySkyDate.textContent=today.slice(5).replace('-','/');
@@ -171,18 +171,18 @@ function renderDailyCalendar() {
 }
 function renderDailyStart() {
     const profile=dailySelectedDate?dailyProfile(dailySelectedDate):null;
-    ui.dailyStartLabel.textContent=profile?`DAILY ${profile.date.slice(0,4)}`:'日付を選択';
+    ui.dailyStartLabel.textContent=profile?gameText("label.daily", {value0: profile.date.slice(0,4)}):gameText("date.select");
     ui.dailyStartTitle.textContent=profile?dailyDateLabel(profile.date):'—';
-    ui.dailyStartTitle.setAttribute('aria-label',profile?`${profile.date.slice(0,4)}年${dailyDateLabel(profile.date)}`:'日付を選択');
+    ui.dailyStartTitle.setAttribute('aria-label',profile?gameText("date.yearAndLabel", {value0: profile.date.slice(0,4), value1: dailyDateLabel(profile.date)}):gameText("date.select"));
     ui.dailyStartDifficulty.textContent=profile?difficultyLabel(profile.difficulty):'—';
-    ui.dailyStartLength.textContent=profile?{short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
+    ui.dailyStartLength.textContent=profile?{short:gameText("course.short"),medium:gameText("course.medium"),long:gameText("course.long")}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
     const record=profile && dailyRecords[profile.date];
     ui.dailyStartGift.hidden=!(profile?.date===localToday() && (!record || record.rewardStatus==='pending'));
     ui.dailyStartButton.hidden=!!record;
     ui.dailyStartButton.disabled=!profile || !!record;
     ui.dailyClearRecord.hidden=!record;
     ui.dailyClearStars.textContent=record?'⭐️'.repeat(record.stars):'';
-    ui.dailyClearStars.setAttribute('aria-label',record?`${record.stars}スター`:'');
+    ui.dailyClearStars.setAttribute('aria-label',record?gameText("score.stars", {value0: record.stars}):'');
     ui.dailyClearStats.textContent=record?formatStageRecord(record):'';
 }
 function chooseDailyDate(key) {
@@ -236,7 +236,7 @@ function showDailyCalendar({openFromMap=false}={}) {
 }
 function reportDailyGenerationError(error) {
     showDailyCalendar();
-    ui.dailyError.textContent='コースを生成できませんでした。もう一度日付を選んでください。';
+    ui.dailyError.textContent=gameText("daily.reportDailyGenerationError");
     ui.dailyError.hidden=false;
     console.error(error);
     return false;

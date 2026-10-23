@@ -12,7 +12,7 @@ let heartItems=readHeartItems();
 function renderMapInventory() {
     const count=String(heartItems);
     if(ui.mapItemCount.textContent!==count)ui.mapItemCount.textContent=count;
-    ui.mapInventory.setAttribute('aria-label',`チョークバッグ 所持数 ${count}個`);
+    ui.mapInventory.setAttribute('aria-label',gameText("level-map.renderMapInventory", {value0: count}));
 }
 function saveHeartItems() {
     try {globalThis.localStorage?.setItem(HEART_ITEMS_KEY,JSON.stringify(heartItems));}catch(_) {}
@@ -207,7 +207,7 @@ function renderMapPlayers() {
     const {first,last}=mapBounds(),width=ui.mapTrack.clientWidth||400;
     const players=layoutMapPlayers(currentMapPlayers(first,last,courseMode));
     ui.mapPlayers.innerHTML=players.map(player=>
-        `<span class="map-marker map-opponent" role="button" tabindex="0" aria-label="${scoreText(player.name)}の名前を表示" data-player="${scoreText(player.id)}" data-reached-level="${player.reachedLevel}" data-name-side="${player.x>width/2?'left':'right'}" style="left:${player.x}px;top:${player.y}px;z-index:${player.depth}">${scoreAvatar(player)}<span class="map-player-name" aria-hidden="true">${scoreText(player.name)}</span></span>`).join('');
+        `<span class="map-marker map-opponent" role="button" tabindex="0" aria-label="${gameText("level-map.renderMapPlayers", {value0: scoreText(player.name)})}" data-player="${scoreText(player.id)}" data-reached-level="${player.reachedLevel}" data-name-side="${player.x>width/2?'left':'right'}" style="left:${player.x}px;top:${player.y}px;z-index:${player.depth}">${scoreAvatar(player)}<span class="map-player-name" aria-hidden="true">${scoreText(player.name)}</span></span>`).join('');
 }
 function renderLevelMap() {
     const {first,last} = mapBounds();
@@ -228,7 +228,7 @@ function renderLevelMap() {
         const hasReward=hasMapReward(n);
         const gift=hasReward?'<img class="reward-gift-icon map-reward-gift" src="assets/reward-gift.png" width="30" height="30" alt="" aria-hidden="true" draggable="false">':'';
         const reward=hasReward?'<span class="goal-effects map-reward-effects" aria-hidden="true"><i></i><i></i><i></i><i></i></span>':'';
-        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="STAGE ${n} ${done?'クリア済み':locked?'未解放':'挑戦できます'}${stars?' '+stars+'スター':''}${hasReward?' 報酬あり':''}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}>${mapWallMarkup(n,done?'cleared':locked?'unplayed':'active')}<small>${done?'✓':locked?'未解放':'PLAY'}</small>${rating}${reward}${gift}</button>`);
+        nodes.push(`<button class="map-node ${done?'is-cleared':locked?'is-locked':'is-ready'}" style="left:${p.x}%;top:${p.y}px" data-level="${n}" aria-label="${gameText("level-map.renderLevelMap.7", {value4: n, value5: done?gameText("level-map.renderLevelMap.3"):locked?gameText("level-map.renderLevelMap.2"):gameText("level-map.renderLevelMap"), value6: stars?' '+stars+gameText("level-map.renderLevelMap.4"):'', value7: hasReward?gameText("level-map.renderLevelMap.5"):''})}" ${n===mapSelected?'aria-current="step"':''} ${locked||mapTransition?'disabled':''}>${mapWallMarkup(n,done?'cleared':locked?'unplayed':'active')}<small>${done?'✓':locked?gameText("level-map.renderLevelMap.2"):gameText("level-map.renderLevelMap.6")}</small>${rating}${reward}${gift}</button>`);
     }
     ui.mapRoad.innerHTML = '';
     ui.mapNodes.innerHTML = nodes.join('');
@@ -238,7 +238,7 @@ function renderLevelMap() {
     if (!ui.mapMarker.hidden) positionMapMarker(mapPoint(mapSelected));
     if(typeof updateMapAppearance==='function')updateMapAppearance();
     ui.mapCourse.hidden=courseMode!=='prototype';
-    ui.mapCourse.textContent=courseMode==='prototype'?'ロジハラ（検証用）':'';
+    ui.mapCourse.textContent=courseMode==='prototype'?gameText("input.syncDebugCourseControls"):'';
     ui.mapPrev.hidden=mapPage===0;
     ui.mapNext.hidden=!canBrowseNextMap();
     ui.mapPrev.disabled = ui.mapPrev.hidden || !!mapTransition;
@@ -302,11 +302,11 @@ let stageStartContext=null,stageStartTimer=null;
 function renderStageHeartItems() {
     const context=stageStartContext;if(!context)return;
     ui.stageHeartValue.textContent=String(context.hearts).padStart(2,'0');
-    ui.stageHeartCount.setAttribute('aria-label',`使用ハート ${context.hearts}個、タップで1個追加`);
+    ui.stageHeartCount.setAttribute('aria-label',gameText("level-map.renderStageHeartItems.2", {value0: context.hearts}));
     ui.stageHeartCount.disabled=context.hearts===heartItems;
     ui.stageHeartReset.disabled=context.hearts===0;
     ui.stageStartStamina.textContent=previewStaminaText(context.n,context.mode).replace('❤️','');
-    ui.stageStartStamina.setAttribute('aria-label',`規定スタミナ ${ui.stageStartStamina.textContent}`);
+    ui.stageStartStamina.setAttribute('aria-label',gameText("level-map.renderStageHeartItems", {value0: ui.stageStartStamina.textContent}));
 }
 function setStageHeartItems(value) {
     if(!stageStartContext || !ui.stageStartDialog.open)return;
@@ -351,13 +351,13 @@ function openStageStart(n,debug=false,button=null,delay=0,retry=false) {
         stageStartTimer=null;
         if(stageStartContext!==context || state!==(retry?'lost':'map') || courseMode!==context.mode)return;
         // Let the arrival color/effects paint during the delay before solving the course.
-        ui.stageStartTitle.textContent=`STAGE ${n}`;
-        ui.stageStartTitle.setAttribute('aria-label',`STAGE ${n}`);
+        ui.stageStartTitle.textContent=gameText("label.stage", {value0: n});
+        ui.stageStartTitle.setAttribute('aria-label',gameText("label.stage", {value0: n}));
         renderStageHeartItems();
         renderStageStartRecord(context);
         refreshLives();
         ui.stageStartDifficulty.textContent=difficultyLabel(difficultyForStage(n));
-        ui.stageStartLength.textContent={short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(n).category];
+        ui.stageStartLength.textContent={short:gameText("course.short"),medium:gameText("course.medium"),long:gameText("course.long")}[stageLengthInfo(n).category];
         ui.stageStartButton.disabled=false;
         ui.stageStartDialog.showModal?.();
         requestGameRender();
@@ -393,7 +393,7 @@ function selectStage(n,debug=false,heartsUsed=0,retry=false) {
             return true;
         } catch (error) {
             showLevelMap({target:n});
-            ui.mapError.textContent='ステージを生成できませんでした。もう一度選んでください。';
+            ui.mapError.textContent=gameText("level-map.selectStage");
             ui.mapError.hidden=false;
             console.error(error);
             return false;
@@ -426,7 +426,7 @@ ui.debugControls.onsubmit=e=>{
     e.preventDefault();
     const n=Number(ui.debugStage.value);
     if (!Number.isSafeInteger(n) || n<1 || n>=Number.MAX_SAFE_INTEGER) {
-        ui.mapError.textContent='ステージ番号は1以上の整数を入力してください。';
+        ui.mapError.textContent=gameText("level-map");
         ui.mapError.hidden=false;
         return;
     }

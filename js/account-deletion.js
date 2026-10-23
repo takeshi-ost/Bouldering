@@ -20,15 +20,15 @@ function updateDeleteUserButton() {
 }
 function showDeleteUserDialog() {
     const done=accountDeletion.marker?.phase==='done';
-    deleteUserElement('deleteUserSummary').textContent=done?'ユーザーデータを削除しました。':`${playerName}\nUID: ${online.uid || accountDeletion.marker?.uid || ''}`;
+    deleteUserElement('deleteUserSummary').textContent=done?gameText("account-deletion.showDeleteUserDialog.3"):gameText("account-deletion.identitySummary", {value0: playerName, value1: online.uid || accountDeletion.marker?.uid || ''});
     deleteUserElement('deleteUserWarning').hidden=done;
     deleteUserElement('deleteUserConfirm').hidden=done;
     deleteUserElement('deleteUserNew').hidden=!done;
     deleteUserElement('deleteUserCancel').hidden=!!accountDeletion.marker;
     deleteUserElement('deleteUserConfirm').disabled=accountDeletion.busy || !online.uid || !online.adapter?.deleteAccount;
     deleteUserElement('deleteUserStatus').textContent=done?
-        'このウィンドウを閉じてください。新しいユーザーは自動作成しません。':
-        accountDeletion.marker?'前回の削除は完了していません。「削除する」で再試行してください。':'';
+        gameText("account-deletion.showDeleteUserDialog.2"):
+        accountDeletion.marker?gameText("account-deletion.showDeleteUserDialog"):'';
     const dialog=deleteUserElement('deleteUserDialog');if(!dialog.open)dialog.showModal?.();
 }
 async function restoreDeletionSession(adapter) {
@@ -38,9 +38,9 @@ async function restoreDeletionSession(adapter) {
         const user=await adapter.authenticate(false);
         if(user?.uid!==accountDeletion.marker.uid)throw new Error('Original authentication is unavailable');
         online.uid=user.uid;online.ready=false;
-        setOnlineStatus('ユーザーデータの削除を待っています');showDeleteUserDialog();
+        setOnlineStatus(gameText("account-deletion"));showDeleteUserDialog();
     } catch(error) {
-        setOnlineStatus('削除の認証を確認できません。接続を確認して再読み込みしてください');
+        setOnlineStatus(gameText("account-deletion.restoreDeletionSession"));
         console.warn('Account deletion restore:',error?.code || error?.message);
     } finally {accountDeletion.restoreBusy=false;updateDeleteUserButton();}
 }
@@ -68,20 +68,20 @@ async function deleteCurrentAccount() {
     const confirm=deleteUserElement('deleteUserConfirm'),cancel=deleteUserElement('deleteUserCancel'),status=deleteUserElement('deleteUserStatus');
     confirm.disabled=cancel.disabled=true;cancel.hidden=true;updateDeleteUserButton();
     try {
-        status.textContent='削除中…このウィンドウを閉じずにお待ちください。';
+        status.textContent=gameText("account-deletion.deleteCurrentAccount.6");
         await online.adapter.lockDeletion(uid);
         await waitForAccountWrites();
-        await online.adapter.deleteAccount(uid,count=>{status.textContent=`スコアを削除中… ${count}件`;});
+        await online.adapter.deleteAccount(uid,count=>{status.textContent=gameText("account-deletion.deleteCurrentAccount.5", {value0: count});});
         // Server deletion is complete even if local storage is unavailable.
         markAccountDeletion(uid,'done');online.uid=null;online.dirty=false;
         onlineScores.pending.clear();onlineScores.boards.clear();online.pages.clear();persistPendingScores();
         try {clearLocalGameData();}catch(error){console.warn('Local cleanup:',error?.message);}
-        markAccountDeletion(uid,'done');setOnlineStatus('ユーザーデータを削除しました');
-        ui.playerUuid.textContent='ユーザーデータ削除済み';showDeleteUserDialog();
+        markAccountDeletion(uid,'done');setOnlineStatus(gameText("account-deletion.deleteCurrentAccount.4"));
+        ui.playerUuid.textContent=gameText("account-deletion.deleteCurrentAccount.3");showDeleteUserDialog();
     } catch(error) {
         status.textContent=error?.code==='auth/requires-recent-login'?
-            '認証の再確認が必要です。表示中のUIDを控え、Firebase管理画面で認証アカウントを削除してください。':
-            '削除が完了していません。接続とFirestoreのルールを確認して再試行してください。';
+            gameText("account-deletion.deleteCurrentAccount.2"):
+            gameText("account-deletion.deleteCurrentAccount");
         console.warn('Account deletion:',error?.code || error?.message);
     } finally {
         accountDeletion.busy=false;confirm.disabled=cancel.disabled=false;updateDeleteUserButton();
@@ -98,7 +98,7 @@ deleteUserElement('deleteUserDialog').addEventListener('cancel',event=>{
 deleteUserElement('deleteUserNew').onclick=()=>{
     if(accountDeletion.busy || accountDeletion.marker?.phase!=='done')return;
     try {clearLocalGameData();globalThis.localStorage?.removeItem(ACCOUNT_DELETION_KEY);}
-    catch(_) {deleteUserElement('deleteUserStatus').textContent='端末の保存データを初期化できませんでした。';return;}
+    catch(_) {deleteUserElement('deleteUserStatus').textContent=gameText("account-deletion.2");return;}
     accountDeletion.marker=null;globalThis.location?.reload();
 };
 window.addEventListener('storage',event=>{
@@ -106,7 +106,7 @@ window.addEventListener('storage',event=>{
     const marker=readAccountDeletion();
     if(marker && (!online.uid || marker.uid===online.uid)) {
         accountDeletion.marker=marker;online.ready=false;
-        setOnlineStatus('ユーザーデータの削除を待っています');
+        setOnlineStatus(gameText("account-deletion"));
         if(marker.phase==='done'){online.dirty=false;onlineScores.pending.clear();onlineScores.boards.clear();online.pages.clear();showDeleteUserDialog();}
     }
 });

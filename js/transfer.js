@@ -12,7 +12,7 @@ function validTransferIdentity(value) {
         typeof value.password==='string' && /^Aa1![0-9a-f]{64}$/.test(value.password);
 }
 function createTransferIdentity(uid) {
-    if(!globalThis.crypto?.getRandomValues)throw Error('安全な引き継ぎ情報を作成できません。対応ブラウザで開いてください。');
+    if(!globalThis.crypto?.getRandomValues)throw Error(gameText("transfer.createTransferIdentity"));
     const hex=size=>Array.from(globalThis.crypto.getRandomValues(new Uint8Array(size)),b=>b.toString(16).padStart(2,'0')).join('');
     return {project:TRANSFER_PROJECT,uid,email:`transfer-${hex(16)}@bouldering-7482d.firebaseapp.com`,password:'Aa1!'+hex(32)};
 }
@@ -30,7 +30,7 @@ function snapshotTransferData() {
     }));
 }
 function validateTransferFile(value) {
-    const fail=()=>{throw Error('ASCENTの引き継ぎファイルとして読み込めません。');};
+    const fail=()=>{throw Error(gameText("transfer"));};
     if(new Blob([JSON.stringify(value)]).size>TRANSFER_MAX_BYTES)fail();
     if(!transferObject(value) || value.format!=='ascent-transfer' || value.version!==1 ||
         !validTransferIdentity(value.identity) || !transferObject(value.data))fail();
@@ -87,7 +87,7 @@ function transferStorageEntries(file) {
 }
 function commitTransferFile(file) {
     const entries=transferStorageEntries(file),storage=globalThis.localStorage;
-    if(!storage)throw Error('端末への保存を許可してから、もう一度読み込んでください。');
+    if(!storage)throw Error(gameText("transfer.commitTransferFile.2"));
     const previous=new Map([...entries.keys()].map(key=>[key,storage.getItem(key)]));
     try {
         // Free the old save's space first. Only our explicit game keys are touched.
@@ -97,7 +97,7 @@ function commitTransferFile(file) {
     } catch(error) {
         for(const key of entries.keys())storage.removeItem(key);
         for(const [key,value] of previous)if(value!==null)storage.setItem(key,value);
-        throw Error('保存できなかったため、元のデータに戻しました。端末の空き容量を確認してください。');
+        throw Error(gameText("transfer.commitTransferFile"));
     }
 }
 function renderTransferAvailability() {
@@ -109,13 +109,13 @@ function renderTransferAvailability() {
 }
 function transferMessage(message){transferElement('transferStatus').textContent=message;}
 function transferErrorMessage(error) {
-    if(error?.code==='auth/operation-not-allowed')return 'FirebaseのAuthentication → ログイン方法で「メール／パスワード」を有効にしてください。';
-    if(['auth/invalid-credential','auth/wrong-password','auth/user-not-found','auth/user-disabled'].includes(error?.code))return 'このファイルの引き継ぎ情報を確認できません。元の端末でエクスポートし直してください。';
-    if(error?.code==='auth/network-request-failed')return 'オンラインに接続して、もう一度お試しください。';
-    return error?.message || '引き継ぎできませんでした。もう一度お試しください。';
+    if(error?.code==='auth/operation-not-allowed')return gameText("transfer.transferErrorMessage.4");
+    if(['auth/invalid-credential','auth/wrong-password','auth/user-not-found','auth/user-disabled'].includes(error?.code))return gameText("transfer.transferErrorMessage.3");
+    if(error?.code==='auth/network-request-failed')return gameText("transfer.transferErrorMessage.2");
+    return error?.message || gameText("transfer.transferErrorMessage");
 }
 async function withTransferLock(action) {
-    if(transferBusy() || state!=='choosing' || accountDeletion.marker || !online.ready)throw Error('オンライン接続が完了してからお試しください。');
+    if(transferBusy() || state!=='choosing' || accountDeletion.marker || !online.ready)throw Error(gameText("transfer.withTransferLock"));
     transferState.busy=true;const wasReady=online.ready;online.ready=false;renderTransferAvailability();
     try {await waitForAccountWrites();return await action();}
     finally {
@@ -127,13 +127,13 @@ async function withTransferLock(action) {
 }
 async function exportTransferFile() {
     return withTransferLock(async()=>{
-        transferMessage('引き継ぎファイルを準備しています…');
+        transferMessage(gameText("transfer.exportTransferFile.2"));
         let identity=readTransferIdentity();
         if(identity?.uid!==online.uid)identity=createTransferIdentity(online.uid);
         // Keep credentials durable before linking; a retry can recover from a
         // lost response without creating another account or rotating its password.
         try {globalThis.localStorage.setItem(TRANSFER_IDENTITY_KEY,JSON.stringify(identity));}
-        catch(_){throw Error('引き継ぎ情報を端末に保存できません。保存を許可してからお試しください。');}
+        catch(_){throw Error(gameText("transfer.exportTransferFile"));}
         await online.adapter.prepareTransferIdentity(identity);
         const file=validateTransferFile({format:'ascent-transfer',version:1,createdAt:new Date().toISOString(),identity,data:snapshotTransferData()});
         return file;
@@ -142,12 +142,12 @@ async function exportTransferFile() {
 async function importTransferFile(file) {
     validateTransferFile(file);
     return withTransferLock(async()=>{
-        transferMessage('同じUIDを確認してデータを読み込んでいます…');
+        transferMessage(gameText("transfer.importTransferFile.3"));
         await online.adapter.importTransferIdentity(file.identity,()=>commitTransferFile(file));
         online.uid=file.identity.uid;updateTitleUid();transferState.pendingReload=true;
-        transferMessage('引き継ぎが完了しました。再読み込みします。');
+        transferMessage(gameText("transfer.importTransferFile.2"));
         transferElement('transferReload').hidden=false;
-        try {window.location?.reload();}catch(_){transferMessage('引き継ぎが完了しました。「再読み込み」を押してください。');}
+        try {window.location?.reload();}catch(_){transferMessage(gameText("transfer.importTransferFile"));}
     });
 }
 function closeTransferDialog() {
@@ -174,7 +174,7 @@ transferElement('transferExport').onclick=async()=>{
         transferState.url=URL.createObjectURL(new Blob([JSON.stringify(file)],{type:'application/json'}));
         const link=transferElement('transferDownload');link.href=transferState.url;
         link.download=`ASCENT-transfer-${localToday()}.json`;link.hidden=false;
-        transferMessage('「ファイルを保存」を押し、移行先の端末でインポートしてください。');
+        transferMessage(gameText("transfer.6"));
     } catch(error){transferMessage(transferErrorMessage(error));}
 };
 transferElement('transferFile').onchange=async e=>{
@@ -182,15 +182,15 @@ transferElement('transferFile').onchange=async e=>{
     transferState.file=null;transferElement('transferPreview').hidden=true;transferElement('transferImport').hidden=true;
     try {
         const selected=e.target.files?.[0];if(!selected)return;
-        if(selected.size>TRANSFER_MAX_BYTES)throw Error('ファイルが大きすぎます。ASCENTの引き継ぎファイルを選んでください。');
-        const text=await selected.text();if(text.length>TRANSFER_MAX_BYTES)throw Error('ファイルが大きすぎます。');
+        if(selected.size>TRANSFER_MAX_BYTES)throw Error(gameText("transfer.5"));
+        const text=await selected.text();if(text.length>TRANSFER_MAX_BYTES)throw Error(gameText("transfer.4"));
         const file=validateTransferFile(JSON.parse(text));
         if(ticket!==transferState.readTicket || !transferElement('transferDialog').open)return;
         transferState.file=file;
-        transferElement('transferPreview').textContent=`${file.data.profile.name}\nUID ${file.identity.uid}\n到達ステージ ${file.data.progress.existing.cleared+1}\nこの端末のゲームデータを置き換えます。`;
+        transferElement('transferPreview').textContent=gameText("transfer.3", {value0: file.data.profile.name, value1: file.identity.uid, value2: file.data.progress.existing.cleared+1});
         transferElement('transferPreview').hidden=false;transferElement('transferImport').hidden=false;
-        transferMessage('内容を確認して「このデータを読み込む」を押してください。');
-    } catch(_){if(ticket===transferState.readTicket)transferMessage('ASCENTの引き継ぎファイルとして読み込めません。');}
+        transferMessage(gameText("transfer.2"));
+    } catch(_){if(ticket===transferState.readTicket)transferMessage(gameText("transfer"));}
     renderTransferAvailability();
 };
 transferElement('transferImport').onclick=async()=>{

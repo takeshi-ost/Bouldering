@@ -532,7 +532,7 @@ function drawPath() {
         ctx.textAlign = 'left';
 
         ctx.fillText(
-            '実際のルート',
+            gameText("debug.actualRoute"),
             clamp(
                 end.x + 30,
                 10,
@@ -679,7 +679,7 @@ function drawStageIntro() {
     ctx.font='800 40px system-ui';
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    const title=dailyRun ? `DAILY ${dailyRun.date.slice(5).replace('-','/')}` : `STAGE ${level}`;
+    const title=dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
     const x=W/2;
     ctx.strokeText(title,x,H/2);
     ctx.fillText(title,x,H/2);
@@ -886,7 +886,7 @@ function draw(now = 0) {
         y += 200
     ) {
         ctx.fillText(
-            `${((HEIGHT - y) / 100).toFixed(0)} M`,
+            gameText("label.height", {value0: ((HEIGHT - y) / 100).toFixed(0)}),
             12,
             y - 8
         );
@@ -1083,7 +1083,7 @@ function draw(now = 0) {
                 'center';
 
             ctx.fillText(
-                gold ? 'GOAL' : 'START',
+                gold ? gameText("hold.goal") : gameText("hold.start"),
                 h.x,
                 h.y - 23
             );

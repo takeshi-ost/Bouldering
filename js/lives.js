@@ -63,24 +63,24 @@ function refreshLives() {
     const inMap=state==='map';
     ui.lifeStatus.classList.toggle('game-lives',inGame || inMap);
     ui.lifeStatus.classList.toggle('map-lives',inMap);
-    ui.lifeStatus.setAttribute('aria-label',`ライフ ${lives.count} / ${LIFE_MAX}`);
+    ui.lifeStatus.setAttribute('aria-label',gameText("lives.refreshLives.5", {value0: lives.count, value1: LIFE_MAX}));
     ui.lifeStatus.hidden=!!dailyRun || !['map','playing','won','lost'].includes(state) || courseMode==='prototype' || debugAttempt;
     const seconds=lives.recoveryAt===null ? null : Math.max(0,Math.ceil((LIFE_RECOVERY_MS-(Date.now()-lives.recoveryAt))/1000));
     const recoveryTime=`${String(Math.floor((seconds??0)/60)).padStart(2,'0')}:${String((seconds??0)%60).padStart(2,'0')}`;
-    if(inMap && lives.count===0)ui.lifeStatus.setAttribute('aria-label',`ライフ0、回復まで ${recoveryTime}`);
+    if(inMap && lives.count===0)ui.lifeStatus.setAttribute('aria-label',gameText("lives.refreshLives.6", {value0: recoveryTime}));
     const text=inMap && lives.count===0
         ? `<span class="life-countdown" role="timer" aria-live="off"><span aria-hidden="true">🕐</span><span>${recoveryTime}</span></span>`
         : inGame || inMap
         ? `<span class="life-players" aria-hidden="true" style="--head-color:${playerHeadColor};--body-stripes:${bodyStripeGradient()}">${Array.from({length:lives.count},()=>playerIconMarkup('life-player player-icon') || '<span class="life-player"><span class="map-marker"><i></i><b></b></span></span>').join('')}</span>`
-        : `LIFE ${lives.count}/${LIFE_MAX}`+(seconds===null?'':`<small>回復まで ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}</small>`);
+        : gameText("lives.refreshLives.8", {value0: lives.count, value1: LIFE_MAX})+(seconds===null?'':`<small>${gameText("lives.refreshLives.7", {value0: Math.floor(seconds/60), value1: String(seconds%60).padStart(2,'0')})}</small>`);
     if(ui.lifeStatus.innerHTML!==text)ui.lifeStatus.innerHTML=text;
     if(stageStartContext) {
         if(ui.stageStartLives.innerHTML!==text)ui.stageStartLives.innerHTML=text;
-        ui.stageStartLives.setAttribute('aria-label',lives.count===0 ? `ライフ0、回復まで ${recoveryTime}` : `ライフ ${lives.count} / ${LIFE_MAX}`);
+        ui.stageStartLives.setAttribute('aria-label',lives.count===0 ? gameText("lives.refreshLives.6", {value0: recoveryTime}) : gameText("lives.refreshLives.5", {value0: lives.count, value1: LIFE_MAX}));
     }
     if(lifePrompt) {
-        ui.lifeWatchAd.textContent=lives.count>0?'ステージを開始':'広告を見る';
-        ui.lifeQuestion.textContent=lives.count>0?'ライフが回復しました。ステージを開始しますか？':'ライフがありません。広告を見てライフを増やしますか？';
+        ui.lifeWatchAd.textContent=lives.count>0?gameText("lives.refreshLives.4"):gameText("lives.refreshLives.3");
+        ui.lifeQuestion.textContent=lives.count>0?gameText("lives.refreshLives.2"):gameText("lives.refreshLives");
     }
 }
 function requestLifeStart(launch,{enabled=true,onCancel=null}={}) {

@@ -54,10 +54,10 @@ function continueNormalClear({advance=true}={}) {
     else resume();
 }
 const ROULETTE_OPTIONS=Object.freeze([
-    Object.freeze({kind:'hearts',amount:1,label:'ハート+1',weight:2}),
-    Object.freeze({kind:'hearts',amount:5,label:'ハート+5',weight:2}),
-    Object.freeze({kind:'hearts',amount:10,label:'ハート+10',weight:1}),
-    Object.freeze({kind:'life',amount:1,label:'ライフ+1',weight:1})
+    Object.freeze({kind:'hearts',amount:1,label:gameText("reward.hearts1"),weight:2}),
+    Object.freeze({kind:'hearts',amount:5,label:gameText("reward.hearts5"),weight:2}),
+    Object.freeze({kind:'hearts',amount:10,label:gameText("reward.hearts10"),weight:1}),
+    Object.freeze({kind:'life',amount:1,label:gameText("reward.life1"),weight:1})
 ]);
 const ROULETTE_SEGMENTS=Object.freeze(ROULETTE_OPTIONS.map((item,i)=>{
     const total=ROULETTE_OPTIONS.reduce((sum,option)=>sum+option.weight,0);
@@ -109,7 +109,7 @@ function startRewardSequence({onGrant=()=>{},onReturn=null}={}) {
     ui.rewardWheel.innerHTML=rewardWheelMarkup();
     ui.rewardWheel.style.transform=`rotate(${rewardSequence.angle}deg)`;
     ui.rewardStatus.textContent='';ui.rewardResult.hidden=true;
-    ui.rewardStop.hidden=false;ui.rewardStop.textContent='TAP';
+    ui.rewardStop.hidden=false;ui.rewardStop.textContent=gameText("action.tap");
     ui.rewardDialog.hidden=false;ui.rewardDialog.showModal?.();ui.rewardDialog.focus();
     requestGameRender();schedulePresentationUpdates();requestRewardFrame();
     return true;
@@ -120,7 +120,7 @@ function stopRewardSequence(now=performance.now()) {
     // Include the interval since the last frame so the visible stopping point follows the tap.
     if(sequence.lastTime!==null)sequence.angle+=Math.max(0,now-sequence.lastTime)*ROULETTE_SPEED;
     sequence.lastTime=now;sequence.from=sequence.angle;sequence.brakeElapsed=0;sequence.phase='braking';
-    ui.rewardStop.textContent='TAP';ui.rewardStatus.textContent='';
+    ui.rewardStop.textContent=gameText("action.tap");ui.rewardStatus.textContent='';
     requestRewardFrame();return true;
 }
 function applyRouletteReward(option) {
@@ -138,10 +138,10 @@ function rewardResultMarkup(reward) {
     const life=reward.kind==='life';
     const icon=life?(playerIconMarkup('reward-grant-image') ||
         `<svg class="reward-grant-image" viewBox="0 0 24 32" aria-hidden="true"><circle cx="12" cy="6" r="5.5" fill="${playerHeadColor}"/><rect x="3" y="12" width="18" height="20" rx="4" fill="${playerColors[0]}"/></svg>`):heartItemIconMarkup();
-    const notice=life && !reward.amount?`<p class="reward-grant-notice">ライフは上限${LIFE_MAX}です</p>`:'';
-    return `<section class="reward-result-card"><h2 id="rewardResultTitle">${life?'ライフアップ':'チョークバッグ'}</h2>
+    const notice=life && !reward.amount?`<p class="reward-grant-notice">${gameText("rewards.rewardResultMarkup.3", {value0: LIFE_MAX})}</p>`:'';
+    return `<section class="reward-result-card"><h2 id="rewardResultTitle">${life?gameText("rewards.rewardResultMarkup.2"):gameText("rewards.rewardResultMarkup")}</h2>
         <div class="reward-grant-row"><span class="reward-result-icon ${life?'is-life':''}"><span class="reward-rays" aria-hidden="true"></span>${icon}</span><span class="reward-grant-count">✖️${life?1:reward.amount}</span></div>
-        ${notice}<p class="reward-grant-tap modal-tap">TAP</p></section>`;
+        ${notice}<p class="reward-grant-tap modal-tap">${gameText("action.tap")}</p></section>`;
 }
 function advanceRewardSequence(now=performance.now()) {
     rewardFrame=null;

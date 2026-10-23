@@ -2,7 +2,7 @@
 // Public profiles. Scores have their own queue; inventory/lives/rewards stay local.
 const ONLINE_PROFILE_KEY='ascent.online-profile.v1',ONLINE_CACHE_MS=60000;
 const online={adapter:null,uid:null,ready:false,connecting:false,saving:false,dirty:false,
-    revision:0,pages:new Map(),status:'オンライン接続を準備中…'};
+    revision:0,pages:new Map(),status:gameText("online")};
 function onlineProfile() {
     // Firestore's string bound counts code points, while the editor counts graphemes.
     const name=Array.from(normalizedPlayerName(playerName)).slice(0,40).join('');
@@ -31,7 +31,7 @@ function saveOnlineCheckpoint(profile) {
 }
 function updateTitleUid() {
     const uid=online.uid || readOnlineCheckpoint()?.uid || (typeof readTransferIdentity==='function'?readTransferIdentity()?.uid:null);
-    ui.playerUuid.textContent=uid?`UID ${uid}`:online.status.startsWith('オフライン')?'UID 未接続':'UID 接続中…';
+    ui.playerUuid.textContent=uid?gameText("label.uid", {value0: uid}):online.status.startsWith(gameText("online.updateTitleUid.3"))?gameText("online.updateTitleUid.2"):gameText("online.updateTitleUid");
 }
 function setOnlineStatus(message) {
     online.status=message;
@@ -40,7 +40,7 @@ function setOnlineStatus(message) {
     if(typeof renderTransferAvailability==='function')renderTransferAvailability();
 }
 function onlineError(error) {
-    setOnlineStatus('オンライン保存を待っています');
+    setOnlineStatus(gameText("online.onlineError"));
     console.warn('Online profile:',error?.code || error?.message || 'connection unavailable');
 }
 function mergeOnlineProfile(local,remote,preferLocal) {
@@ -78,7 +78,7 @@ async function flushOnlineProfile(preferLocal=true) {
     try {
         while(online.dirty && !accountDeletion.marker && !(typeof transferBusy==='function' && transferBusy())) {
             const revision=online.revision,profile=onlineProfile();online.dirty=false;
-            setOnlineStatus('オンラインに保存中…');
+            setOnlineStatus(gameText("online.flushOnlineProfile.2"));
             const saved=await online.adapter.sync(online.uid,profile,preferLocal);
             if(accountDeletion.marker){online.dirty=false;return;}
             // A delayed first download must not replace an edit/clear made while loading.
@@ -89,7 +89,7 @@ async function flushOnlineProfile(preferLocal=true) {
             online.dirty=changed || (keepAppearance && onlineProfileKey(saved)!==onlineProfileKey(onlineProfile()));
             preferLocal=true;
         }
-        setOnlineStatus('オンラインに保存済み');
+        setOnlineStatus(gameText("online.flushOnlineProfile"));
     } catch(error) {online.dirty=true;onlineError(error);}
     finally {online.saving=false;}
 }
@@ -99,7 +99,7 @@ async function startOnline(adapter) {
     if(online.connecting || online.ready)return;
     online.connecting=true;online.adapter=adapter;
     try {
-        setOnlineStatus('オンラインに接続中…');
+        setOnlineStatus(gameText("online.startOnline"));
         const user=await adapter.authenticate();online.uid=user.uid;updateTitleUid();
         if(accountDeletion.marker || await adapter.isDeletionLocked?.(user.uid)) {
             if(!accountDeletion.marker)markAccountDeletion(user.uid,'pending');

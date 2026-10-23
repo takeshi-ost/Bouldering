@@ -15,7 +15,7 @@ function persistPendingScores() {
     try {globalThis.localStorage?.setItem(ONLINE_SCORES_KEY,JSON.stringify({uid:onlineScores.owner,items:[...onlineScores.pending]}));}catch(_) {}
     const status=document.getElementById('onlineScoreStatus');
     status.hidden=onlineScores.pending.size===0;
-    status.textContent=onlineScores.pending.size?`スコアの送信待ち：${onlineScores.pending.size}件`:'';
+    status.textContent=onlineScores.pending.size?gameText("online-scores.persistPendingScores", {value0: onlineScores.pending.size}):'';
 }
 function readPendingScores() {
     try {
@@ -71,11 +71,11 @@ async function flushOnlineScores() {
 }
 function stageScoreStatus(stage,mode) {
     const board=scoreBoardKey(stage,mode),page=onlineScores.boards.get(board);
-    if(onlineScores.pending.has(board))return onlineScores.saving?'記録を保存中…':'記録のオンライン保存を待っています';
-    if(!online.ready)return 'オンライン接続を待っています';
-    if(page?.error)return 'ランキングを取得できません';
-    if(page?.pending && !page.rows.length)return 'ランキングを読み込み中…';
-    return page?.rows.length?'':'まだオンライン記録がありません';
+    if(onlineScores.pending.has(board))return onlineScores.saving?gameText("online-scores.stageScoreStatus.6"):gameText("online-scores.stageScoreStatus.5");
+    if(!online.ready)return gameText("online-scores.stageScoreStatus.4");
+    if(page?.error)return gameText("online-scores.stageScoreStatus.3");
+    if(page?.pending && !page.rows.length)return gameText("online-scores.stageScoreStatus.2");
+    return page?.rows.length?'':gameText("online-scores.stageScoreStatus");
 }
 function onlineStageScores(stage,mode) {
     const board=scoreBoardKey(stage,mode);
@@ -90,7 +90,7 @@ function onlineStageScores(stage,mode) {
         void online.adapter.scores(online.uid,board).then(rows=>{
             page.rows=rows.filter(row=>typeof row.id==='string' && validStageScore(row)).map(row=>{
                 const profile=onlineProfileFrom(row.profile);
-                return {id:row.id,moves:row.moves,timeMs:row.timeMs,name:profile?.name || 'プレイヤー',
+                return {id:row.id,moves:row.moves,timeMs:row.timeMs,name:profile?.name || gameText("online-scores.onlineStageScores"),
                     appearance:profile?{colors:profile.colors,headColor:profile.headColor}:null};
             });
             page.loaded=true;

@@ -3,43 +3,45 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>ASCENT — クライミングパズル</title>
+    <title data-i18n="title.document"></title>
     <link rel="stylesheet" href="styles.css?v=6545c6bc642c">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
-    <script src="js/config.js?v=88a0582bbf2f" defer></script>
+    <script src="js/text-ja.js?v=d6378b3a6c2d" defer></script>
+    <script src="js/text.js?v=a224acd27662" defer></script>
+    <script src="js/config.js?v=d4e5174ca852" defer></script>
     <script src="js/audio.js?v=52c1ebe7bb2f" defer></script>
     <script src="js/utils.js?v=d73670fd1f8d" defer></script>
-    <script src="js/difficulty.js?v=f6a252ffb7ce" defer></script>
+    <script src="js/difficulty.js?v=8d73c2087e46" defer></script>
     <script src="js/stage.js?v=85b9524ab10d" defer></script>
-    <script src="js/game.js?v=e736eb280d7a" defer></script>
+    <script src="js/game.js?v=16799ce716ee" defer></script>
     <script src="js/route.js?v=a39b29d1a50e" defer></script>
     <script src="js/prototype.js?v=6d1c0d9e2472" defer></script>
     <script src="js/course.js?v=c052c290539f" defer></script>
     <script src="js/hazards.js?v=c8d0ded4f6a8" defer></script>
     <script src="js/map-art.js?v=df2ae2a66d65" defer></script>
-    <script src="js/level-map.js?v=58d8c656cd17" defer></script>
-    <script src="js/daily.js?v=5f359a519edc" defer></script>
+    <script src="js/level-map.js?v=eeeeb1569acb" defer></script>
+    <script src="js/daily.js?v=725bcb83e496" defer></script>
     <script src="js/ads.js?v=5cd87aaec8ef" defer></script>
-    <script src="js/lives.js?v=d411d2ac496e" defer></script>
-    <script src="js/rewards.js?v=d7488bda1479" defer></script>
-    <script src="js/input.js?v=124d1ec5decd" defer></script>
-    <script src="js/renderer.js?v=d595c8688862" defer></script>
+    <script src="js/lives.js?v=f7ebafa9caac" defer></script>
+    <script src="js/rewards.js?v=0e4129643777" defer></script>
+    <script src="js/input.js?v=672b24ff9d27" defer></script>
+    <script src="js/renderer.js?v=9933c3c24b8b" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
-    <script src="js/appearance.js?v=44fbe172ed0f" defer></script>
-    <script src="js/leaderboard.js?v=41d8857f8206" defer></script>
-    <script src="js/online.js?v=083db95cce8c" defer></script>
-    <script src="js/online-scores.js?v=0eabb8bcb8ab" defer></script>
-    <script src="js/account-deletion.js?v=54b66db77f78" defer></script>
-    <script src="js/transfer.js?v=82a26c39a39e" defer></script>
-    <script src="js/main.js?v=27dcf0b12562" defer></script>
-    <script type="module" src="js/firebase-client.js?v=c25ebd05d3c6"></script>
+    <script src="js/appearance.js?v=55a291a2fffc" defer></script>
+    <script src="js/leaderboard.js?v=a1febfc08b0a" defer></script>
+    <script src="js/online.js?v=b9d40aa44a77" defer></script>
+    <script src="js/online-scores.js?v=7d6fc9f9d131" defer></script>
+    <script src="js/account-deletion.js?v=019cee179283" defer></script>
+    <script src="js/transfer.js?v=e912940aa274" defer></script>
+    <script src="js/main.js?v=aa5b24052bf9" defer></script>
+    <script type="module" src="js/firebase-client.js?v=43016aa8cd07"></script>
 </head>
 <body>
     <main>
-        <section class="wall" id="wall" aria-label="クライミングゲーム">
-            <canvas id="game" tabindex="0" width="400" height="700" aria-label="1本指のスワイプで移動、ボディをタップしてUndo、2本指のスワイプでステージをスクロール"></canvas>
+        <section class="wall" id="wall" aria-label="" data-i18n-aria-label="ui.wall.aria-label">
+            <canvas id="game" tabindex="0" width="400" height="700" aria-label="" data-i18n-aria-label="ui.game.aria-label"></canvas>
             <div id="goalEffects" class="goal-effects" aria-hidden="true" hidden><i></i><i></i><i></i><i></i></div>
-            <div id="lifeStatus" class="life-status" aria-label="ライフ" hidden></div>
+            <div id="lifeStatus" class="life-status" aria-label="" hidden data-i18n-aria-label="ui.lifeStatus.aria-label"></div>
             <div class="hud" id="hud" hidden>
                 <div id="staminaGauge" class="stamina-heart">
                     <svg viewBox="0 0 100 90" aria-hidden="true">
@@ -55,94 +57,94 @@
                     </svg>
                     <strong id="stamina">—</strong>
                 </div>
-                <div class="level" id="level">STAGE 1</div>
-                <button id="settingsButton" class="settings-button" aria-label="設定を開く" aria-haspopup="dialog" aria-controls="settingsDialog"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
-                <div class="progress" id="progress" hidden>0 ムーブ / 準備中</div>
+                <div class="level" id="level" data-i18n="ui.level"></div>
+                <button id="settingsButton" class="settings-button" aria-label="" aria-haspopup="dialog" aria-controls="settingsDialog" data-i18n-aria-label="ui.settingsButton.aria-label"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
+                <div class="progress" id="progress" hidden data-i18n="ui.progress"></div>
             </div>
 
-            <div class="title-screen" id="titleScreen" role="button" tabindex="0" aria-label="準備完了後にタップしてマップへ" aria-disabled="true">
+            <div class="title-screen" id="titleScreen" role="button" tabindex="0" aria-label="" aria-disabled="true" data-i18n-aria-label="ui.titleScreen.aria-label">
                 <div id="titleWallpaper" class="title-wallpaper" aria-hidden="true"></div>
                 <div class="title-content">
-                    <h1 class="brand">ASCENT<span class="brand-dot">.</span></h1>
+                    <h1 class="brand"><span data-i18n="title.brand"></span><span class="brand-dot">.</span></h1>
                     <p id="releaseVersion" class="release-version"></p>
                     <p id="playerUuid" class="player-uuid"></p>
-                    <div id="titleTap" class="title-tap modal-tap" aria-live="polite" hidden>TAP</div>
+                    <div id="titleTap" class="title-tap modal-tap" aria-live="polite" hidden data-i18n="action.tap"></div>
                 </div>
-                <button id="titleTransfer" class="title-transfer secondary" type="button">データ引き継ぎ</button>
+                <button id="titleTransfer" class="title-transfer secondary" type="button" data-i18n="ui.titleTransfer"></button>
             </div>
-            <section id="characterEditor" class="character-editor" aria-label="キャラエディット" hidden>
-                <label class="player-name-label" for="playerName">プレイヤー名</label>
+            <section id="characterEditor" class="character-editor" aria-label="" hidden data-i18n-aria-label="ui.characterEditor.aria-label">
+                <label class="player-name-label" for="playerName" data-i18n="ui.characterEditor.label"></label>
                 <input id="playerName" type="text" size="10" autocomplete="off" spellcheck="false" aria-describedby="playerNameError" enterkeyhint="done">
-                <p id="playerNameError" class="player-name-error" hidden>プレイヤー名を入力してください。</p>
+                <p id="playerNameError" class="player-name-error" hidden data-i18n="ui.playerNameError"></p>
                 <div class="editor-workspace">
-                <svg id="editorPreview" viewBox="0 0 210 370" preserveAspectRatio="xMidYMid meet" class="editor-preview" role="group" aria-label="キャラクターの配色プレビュー"></svg>
+                <svg id="editorPreview" viewBox="0 0 210 370" preserveAspectRatio="xMidYMid meet" class="editor-preview" role="group" aria-label="" data-i18n-aria-label="ui.editorPreview.aria-label"></svg>
                 </div>
                 <div class="editor-stripe-row"><div id="bodyStripeControls">
-                <label class="stripe-slider" for="stripeCount">ボディの塗り分け <output id="stripeCountValue" for="stripeCount">1</output></label>
+                <label class="stripe-slider" for="stripeCount"><span data-i18n="ui.bodyStripeControls.label"></span> <output id="stripeCountValue" for="stripeCount">1</output></label>
                 <input id="stripeCount" type="range" min="1" max="8" step="1" value="1">
-                </div><button id="editorRandom" class="secondary" type="button">おまかせ</button></div>
-                <dialog id="editorPalette" class="editor-palette" aria-label="カラーパレット" hidden>
-                    <div id="paletteSwatches" class="palette-swatches" aria-label="カラーパレット"></div>
+                </div><button id="editorRandom" class="secondary" type="button" data-i18n="ui.editorRandom"></button></div>
+                <dialog id="editorPalette" class="editor-palette" aria-label="" hidden data-i18n-aria-label="ui.editorPalette.aria-label">
+                    <div id="paletteSwatches" class="palette-swatches" aria-label="" data-i18n-aria-label="ui.editorPalette.aria-label"></div>
                 </dialog>
                 <p id="appearanceStatus" role="status" hidden></p>
-                <div class="editor-actions"><button id="editorCancel" class="secondary">戻る</button><button id="editorConfirm">決定</button></div>
+                <div class="editor-actions"><button id="editorCancel" class="secondary" data-i18n="ui.editorCancel"></button><button id="editorConfirm" data-i18n="ui.editorConfirm"></button></div>
             </section>
-            <section class="level-map" id="levelMap" aria-label="ステージマップ" hidden>
+            <section class="level-map" id="levelMap" aria-label="" hidden data-i18n-aria-label="ui.levelMap.aria-label">
                 <div class="map-sky" aria-hidden="true"></div>
-                <div id="mapInventory" class="map-inventory" role="img" aria-label="チョークバッグ 所持数"><span class="heart-item-stack"><img class="heart-item-icon" src="assets/heart-item-chalk-bag.png" width="52" height="48" alt="" aria-hidden="true" draggable="false"><span id="mapItemCount" class="heart-item-quantity" aria-hidden="true">0</span></span></div>
-                <button id="mapSettingsButton" class="settings-button map-settings-button" aria-label="設定を開く" aria-haspopup="dialog" aria-controls="settingsDialog"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
+                <div id="mapInventory" class="map-inventory" role="img" aria-label="" data-i18n-aria-label="ui.mapInventory.aria-label"><span class="heart-item-stack"><img class="heart-item-icon" src="assets/heart-item-chalk-bag.png" width="52" height="48" alt="" aria-hidden="true" draggable="false"><span id="mapItemCount" class="heart-item-quantity" aria-hidden="true">0</span></span></div>
+                <button id="mapSettingsButton" class="settings-button map-settings-button" aria-label="" aria-haspopup="dialog" aria-controls="settingsDialog" data-i18n-aria-label="ui.settingsButton.aria-label"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
                 <div class="map-heading">
                     <div class="eyebrow" id="mapCourse"></div>
-                    <button id="openDaily" class="daily-airship" aria-label="デイリーチャレンジ">
+                    <button id="openDaily" class="daily-airship" aria-label="" data-i18n-aria-label="ui.openDaily.aria-label">
                         <i class="daily-sparkle" aria-hidden="true"></i><i class="daily-sparkle" aria-hidden="true"></i><i class="daily-sparkle" aria-hidden="true"></i><i class="daily-sparkle" aria-hidden="true"></i>
                         <img src="assets/daily-airship.webp" alt="" width="672" height="374">
                         <span id="dailyEntryDate" aria-hidden="true"></span>
                     </button>
                 </div>
                 <p id="mapError" class="map-error" role="alert" hidden></p>
-                <div class="map-scroll" id="mapScroll" tabindex="0" aria-label="ステージ一覧。上下にスクロールできます">
+                <div class="map-scroll" id="mapScroll" tabindex="0" aria-label="" data-i18n-aria-label="ui.mapScroll.aria-label">
                     <div class="map-track" id="mapTrack">
                         <svg id="mapScenery" class="map-scenery" aria-hidden="true" preserveAspectRatio="none"></svg>
                         <svg id="mapRoad" class="map-road" aria-hidden="true" preserveAspectRatio="none"></svg>
-                        <button id="mapNext" class="map-page map-page-next" aria-label="次の20STAGEへ"><svg viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><path d="M2 26 L50 2 L98 26 Z" vector-effect="non-scaling-stroke"/></svg></button>
-                        <button id="mapPrev" class="map-page map-page-prev" aria-label="前の20STAGEへ"><svg viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><path d="M2 26 L50 2 L98 26 Z" vector-effect="non-scaling-stroke"/></svg></button>
+                        <button id="mapNext" class="map-page map-page-next" aria-label="" data-i18n-aria-label="ui.mapNext.aria-label"><svg viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><path d="M2 26 L50 2 L98 26 Z" vector-effect="non-scaling-stroke"/></svg></button>
+                        <button id="mapPrev" class="map-page map-page-prev" aria-label="" data-i18n-aria-label="ui.mapPrev.aria-label"><svg viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><path d="M2 26 L50 2 L98 26 Z" vector-effect="non-scaling-stroke"/></svg></button>
                         <div id="mapNodes"></div>
-                        <div id="mapPlayers" class="map-players" aria-label="他のプレイヤー"></div>
+                        <div id="mapPlayers" class="map-players" aria-label="" data-i18n-aria-label="ui.mapPlayers.aria-label"></div>
                         <div id="mapMarker" class="map-marker" aria-hidden="true"><i></i><b></b></div>
                     </div>
                 </div>
                 <form id="debugControls" class="debug-controls" hidden>
-                    <label for="debugStage">ステージ番号</label>
+                    <label for="debugStage" data-i18n="ui.debugControls.label"></label>
                     <input id="debugStage" type="number" min="1" step="1" value="1" required inputmode="numeric">
-                    <button id="debugPlay" class="map-secondary" type="submit">プレイ</button>
-                    <small>未解放も選択可能・クリア進捗は保存しません</small>
+                    <button id="debugPlay" class="map-secondary" type="submit" data-i18n="ui.debugPlay"></button>
+                    <small data-i18n="ui.debugControls.small"></small>
                 </form>
             </section>
             <section id="dailyCalendar" class="daily-calendar" aria-labelledby="dailyTitle" hidden>
                 <div class="map-sky" aria-hidden="true"></div>
-                <h1 id="dailyTitle" class="daily-heading">デイリーチャレンジ</h1>
-                <button id="dailySettingsButton" class="settings-button map-settings-button" aria-label="設定を開く" aria-haspopup="dialog" aria-controls="settingsDialog"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
+                <h1 id="dailyTitle" class="daily-heading" data-i18n="ui.openDaily.aria-label"></h1>
+                <button id="dailySettingsButton" class="settings-button map-settings-button" aria-label="" aria-haspopup="dialog" aria-controls="settingsDialog" data-i18n-aria-label="ui.settingsButton.aria-label"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
                 <div class="map-heading daily-scenery">
-                    <button id="dailyBack" class="daily-airship" type="button" aria-label="マップへ戻る"><img src="assets/daily-airship.webp" alt="" width="672" height="374"><span id="dailySkyDate" aria-hidden="true"></span></button>
+                    <button id="dailyBack" class="daily-airship" type="button" aria-label="" data-i18n-aria-label="ui.dailyBack.aria-label"><img src="assets/daily-airship.webp" alt="" width="672" height="374"><span id="dailySkyDate" aria-hidden="true"></span></button>
                 </div>
                 <div class="daily-content">
                     <div id="dailyPlate" class="daily-calendar-plate">
-                        <div class="daily-month-navigation"><button id="dailyPrev" class="map-secondary" aria-label="前の月">←</button><div class="daily-month-label"><h2 id="dailyMonthTitle"></h2><p id="dailyStreak" class="daily-streak" role="status" aria-live="polite"></p></div><button id="dailyNext" class="map-secondary" aria-label="次の月">→</button></div>
-                        <div class="daily-weekdays" aria-hidden="true"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
-                        <div id="dailyMonthViewport" class="daily-month-viewport"><div id="dailyGrid" class="daily-grid" aria-label="日付を選択"></div></div>
+                        <div class="daily-month-navigation"><button id="dailyPrev" class="map-secondary" aria-label="" data-i18n-aria-label="ui.dailyPrev.aria-label">←</button><div class="daily-month-label"><h2 id="dailyMonthTitle"></h2><p id="dailyStreak" class="daily-streak" role="status" aria-live="polite"></p></div><button id="dailyNext" class="map-secondary" aria-label="" data-i18n-aria-label="ui.dailyNext.aria-label">→</button></div>
+                        <div class="daily-weekdays" aria-hidden="true"><span data-i18n="date.weekday.sun"></span><span data-i18n="date.weekday.mon"></span><span data-i18n="date.weekday.tue"></span><span data-i18n="date.weekday.wed"></span><span data-i18n="date.weekday.thu"></span><span data-i18n="date.weekday.fri"></span><span data-i18n="date.weekday.sat"></span></div>
+                        <div id="dailyMonthViewport" class="daily-month-viewport"><div id="dailyGrid" class="daily-grid" aria-label="" data-i18n-aria-label="date.select"></div></div>
                     </div>
                     <section class="daily-stage-start" aria-labelledby="dailyStartTitle">
                         <div class="stage-start-heading" aria-live="polite" aria-atomic="true">
-                            <div class="stage-start-title"><span id="dailyStartLabel" class="stage-start-label">日付を選択</span><h2 id="dailyStartTitle">—</h2></div>
+                            <div class="stage-start-title"><span id="dailyStartLabel" class="stage-start-label" data-i18n="date.select"></span><h2 id="dailyStartTitle">—</h2></div>
                             <div class="daily-stage-meta">
                                 <dl class="stage-start-info">
-                                    <div><dt>難易度</dt><dd id="dailyStartDifficulty">—</dd></div>
-                                    <div><dt>コースの長さ</dt><dd id="dailyStartLength">—</dd></div>
+                                    <div><dt data-i18n="ui.dailyCalendar.div.section.div.div.dl.div.dt"></dt><dd id="dailyStartDifficulty">—</dd></div>
+                                    <div><dt data-i18n="ui.dailyCalendar.div.section.div.div.dl.div.dt.2"></dt><dd id="dailyStartLength">—</dd></div>
                                 </dl>
-                                <img id="dailyStartGift" class="reward-gift-icon daily-stage-gift" src="assets/reward-gift.png" width="32" height="32" alt="本日の報酬は未受取です" draggable="false" hidden>
+                                <img id="dailyStartGift" class="reward-gift-icon daily-stage-gift" src="assets/reward-gift.png" width="32" height="32" alt="" draggable="false" hidden data-i18n-alt="ui.dailyStartGift.alt">
                             </div>
                         </div>
-                        <button id="dailyStartButton" type="button" disabled>スタート</button>
+                        <button id="dailyStartButton" type="button" disabled data-i18n="ui.dailyStartButton"></button>
                         <div id="dailyClearRecord" class="daily-clear-record" aria-live="polite" hidden>
                             <div id="dailyClearStars" class="daily-clear-stars"></div>
                             <p id="dailyClearStats"></p>
@@ -153,36 +155,36 @@
             </section>
             <dialog id="lifeDialog" class="life-dialog" aria-modal="true" aria-labelledby="lifeQuestion" hidden>
                 <div class="card">
-                    <button id="closeLife" class="modal-close" aria-label="閉じる">✕</button>
-                    <p id="lifeQuestion">ライフがありません。広告を見てライフを増やしますか？</p>
-                    <button id="lifeWatchAd">広告を見る</button>
-                    <button id="lifeCancel" class="secondary">キャンセル</button>
+                    <button id="closeLife" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeLife.aria-label">✕</button>
+                    <p id="lifeQuestion" data-i18n="lives.refreshLives"></p>
+                    <button id="lifeWatchAd" data-i18n="lives.refreshLives.3"></button>
+                    <button id="lifeCancel" class="secondary" data-i18n="ui.lifeCancel"></button>
                 </div>
             </dialog>
             <dialog id="dummyAd" class="dummy-ad" aria-modal="true" aria-labelledby="adTitle" hidden>
                 <div class="ad-content">
-                    <h1 id="adTitle">広告</h1>
-                    <div id="adCounter" class="ad-counter" role="timer" aria-label="広告の残り秒数">10</div>
-                    <button id="adComplete" hidden>完了</button>
+                    <h1 id="adTitle" data-i18n="ui.adTitle"></h1>
+                    <div id="adCounter" class="ad-counter" role="timer" aria-label="" data-i18n-aria-label="ui.adCounter.aria-label">10</div>
+                    <button id="adComplete" hidden data-i18n="ui.adComplete"></button>
                 </div>
             </dialog>
             <dialog class="overlay" id="overlay" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultTipText resultDifficulty resultStars resultStats" tabindex="-1" hidden>
                 <div class="card">
-                    <button id="closeResult" class="modal-close" aria-label="閉じて戻る">✕</button>
+                    <button id="closeResult" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeResult.aria-label">✕</button>
                     <div class="result-heading">
                         <h1 id="resultTitle"></h1>
                         <div id="resultStars" class="result-stars" hidden></div>
                     </div>
-                    <aside id="resultTip" class="result-tip" aria-label="Tips" hidden><p id="resultTipText"></p></aside>
+                    <aside id="resultTip" class="result-tip" aria-label="" hidden data-i18n-aria-label="ui.resultTip.aria-label"><p id="resultTipText"></p></aside>
                     <div id="resultDifficulty" class="result-difficulty" hidden></div>
                     <p id="resultStats" class="result-stats" hidden></p>
-                    <section id="resultRanking" class="result-ranking" aria-label="ステージハイスコア" hidden>
+                    <section id="resultRanking" class="result-ranking" aria-label="" hidden data-i18n-aria-label="ui.resultRanking.aria-label">
                         <ol id="resultLeaderboard" class="result-leaderboard"></ol>
                         <p id="resultScoreStatus" class="score-status" role="status"></p>
                     </section>
-                    <p id="resultTap" class="modal-tap" hidden>TAP</p>
-                    <button id="next" hidden>カレンダーへ</button>
-                    <button class="secondary" id="retry">RETRY</button>
+                    <p id="resultTap" class="modal-tap" hidden data-i18n="action.tap"></p>
+                    <button id="next" hidden data-i18n="action.calendar"></button>
+                    <button class="secondary" id="retry" data-i18n="action.retryEnglish"></button>
                 </div>
             </dialog>
         </section>
@@ -190,23 +192,23 @@
             <div class="card" id="featureHelpContent" aria-live="polite"></div>
         </dialog>
         <dialog id="stageStartDialog" class="stage-start-dialog" aria-labelledby="stageStartTitle" aria-describedby="stageStartDifficulty stageStartLength stageStartStamina">
-            <button id="closeStageStart" class="modal-close" aria-label="閉じる">✕</button>
+            <button id="closeStageStart" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeLife.aria-label">✕</button>
             <div class="stage-start-status">
                 <div id="stageStartLives" class="stage-start-lives" role="status"></div>
                 <div id="stageStartStars" class="stage-start-stars" hidden></div>
             </div>
             <div class="stage-start-heading">
-                <div class="stage-start-title"><h2 id="stageStartTitle">STAGE 1</h2></div>
+                <div class="stage-start-title"><h2 id="stageStartTitle" data-i18n="ui.level"></h2></div>
                 <dl class="stage-start-info">
-                    <div><dt>難易度</dt><dd id="stageStartDifficulty"></dd></div>
-                    <div><dt>コースの長さ</dt><dd id="stageStartLength"></dd></div>
+                    <div><dt data-i18n="ui.dailyCalendar.div.section.div.div.dl.div.dt"></dt><dd id="stageStartDifficulty"></dd></div>
+                    <div><dt data-i18n="ui.dailyCalendar.div.section.div.div.dl.div.dt.2"></dt><dd id="stageStartLength"></dd></div>
                 </dl>
             </div>
-            <section id="stageStartRanking" class="stage-start-ranking" aria-label="ステージハイスコア" hidden>
+            <section id="stageStartRanking" class="stage-start-ranking" aria-label="" hidden data-i18n-aria-label="ui.resultRanking.aria-label">
                 <ol id="stageStartLeaderboard" class="result-leaderboard"></ol>
                 <p id="stageScoreStatus" class="score-status" role="status"></p>
             </section>
-            <div class="stage-heart-items" role="group" aria-label="開始スタミナと使用するハート">
+            <div class="stage-heart-items" role="group" aria-label="" data-i18n-aria-label="ui.stageStartDialog.div.aria-label">
                 <div class="stage-heart-controls">
                     <div class="stamina-heart stage-start-stamina">
                     <svg viewBox="0 0 100 90" aria-hidden="true">
@@ -220,94 +222,94 @@
                         <use href="#stageBaseHeartShape" fill="url(#stageBaseHeartLight)" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
                         <path d="M16 26C16 18 23 13 30 15" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="4" stroke-linecap="round"/>
                     </svg>
-                        <strong id="stageStartStamina" aria-label="規定スタミナ">00</strong>
+                        <strong id="stageStartStamina" aria-label="" data-i18n-aria-label="ui.stageStartStamina.aria-label">00</strong>
                     </div>
                     <span class="stage-heart-plus" aria-hidden="true">+</span>
                     <div class="stage-heart-quantity">
-                        <button id="stageHeartCount" aria-label="ハートを1個追加"><span class="heart-item-stack"><img class="heart-item-icon" src="assets/heart-item-chalk-bag.png" width="52" height="48" alt="" aria-hidden="true" draggable="false"><span id="stageHeartValue" class="heart-item-quantity">00</span></span></button>
-                        <button id="stageHeartReset" aria-label="使用するハートを0個に戻す">✖︎</button>
+                        <button id="stageHeartCount" aria-label="" data-i18n-aria-label="ui.stageHeartCount.aria-label"><span class="heart-item-stack"><img class="heart-item-icon" src="assets/heart-item-chalk-bag.png" width="52" height="48" alt="" aria-hidden="true" draggable="false"><span id="stageHeartValue" class="heart-item-quantity">00</span></span></button>
+                        <button id="stageHeartReset" aria-label="" data-i18n-aria-label="ui.stageHeartReset.aria-label">✖︎</button>
                     </div>
                 </div>
             </div>
-            <button id="stageStartButton">スタート</button>
+            <button id="stageStartButton" data-i18n="ui.dailyStartButton"></button>
         </dialog>
         <dialog id="rewardDialog" tabindex="-1" class="reward-screen" aria-labelledby="rewardTitle" hidden>
             <section class="reward-card">
-                <h2 id="rewardTitle">アイテム獲得</h2>
+                <h2 id="rewardTitle" data-i18n="ui.rewardTitle"></h2>
                 <p id="rewardStatus" class="reward-status" role="status" aria-live="polite"></p>
                 <div class="reward-roulette"><span class="reward-pointer" aria-hidden="true"></span><div id="rewardWheel" class="reward-wheel"></div></div>
-                <p id="rewardStop" class="modal-tap" aria-hidden="true">TAP</p>
+                <p id="rewardStop" class="modal-tap" aria-hidden="true" data-i18n="action.tap"></p>
                 <div id="rewardResult" class="reward-result" role="dialog" aria-modal="true" aria-labelledby="rewardResultTitle" tabindex="-1" hidden></div>
             </section>
         </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
-            <div class="help-heading"><h2 id="settingsTitle">設定</h2><button id="closeSettings" class="modal-close" aria-label="設定を閉じる" autofocus>✕</button></div>
-            <p id="onlineStatus" class="online-status" role="status">オンライン接続を準備中…</p>
+            <div class="help-heading"><h2 id="settingsTitle" data-i18n="ui.settingsTitle"></h2><button id="closeSettings" class="modal-close" aria-label="" autofocus data-i18n-aria-label="ui.closeSettings.aria-label">✕</button></div>
+            <p id="onlineStatus" class="online-status" role="status" data-i18n="online"></p>
             <p id="onlineScoreStatus" class="online-status" role="status" hidden></p>
-            <button id="restart">リタイヤ</button>
+            <button id="restart" data-i18n="ui.restart"></button>
             <div id="mapSettingsControls" class="map-settings-controls" hidden>
-                <button id="mapEditCharacter" class="secondary">キャラクターエディット</button>
-                <label class="settings-row" for="soundEnabled"><span>サウンド</span><input id="soundEnabled" type="checkbox" checked></label>
-                <label class="settings-row" for="languageChoice"><span>言語</span><select id="languageChoice"><option value="ja">日本語</option><option value="en">English</option></select></label>
+                <button id="mapEditCharacter" class="secondary" data-i18n="ui.mapEditCharacter"></button>
+                <label class="settings-row" for="soundEnabled"><span data-i18n="ui.mapSettingsControls.label.span"></span><input id="soundEnabled" type="checkbox" checked></label>
+                <label class="settings-row" for="languageChoice"><span data-i18n="ui.mapSettingsControls.label.span.2"></span><select id="languageChoice"><option value="ja" data-i18n="ui.languageChoice.option"></option><option value="en" data-i18n="ui.languageChoice.option.2"></option></select></label>
             </div>
-            <button id="showHelp" class="secondary" aria-haspopup="dialog" aria-controls="helpDialog">詳しい説明</button>
+            <button id="showHelp" class="secondary" aria-haspopup="dialog" aria-controls="helpDialog" data-i18n="ui.showHelp"></button>
             <div id="mapSettingsFooter" class="map-settings-footer" hidden>
-                <button id="mapCourses" class="secondary">タイトル画面へ</button>
-                <label class="settings-row" for="mapDebugMode"><span>デバッグモード</span><input id="mapDebugMode" type="checkbox"></label>
-                <button id="debugDeleteUser" class="account-delete-button" hidden>自分のユーザーデータを削除</button>
-                <button id="prototypeCourse" class="secondary" hidden>ロジハラ（検証用）</button>
+                <button id="mapCourses" class="secondary" data-i18n="ui.mapCourses"></button>
+                <label class="settings-row" for="mapDebugMode"><span data-i18n="ui.mapSettingsFooter.label.span"></span><input id="mapDebugMode" type="checkbox"></label>
+                <button id="debugDeleteUser" class="account-delete-button" hidden data-i18n="ui.debugDeleteUser"></button>
+                <button id="prototypeCourse" class="secondary" hidden data-i18n="input.syncDebugCourseControls"></button>
             </div>
             <div id="stageDebugDisplay" hidden>
-                <label class="settings-row" for="debugRoute"><span>想定ルート</span><input id="debugRoute" type="checkbox" checked></label>
-                <label class="settings-row" for="debugHoldNumbers"><span>ホールドNo</span><input id="debugHoldNumbers" type="checkbox" checked></label>
-                <label class="settings-row" for="debugCourseInfo"><span>コース情報</span><input id="debugCourseInfo" type="checkbox" checked></label>
+                <label class="settings-row" for="debugRoute"><span data-i18n="ui.stageDebugDisplay.label.span"></span><input id="debugRoute" type="checkbox" checked></label>
+                <label class="settings-row" for="debugHoldNumbers"><span data-i18n="ui.stageDebugDisplay.label.span.2"></span><input id="debugHoldNumbers" type="checkbox" checked></label>
+                <label class="settings-row" for="debugCourseInfo"><span data-i18n="ui.stageDebugDisplay.label.span.3"></span><input id="debugCourseInfo" type="checkbox" checked></label>
             </div>
         </dialog>
         <dialog id="deleteUserDialog" class="settings-dialog" aria-labelledby="deleteUserTitle">
-            <h2 id="deleteUserTitle">自分のユーザーデータを削除</h2>
+            <h2 id="deleteUserTitle" data-i18n="ui.debugDeleteUser"></h2>
             <p id="deleteUserSummary" class="delete-user-summary"></p>
-            <p id="deleteUserWarning">名前・配色・進行状況・全ステージのスコア・認証アカウントと、この端末のゲームデータを削除します。この操作は取り消せません。</p>
+            <p id="deleteUserWarning" data-i18n="ui.deleteUserWarning"></p>
             <p id="deleteUserStatus" role="status" aria-live="polite"></p>
-            <button id="deleteUserConfirm" class="account-delete-button">削除する</button>
-            <button id="deleteUserCancel" class="secondary">戻る</button>
-            <button id="deleteUserNew" hidden>新しいユーザーで開始</button>
+            <button id="deleteUserConfirm" class="account-delete-button" data-i18n="ui.deleteUserConfirm"></button>
+            <button id="deleteUserCancel" class="secondary" data-i18n="ui.editorCancel"></button>
+            <button id="deleteUserNew" hidden data-i18n="ui.deleteUserNew"></button>
         </dialog>
         <dialog id="transferDialog" class="transfer-dialog" aria-labelledby="transferTitle">
-            <div class="help-heading"><h2 id="transferTitle">データ引き継ぎ</h2><button id="transferClose" class="modal-close" aria-label="閉じる">✖️</button></div>
-            <p>進行状況・記録・見た目・所持アイテム・ライフと、同じUIDを引き継ぎます。</p>
-            <p class="transfer-note">保存ファイルで同じユーザーとして復元できます。他の人に渡さず、大切に保管してください。</p>
-            <button id="transferExport" type="button">エクスポート</button>
-            <a id="transferDownload" class="transfer-download" hidden>ファイルを保存</a>
-            <label class="transfer-file-label" for="transferFile">インポートするファイル</label>
+            <div class="help-heading"><h2 id="transferTitle" data-i18n="ui.titleTransfer"></h2><button id="transferClose" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeLife.aria-label">✖️</button></div>
+            <p data-i18n="ui.transferDialog.p"></p>
+            <p class="transfer-note" data-i18n="ui.transferDialog.p.2"></p>
+            <button id="transferExport" type="button" data-i18n="ui.transferExport"></button>
+            <a id="transferDownload" class="transfer-download" hidden data-i18n="ui.transferDownload"></a>
+            <label class="transfer-file-label" for="transferFile" data-i18n="ui.transferDialog.label"></label>
             <input id="transferFile" type="file" accept=".json,application/json">
             <p id="transferPreview" class="transfer-preview" hidden></p>
-            <button id="transferImport" type="button" hidden>このデータを読み込む</button>
+            <button id="transferImport" type="button" hidden data-i18n="ui.transferImport"></button>
             <p id="transferStatus" role="status" aria-live="polite"></p>
-            <button id="transferReload" type="button" hidden>再読み込み</button>
+            <button id="transferReload" type="button" hidden data-i18n="ui.transferReload"></button>
         </dialog>
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
-            <div class="help-heading"><h2 id="helpTitle">詳しい説明</h2><button id="closeHelp" class="modal-close" aria-label="説明を閉じる">✖️</button></div>
+            <div class="help-heading"><h2 id="helpTitle" data-i18n="ui.showHelp"></h2><button id="closeHelp" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeHelp.aria-label">✖️</button></div>
             <div id="helpScroll" class="help-scroll">
-            <h3>ステージ内の操作</h3>
-            <p>壁をスワイプして体を動かします。2本の手足で支え、残りの2本は近くのホールドへ自動で移ります。4本ともつかめる位置で指を離すと1ムーブです。両足で支え、両手で黄色いゴールをつかむとクリア！</p>
-            <p>ボディを短くタップすると直前の1ムーブと消費スタミナを戻せます。1ムーブ進むと再び使えます。壁の上下スクロールは2本指、または画面の左右端をスワイプします。</p>
-            <h3>ホールドとスタミナ</h3>
+            <h3 data-i18n="help.stage.heading"></h3>
+            <p data-i18n="help.stage.movement"></p>
+            <p data-i18n="help.stage.undoScroll"></p>
+            <h3 data-i18n="help.holds.heading"></h3>
             <ul>
-                <li><strong>ホールド：</strong>手か足を1本置けます。緑色はスタートです。</li>
-                <li><strong>大きなホールド：</strong>両手か両足で共有できます。</li>
-                <li><strong>小さくとがったホールド：</strong>新たにつかんで1ムーブを確定すると、1個につきスタミナを追加で1消費します。持ち替え・つかみ直しも対象です。</li>
-                <li><strong>ハート：</strong>ボディで触れるとスタミナが2回復します。ムーブを戻しても回復は残ります。</li>
+                <li><strong data-i18n="help.holds.normalLabel"></strong><span data-i18n="help.holds.normal"></span></li>
+                <li><strong data-i18n="help.holds.wideLabel"></strong><span data-i18n="help.holds.wide"></span></li>
+                <li><strong data-i18n="help.holds.hazardLabel"></strong><span data-i18n="help.holds.hazard"></span></li>
+                <li><strong data-i18n="help.holds.heartLabel"></strong><span data-i18n="help.holds.heart"></span></li>
             </ul>
-            <p>1ムーブごとにスタミナを1消費し、ゴール前に0になると失敗です。0になるムーブでもゴールできればクリア。残りスタミナは次のステージへ持ち越しません。</p>
-            <h3>マップとデイリー</h3>
-            <p><strong>ステージマップ：</strong>ステージを選び「スタート」で挑戦します。クリアすると次が開き、クリア済みのステージも何度でも遊べます。開始前にチョークバッグを使うと、1個につきスタミナを1追加できます。</p>
-            <p><strong>ライフ：</strong>通常ステージの失敗・途中退出・やり直しで1消費します。30分に1回、3個まで自然回復します。0のときは広告で回復できます。</p>
-            <p><strong>スターとランキング：</strong>少ないムーブ数で登るほどスターが増えます。ランキングはムーブ数が少ない順、同じムーブ数ならタイムが短い順です。</p>
-            <p><strong>デイリーチャレンジ：</strong>飛行船からカレンダーを開き、日付を選んで挑戦します。同じ日付は同じコースで、ライフは不要です。各日1回クリアでき、当日分のクリアでは報酬を受け取れます。</p>
-            <p id="prototypeDescription" hidden><strong>デバッグ用のロジハラ：</strong>クリアルートを保ちながらホールドを絞った検証用コースです。</p>
-            <h3>キャラエディット</h3>
-            <p>設定の「キャラクターエディット」で名前と配色を変えられます。スライダーでボディを1〜8段に分け、頭や各段をタップして色を選びます。「おまかせ」で配色と段数をランダムに変更できます。</p>
-            <p>「決定」で保存し、「戻る」で変更を取り消します。</p>
+            <p data-i18n="help.stamina"></p>
+            <h3 data-i18n="help.mapDaily.heading"></h3>
+            <p><strong data-i18n="help.mapLabel"></strong><span data-i18n="help.map"></span></p>
+            <p><strong data-i18n="help.livesLabel"></strong><span data-i18n="help.lives"></span></p>
+            <p><strong data-i18n="help.rankingLabel"></strong><span data-i18n="help.ranking"></span></p>
+            <p><strong data-i18n="help.dailyLabel"></strong><span data-i18n="help.daily"></span></p>
+            <p id="prototypeDescription" hidden><strong data-i18n="ui.prototypeDescription.strong"></strong><span data-i18n="ui.prototypeDescription"></span></p>
+            <h3 data-i18n="ui.characterEditor.aria-label"></h3>
+            <p data-i18n="help.editor.customize"></p>
+            <p data-i18n="help.editor.saveCancel"></p>
             </div>
         </dialog>
     </main>

@@ -28,7 +28,7 @@ async function beginTitlePreparation() {
     const ticket=++titlePreparation;
     titleReady=false;ui.titleTap.hidden=true;
     ui.titleScreen.setAttribute('aria-disabled','true');
-    ui.releaseVersion.textContent=`VERSION ${RELEASE_VERSION}`;
+    ui.releaseVersion.textContent=gameText("label.version", {value0: RELEASE_VERSION});
     updateTitleUid();
     ui.titleWallpaper.style.animation='none';
     ui.wall.classList.toggle('title-open',true);
