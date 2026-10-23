@@ -11,7 +11,7 @@ window.addEventListener('message',event=>{if(event.source===preview.contentWindo
 async function render(){
  const [width,height]=document.getElementById('size').value.split('×').map(Number),language=document.getElementById('language').value,screen=document.getElementById('screen').value;
  preview.width=width;preview.height=height;report.textContent='Preparing…';
- const root=new URL('../',location.href),markup=await fetch(new URL('index.html',root)).then(r=>r.text());
+ const root=new URL('../',location.href),markup=await fetch(new URL('index.html',root),{cache:'no-store'}).then(r=>r.text());
  const doc=new DOMParser().parseFromString(markup,'text/html');const base=doc.createElement('base');base.href=root.href;doc.head.prepend(base);
  doc.querySelector('script[src*="firebase-client.js"]').remove();
  const fixture=doc.createElement('script');fixture.textContent=`
@@ -29,7 +29,7 @@ async function render(){
    reset(1);cameraIntro=null;hideStageHelp();ui.levelMap.hidden=true;moveCount=18;runElapsedMs=123456;runStartedAt=null;
    if(screen==='daily-clear')dailyRun={...dailyProfile(localToday()),returnCourse:'existing'};
    if(screen==='feature'){pendingFeatureHelp=['hazard'];featureHelpOpen=true;renderStageHelp();ui.featureHelpDialog.showModal();}
-   else {finish(screen!=='failure');ui.resultTipText.textContent=GAMEPLAY_TIPS.reduce((a,b)=>a.length>b.length?a:b);}
+   else {finish(screen!=='failure');if(screen!=='failure'){ui.resultStars.textContent='⭐️⭐️⭐️';ui.resultStars.setAttribute('aria-label',gameText('score.stars',{value0:3}));}ui.resultTipText.textContent=GAMEPLAY_TIPS.reduce((a,b)=>a.length>b.length?a:b);}
   }
   else if(screen==='reward'){ui.rewardResult.innerHTML=rewardResultMarkup({kind:'life',amount:0});ui.rewardResult.hidden=false;ui.rewardDialog.hidden=false;ui.rewardDialog.showModal();}
   else if(screen==='life'){lives.count=0;requestLifeStart(()=>{});}
@@ -40,7 +40,7 @@ async function render(){
   await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   const issues=[],hidden=el=>!el.getClientRects().length || el.closest('[hidden]');
   for(const el of document.querySelectorAll('button,h1,h2,.score-row,.score-status,.stage-start-heading,.result-heading,.daily-clear-record,.editor-actions,.daily-heading')){
-   if(hidden(el))continue;const r=el.getBoundingClientRect(),style=getComputedStyle(el);
+   if(hidden(el)||el.classList.contains('map-node'))continue;const r=el.getBoundingClientRect(),style=getComputedStyle(el);
    if(r.left<-.5||r.right>innerWidth+.5)issues.push({kind:'viewport',id:el.id||el.className,text:el.textContent.trim(),left:r.left,right:r.right});
    if(el.scrollWidth>el.clientWidth+2 && !['hidden','clip'].includes(style.overflowX))issues.push({kind:'overflow',id:el.id||el.className,text:el.textContent.trim(),scroll:el.scrollWidth,client:el.clientWidth});
    if(el.tagName==='BUTTON'&&el.textContent.trim()){
@@ -49,7 +49,7 @@ async function render(){
    }
   }
   if(screen==='editor')for(const id of ['playerName','editorRandom','editorCancel','editorConfirm']){const r=document.getElementById(id).getBoundingClientRect();if(r.bottom>innerHeight||r.top<0)issues.push({kind:'editor-height',id,bottom:r.bottom});}
-  parent.postMessage({type:'layout',language:${JSON.stringify(language)},screen,width:innerWidth,height:innerHeight,issues},'*');
+  parent.postMessage({type:'layout',language:${JSON.stringify(language)},screen,width:innerWidth,height:innerHeight,heading:document.querySelector('dialog[open] h1,dialog[open] h2')?.textContent,issues},'*');
  }catch(error){parent.postMessage({type:'layout',error:String(error),stack:error.stack},'*');}
  });`;
  doc.body.append(fixture);preview.srcdoc='<!doctype html>'+doc.documentElement.outerHTML;

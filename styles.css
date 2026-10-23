@@ -595,3 +595,6 @@ button.modal-close:focus-visible { outline:none; }
 .transfer-dialog [hidden] { display:none; }
 
 .title-screen { overflow:hidden; }
+
+/* English counters leave room for player names on narrow ranking cards. */
+html[lang="en"] .score-row { grid-template-columns:22px 21px minmax(0,1fr) max-content 62px; gap:4px; }

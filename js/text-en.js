@@ -50,7 +50,7 @@ const GAME_TEXT_EN = Object.freeze({
     "firebase-client.bootFirebase.4": "The transfer UID does not match.",
     "firebase-client.bootFirebase.5": "Could not verify your UID. Please reload.",
     "result.failure": "Climb Failed…",
-    "result.success": "Summit Reached!",
+    "result.success": "Summit!",
     "action.retryEnglish": "RETRY",
     "action.retry": "Retry",
     "game.updateUI.2": "Stamina: {value0} moves",
@@ -61,7 +61,7 @@ const GAME_TEXT_EN = Object.freeze({
     "feature.hazard": "Placing a hand or foot on a new hold costs 1 extra stamina",
     "feature.heart": "Touch it with your body to restore 2 stamina",
     "action.tap": "TAP",
-    "leaderboard.stageLeaderboardMarkup": "Moves: {value6}",
+    "leaderboard.stageLeaderboardMarkup": "{value6} moves",
     "leaderboard.stageLeaderboardMarkup.2": "Rank {value0}: No record",
     "level-map.selectStage": "Could not generate the stage. Please select it again.",
     "level-map.renderStageHeartItems": "Base stamina: {value0}",
@@ -221,5 +221,6 @@ const GAME_TEXT_EN_ONE = Object.freeze({
     "daily.renderDailyCalendar.9": "Streak: {value0} day",
     "game.updateUI.2": "Stamina: {value0} move",
     "daily.renderDailyCalendar.3": " star · Cannot replay",
-    "level-map.renderLevelMap.4": " star"
+    "level-map.renderLevelMap.4": " star",
+    "leaderboard.stageLeaderboardMarkup": "{value6} move"
 });

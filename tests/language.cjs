@@ -1,7 +1,7 @@
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const source=[...fs.readFileSync('index.html','utf8').matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(m[1],'utf8')).join('\n');
 const env=`
-const elements={};const document={documentElement:{},getElementById(id){return elements[id]||={style:{},classList:{toggle(){}},events:{},focus(){},setAttribute(){},removeAttribute(){},addEventListener(k,fn){this.events[k]=fn;},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(){return function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};
+const elements={};const document={documentElement:{},getElementById(id){return elements[id]||={style:{},classList:{toggle(){}},events:{},focus(){},setAttribute(k,v){this[k]=v;},removeAttribute(){},addEventListener(k,fn){this.events[k]=fn;},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(){return function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};
 const window={devicePixelRatio:1,addEventListener(){}};function requestAnimationFrame(){}
 `;
 const data={'other.app':'keep'},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v,removeItem:k=>delete data[k]};
@@ -14,6 +14,7 @@ map();setOnlineStatus(gameText('firebase-client.bootFirebase'));ui.mapSettingsBu
 let before=snapshot();ui.languageChoice.value='en';ui.languageChoice.onchange();
 assert.equal(GAME_TEXT_LANGUAGE,'en');assert.equal(data[LANGUAGE_KEY],'en');assert.equal(state,'map');assert(settingsOpen);assert.equal(snapshot(),before);
 assert.equal(online.status,'Offline (playing on this device)');assert.equal(ui.playerUuid.textContent,'UID Not connected');
+assert.equal(ui.mapInventory['aria-label'],'Chalk Bags owned: 5');assert.equal(gameText('leaderboard.stageLeaderboardMarkup',{value6:1,value0:1}),'1 move');
 assert.equal(GAMEPLAY_TIPS[1],'Tap your back to undo one move!');assert(ui.mapNodes.innerHTML.includes('Ready to play'));
 ui.languageChoice.value='ja';ui.languageChoice.onchange();assert.equal(online.status,'オフライン（端末内でプレイ）');assert.equal(ui.playerUuid.textContent,'UID 未接続');assert.equal(snapshot(),before);
 assert.equal(setGameLanguage('xx'),false);assert.equal(GAME_TEXT_LANGUAGE,'ja');

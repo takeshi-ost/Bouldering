@@ -32,7 +32,7 @@ function refreshGameLanguage(previous) {
         renderStageHeartItems();renderStageStartRecord(stageStartContext);
         ui.stageStartLength.textContent=gameText('course.'+stageLengthInfo(stageStartContext.n).category);
     }
-    refreshLives();refreshOpenScoreViews();updateUI();requestGameRender();
+    renderMapInventory();refreshLives();refreshOpenScoreViews();updateUI();requestGameRender();
 }
 function dailyResultDateLabel(date) {
     const label=dailyDateLabel(date);
