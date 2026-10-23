@@ -27,7 +27,7 @@ function hasMapReward(n) {
 }
 function recordMapRewardClear() {
     if(dailyRun || debugAttempt || !hasMapReward(level) || mapRewards[level])return;
-    mapRewards[level]={status:'pending',adRequired:clearsSinceAd>=5,adCompleted:false};
+    mapRewards[level]={status:'pending',adRequired:playsSinceAd>=4,adCompleted:false};
     saveMapRewards();
 }
 function startMapClearReward(n,onReturn=()=>showLevelMap({target:n+1})) {
@@ -38,7 +38,7 @@ function startMapClearReward(n,onReturn=()=>showLevelMap({target:n+1})) {
     });
     if(!record.adRequired || record.adCompleted)return launch();
     return startDummyAd({onComplete:()=>{
-        resetAdClearCount();record.adCompleted=true;saveMapRewards();
+        resetAdPlayCount();record.adCompleted=true;saveMapRewards();
     },onReturn:launch});
 }
 function resumePendingMapReward() {
@@ -49,8 +49,8 @@ function resumePendingMapReward() {
 function continueNormalClear({advance=true}={}) {
     const n=level,resume=()=>showLevelMap(advance?{advanceFrom:n}:{target:n});
     if(!debugAttempt && startMapClearReward(n,resume))return;
-    if(courseMode==='existing' && !debugAttempt && clearsSinceAd>=5)
-        startDummyAd({onComplete:resetAdClearCount,onReturn:resume});
+    if(courseMode==='existing' && !debugAttempt && playsSinceAd>=4)
+        startDummyAd({onComplete:resetAdPlayCount,onReturn:resume});
     else resume();
 }
 const ROULETTE_OPTIONS=Object.freeze([

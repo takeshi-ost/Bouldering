@@ -95,7 +95,7 @@ for(const [rating,key] of dates){
  assert.equal(ui.dailyClearStars.textContent,'⭐️⭐️⭐️');assert.equal(ui.dailyClearStats.textContent,formatStageRecord(dailyRecords[key]));
  const selectedBeforeFuture=dailySelectedDate;assert(!chooseDailyDate('2026-10-18'));assert.equal(dailySelectedDate,selectedBeforeFuture);
  ui.dailyStartButton.onclick();assert.equal(state,'daily');assert(!dummyAd);
- const count=dailyAttempts[key],pending=dailyEntryAdPending;assert(!selectDailyDate(key));assert.equal(state,'daily');assert(!dummyAd);assert.equal(dailyAttempts[key],count);assert.equal(dailyEntryAdPending,pending);
+ const count=dailyAttempts[key],pending=JSON.stringify(dailyPlayAdState);assert(!selectDailyDate(key));assert.equal(state,'daily');assert(!dummyAd);assert.equal(dailyAttempts[key],count);assert.equal(JSON.stringify(dailyPlayAdState),pending);
  assert(ui.dailyGrid.innerHTML.includes('daily-clear-icon'));assert.equal(dailyRecords[key].stars,3);
 }
 assert.deepEqual(readDailyRecords(),dailyRecords);
@@ -106,7 +106,7 @@ showDailyCalendar();ui.dailyBack.onclick();assert.equal(state,'map');assert.equa
 const fresh=Array.from({length:31},(_,i)=>'2026-01-'+String(i+1).padStart(2,'0')).find(k=>!dailyRecords[k] && dailyProfile(k).difficulty===0);
 startCourse('prototype');ui.openDaily.onclick();assert(selectDailyDate(fresh));finishAds();assert.equal(courseMode,'existing');showDailyCalendar();ui.dailyBack.onclick();assert.equal(courseMode,'prototype');assert.equal(state,'map');
 // An interrupted generation reports an error on the calendar, without normal progress changes.
-ui.openDaily.onclick();const originalReset=reset;reset=()=>{throw Error('fixture failure');};const oldError=console.error;console.error=()=>{};setDailyEntryAdPending(false);dailyAttempts[fresh]=2;assert(!selectDailyDate(fresh));console.error=oldError;reset=originalReset;assert.equal(state,'daily');assert(!ui.dailyError.hidden && !dailyRun);
+ui.openDaily.onclick();const originalReset=reset;reset=()=>{throw Error('fixture failure');};const oldError=console.error;console.error=()=>{};dailyPlayAdState={plays:0,adPaid:false};dailyAttempts[fresh]=2;assert(!selectDailyDate(fresh));console.error=oldError;reset=originalReset;assert.equal(state,'daily');assert(!ui.dailyError.hidden && !dailyRun);
 const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]='{bad';assert.deepEqual(readDailyRecords(),{});
 data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-02-30':{moves:1,timeMs:2,stars:3},'2026-01-01':{moves:0,timeMs:2,stars:3},'2026-01-02':{moves:1,timeMs:-1,stars:3},'2026-01-03':{moves:1,timeMs:2,stars:4}});assert.deepEqual(readDailyRecords(),{});data[DAILY_RECORDS_KEY]=saved;
 const savedGet=storage.getItem;storage.getItem=()=>{throw Error('blocked');};assert.deepEqual(readDailyRecords(),{});storage.getItem=savedGet;

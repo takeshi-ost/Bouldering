@@ -1,7 +1,7 @@
 "use strict";
 const DAILY_RECORDS_KEY='ascent.daily-records.v1';
 const DAILY_ATTEMPTS_KEY='ascent.daily-attempts.v1';
-const DAILY_ENTRY_AD_KEY='ascent.daily-entry-ad.v1';
+const DAILY_PLAY_AD_KEY='ascent.daily-play-ad.v1';
 function utcToday(now=new Date()) {return now.toISOString().slice(0,10);}
 function localToday(now=new Date()) {
     return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -27,19 +27,22 @@ function saveDailyAttempts() {
     try {globalThis.localStorage?.setItem(DAILY_ATTEMPTS_KEY,JSON.stringify(dailyAttempts));}
     catch(_) { /* Use session-local attempt counts if persistence fails. */ }
 }
-function readDailyEntryAdPending() {
-    try {return JSON.parse(globalThis.localStorage?.getItem(DAILY_ENTRY_AD_KEY)||'false')===true;}
-    catch(_) {return false;}
+function readDailyPlayAdState() {
+    try {
+        const saved=JSON.parse(globalThis.localStorage?.getItem(DAILY_PLAY_AD_KEY)||'null');
+        if((saved?.plays===0 || saved?.plays===1) && typeof saved.adPaid==='boolean')
+            return {plays:saved.plays,adPaid:saved.adPaid};
+    } catch(_) { /* Keep the interval available without storage. */ }
+    return {plays:0,adPaid:false};
 }
-let dailyEntryAdPending=readDailyEntryAdPending();
-function setDailyEntryAdPending(pending) {
-    dailyEntryAdPending=pending;
-    try {globalThis.localStorage?.setItem(DAILY_ENTRY_AD_KEY,JSON.stringify(pending));}
-    catch(_) { /* Keep the deferred ad within this session. */ }
+let dailyPlayAdState=readDailyPlayAdState();
+function saveDailyPlayAdState() {
+    try {globalThis.localStorage?.setItem(DAILY_PLAY_AD_KEY,JSON.stringify(dailyPlayAdState));}
+    catch(_) { /* Keep the interval within this session. */ }
 }
 function returnDailyWithoutClear() {
     if(!dailyRun || !['playing','lost'].includes(state))return;
-    setDailyEntryAdPending(true);showDailyCalendar();
+    showDailyCalendar();
 }
 function dailyDateLabel(key) {
     const weekday='日月火水木金土'[new Date(key+'T00:00:00Z').getUTCDay()];
@@ -82,11 +85,7 @@ function startDailyClearReward(date) {
         onGrant:()=>{record.rewardStatus='claimed';saveDailyRecords();},
         onReturn:()=>showDailyCalendar()
     });
-    if(record.rewardAdCompleted)return launch();
-    return startDummyAd({onComplete:()=>{
-        record.rewardAdCompleted=true;saveDailyRecords();
-        if(dailyRun?.date===date)dailyRun.resultAdCompleted=true;
-    },onReturn:launch});
+    return launch();
 }
 let dailyMonth=localToday().slice(0,7);
 let dailySelectedDate=null;
@@ -220,22 +219,25 @@ function reportDailyGenerationError(error) {
 function launchDailyAttempt(profile,attempt) {
     if(dailyRecords[profile.date]){showDailyCalendar();return false;}
     try {
-        dailyRun={...profile,returnCourse:dailyReturnCourse,attempt,resultAdCompleted:false};
+        dailyRun={...profile,returnCourse:dailyReturnCourse,attempt};
         courseMode='existing';debugAttempt=false;
         restartInput(profile.referenceStage);
         dailyAttempts[profile.date]=attempt;saveDailyAttempts();
+        dailyPlayAdState={plays:(dailyPlayAdState.plays+1)%2,adPaid:false};saveDailyPlayAdState();
         canvas.setAttribute('tabindex','0');
         if(!featureHelpOpen)canvas.focus();
         return true;
     } catch(error) {return reportDailyGenerationError(error);}
 }
-function selectDailyDate(key,{adAlreadyShown=false}={}) {
+function selectDailyDate(key) {
     if(state!=='daily' || settingsOpen || !validDailyDate(key) || key>localToday() || dailyRecords[key])return false;
     try {
         const profile=dailyProfile(key);
         const attempt=(dailyAttempts[key]||0)+1;
-        if((dailyEntryAdPending || attempt%2===0) && !adAlreadyShown)
-            return startDummyAd({onComplete:()=>setDailyEntryAdPending(false),onReturn:()=>launchDailyAttempt(profile,attempt)});
+        if(dailyPlayAdState.plays===1 && !dailyPlayAdState.adPaid)
+            return startDummyAd({onComplete:()=>{
+                dailyPlayAdState.adPaid=true;saveDailyPlayAdState();
+            },onReturn:()=>launchDailyAttempt(profile,attempt)});
         return launchDailyAttempt(profile,attempt);
     } catch(error) {return reportDailyGenerationError(error);}
 }
@@ -247,13 +249,8 @@ function continueDailyResult(retry=false) {
     if(!retry && state==='won' && dailyRecords[run.date]?.rewardStatus==='pending') {
         startDailyClearReward(run.date);return;
     }
-    const needsAd=run.attempt===1 && !run.resultAdCompleted;
-    const resume=()=>{
-        showDailyCalendar();
-        if(retry)selectDailyDate(run.date,{adAlreadyShown:needsAd});
-    };
-    if(needsAd)startDummyAd({onComplete:()=>{run.resultAdCompleted=true;},onReturn:resume});
-    else resume();
+    showDailyCalendar();
+    if(retry)selectDailyDate(run.date);
 }
 ui.openDaily.onclick=()=>showDailyCalendar({openFromMap:true});
 ui.dailyBack.onclick=()=>{

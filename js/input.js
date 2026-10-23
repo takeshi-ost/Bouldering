@@ -150,7 +150,7 @@ ui.next.onclick = () => {
 ui.retry.onclick=()=>{
     if(state!=='lost')return;
     if(dailyRun)continueDailyResult(true);
-    else restartNormalStage();
+    else continueAfterNormalAd(()=>restartNormalStage());
 };
 ui.restart.onclick=()=>{
     if(state!=='playing')return;
@@ -160,9 +160,8 @@ function returnFromStage() {
     if(!['playing','won','lost'].includes(state))return;
     if(dailyRun) {
         if(state==='won')continueDailyResult();else returnDailyWithoutClear();
-    } else if(state==='won' && !debugAttempt && courseMode==='existing' && mapRewards[level]?.status==='pending')
-        continueNormalClear({advance:false});
-    else showLevelMap({target:level});
+    } else if(state==='won')continueNormalClear({advance:false});
+    else continueAfterNormalAd(()=>showLevelMap({target:level}));
 }
 
 function showTitleScreen() {

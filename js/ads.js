@@ -1,13 +1,13 @@
 "use strict";
-const AD_CLEARS_KEY='ascent.ad-clears.v1';
+const AD_PLAYS_KEY='ascent.ad-plays.v1';
 const DUMMY_AD_DURATION=10000;
-function readAdClearCount() {
+function readAdPlayCount() {
     try {
-        const count=JSON.parse(globalThis.localStorage?.getItem(AD_CLEARS_KEY)||'0');
+        const count=JSON.parse(globalThis.localStorage?.getItem(AD_PLAYS_KEY)||'0');
         return Number.isSafeInteger(count) && count>=0 ? count : 0;
     } catch(_) {return 0;}
 }
-let clearsSinceAd=readAdClearCount();
+let playsSinceAd=readAdPlayCount();
 let dummyAd=null;
 let adCoverPending=false;
 function finishDummyAdCover() {
@@ -15,16 +15,16 @@ function finishDummyAdCover() {
     adCoverPending=false;
     ui.dummyAd.close?.();ui.dummyAd.hidden=true;
 }
-function saveAdClearCount() {
-    try {globalThis.localStorage?.setItem(AD_CLEARS_KEY,JSON.stringify(clearsSinceAd));}
+function saveAdPlayCount() {
+    try {globalThis.localStorage?.setItem(AD_PLAYS_KEY,JSON.stringify(playsSinceAd));}
     catch(_) { /* Keep the interval within this session if storage is unavailable. */ }
 }
-function recordAdClear() {
-    if(adClearRecorded || dailyRun || debugAttempt || courseMode!=='existing')return;
-    adClearRecorded=true;
-    clearsSinceAd=Math.min(Number.MAX_SAFE_INTEGER,clearsSinceAd+1);saveAdClearCount();
+function recordAdPlay() {
+    if(adPlayRecorded || dailyRun || debugAttempt || courseMode!=='existing')return;
+    adPlayRecorded=true;
+    playsSinceAd=Math.min(Number.MAX_SAFE_INTEGER,playsSinceAd+1);saveAdPlayCount();
 }
-function resetAdClearCount() {clearsSinceAd=0;saveAdClearCount();}
+function resetAdPlayCount() {playsSinceAd=0;saveAdPlayCount();}
 // Completion work (e.g. a future reward) runs before returning to the caller's sequence.
 function startDummyAd({onComplete=()=>{},onReturn=null}={}) {
     if(dummyAd || adCoverPending)return false;
@@ -67,3 +67,11 @@ function completeDummyAd() {
 }
 ui.adComplete.onclick=completeDummyAd;
 ui.dummyAd.addEventListener('cancel',e=>e.preventDefault());
+
+// Result dismissal and retry share the same end-of-play ad gate.
+function continueAfterNormalAd(onReturn) {
+    if(dummyAd || adCoverPending)return false;
+    if(courseMode==='existing' && !dailyRun && !debugAttempt && playsSinceAd>=4)
+        return startDummyAd({onComplete:resetAdPlayCount,onReturn});
+    return onReturn();
+}

@@ -103,7 +103,7 @@ let densityStats = null;
 let undoSnapshot = null;
 let moveSnapshot = null;
 let lifeAttemptId=0;
-let adClearRecorded=false;
+let adPlayRecorded=false;
 let runStartedAt = null;
 let runElapsedMs = 0;
 function runTimeMs(now=performance.now()) {
@@ -505,7 +505,7 @@ function previewStaminaText(n,mode=courseMode,profile=null,bonus=0) {
 }
 function reset(n,staminaBonus=0) {
     lifeAttemptId++;
-    adClearRecorded=false;
+    adPlayRecorded=false;
     hideStageHelp();
     runStartedAt=null;runElapsedMs=0;
     undoSnapshot = moveSnapshot = null;
@@ -838,7 +838,8 @@ function finish(won) {
     settleLifeAttempt(won);
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
     state = won ? 'won' : 'lost';
-    if(won) { recordStageClear(); recordAdClear(); recordMapRewardClear(); startGoalHang(); }
+    recordAdPlay();
+    if(won) { recordStageClear(); recordMapRewardClear(); startGoalHang(); }
     else startFall();
     const showRanking=won && !dailyRun;
     ui.resultRanking.hidden=!showRanking;

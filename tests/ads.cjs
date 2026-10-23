@@ -13,31 +13,36 @@ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');Obje
 try {
 new Function('assert','data','storage',env+source+`
 function clearStage(){reset(1);cameraIntro=null;for(let i=1;i<route.length;i++) {camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();}assert.equal(state,'won');}
-for(let i=1;i<=10;i++) {
- clearStage();assert.equal(clearsSinceAd,(i-1)%5+1);finish(true);assert.equal(clearsSinceAd,(i-1)%5+1,'Count each run only once');
+for(let i=1;i<=8;i++) {
+ clearStage();assert.equal(playsSinceAd,(i-1)%4+1);finish(true);assert.equal(playsSinceAd,(i-1)%4+1,'Count each run only once');
  const record=JSON.stringify(stageRecords);ui.overlay.events.click({target:ui.overlay});
- if(i%5){assert.equal(state,'map');continue;}
+ if(i%4){assert.equal(state,'map');continue;}
  assert.equal(state,'ad');assert(ui.dummyAd.open && !ui.dummyAd.hidden && !ui.overlay.open);assert.equal(ui.adCounter.textContent,'10');assert(ui.adComplete.hidden);
  assert(!completeDummyAd());assert(!startDummyAd());assert(!canUndoMove() && !canScrollStage());
  let canceled=false;ui.dummyAd.events.cancel({preventDefault(){canceled=true;}});assert(canceled);
  const start=dummyAd.start;for(const [ms,remaining] of [[999,10],[1000,9],[9999,1],[10000,0]]){clock=start+ms;advanceDummyAd(clock);assert.equal(ui.adCounter.textContent,String(remaining));}
- assert(!ui.adComplete.hidden);assert.equal(clearsSinceAd,5,'Counter resets only after completion tap');
+ assert(!ui.adComplete.hidden);assert.equal(playsSinceAd,4,'Counter resets only after completion tap');
  ui.overlay.events.click({target:ui.overlay});ui.restart.onclick();returnFromStage();assert.equal(state,'ad');
- assert(completeDummyAd());assert(!completeDummyAd());assert.equal(state,'map');assert(ui.dummyAd.hidden && !ui.dummyAd.open);assert.equal(clearsSinceAd,0);assert.equal(JSON.stringify(stageRecords),record);
+ assert(completeDummyAd());assert(!completeDummyAd());assert.equal(state,'map');assert(ui.dummyAd.hidden && !ui.dummyAd.open);assert.equal(playsSinceAd,0);assert.equal(JSON.stringify(stageRecords),record);
  assert.deepEqual([mapTransition.from,mapTransition.to],[1,2]);advanceLevelMap(clock);advanceLevelMap(clock+650);assert.equal(mapSelected,2);
 }
-// Daily, debug, prototype, and failed runs do not count toward normal ads.
-reset(1);debugAttempt=true;finish(true);assert.equal(clearsSinceAd,0);debugAttempt=false;
-reset(1);dailyRun={...dailyProfile('2026-01-01'),returnCourse:'existing'};finish(true);assert.equal(clearsSinceAd,0);dailyRun=null;
-courseMode='prototype';reset(1);finish(true);assert.equal(clearsSinceAd,0);courseMode='existing';reset(1);finish(false);assert.equal(clearsSinceAd,0);
+// Daily, debug and prototype runs do not count toward normal ads.
+reset(1);debugAttempt=true;finish(true);assert.equal(playsSinceAd,0);debugAttempt=false;
+reset(1);dailyRun={...dailyProfile('2026-01-01'),returnCourse:'existing'};finish(true);assert.equal(playsSinceAd,0);dailyRun=null;
+courseMode='prototype';reset(1);finish(true);assert.equal(playsSinceAd,0);courseMode='existing';
+// Losses, retirements and past-level retries count once, and show ads on exit or retry.
+for(let i=1;i<=4;i++){reset(i%2+1);finish(false);finish(false);assert.equal(playsSinceAd,i);if(i<4)returnFromStage();}
+ui.retry.onclick();assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert.equal(state,'playing');assert.equal(playsSinceAd,0);
+for(let i=1;i<=4;i++){reset(1);ui.restart.onclick();assert.equal(state,'lost');returnFromStage();if(i<4)assert.equal(state,'map');}
+assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert.equal(state,'map');assert.equal(playsSinceAd,0);
 // Shared completion hook runs once before the continuation, and pauses an active timer.
 reset(1);cameraIntro=null;runStartedAt=clock-1234;const order=[];
 assert(startDummyAd({onComplete(){order.push('reward');},onReturn(){order.push('resume');assert.equal(state,'playing');}}));
 clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert.deepEqual(order,['reward','resume']);assert.equal(runTimeMs(),1234);assert(!completeDummyAd());
-finish(true);const count=clearsSinceAd;assert(startDummyAd());clock+=10000;advanceDummyAd(clock);completeDummyAd();assert.equal(state,'won');assert(ui.overlay.open);assert.equal(clearsSinceAd,count);
-for(const bad of ['null','-1','1.2','"5"','{}','{bad']){data[AD_CLEARS_KEY]=bad;assert.equal(readAdClearCount(),0);}saveAdClearCount();assert.equal(readAdClearCount(),1);
-const set=storage.setItem;storage.setItem=()=>{throw Error('blocked');};assert.doesNotThrow(resetAdClearCount);assert.equal(clearsSinceAd,0);storage.setItem=set;
+finish(true);const count=playsSinceAd;assert(startDummyAd());clock+=10000;advanceDummyAd(clock);completeDummyAd();assert.equal(state,'won');assert(ui.overlay.open);assert.equal(playsSinceAd,count);
+for(const bad of ['null','-1','1.2','"5"','{}','{bad']){data[AD_PLAYS_KEY]=bad;assert.equal(readAdPlayCount(),0);}saveAdPlayCount();assert.equal(readAdPlayCount(),1);
+const set=storage.setItem;storage.setItem=()=>{throw Error('blocked');};assert.doesNotThrow(resetAdPlayCount);assert.equal(playsSinceAd,0);storage.setItem=set;
 `)(assert,data,storage);
-new Function('assert',env+source+`assert.equal(clearsSinceAd,1,'Reload keeps the clear interval');`)(assert);
-console.log('PASS ads: actual 5th/10th clears, replay counting and exclusions, 10-to-0 timer, early/duplicate completion guards, modal/input guards, map hop, shared callbacks, timer pause, persistence and blocked storage');
+new Function('assert',env+source+`assert.equal(playsSinceAd,1,'Reload keeps the clear interval');`)(assert);
+console.log('PASS ads: 4th/8th completed plays, failed/retired replay exits and retries, exclusions, 10-to-0 timer, early/duplicate completion guards, modal/input guards, map hop, shared callbacks, timer pause, persistence and blocked storage');
 }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}

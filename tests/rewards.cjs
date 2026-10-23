@@ -56,24 +56,24 @@ assert(startRewardSequence());clock+=100;advanceRewardSequence(clock);const angl
 visibility(true);clock+=50000;advanceRewardSequence(clock);assert.equal(rewardSequence.angle,angle);assert.equal(rewardFrame,null);
 visibility(false);land(1);clock+=60000;advanceRewardSequence(clock);assert.equal(rewardSequence.phase,'result');assert.equal(state,'reward');
 visibility(true);clock+=50000;visibility(false);assert.equal(rewardSequence.phase,'result');assert.equal(rewardFrame,null);resultReturn();
-// Even a second-attempt win today gets the completion ad, then exactly one roulette.
+// Entry ad on play 2; the daily clear opens its roulette without another ad.
 lives.count=3;showDailyCalendar({openFromMap:true});assert(selectDailyDate(today));finish(false);ui.retry.onclick();assert.equal(state,'ad');ad();assert.equal(dailyRun.attempt,2);
-moveCount=1;finish(true);assert.equal(dailyRecords[today].rewardStatus,'pending');ui.overlay.events.click({target:ui.overlay});assert.equal(state,'ad');ad();assert.equal(state,'reward');
-assert(dailyRecords[today].rewardAdCompleted);const beforeDaily=heartItems;land(2);assert.equal(heartItems,beforeDaily+10);assert.equal(dailyRecords[today].rewardStatus,'claimed');resultReturn();assert.equal(state,'daily');assert.equal(dailyRun,null);
+moveCount=1;finish(true);assert.equal(dailyRecords[today].rewardStatus,'pending');ui.overlay.events.click({target:ui.overlay});assert.equal(state,'reward');
+assert(!dummyAd);const beforeDaily=heartItems;land(2);assert.equal(heartItems,beforeDaily+10);assert.equal(dailyRecords[today].rewardStatus,'claimed');resultReturn();assert.equal(state,'daily');assert.equal(dailyRun,null);
 assert.equal(readDailyRecords()[today].rewardStatus,'claimed');assert(!startDailyClearReward(today));assert(!selectDailyDate(today));
 // Earlier dates keep their existing flow and never earn this daily completion reward.
-assert(selectDailyDate('2026-01-01'));moveCount=1;finish(true);assert(!dailyRecords['2026-01-01'].rewardStatus);ui.overlay.events.click({target:ui.overlay});ad();assert.equal(state,'daily');assert(!rewardSequence);
+assert(selectDailyDate('2026-01-01'));moveCount=1;finish(true);assert(!dailyRecords['2026-01-01'].rewardStatus);ui.overlay.events.click({target:ui.overlay});assert.equal(state,'daily');assert(!rewardSequence);
 // A reload after the ad resumes an unclaimed roulette without another ad.
 dailyRecords['2026-10-19']={moves:1,timeMs:100,stars:3,rewardStatus:'pending',rewardAdCompleted:true};saveDailyRecords();dailyRecords=readDailyRecords();showDailyCalendar();assert.equal(state,'reward');assert(!dummyAd);land(0);resultReturn();assert.equal(dailyRecords['2026-10-19'].rewardStatus,'claimed');
-// A reload before the ad resumes with the ad still required.
-dailyRecords['2026-10-18']={moves:1,timeMs:100,stars:3,rewardStatus:'pending'};saveDailyRecords();dailyRecords=readDailyRecords();showDailyCalendar();assert.equal(state,'ad');ad();land(2);resultReturn();assert.equal(state,'daily');
+// A pending daily reward resumes without a stage-exit ad.
+dailyRecords['2026-10-18']={moves:1,timeMs:100,stars:3,rewardStatus:'pending'};saveDailyRecords();dailyRecords=readDailyRecords();showDailyCalendar();assert.equal(state,'reward');land(2);resultReturn();assert.equal(state,'daily');
 const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-10-01':{rewardStatus:'pending'},'2026-10-02':{moves:1,timeMs:0,stars:3,rewardStatus:'pending'}});assert.deepEqual(Object.keys(readDailyRecords()),['2026-10-02']);data[DAILY_RECORDS_KEY]=saved;
 // Map milestones: fixed stage numbers, one grant, shared goal glints, existing ad interval.
 showLevelMap();
 assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,5);assert.equal((ui.mapNodes.innerHTML.match(/map-reward-gift/g)||[]).length,5);
 assert(hasMapReward(4));assert(hasMapReward(8));assert(hasMapReward(12));assert(hasMapReward(20));assert(!hasMapReward(9));assert(!hasMapReward(10));
 stageProgress.existing.cleared=3;showLevelMap({target:4});assert(selectStage(4));
-clearsSinceAd=4;moveCount=1;finish(true);
+playsSinceAd=3;moveCount=1;finish(true);
 assert.equal(mapRewards[4].status,'pending');assert(mapRewards[4].adRequired);
 ui.overlay.events.click({target:ui.overlay});assert.equal(state,'ad');ad();assert.equal(state,'reward');assert(mapRewards[4].adCompleted);
 const mapBefore=heartItems;land(1);assert.equal(heartItems,mapBefore+5);assert.equal(mapRewards[4].status,'claimed');
@@ -81,11 +81,11 @@ assert(!hasMapReward(4));assert(hasMapReward(20));assert.deepEqual(readMapReward
 resultReturn();assert.equal(state,'map');assert.deepEqual([mapTransition.from,mapTransition.to],[4,5]);
 assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,4);assert.equal((ui.mapNodes.innerHTML.match(/map-reward-gift/g)||[]).length,4);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();
-assert(selectStage(4));moveCount=1;finish(true);clearsSinceAd=0;ui.overlay.events.click({target:ui.overlay});assert.equal(state,'map');assert(!rewardSequence);
+assert(selectStage(4));moveCount=1;finish(true);playsSinceAd=0;ui.overlay.events.click({target:ui.overlay});assert.equal(state,'map');assert(!rewardSequence);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();
 // The map-return action also delivers rewards; an interrupted ad/roulette resumes on map entry.
 stageProgress.existing.cleared=19;showLevelMap({target:20});assert(selectStage(20));
-clearsSinceAd=0;moveCount=1;finish(true);returnFromStage();assert.equal(state,'reward');land(3);resultReturn();assert.equal(state,'map');assert.equal(mapSelected,20);assert(!mapTransition);
+playsSinceAd=0;moveCount=1;finish(true);returnFromStage();assert.equal(state,'reward');land(3);resultReturn();assert.equal(state,'map');assert.equal(mapSelected,20);assert(!mapTransition);
 mapRewards[12]={status:'pending',adRequired:true,adCompleted:false};saveMapRewards();mapRewards=readMapRewards();
 showLevelMap();assert.equal(state,'ad');ad();assert.equal(state,'reward');
 // Simulate reloading before an unclaimed roulette (completed ad must not repeat).

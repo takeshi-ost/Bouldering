@@ -12,42 +12,34 @@ const data={},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
 const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {
 new Function('assert','data','storage',env+source+`
-const key='2026-01-01',other='2026-01-02';DIFFICULTY_CONFIG.dailyWeights=[100,0,0,0];
+const key='2026-01-01',repeat='2026-01-10',other='2026-01-02';DIFFICULTY_CONFIG.dailyWeights=[100,0,0,0];
 function done(){assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());}
+function fail(){finish(false);assert.equal(state,'lost');}
 startCourse('existing');showDailyCalendar({openFromMap:true});
-const normal=clearsSinceAd;
-assert(selectDailyDate(key));assert.equal(state,'playing');assert.equal(dailyRun.attempt,1);assert.equal(dailyAttempts[key],1);
-const seed=dailyRun.seed;
-// First clear leaves the result visible until Calendar is tapped.
+const normal=playsSinceAd;
+assert(selectDailyDate(key));assert.equal(state,'playing');assert.equal(dailyPlayAdState.plays,1);
 while(featureHelpOpen)dismissStageHelp();cameraIntro=null;
 for(let i=1;i<route.length;i++){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();}
-assert.equal(state,'won');assert(!dummyAd);ui.next.onclick();assert.equal(state,'ad');ui.next.onclick();done();assert.equal(state,'daily');
-const attemptsBefore=dailyAttempts[key];assert(!selectDailyDate(key));assert.equal(state,'daily');assert(!dummyAd);assert.equal(dailyAttempts[key],attemptsBefore);
-const repeatKey='2026-01-10';assert(selectDailyDate(repeatKey));
-for(let attempt=1;attempt<=6;attempt++) {
- assert.equal(state,'playing');assert.equal(dailyRun.attempt,attempt);
- restartInput(level);assert.equal(dailyAttempts[repeatKey],attempt,'Settings restart keeps the same attempt');
- finish(false);assert(!ui.retry.hidden);
- if(attempt<6){ui.retry.onclick();if(attempt===1 || (attempt+1)%2===0){assert.equal(state,'ad');done();}}
-}
-showDailyCalendar();
-assert.equal(clearsSinceAd,normal,'Daily ads cannot change normal ad cadence');
-// A first failed run followed by Retry shows exactly one ad, then launches #2.
-assert(selectDailyDate(other));finish(false);ui.retry.onclick();assert.equal(state,'ad');done();assert.equal(state,'playing');assert.equal(dailyRun.attempt,2);assert(!dummyAd);assert.equal(dailyAttempts[other],2);
-finish(false);ui.retry.onclick();assert.equal(state,'playing');assert.equal(dailyRun.attempt,3);
-finish(false);ui.retry.onclick();assert.equal(state,'ad');done();assert.equal(dailyRun.attempt,4);
-showDailyCalendar();
-// Failed generation does not consume an attempt, including after an entry ad.
-const resetOriginal=reset,logOriginal=console.error;console.error=()=>{};reset=()=>{throw Error('no course');};dailyAttempts[other]=5;
-assert(selectDailyDate(other));done();assert.equal(state,'daily');assert(!ui.dailyError.hidden);assert.equal(dailyAttempts[other],5);reset=resetOriginal;console.error=logOriginal;dailyAttempts[other]=4;
-const saved=data[DAILY_ATTEMPTS_KEY];data[DAILY_ATTEMPTS_KEY]=JSON.stringify({'bad':1,'2026-02-30':2,'2026-01-03':-1,'2026-01-04':'2','2026-01-05':3});assert.deepEqual(readDailyAttempts(),{'2026-01-05':3});data[DAILY_ATTEMPTS_KEY]=saved;
-// Leaving a failed run defers the ad to the next date tap, even a different first-time date.
-assert(selectDailyDate('2026-01-03'));assert.equal(state,'playing');finish(false);ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd);assert(dailyEntryAdPending);
-dailyMonth='2026-01';renderDailyCalendar();assert(chooseDailyDate('2026-01-04'));assert.equal(state,'daily');assert(!dummyAd);assert(dailyEntryAdPending);assert(!dailyAttempts['2026-01-04']);ui.dailyStartButton.onclick();assert.equal(state,'ad');assert(dailyEntryAdPending);assert(!completeDummyAd());done();assert.equal(state,'playing');assert.equal(dailyRun.date,'2026-01-04');assert.equal(dailyRun.attempt,1);assert(!dailyEntryAdPending);
-// Retiring uses the failure sequence; leaving that result defers the next ad.
-ui.restart.onclick();assert.equal(state,'lost');assert(!ui.resultTip.hidden && ui.overlay.open);assert(!dummyAd);ui.closeResult.onclick();assert.equal(state,'daily');assert(dailyEntryAdPending);assert(!dummyAd);assert(readDailyEntryAdPending());
-const set=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(saveDailyAttempts);assert.doesNotThrow(()=>setDailyEntryAdPending(true));storage.setItem=set;
+assert.equal(state,'won');ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd,'No post-clear daily ad');
+const before=JSON.stringify(dailyPlayAdState);assert(!selectDailyDate(key));assert.equal(JSON.stringify(dailyPlayAdState),before);
+// Play 2 is the first attempt on another date, so cadence cannot be date-local.
+assert(selectDailyDate(repeat));assert.equal(state,'ad');assert(!dailyAttempts[repeat]);assert(!selectDailyDate(other));done();assert.equal(dailyAttempts[repeat],1);
+const seed=dailyRun.seed;fail();ui.retry.onclick();assert.equal(state,'playing');assert.equal(dailyRun.seed,seed);assert.equal(dailyAttempts[repeat],2,'Retry is global play 3');
+fail();ui.retry.onclick();assert.equal(state,'ad');done();assert.equal(dailyAttempts[repeat],3,'Retry is global play 4');
+fail();ui.closeResult.onclick();assert.equal(state,'daily');assert(!dummyAd);
+assert(selectDailyDate(other));assert.equal(state,'playing');assert.equal(dailyAttempts[other],1,'Different past date is global play 5');
+ui.restart.onclick();assert.equal(state,'lost');assert(!ui.resultTip.hidden);ui.closeResult.onclick();assert.equal(state,'daily');assert(!dummyAd);
+assert(selectDailyDate(other));assert.equal(state,'ad');done();assert.equal(dailyAttempts[other],2,'Global play 6');
+fail();ui.retry.onclick();assert.equal(state,'playing');assert.equal(dailyAttempts[other],3,'Global play 7');fail();ui.closeResult.onclick();
+// Ad 8 is paid once even if generation fails, including persistence across reloads.
+const next='2026-01-03',resetOriginal=reset,logOriginal=console.error;console.error=()=>{};reset=()=>{throw Error('no course');};
+assert(selectDailyDate(next));done();assert.equal(state,'daily');assert(!ui.dailyError.hidden);assert(!dailyAttempts[next]);
+assert.deepEqual(dailyPlayAdState,{plays:1,adPaid:true});assert.deepEqual(readDailyPlayAdState(),dailyPlayAdState);
+reset=resetOriginal;console.error=logOriginal;assert(selectDailyDate(next));assert.equal(state,'playing');assert(!dummyAd);assert.equal(dailyAttempts[next],1);assert.deepEqual(dailyPlayAdState,{plays:0,adPaid:false});
+assert.equal(playsSinceAd,normal,'Daily cadence stays independent of normal plays');
+const saved=data[DAILY_PLAY_AD_KEY];for(const value of ['null','{}','-1','{"plays":2,"adPaid":false}','{"plays":1,"adPaid":"true"}','{bad']){data[DAILY_PLAY_AD_KEY]=value;assert.deepEqual(readDailyPlayAdState(),{plays:0,adPaid:false});}data[DAILY_PLAY_AD_KEY]=saved;
+const set=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(saveDailyAttempts);assert.doesNotThrow(saveDailyPlayAdState);storage.setItem=set;
 `)(assert,data,storage);
-new Function('assert',env+source+`assert.equal(dailyAttempts['2026-01-01'],1);assert.equal(dailyAttempts['2026-01-10'],6);assert.equal(dailyAttempts['2026-01-02'],4);assert(dailyEntryAdPending);`)(assert);
-console.log('PASS daily ads: real first clear -> result ad, attempts 2/4/6 entry ads, per-date counts, failed-run retry without back-to-back ads, restart determinism, save/reload, generation failures and blocked storage, normal ad isolation');
+new Function('assert',env+source+`assert.equal(dailyAttempts['2026-01-01'],1);assert.equal(dailyAttempts['2026-01-10'],3);assert.equal(dailyAttempts['2026-01-02'],3);assert.deepEqual(dailyPlayAdState,{plays:0,adPaid:false});`)(assert);
+console.log('PASS daily ads: global plays 2/4/6/8 across dates and retries, no exit ads, no double charging after generation failure, counts/reload/storage, independent normal cadence');
 }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}
