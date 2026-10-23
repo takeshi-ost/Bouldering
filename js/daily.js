@@ -64,6 +64,8 @@ function readDailyRecords() {
                 Number.isSafeInteger(record?.timeMs) && record.timeMs>=0 &&
                 Number.isInteger(record?.stars) && record.stars>=1 && record.stars<=3) {
                 records[date]={moves:record.moves,timeMs:record.timeMs,stars:record.stars};
+                if(validDailyDate(record.clearedOn) && record.clearedOn>=date)
+                    records[date].clearedOn=record.clearedOn;
                 if(record.rewardStatus==='pending' || record.rewardStatus==='claimed') {
                     records[date].rewardStatus=record.rewardStatus;
                     if(record.rewardAdCompleted===true)records[date].rewardAdCompleted=true;
@@ -104,9 +106,13 @@ function recordDailyClear() {
     if(!dailyRun || moveCount<1 || dailyRecords[dailyRun.date])return;
     const date=dailyRun.date;
     const stars=clearStars(moveCount,routeExpectedMoves());
-    dailyRecords[date]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars};
-    if(date===localToday())dailyRecords[date].rewardStatus='pending';
+    const clearedOn=localToday();
+    dailyRecords[date]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars,clearedOn};
+    if(date===clearedOn)dailyRecords[date].rewardStatus='pending';
     saveDailyRecords();
+}
+function dailyMedal(date,record) {
+    return record?.clearedOn===date?'gold':'silver';
 }
 function monthParts(month=dailyMonth) {return month.split('-').map(Number);}
 function shiftedDailyMonth(delta) {
@@ -132,7 +138,8 @@ function renderDailyCalendar() {
         const key=dailyMonth+'-'+String(day).padStart(2,'0');
         if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${year}年${month}月${day}日">${day}</div>`);continue;}
         const record=dailyRecords[key];
-        cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み '+record.stars+'スター・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?'<span class="daily-clear-icon" aria-hidden="true">✓</span>':day}</button></div>`);
+        const medal=record?dailyMedal(key,record):null;
+        cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み・'+(medal==='gold'?'金貨':'銀貨')+' '+record.stars+'スター・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?`<img class="daily-clear-icon" src="assets/daily-medal-${medal}.webp" width="32" height="32" alt="" aria-hidden="true" draggable="false">`:day}</button></div>`);
     }
     while(cells.length<42)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');

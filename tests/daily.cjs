@@ -107,6 +107,37 @@ const fresh=Array.from({length:31},(_,i)=>'2026-01-'+String(i+1).padStart(2,'0')
 startCourse('prototype');ui.openDaily.onclick();assert(selectDailyDate(fresh));finishAds();assert.equal(courseMode,'existing');showDailyCalendar();ui.dailyBack.onclick();assert.equal(courseMode,'prototype');assert.equal(state,'map');
 // An interrupted generation reports an error on the calendar, without normal progress changes.
 ui.openDaily.onclick();const originalReset=reset;reset=()=>{throw Error('fixture failure');};const oldError=console.error;console.error=()=>{};dailyPlayAdState={plays:0,adPaid:false};dailyAttempts[fresh]=2;assert(!selectDailyDate(fresh));console.error=oldError;reset=originalReset;assert.equal(state,'daily');assert(!ui.dailyError.hidden && !dailyRun);
+// Medals use the actual local finish date; legacy data stays silver.
+const beforeMedals=JSON.stringify(dailyRecords),beforeMedalTime=nowIso;
+nowIso='2026-10-17T23:59:59Z';dailyMonth='2026-10';
+dailyRecords={
+ '2026-10-15':{moves:2,timeMs:100,stars:3,rewardStatus:'claimed'},
+ '2026-10-16':{moves:2,timeMs:100,stars:3,rewardStatus:'pending'}
+};
+saveDailyRecords();dailyRecords=readDailyRecords();
+assert.equal(dailyMedal('2026-10-15',dailyRecords['2026-10-15']),'silver');
+assert.equal(dailyMedal('2026-10-16',dailyRecords['2026-10-16']),'silver','Legacy reward status must not imply gold');
+dailyRun=dailyProfile('2026-10-17');moveCount=2;runElapsedMs=300;recordDailyClear();
+assert.equal(dailyRecords['2026-10-17'].clearedOn,'2026-10-17');
+assert.equal(dailyMedal('2026-10-17',dailyRecords['2026-10-17']),'gold');
+// A run started before midnight and finished after midnight earns silver.
+dailyRun=dailyProfile('2026-10-14');nowIso='2026-10-18T00:00:00Z';recordDailyClear();
+assert.equal(dailyRecords['2026-10-14'].clearedOn,'2026-10-18');
+assert.equal(dailyMedal('2026-10-14',dailyRecords['2026-10-14']),'silver');
+dailyRecords=readDailyRecords();renderDailyCalendar();
+assert(ui.dailyGrid.innerHTML.includes('assets/daily-medal-gold.webp'));
+assert(ui.dailyGrid.innerHTML.includes('assets/daily-medal-silver.webp'));
+assert(ui.dailyGrid.innerHTML.includes('クリア済み・金貨'));
+assert(ui.dailyGrid.innerHTML.includes('クリア済み・銀貨'));
+assert(!ui.dailyGrid.innerHTML.includes('>✓</span>'));
+assert.equal(dailyMedal('2026-10-17',dailyRecords['2026-10-17']),'gold','Gold persists the following day and after reload');
+const earnedGold=JSON.stringify(dailyRecords['2026-10-17']);dailyRun=dailyProfile('2026-10-17');recordDailyClear();
+assert.equal(JSON.stringify(dailyRecords['2026-10-17']),earnedGold);
+for(const clearedOn of ['bad','2026-02-30','2026-10-13']) {
+ data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-10-14':{moves:2,timeMs:100,stars:3,clearedOn}});
+ const record=readDailyRecords()['2026-10-14'];assert.equal(record.clearedOn,undefined);assert.equal(dailyMedal('2026-10-14',record),'silver');
+}
+dailyRecords=JSON.parse(beforeMedals);saveDailyRecords();nowIso=beforeMedalTime;
 const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]='{bad';assert.deepEqual(readDailyRecords(),{});
 data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-02-30':{moves:1,timeMs:2,stars:3},'2026-01-01':{moves:0,timeMs:2,stars:3},'2026-01-02':{moves:1,timeMs:-1,stars:3},'2026-01-03':{moves:1,timeMs:2,stars:4}});assert.deepEqual(readDailyRecords(),{});data[DAILY_RECORDS_KEY]=saved;
 const savedGet=storage.getItem;storage.getItem=()=>{throw Error('blocked');};assert.deepEqual(readDailyRecords(),{});storage.getItem=savedGet;
