@@ -86,8 +86,6 @@ for(const [rating,key] of dates){
  while(featureHelpOpen)dismissStageHelp();advanceCameraIntro(clock);clock+=10000;advanceCameraIntro(clock);assert(!cameraIntro);
  if(rating<2)assert(!holds.some(h=>h.type==='hazard'));
  if(rating===3){const ratio=holds.filter(h=>h.type==='hazard').length/holds.length;assert(ratio>=.3 && ratio<=.5);}
- // A test-only hazard reserve isolates completion/record tests from stamina difficulty.
- stamina+=routeHazardCosts(route).at(-1)||0;
  for(let i=1;i<route.length;i++){clock+=100;play(i);}
  assert.equal(state,'won');assert.equal(dailyRecords[key].stars,3);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
  assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore,'Daily clear polluted normal progress');

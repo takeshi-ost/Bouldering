@@ -23,17 +23,8 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
  blue.forEach(h=>h.type='hazard');
  const moves=route.length-1,base=stageStamina(moves);
  assert.equal(starting,moves+3);
- // Check actual unassisted play separately from reach/geometry replay.
- for(let i=1;i<route.length && state!=='lost';i++) {
-  camera=clamp(body.y-H*.6,0,HEIGHT-H);
-  const eventAt=p=>({clientX:p.x,clientY:p.y-camera});
-  down(eventAt(body));move(eventAt(route[i]));release();
- }
- const unassisted=state;
- if(mode==='existing' && n===47)assert.equal(unassisted,'lost');
- reset(n);cameraIntro=null;
- // Test-only reserve permits full replay to verify exact costs and reachability.
- stamina+=routeHazardCosts(route).at(-1)||0;
+ assert(densityStats.routeBudgetValidated);assert(validateRouteBudget(route));
+ assert(densityStats.costSearch.transitions<=ROUTE_COST_SEARCH_CONFIG.maxTransitions);
  let paid=0,pickups=0;
  for(let i=1;i<route.length;i++) {
   assert(stamina>0,mode+' Lv'+n+' cannot start move '+i);
@@ -47,17 +38,17 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
   const gained=(hearts.filter(h=>h.collected).length-beforeHearts)*2;pickups+=gained;
   assert.equal(stamina,beforeStamina+gained-1-fresh);
  }
- assert(paid>0,'Dense stage must include penalties on the planned route');
+ assert(paid<=3,'Final route must fit the actual base budget without a reserve');
  assert.equal(state,'won');assert.equal(pickups,hearts.length*2);
  assert.equal(routeExpectedMoves(),moves);assert.equal(starting,moves+3);
- assert.equal(stamina,3+pickups);
+ assert.equal(stamina,3+pickups-paid);
  assert.equal(routeHazardCosts(route).at(-1),paid);
  debugMode=true;updateUI();assert(ui.progress.textContent.includes('想定 '+moves+' ムーブ'));debugMode=false;
  const expected=moves;
  if(mode==='existing' && n===47) {
-  assert.equal(moves,19);assert.equal(paid,17);assert.equal(starting,22);
+  assert.equal(moves,18);assert.equal(paid,0);assert.equal(starting,21);
   assert.equal(clearStars(18,routeExpectedMoves()),3);
-  const preview=stagePreview(n,mode);assert.equal(preview.expectedMoves,19);assert.equal(preview.stamina,22);
+  const preview=stagePreview(n,mode);assert.equal(preview.expectedMoves,18);assert.equal(preview.stamina,21);
  }
  for(const [extra,stars] of [[0,3],[1,2],[2,2],[3,1]]) {
   moveCount=expected+extra;finish(true);
@@ -65,7 +56,7 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
  }
 
  reset(n);assert.equal(JSON.stringify({holds,route,hearts}),saved);assert.equal(stamina,starting);
- report.push({mode,level:n,total:holds.length,blue:blue.length,moves,penalties:paid,starting,unassisted});
+ report.push({mode,level:n,total:holds.length,blue:blue.length,moves,penalties:paid,starting});
 }
 // Heart placement must not silently enlarge a fixed move-based budget.
 level=40;initialGrips=[];holds=Array.from({length:20},(_,id)=>({id,type:'hazard',x:id,y:0}));
@@ -81,6 +72,6 @@ for(let n=40;n<100;n++) {
  }
  assert(items.length<=HEART_CONFIG.maxCount);
 }
-console.log('PASS dense hazards: both courses Lv40/41/42/45/47/80, 30-50% of all holds, protected start/wide/goal, unchanged replay, exact live costs, fixed moves+3 budget, unassisted exhaustion, full replay with test reserve, seeded retries');
+console.log('PASS dense hazards: both courses Lv40/41/42/45/47/80, 30-50% of all holds, protected start/wide/goal, unchanged replay, exact live costs, fixed moves+3 budget, unassisted full clears, seeded retries');
 console.log(JSON.stringify(report));
 `)(assert);

@@ -11,7 +11,7 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
 new Function('assert',env+source+`
 function eventAt(p){return {clientX:p.x,clientY:p.y-camera};}
 function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);down(eventAt(body));move(eventAt(route[i]));release();assert.equal(moveCount,i);}
-// Real route preservation, no mandatory penalties, playable optional branches and retry.
+// Final cost-aware route, playable optional branches, real budget and retry.
 const report=[];
 for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
  courseMode=mode;reset(n);cameraIntro=null;
@@ -24,7 +24,8 @@ for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
  assert(samePairRoute(route,replayRoute(route)),'Hazards change the validated free route');
  for(const h of hazards)assert(findHazardMove(h),'Hazard cannot be grabbed by a real move');
  assert.deepEqual(body,baseBody);assert.deepEqual(committed,baseCommitted);assert.equal(startGrips,baseStance);
- holds=all.filter(h=>h.type!=='hazard');assert(samePairRoute(route,replayRoute(route)));holds=all;
+ assert(validateRouteBudget(route));
+ assert(densityStats.routeOptimization.costAfter<=densityStats.routeOptimization.costBefore);
  // On Lv20, actually enter one optional branch through down/move/release.
  if(n===20) {
   const option=findHazardMove(hazards[0]);
@@ -38,9 +39,9 @@ for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
   reset(n);cameraIntro=null;
  }
  for(let i=1;i<route.length;i++)play(i);
- assert.equal(state,'won');assert.equal(stamina,stageStamina(route.length-1)-(route.length-1)+hearts.filter(h=>h.collected).length*2);
- assert(grips.every(h=>h.type!=='hazard'));
- ui.retry.onclick();assert.equal(JSON.stringify({holds,route,hearts}),saved);
+ assert.equal(state,'won');assert.equal(stamina,stageStamina(route.length-1)-(route.length-1)-routeHazardCosts(route).at(-1)+hearts.filter(h=>h.collected).length*2);
+ assert(routeHazardCosts(route).at(-1)<=3);
+ reset(n);assert.equal(JSON.stringify({holds,route,hearts}),saved);
  report.push({mode,level:n,count:hazards.length});
 }
 // Focused new-contact costs: ordinary move +1 per hazard, not per support selection.

@@ -44,9 +44,6 @@ for(const mode of ['existing','prototype']) {
    reset(n);assert.equal(JSON.stringify(route),serialized,'Retry changed route');
    assert.equal(stamina,budget);
   }
-  // Geometry/reach replay uses a test-only reserve for hazard costs.
-  // The real starting budget above must always remain expected+3.
-  stamina+=routeHazardCosts(route).at(-1)||0;
   cameraIntro=null;hideStageHelp();hideResultModal();settingsOpen=false;state='playing';
   const expectedPath=[...route];
   for(let i=1;i<expectedPath.length;i++) {
@@ -61,11 +58,11 @@ for(const mode of ['existing','prototype']) {
   }
   assert.equal(state,'won');
   assert(hearts.every(h=>h.collected),'Refined route misses recovery');
-  assert.equal(stamina,budget-(expectedPath.length-1)+hearts.length*HEART_CONFIG.recovery);
+  assert.equal(stamina,budget-(expectedPath.length-1)-routeHazardCosts(expectedPath).at(-1)+hearts.length*HEART_CONFIG.recovery);
   timings.push({mode,stage:n,before:stats.before,after:stats.after,transitions:stats.transitions,
     addedMs:+stats.elapsedMs.toFixed(2),totalMs:+totalMs.toFixed(2)});
  }
 }
-console.log('PASS 42 courses: real input with test-only hazard reserve, work limits, exhausted fallback, unchanged geometry, preview/retry and fixed moves+3 starting budget');
+console.log('PASS 42 courses: real input with actual base stamina, work limits, exhausted fallback, unchanged geometry, preview/retry and fixed moves+3 starting budget');
 console.log(JSON.stringify(timings));
 `)(assert);

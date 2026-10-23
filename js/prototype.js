@@ -45,11 +45,12 @@ function preparePrototypeStage() {
 
     // Keep the body path, but allow different supports/contacts after each removal.
     // A hold is necessary only if removing it prevents this entire path replaying.
+    const reserved=reserveDenseCandidates(route);
     let removed;
     do {
         removed = false;
         for (const hold of [...holds]) {
-            if (hold.type !== 'normal') continue;
+            if (hold.type !== 'normal' || reserved.has(hold.id)) continue;
             const previous = holds;
             holds = holds.filter(h => h !== hold);
             const played = replayRoute(route);

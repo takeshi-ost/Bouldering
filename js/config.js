@@ -4,7 +4,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.2.8';
+const RELEASE_VERSION = '0.2.9';
 const GAMEPLAY_TIPS = [
     'ステージの端か2本指スワイプでスクロールできるよ！',
     '背中をタップで1ムーブだけ戻せるよ！',
@@ -107,6 +107,7 @@ const HAZARD_CONFIG = { minRatio: .3, maxRatio: .5, maxCount: 5, penalty: 1, sha
 // 操作と描画。
 const INPUT_CONFIG = { edgeScrollWidth: STAGE_SAFE_WIDTH, dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24, tapMaxDuration: 400 };
 // Deterministic work limits keep preview/retry budgets identical on slow devices.
+const ROUTE_COST_SEARCH_CONFIG = {maxTransitions:1800,beamWidth:2};
 const ROUTE_OPTIMIZATION_CONFIG = { maxTransitions: 900, passes: 2 };
 const CAMERA_CONFIG = { goalTopPadding: 180, bodyScreenRatio: 0.6, followRate: 0.08, introSpeed: H * 1.5, introMinDuration: 1000 };
 const FALL_CONFIG = { gravity: 1400, clearance: 180 };

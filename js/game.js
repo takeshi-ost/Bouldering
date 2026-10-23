@@ -402,6 +402,13 @@ function routeHazardCosts(path) {
         return total;
     });
 }
+// One real move plus the actual new-contact surcharge; no extra search multiplier.
+function routeMoveCost(stance,previous) {
+    return 1+newHazardContacts(stance,previous).size*HAZARD_CONFIG.penalty;
+}
+function routeConsumption(path) {
+    return path.length-1+(routeHazardCosts(path).at(-1)||0);
+}
 function routeExpectedMoves(path=route) {
     return path.length-1;
 }
@@ -473,19 +480,19 @@ function prepareCurrentStage() {
     if(!dailyRun) {
         if(courseMode==='prototype')preparePrototypeStage();else prepareStage();
         route=optimizeRoute(route);updateStageDensity();
-        addHazardHolds();return;
+        addHazardHolds();finalizeCostRoute();return;
     }
     let failure;
     for(let attempt=0;attempt<16;attempt++) {
         dailyRun.seed=(dailyRun.baseSeed+Math.imul(attempt,0x9E3779B9))>>>0;
-        try {prepareStage();route=optimizeRoute(route);updateStageDensity();addHazardHolds();return;}catch(error){failure=error;}
+        try {prepareStage();route=optimizeRoute(route);updateStageDensity();addHazardHolds();finalizeCostRoute();return;}catch(error){failure=error;}
     }
     throw failure;
 }
 const stagePreviewCache=new Map();
 function stagePreview(n,mode=courseMode,profile=null) {
     const selectedDifficulty=profile?.difficulty ?? difficultyForStage(n);
-    const key=JSON.stringify([n,mode,profile?.date,selectedDifficulty,STAGE_CONFIG,HOLD_CONFIG,HAZARD_CONFIG,ROUTE_OPTIMIZATION_CONFIG]);
+    const key=JSON.stringify([n,mode,profile?.date,selectedDifficulty,STAGE_CONFIG,HOLD_CONFIG,HAZARD_CONFIG,ROUTE_OPTIMIZATION_CONFIG,ROUTE_COST_SEARCH_CONFIG]);
     if(stagePreviewCache.has(key))return stagePreviewCache.get(key);
     const saved={level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount};
     try {

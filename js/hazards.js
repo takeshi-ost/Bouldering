@@ -60,11 +60,10 @@ function addHazardHolds() {
     updateStageDensity();
 }
 
-// Type changes preserve reach, support selection and snapping. Keep wide holds,
-// the start stance and goal intact; no extra geometry or route search is needed.
+// Keep a free validated fallback. Search/shortening runs again after conversion.
 function convertDenseHazards() {
     const random=mulberry32(courseSeed() ^ 0x3C61D52A);
-    const protectedIds=new Set(initialGrips.map(h=>h.id));
+    const protectedIds=new Set([...initialGrips.map(h=>h.id),...route.flatMap(p=>p.grips||[])]);
     const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !protectedIds.has(h.id))
         .map(h=>({h,key:random()})).sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
     const min=Math.ceil(holds.length*HAZARD_CONFIG.minRatio);
