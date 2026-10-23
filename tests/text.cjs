@@ -1,8 +1,8 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const html=read('index.html'),context=vm.createContext({});
-vm.runInContext(read('js/text-ja.js')+'\n'+read('js/text.js')+'\nglobalThis.copy={catalog:GAME_TEXT_JA,text:gameText,apply:applyGameText};',context);
-const {catalog,text,apply}=context.copy;
+vm.runInContext(read('js/text-ja.js')+'\n'+read('js/text-dev-ja.js')+'\n'+read('js/text.js')+'\nglobalThis.copy={catalog:{...GAME_TEXT_JA,...GAME_DEV_TEXT_JA},playerCatalog:GAME_TEXT_JA,devCatalog:GAME_DEV_TEXT_JA,text:gameText,apply:applyGameText};',context);
+const {catalog,playerCatalog,devCatalog,text,apply}=context.copy;
 // Every definition, including parameterized errors/aria labels, must preserve its copy.
 for(const [key,value]of Object.entries(catalog)) {
  assert.equal(typeof value,'string');assert(!/[<>]/.test(value),'Markup belongs to the renderer: '+key);
@@ -27,13 +27,20 @@ for(const node of nodes)for(const [attribute,key]of Object.entries(node.attrs))i
  assert.equal(attribute==='data-i18n'?node.textContent:node.attrs[attribute.slice(10)],catalog[key]);
 }
 assert(bindings>100);
+for(const key of Object.keys(devCatalog))assert(!Object.hasOwn(playerCatalog,key));
 const scripts=[...html.matchAll(/<script(?: type="module")? src="([^"?]+)/g)].map(m=>m[1]);
-assert.deepEqual(scripts.slice(0,3),['js/text-ja.js','js/text.js','js/config.js']);
-for(const file of scripts.filter(p=>p!=='js/text-ja.js')) {
+assert.deepEqual(scripts.slice(0,4),['js/text-ja.js','js/text-dev-ja.js','js/text.js','js/config.js']);
+for(const file of scripts.filter(p=>!['js/text-ja.js','js/text-dev-ja.js'].includes(p))) {
  const source=read(file);
  for(const match of source.matchAll(/gameText\("([^"]+)"/g))assert(Object.hasOwn(catalog,match[1]),file+': '+match[1]);
  // Japanese comments are allowed; Japanese string literals must live in the dictionary.
  const code=source.replace(/\/\*[\s\S]*?\*\//g,'').replace(/^\s*\/\/.*$/gm,'');
  assert(!/[\u3040-\u30ff\u3400-\u9fff]/.test(code),'Unextracted copy: '+file);
 }
+// Check both directions: every reference exists and every definition has a caller.
+const sourceFiles=['index.html',...scripts.filter(file=>!file.startsWith('js/text'))];
+const source=sourceFiles.map(read).join('\n');
+const refs=new Set([...source.matchAll(/(?:gameText\(["']|data-i18n(?:-[\w-]+)?=")([^"']+)["']/g)].map(m=>m[1]));
+for(const day of ['sun','mon','tue','wed','thu','fri','sat'])refs.add('date.weekday.'+day);
+for(const key of Object.keys(catalog))assert(refs.has(key),'Unused dictionary entry: '+key);
 console.log(`PASS text: ${Object.keys(catalog).length} source strings, ${bindings} static bindings, all JS/HTML keys, unchanged dynamic formats, literal substitution, errors and idempotent safe DOM initialization`);

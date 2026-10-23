@@ -187,7 +187,6 @@ button:disabled { opacity: .45; cursor: default; }
 .editor-actions { display:flex; gap:10px; margin-top:auto; }
 .editor-actions button { flex:1; min-height:44px; }
 .editor-actions .secondary { background:#dde5d6; color:#3f5b47; }
-#appearanceStatus { font-size:12px; color:#39785b; }
 
 #bodyStripeControls[hidden] { display:none; }
 

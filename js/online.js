@@ -31,7 +31,7 @@ function saveOnlineCheckpoint(profile) {
 }
 function updateTitleUid() {
     const uid=online.uid || readOnlineCheckpoint()?.uid || (typeof readTransferIdentity==='function'?readTransferIdentity()?.uid:null);
-    ui.playerUuid.textContent=uid?gameText("label.uid", {value0: uid}):online.status.startsWith(gameText("online.updateTitleUid.3"))?gameText("online.updateTitleUid.2"):gameText("online.updateTitleUid");
+    ui.playerUuid.textContent=uid?gameText("label.uid", {value0: uid}):online.status===gameText("firebase-client.bootFirebase")?gameText("online.updateTitleUid.2"):gameText("online.updateTitleUid");
 }
 function setOnlineStatus(message) {
     online.status=message;

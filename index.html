@@ -4,16 +4,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=6545c6bc642c">
+    <link rel="stylesheet" href="styles.css?v=f568f1b2297f">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
-    <script src="js/text-ja.js?v=d6378b3a6c2d" defer></script>
-    <script src="js/text.js?v=a224acd27662" defer></script>
-    <script src="js/config.js?v=d4e5174ca852" defer></script>
+    <script src="js/text-ja.js?v=6f39c9bd48e0" defer></script>
+    <script src="js/text-dev-ja.js?v=1b5c7df9ff1a" defer></script>
+    <script src="js/text.js?v=c9675960bec5" defer></script>
+    <script src="js/config.js?v=1f0fc07faa17" defer></script>
     <script src="js/audio.js?v=52c1ebe7bb2f" defer></script>
     <script src="js/utils.js?v=d73670fd1f8d" defer></script>
     <script src="js/difficulty.js?v=8d73c2087e46" defer></script>
     <script src="js/stage.js?v=85b9524ab10d" defer></script>
-    <script src="js/game.js?v=16799ce716ee" defer></script>
+    <script src="js/game.js?v=cceb6bd5beb5" defer></script>
     <script src="js/route.js?v=a39b29d1a50e" defer></script>
     <script src="js/prototype.js?v=6d1c0d9e2472" defer></script>
     <script src="js/course.js?v=c052c290539f" defer></script>
@@ -22,14 +23,14 @@
     <script src="js/level-map.js?v=eeeeb1569acb" defer></script>
     <script src="js/daily.js?v=725bcb83e496" defer></script>
     <script src="js/ads.js?v=5cd87aaec8ef" defer></script>
-    <script src="js/lives.js?v=f7ebafa9caac" defer></script>
-    <script src="js/rewards.js?v=0e4129643777" defer></script>
-    <script src="js/input.js?v=672b24ff9d27" defer></script>
+    <script src="js/lives.js?v=daa14f5acb5c" defer></script>
+    <script src="js/rewards.js?v=133be22b69f2" defer></script>
+    <script src="js/input.js?v=a919d79fa6fa" defer></script>
     <script src="js/renderer.js?v=9933c3c24b8b" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
-    <script src="js/appearance.js?v=55a291a2fffc" defer></script>
+    <script src="js/appearance.js?v=2f6b43993d09" defer></script>
     <script src="js/leaderboard.js?v=a1febfc08b0a" defer></script>
-    <script src="js/online.js?v=b9d40aa44a77" defer></script>
+    <script src="js/online.js?v=8368b5c77fd3" defer></script>
     <script src="js/online-scores.js?v=7d6fc9f9d131" defer></script>
     <script src="js/account-deletion.js?v=019cee179283" defer></script>
     <script src="js/transfer.js?v=e912940aa274" defer></script>
@@ -41,7 +42,7 @@
         <section class="wall" id="wall" aria-label="" data-i18n-aria-label="ui.wall.aria-label">
             <canvas id="game" tabindex="0" width="400" height="700" aria-label="" data-i18n-aria-label="ui.game.aria-label"></canvas>
             <div id="goalEffects" class="goal-effects" aria-hidden="true" hidden><i></i><i></i><i></i><i></i></div>
-            <div id="lifeStatus" class="life-status" aria-label="" hidden data-i18n-aria-label="ui.lifeStatus.aria-label"></div>
+            <div id="lifeStatus" class="life-status" aria-label="" hidden></div>
             <div class="hud" id="hud" hidden>
                 <div id="staminaGauge" class="stamina-heart">
                     <svg viewBox="0 0 100 90" aria-hidden="true">
@@ -57,9 +58,9 @@
                     </svg>
                     <strong id="stamina">—</strong>
                 </div>
-                <div class="level" id="level" data-i18n="ui.level"></div>
+                <div class="level" id="level"></div>
                 <button id="settingsButton" class="settings-button" aria-label="" aria-haspopup="dialog" aria-controls="settingsDialog" data-i18n-aria-label="ui.settingsButton.aria-label"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
-                <div class="progress" id="progress" hidden data-i18n="ui.progress"></div>
+                <div class="progress" id="progress" hidden></div>
             </div>
 
             <div class="title-screen" id="titleScreen" role="button" tabindex="0" aria-label="" aria-disabled="true" data-i18n-aria-label="ui.titleScreen.aria-label">
@@ -77,7 +78,7 @@
                 <input id="playerName" type="text" size="10" autocomplete="off" spellcheck="false" aria-describedby="playerNameError" enterkeyhint="done">
                 <p id="playerNameError" class="player-name-error" hidden data-i18n="ui.playerNameError"></p>
                 <div class="editor-workspace">
-                <svg id="editorPreview" viewBox="0 0 210 370" preserveAspectRatio="xMidYMid meet" class="editor-preview" role="group" aria-label="" data-i18n-aria-label="ui.editorPreview.aria-label"></svg>
+                <svg id="editorPreview" viewBox="0 0 210 370" preserveAspectRatio="xMidYMid meet" class="editor-preview" role="group" aria-label=""></svg>
                 </div>
                 <div class="editor-stripe-row"><div id="bodyStripeControls">
                 <label class="stripe-slider" for="stripeCount"><span data-i18n="ui.bodyStripeControls.label"></span> <output id="stripeCountValue" for="stripeCount">1</output></label>
@@ -86,12 +87,11 @@
                 <dialog id="editorPalette" class="editor-palette" aria-label="" hidden data-i18n-aria-label="ui.editorPalette.aria-label">
                     <div id="paletteSwatches" class="palette-swatches" aria-label="" data-i18n-aria-label="ui.editorPalette.aria-label"></div>
                 </dialog>
-                <p id="appearanceStatus" role="status" hidden></p>
                 <div class="editor-actions"><button id="editorCancel" class="secondary" data-i18n="ui.editorCancel"></button><button id="editorConfirm" data-i18n="ui.editorConfirm"></button></div>
             </section>
             <section class="level-map" id="levelMap" aria-label="" hidden data-i18n-aria-label="ui.levelMap.aria-label">
                 <div class="map-sky" aria-hidden="true"></div>
-                <div id="mapInventory" class="map-inventory" role="img" aria-label="" data-i18n-aria-label="ui.mapInventory.aria-label"><span class="heart-item-stack"><img class="heart-item-icon" src="assets/heart-item-chalk-bag.png" width="52" height="48" alt="" aria-hidden="true" draggable="false"><span id="mapItemCount" class="heart-item-quantity" aria-hidden="true">0</span></span></div>
+                <div id="mapInventory" class="map-inventory" role="img" aria-label=""><span class="heart-item-stack"><img class="heart-item-icon" src="assets/heart-item-chalk-bag.png" width="52" height="48" alt="" aria-hidden="true" draggable="false"><span id="mapItemCount" class="heart-item-quantity" aria-hidden="true">0</span></span></div>
                 <button id="mapSettingsButton" class="settings-button map-settings-button" aria-label="" aria-haspopup="dialog" aria-controls="settingsDialog" data-i18n-aria-label="ui.settingsButton.aria-label"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
                 <div class="map-heading">
                     <div class="eyebrow" id="mapCourse"></div>
@@ -183,7 +183,7 @@
                         <p id="resultScoreStatus" class="score-status" role="status"></p>
                     </section>
                     <p id="resultTap" class="modal-tap" hidden data-i18n="action.tap"></p>
-                    <button id="next" hidden data-i18n="action.calendar"></button>
+                    <button id="next" hidden></button>
                     <button class="secondary" id="retry" data-i18n="action.retryEnglish"></button>
                 </div>
             </dialog>
@@ -198,7 +198,7 @@
                 <div id="stageStartStars" class="stage-start-stars" hidden></div>
             </div>
             <div class="stage-start-heading">
-                <div class="stage-start-title"><h2 id="stageStartTitle" data-i18n="ui.level"></h2></div>
+                <div class="stage-start-title"><h2 id="stageStartTitle"></h2></div>
                 <dl class="stage-start-info">
                     <div><dt data-i18n="ui.dailyCalendar.div.section.div.div.dl.div.dt"></dt><dd id="stageStartDifficulty"></dd></div>
                     <div><dt data-i18n="ui.dailyCalendar.div.section.div.div.dl.div.dt.2"></dt><dd id="stageStartLength"></dd></div>
@@ -222,7 +222,7 @@
                         <use href="#stageBaseHeartShape" fill="url(#stageBaseHeartLight)" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
                         <path d="M16 26C16 18 23 13 30 15" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="4" stroke-linecap="round"/>
                     </svg>
-                        <strong id="stageStartStamina" aria-label="" data-i18n-aria-label="ui.stageStartStamina.aria-label">00</strong>
+                        <strong id="stageStartStamina" aria-label="">00</strong>
                     </div>
                     <span class="stage-heart-plus" aria-hidden="true">+</span>
                     <div class="stage-heart-quantity">

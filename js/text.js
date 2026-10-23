@@ -4,7 +4,7 @@
 const GAME_TEXT_LOCALES = Object.freeze({ja: GAME_TEXT_JA});
 const GAME_TEXT_LANGUAGE = 'ja';
 function gameText(key, values = {}) {
-    const text = GAME_TEXT_LOCALES[GAME_TEXT_LANGUAGE][key] ?? GAME_TEXT_JA[key];
+    const text = GAME_TEXT_LOCALES[GAME_TEXT_LANGUAGE][key] ?? GAME_TEXT_JA[key] ?? GAME_DEV_TEXT_JA[key];
     if (typeof text !== 'string') throw new Error(`Unknown game text key: ${key}`);
     // A single pass keeps user-supplied braces/$/HTML as literal data.
     return text.replace(/\{(value\d+)\}/g, (_, name) => {

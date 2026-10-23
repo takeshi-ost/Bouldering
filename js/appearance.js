@@ -159,7 +159,6 @@ function showCharacterEditor() {
     draftColors=[...playerColors];draftHeadColor=playerHeadColor;draftStripeCount=playerColors.length;selectedStripe=null;selectedPart=null;
     ui.playerName.value=playerName;ui.playerNameError.hidden=true;
     state='editing';ui.titleScreen.hidden=true;ui.characterEditor.hidden=false;
-    ui.appearanceStatus.hidden=true;
     ui.hud.hidden=true;
     renderCharacterEditor();ui.stripeCount.focus();
     return true;
@@ -210,9 +209,7 @@ function confirmCharacterEditor() {
     queueOnlineProfileSave();
     playSound('confirm');
     updateMapAppearance();returnFromCharacterEditor();refreshLives();
-    ui.appearanceStatus.textContent=saved?gameText("appearance.confirmCharacterEditor.2"):gameText("appearance.confirmCharacterEditor");
-    ui.appearanceStatus.hidden=true;
-    if(!saved) {ui.mapError.textContent=ui.appearanceStatus.textContent;ui.mapError.hidden=false;}
+    if(!saved) {ui.mapError.textContent=gameText("appearance.confirmCharacterEditor");ui.mapError.hidden=false;}
     return true;
 }
 ui.stripeCount.oninput=()=>resizeEditorStripes(Number(ui.stripeCount.value));

@@ -4,7 +4,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.2.18';
+const RELEASE_VERSION = '0.2.19';
 const GAMEPLAY_TIPS = [
     gameText("tips.scroll"),
     gameText("tips.undo"),
@@ -29,10 +29,10 @@ const PLAYER_SILHOUETTE_STYLE = { color:'rgba(67,92,80,.22)', width:1.5,
     shadowColor:'rgba(67,92,80,.28)', shadowBlur:3, shadowOffsetY:1.5,
     rootColor:'#d9e9db', rootRadius:2.5 };
 const limbs = [
-    { x: -52, y: -68, name: gameText("limb.leftHand") },
-    { x: 52, y: -68, name: gameText("limb.rightHand") },
-    { x: -40, y: 78, name: gameText("limb.leftFoot") },
-    { x: 40, y: 78, name: gameText("limb.rightFoot") },
+    { x: -52, y: -68 },
+    { x: 52, y: -68 },
+    { x: -40, y: 78 },
+    { x: 40, y: 78 },
 ];
 const LIMB_LENGTHS = [100, 100, 110, 110];
 const POSE_CONFIG = {

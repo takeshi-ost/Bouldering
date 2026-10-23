@@ -2,6 +2,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 import json,hashlib,re
 root=Path(__file__).resolve().parents[1];cat=(root/'js/text-ja.js').read_text();catalog=json.loads(cat[cat.index('Object.freeze(')+14:cat.rindex(');')])
+dev=(root/'js/text-dev-ja.js').read_text()
+catalog.update(json.loads(dev[dev.index('Object.freeze(')+14:dev.rindex(');')]))
 class Copy(HTMLParser):
  def __init__(self,localized):super().__init__();self.localized=localized;self.stack=[];self.text=[];self.attrs=[]
  def handle_starttag(self,tag,items):
@@ -22,6 +24,6 @@ class Copy(HTMLParser):
  def value(self):return {'text':re.sub(r'\s+',' ',''.join(self.text)).strip(),'attributes':self.attrs}
 current=Copy(True);current.feed((root/'index.html').read_text())
 digest=hashlib.sha256(json.dumps(current.value(),ensure_ascii=False,sort_keys=True).encode()).hexdigest()
-# Snapshot of 0.2.17 visible copy (collapsed HTML whitespace) and accessibility labels.
-assert digest == 'be6ae2736e97a9287d1679896987a850b0f8f1ae7ba6dfc110c83ba55ce9c9e8', 'Static game copy changed; review intentional wording changes before updating the snapshot.'
-print('PASS static text: all labels/help text and accessibility attributes exactly match 0.2.17')
+# Snapshot after removing obsolete hidden labels in 0.2.19; retained copy is unchanged.
+assert digest == 'aed0cbb8ec7db23620f7d46985bf22f00131e78a9d5881dc386f76359affe827', 'Static game copy changed; review intentional wording changes before updating the snapshot.'
+print('PASS static text: reviewed labels/help text and accessibility attributes match the cleaned snapshot')

@@ -5,7 +5,7 @@ const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/sc
 const env=`
 let clock=100;const performance={now:()=>clock};
 const elements={};const document={getElementById(id){return elements[id] ||= {
- style:{},classList:{toggle(){}},focus(){},events:{},setAttribute(){},addEventListener(k,fn){this.events[k]=fn;},
+ style:{},classList:{toggle(){}},focus(){document.activeElement=this;},events:{},setAttribute(){},addEventListener(k,fn){this.events[k]=fn;},
  showModal(){this.open=true;},close(){this.open=false;},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
@@ -142,7 +142,7 @@ try {
   updateUI();assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
  }
  dailyRun={...dailyProfile('2026-10-17'),returnCourse:'existing'};finish(false);assert(!ui.resultTip.hidden);
- assert(ui.next.hidden,'Daily failure must not show a calendar button');
+ assert(ui.next.hidden,'Daily failure must not show a calendar button');assert.equal(document.activeElement,ui.retry);
  assert(!ui.retry.hidden && !ui.closeResult.hidden);
  ui.closeResult.onclick();assert.equal(state,'daily');assert(ui.overlay.hidden);
  for(const daily of [null,{...dailyProfile('2026-10-17'),returnCourse:'existing'}]) {

@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const source=['text-ja','text','config','utils','difficulty','stage','game','renderer'].map(f=>fs.readFileSync(path.join(__dirname,'..','js',f+'.js'),'utf8')).join('\n');
+const source=['text-ja','text-dev-ja','text','config','utils','difficulty','stage','game','renderer'].map(f=>fs.readFileSync(path.join(__dirname,'..','js',f+'.js'),'utf8')).join('\n');
 new Function('assert',`function playSound(){};const document={getElementById(){return {style:{},setAttribute(){},getContext(){return {}}};}};\n`+source+`
 const triangle=[{x:0,y:0},{x:0,y:0},{x:-70,y:100},{x:70,y:100}];
 assert(insideStartTriangle({x:0,y:60},triangle));

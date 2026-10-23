@@ -54,10 +54,10 @@ function continueNormalClear({advance=true}={}) {
     else resume();
 }
 const ROULETTE_OPTIONS=Object.freeze([
-    Object.freeze({kind:'hearts',amount:1,label:gameText("reward.hearts1"),weight:2}),
-    Object.freeze({kind:'hearts',amount:5,label:gameText("reward.hearts5"),weight:2}),
-    Object.freeze({kind:'hearts',amount:10,label:gameText("reward.hearts10"),weight:1}),
-    Object.freeze({kind:'life',amount:1,label:gameText("reward.life1"),weight:1})
+    Object.freeze({kind:'hearts',amount:1,weight:2}),
+    Object.freeze({kind:'hearts',amount:5,weight:2}),
+    Object.freeze({kind:'hearts',amount:10,weight:1}),
+    Object.freeze({kind:'life',amount:1,weight:1})
 ]);
 const ROULETTE_SEGMENTS=Object.freeze(ROULETTE_OPTIONS.map((item,i)=>{
     const total=ROULETTE_OPTIONS.reduce((sum,option)=>sum+option.weight,0);

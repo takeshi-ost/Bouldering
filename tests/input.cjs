@@ -116,7 +116,7 @@ advanceCameraIntro(100);advanceCameraIntro(1099);assert(cameraIntro);assert.equa
 const labels=[];ctx.fillText=(text,x,y)=>labels.push({text,x,y});
 drawStageIntro();assert.deepEqual(labels.pop(),{text:'STAGE 1',x:W/2,y:H/2});
 advanceCameraIntro(1100);assert.equal(cameraIntro,null);drawStageIntro();assert.equal(labels.length,0);
-assert.equal(ui.next.textContent,'カレンダーへ');
+assert(ui.next.hidden);
 showLevelMap();e=visibleEvent();mouse('mousedown',e);mouse('mouseup',e);assert.equal(bodyTap,null);assert.equal(state,'map');
 // Edge gestures scroll from their initial camera and never become player gestures.
 fixture();HEIGHT=H*3;camera=100;

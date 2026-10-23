@@ -179,7 +179,6 @@ function showTitleScreen() {
     hideStageHelp();
     state = 'choosing';
     ui.characterEditor.hidden=true;
-    ui.appearanceStatus.hidden=true;
     mapTransition = null;
     ui.levelMap.hidden = true;
     ui.wall.classList.toggle('map-open',false);

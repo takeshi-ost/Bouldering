@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const source=['text-ja','text','config','utils','game','renderer'].map(f=>fs.readFileSync(path.join(__dirname,'..','js',f+'.js'),'utf8')).join('\n');
+const source=['text-ja','text-dev-ja','text','config','utils','game','renderer'].map(f=>fs.readFileSync(path.join(__dirname,'..','js',f+'.js'),'utf8')).join('\n');
 new Function('assert',`const paint=[];const context2d=new Proxy({fillRect(x,y,w,h){if(w===40&&h===72)paint.push('torso');}},{get(o,k){return o[k]||function(){};}});const document={getElementById(){return {style:{},classList:{toggle(){}},setAttribute(){},getContext(){return context2d;},getBoundingClientRect(){return {width:400,height:700}}};}};const window={devicePixelRatio:1};function requestAnimationFrame(){};const pan=null;function canScrollStage(){return false;};\n`+source+`
 const p={x:200,y:300};
 const minimum=110*Math.sin(75*Math.PI/180);
