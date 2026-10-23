@@ -82,10 +82,12 @@ const snapshot=()=>JSON.stringify({holds,route,hearts,HEIGHT,initialGrips,stamin
 function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);}
 for(const [rating,key] of dates){
  assert(selectDailyDate(key));finishAds();assert.equal(level,DIFFICULTY_RULES[rating].referenceStage);assert.equal(difficulty,rating);assert.equal(courseMode,'existing');assert(dailyRun && ui.dailyCalendar.hidden);assert(ui.level.textContent.startsWith('DAILY'));
- assert.equal(stamina,routeExpectedMoves()+(routeHazardCosts(route).at(-1)||0)+3);const first=snapshot();restartInput(level);assert.equal(snapshot(),first,'Daily retry changed the date seed');
+ assert.equal(stamina,routeExpectedMoves()+3);const first=snapshot();restartInput(level);assert.equal(snapshot(),first,'Daily retry changed the date seed');
  while(featureHelpOpen)dismissStageHelp();advanceCameraIntro(clock);clock+=10000;advanceCameraIntro(clock);assert(!cameraIntro);
  if(rating<2)assert(!holds.some(h=>h.type==='hazard'));
  if(rating===3){const ratio=holds.filter(h=>h.type==='hazard').length/holds.length;assert(ratio>=.3 && ratio<=.5);}
+ // A test-only hazard reserve isolates completion/record tests from stamina difficulty.
+ stamina+=routeHazardCosts(route).at(-1)||0;
  for(let i=1;i<route.length;i++){clock+=100;play(i);}
  assert.equal(state,'won');assert.equal(dailyRecords[key].stars,3);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
  assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore,'Daily clear polluted normal progress');
