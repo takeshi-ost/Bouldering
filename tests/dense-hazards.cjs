@@ -67,7 +67,7 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
  const expected=moves;
  if(mode==='existing' && n===47) {
   assert(moves<=20);assert(paid>=0);assert.equal(starting,moves+3);
-  assert.equal(clearStars(18,routeExpectedMoves()),3);
+  assert.equal(clearStars(moves,routeExpectedMoves()),3);
   const preview=stagePreview(n,mode);assert.equal(preview.expectedMoves,moves);assert.equal(preview.stamina,starting);
  }
  for(const [extra,stars] of [[0,3],[1,2],[2,2],[3,1]]) {

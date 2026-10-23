@@ -25,8 +25,8 @@ for(let n=1;n<=100;n++) {
  assert.equal(mapStageVariant(n).height,actual.HEIGHT<=H?'100':actual.HEIGHT<H*2?'125':'150');
 }
 assert.equal(mapStageVariant(1).height,'100');
-assert.equal(mapStageVariant(2).height,'125');
-assert.equal(mapStageVariant(5).height,'150');
+assert.equal(mapStageVariant(2).height,{short:'100',medium:'125',long:'150'}[stageLengthRule(2).category]);
+assert.equal(mapStageVariant(5).height,{short:'100',medium:'125',long:'150'}[stageLengthRule(5).category]);
 for(const status of ['active','cleared','unplayed'])for(let n=1;n<=6;n++) {
  const markup=mapWallMarkup(n,status);
  assert(markup.includes('assets/stage-icons/'+status+'-'+mapStageVariant(n).height+'.webp'));

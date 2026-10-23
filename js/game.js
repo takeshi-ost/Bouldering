@@ -128,7 +128,7 @@ function showResultModal() {
 
 
 function generate(n) {
-    ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n,false,courseSeed(n)));
+    ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n,false,courseSeed(n),dailyRun?.baseSeed??courseSeed(n)));
 }
 
 // Anatomical reach is measured from the shoulder/hip, not the torso center.

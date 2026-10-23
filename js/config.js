@@ -4,7 +4,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.2.13';
+const RELEASE_VERSION = '0.2.14';
 const GAMEPLAY_TIPS = [
     'ステージの端か2本指スワイプでスクロールできるよ！',
     '背中をタップで1ムーブだけ戻せるよ！',
@@ -52,14 +52,17 @@ const STAGE_CONFIG = {
     introStations: [6.5, 7.5, 8.5, 11.5, 14.5],
     horizontalAmplitude: 160 - STAGE_SAFE_WIDTH,
     traverseDrop: 20,
-    climbHeight: 290,
     climbVariation: 20,
     verticalPadding: 220,
     bottomMargin: 80,
     startFootSpan: 140,
-    longStageInterval: 5,
-    longStageLengthScale: 1.6,
-    longStageClimbHeight: 600,
+    // Independent seeded draw: short / medium / long, initially equal odds.
+    lengthWeights: [1,1,1],
+    lengthRules: [
+        {category:'short',minHeight:H,maxHeight:H,guideScale:.5,climbHeight:200},
+        {category:'medium',minHeight:H+1,maxHeight:H*2-1,guideScale:1,climbHeight:290},
+        {category:'long',minHeight:H*2,maxHeight:MAX_HEIGHT,guideScale:1.6,climbHeight:600},
+    ],
     holdOffset: 8,
 };
 // Four independent rule sets. Array position is the difficulty number (0–3).

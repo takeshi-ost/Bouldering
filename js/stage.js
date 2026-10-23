@@ -27,13 +27,25 @@ function makeStageCourse(length, mirror, climbHeight) {
     };
 }
 
+// Pick length before geometry, independently of difficulty and layout RNG.
+// A daily keeps this base seed even when its geometry needs an internal retry.
+function stageLengthRule(n,seed=n) {
+    if(n===1)return STAGE_CONFIG.lengthRules[0];
+    const weights=STAGE_CONFIG.lengthWeights;
+    const random=mulberry32(seed ^ 0x4D7C2A19);
+    let target=random()*weights.reduce((sum,weight)=>sum+weight,0);
+    for(let i=0;i<weights.length;i++) {
+        target-=weights[i];
+        if(target<0)return STAGE_CONFIG.lengthRules[i];
+    }
+    return STAGE_CONFIG.lengthRules.at(-1);
+}
+
 // Pure shared geometry: map previews do not generate holds or solve routes.
-function stageLayout(n,random=mulberry32(n)) {
-    // A finite wall cannot accumulate an unlimited number of distinct holds.
-    // Only every fifth stage may reach two screens; long walls cap at three.
-    const longStage = n % STAGE_CONFIG.longStageInterval === 0;
+function stageLayout(n,random=mulberry32(n),lengthSeed=n) {
+    const lengthRule=stageLengthRule(n,lengthSeed);
     const baseSteps = n === 1 ? STAGE_CONFIG.introGuideSteps : STAGE_CONFIG.baseMoves + Math.min(n - 2, STAGE_CONFIG.growthLevels) * STAGE_CONFIG.movesPerLevel;
-    const guideSteps = Math.ceil(baseSteps * (longStage ? STAGE_CONFIG.longStageLengthScale : 1));
+    const guideSteps = Math.ceil(baseSteps * (n===1?1:lengthRule.guideScale));
     const rows = [0,1,2,3], support = [...rows];
     // "row" is a station every 40px ALONG the course, not a vertical grid row.
     // Four supports span at most 200px of arc. The torso at its midpoint is
@@ -49,19 +61,19 @@ function stageLayout(n,random=mulberry32(n)) {
     if (n === 1)
         rows.splice(4, STAGE_CONFIG.introGuideSteps, ...STAGE_CONFIG.introStations);
     const lastStation = rows[rows.length - 1] * STAGE_CONFIG.stationSpacing;
-    const rawCourse = n === 1 ? s => ({ x: W / 2, y: -s, nx: 1, ny: 0 }) : makeStageCourse(lastStation, random() < .5 ? -1 : 1, (longStage ? STAGE_CONFIG.longStageClimbHeight : STAGE_CONFIG.climbHeight) + random() * STAGE_CONFIG.climbVariation);
+    const rawCourse = n === 1 ? s => ({ x: W / 2, y: -s, nx: 1, ny: 0 }) : makeStageCourse(lastStation, random() < .5 ? -1 : 1, lengthRule.climbHeight + random() * STAGE_CONFIG.climbVariation);
     const rise = -rawCourse(lastStation).y;
-    const height = n === 1 ? H : Math.min(longStage ? MAX_HEIGHT : H * 2 - 1, Math.max(H, Math.ceil(rise) + STAGE_CONFIG.verticalPadding));
+    const height = n === 1 ? H : clamp(Math.ceil(rise) + STAGE_CONFIG.verticalPadding,lengthRule.minHeight,lengthRule.maxHeight);
     const scaleY = n === 1 ? 1 : Math.min(1, (height - STAGE_CONFIG.verticalPadding) / rise);
     const course = s => {
         const p = rawCourse(s);
         return { ...p, y: p.y * scaleY, ny: p.ny * scaleY };
     };
-    return {rows,course,height};
+    return {rows,course,height,category:lengthRule.category};
 }
 function stageLengthInfo(n,seed=n) {
-    const {height}=stageLayout(n,mulberry32(seed));
-    return {height,category:height<=H?'short':height<H*2?'medium':'long'};
+    const {height,category}=stageLayout(n,mulberry32(seed),seed);
+    return {height,category};
 }
 
 // 生成中の状態をゲーム本体から分離します。戻り値だけをゲームへ渡します。
@@ -72,7 +84,7 @@ function createStageGenerator() {
     let initialGrips = [];
     let densityReference = null;
     let densityStats = null;
-    function generate(n, guideOnly = false, seed = n) {
+    function generate(n, guideOnly = false, seed = n, lengthSeed = seed) {
         // Calibrate from STAGE 1 even when a debug tool opens another level first.
         // This uses its unchanged seeded layout, rather than a hard-coded count.
         if (!guideOnly && n !== 1 && !densityReference)
@@ -86,7 +98,7 @@ function createStageGenerator() {
             holds.push(h);
             return h;
         };
-        const {rows,course,height}=stageLayout(n,random);
+        const {rows,course,height}=stageLayout(n,random,lengthSeed);
         HEIGHT=height;
         const bottom = HEIGHT - STAGE_CONFIG.bottomMargin;
         rows.forEach((row, i) => {

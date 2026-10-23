@@ -16,6 +16,9 @@ for(let n=40;n<=240;n++){level=n;natural.add(chooseCourseIntent());}
 assert.deepEqual([...natural].sort(),['choice','consumption','mixed','recovery']);
 const weights=COURSE_GENERATION_CONFIG.intentWeights;
 COURSE_GENERATION_CONFIG.intentWeights=weights.map(row=>[...row]);
+// Keep this resource-planner regression on a medium wall; course-length.cjs
+// separately exercises every length with the same planners and real input.
+const lengthWeights=STAGE_CONFIG.lengthWeights;STAGE_CONFIG.lengthWeights=[0,1,0];
 const report=[];
 const convert=convertDenseHazards,search=solveCostRoute;
 let searchedInvalidWitness=0,conversions=0,searches=0;
@@ -111,7 +114,7 @@ const solver=solveCostRoute;solveCostRoute=()=>{throw Error('forced search failu
 assert(validateRouteBudget(route));assert(densityStats.courseGeneration.searchFallback);
 assert.equal(densityStats.courseGeneration.heart,'unknown');assert.equal(densityStats.courseGeneration.actual,'unclassified');
 assert.equal(stamina,routeExpectedMoves()+3);solveCostRoute=solver;
-COURSE_GENERATION_CONFIG.intentWeights=weights;
+COURSE_GENERATION_CONFIG.intentWeights=weights;STAGE_CONFIG.lengthWeights=lengthWeights;
 console.log('PASS fixed hearts and 10-30% conversion before search in both generators: frozen hearts, real unassisted input, budget prefix/one-time recovery, comparisons, preview/retry isolation, bounded repairs and valid exhausted fallback');
 console.log(JSON.stringify(report));
 `)(assert);
