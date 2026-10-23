@@ -4,10 +4,16 @@ client=client.slice(0,client.indexOf("window.addEventListener('online'"));
 client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\.0\/firebase-(app|auth|firestore)\.js'\)/g,(_,name)=>`Promise.resolve(sdk.${name})`);
 (async()=>{
  const calls=[],store=new Map();let adapter,signIns=0,active=0,peak=0;
+ let transferUid='existing-user';
  let restoredUser={uid:'existing-user'},rejectPersistence=false,failCleanup=false,cleanupPages=0;
  const sdk={
   app:{getApps:()=>[],initializeApp(config){assert.equal(config.projectId,'bouldering-7482d');return {}; }},
-  auth:{async deleteUser(user){assert.equal(user.uid,'existing-user');assert(!store.has('players/existing-user'));assert(![...store.keys()].some(k=>/^stageScores\/[^/]+\/entries\/existing-user$/.test(k)));calls.push('auth-delete');restoredUser=null;},browserLocalPersistence:'persistent',getAuth:()=>({get currentUser(){return restoredUser;},async authStateReady(){calls.push('restore');}}),
+  auth:{EmailAuthProvider:{credential:(email,password)=>({email,password})},
+   async linkWithCredential(user,credential){assert.equal(user,restoredUser);calls.push('link-same-uid');user.providerData=[{providerId:'password'}];return {user};},
+   async reauthenticateWithCredential(user,credential){assert.equal(user,restoredUser);calls.push('reauth');return {user};},
+   async signInWithEmailAndPassword(auth,email,password){restoredUser={uid:transferUid};return {user:restoredUser};},
+   async updateCurrentUser(auth,user){restoredUser=user;calls.push('auth-rollback');},
+   async deleteUser(user){assert.equal(user.uid,'existing-user');assert(!store.has('players/existing-user'));assert(![...store.keys()].some(k=>/^stageScores\/[^/]+\/entries\/existing-user$/.test(k)));calls.push('auth-delete');restoredUser=null;},browserLocalPersistence:'persistent',getAuth:()=>({get currentUser(){return restoredUser;},async authStateReady(){calls.push('restore');}}),
    async setPersistence(auth,value){assert.equal(value,'persistent');calls.push('persist');if(rejectPersistence)throw new Error('Storage disabled');},async signInAnonymously(){signIns++;return {user:{uid:'new-user'}};}},
   firestore:{getFirestore:()=>({}),doc:(base,...parts)=>typeof base==='string'?[base,...parts].join('/') : parts.join('/'),
    getDoc:async id=>({exists:()=>store.has(id),data:()=>store.get(id)}),
@@ -33,7 +39,7 @@ client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\
  const scoreFunctions=fs.readFileSync(path.join(__dirname,'../js/online-scores.js'),'utf8');
  const scoreValidation=scoreFunctions.slice(scoreFunctions.indexOf('function validStageScore'),scoreFunctions.indexOf('function validScoreBoard'));
  const comparator=fs.readFileSync(path.join(__dirname,'../js/leaderboard.js'),'utf8').match(/function compareStageScores[^\n]+/)[0];
- const env=scoreValidation+comparator+`const accountDeletion=hooks.deletion={marker:null};function showDeleteUserDialog(){hooks.completeShown=true;}
+ const env=scoreValidation+comparator+`const accountDeletion=hooks.deletion={marker:null};function readTransferIdentity(){return hooks.transferIdentity||null;}function showDeleteUserDialog(){hooks.completeShown=true;}
  const online={adapter:null};function startOnline(a){return hooks.start(a);}function setOnlineStatus(s){hooks.status(s);}
  function onlineProfileFrom(p){const {updatedAt,...profile}=p;return profile;}function mergeOnlineProfile(local,remote,prefer){return remote&&!prefer?remote:local;}
  function onlineProfileKey(p){return JSON.stringify(p);}`;
@@ -58,6 +64,18 @@ client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\
  const ranking=await adapter.scores(user.uid,board);assert.equal(ranking.length,2);assert.equal(ranking[0].id,'other');assert.equal(ranking[0].profile.name,'Other');
  assert.equal(ranking.filter(row=>row.id===user.uid).length,1);
  restoredUser={uid:'existing-user'};
+ const identity={uid:'existing-user',email:'transfer@example.com',password:'test-only-password'};
+ const signupCount=signIns;
+ await adapter.prepareTransferIdentity(identity);assert.equal(restoredUser.uid,'existing-user');
+ await adapter.prepareTransferIdentity(identity);assert.equal(signIns,signupCount);assert(calls.includes('link-same-uid') && calls.includes('reauth'));
+ const destination={uid:'destination'};restoredUser=destination;
+ await adapter.importTransferIdentity(identity,()=>{assert.equal(restoredUser.uid,identity.uid);});assert.equal(restoredUser.uid,'existing-user');
+ restoredUser=destination;transferUid='mismatched-user';let applied=false;
+ await assert.rejects(adapter.importTransferIdentity(identity,()=>{applied=true;}),/UID/);assert(!applied);assert.equal(restoredUser,destination);
+ transferUid='existing-user';await assert.rejects(adapter.importTransferIdentity(identity,()=>{throw Error('quota');}),/quota/);assert.equal(restoredUser,destination);
+ store.set('accountDeletionLocks/existing-user',{requestedAt:1});
+ await assert.rejects(adapter.importTransferIdentity(identity,()=>{throw Error('should not apply');}),/削除済み/);assert.equal(restoredUser,destination);store.delete('accountDeletionLocks/existing-user');
+ restoredUser={uid:'existing-user'};
  await assert.rejects(adapter.lockDeletion('other'),/Authentication/);
  await adapter.lockDeletion(user.uid);assert(await adapter.isDeletionLocked(user.uid));
  const lock=store.get('accountDeletionLocks/'+user.uid);await adapter.lockDeletion(user.uid);assert.equal(store.get('accountDeletionLocks/'+user.uid),lock,'Deletion lock is idempotent');
@@ -65,6 +83,7 @@ client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\
  store.set('stageScores/v0_existing_0070/entries/existing-user',{moves:10,timeMs:100});
  store.set('stageScores/v2_prototype_999/entries/existing-user',{moves:10,timeMs:100});
  store.set('anotherCollection/example/entries/existing-user',{private:true});
+ restoredUser.providerData=[{providerId:'password'}];hooks.transferIdentity=identity;
  failCleanup=true;await assert.rejects(adapter.deleteAccount(user.uid),/cleanup offline/);assert.equal(restoredUser.uid,user.uid);assert(store.has('players/'+user.uid),'Never remove auth/profile after a failed score delete');
  failCleanup=false;await adapter.deleteAccount(user.uid);assert(cleanupPages>=3);assert.equal(restoredUser,null);
  assert(store.has('stageScores/'+board+'/entries/other'));assert(store.has('anotherCollection/example/entries/existing-user'));assert(store.has('accountDeletionLocks/'+user.uid));

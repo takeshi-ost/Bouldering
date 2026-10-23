@@ -4,7 +4,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.2.16';
+const RELEASE_VERSION = '0.2.17';
 const GAMEPLAY_TIPS = [
     'ステージの端か2本指スワイプでスクロールできるよ！',
     '背中をタップで1ムーブだけ戻せるよ！',
@@ -54,8 +54,8 @@ const STAGE_CONFIG = {
     goalTopMargin: 100,
     bottomMargin: 80,
     startFootSpan: 140,
-    // Independent seeded draw: short / medium / long, initially equal odds.
-    lengthWeights: [1,1,1],
+    // Independent seeded draw: short / medium / long = 2 / 5 / 3.
+    lengthWeights: [2,5,3],
     lengthRules: [
         {category:'short',height:H,climbHeight:200},
         {category:'medium',height:H*2,climbHeight:290},

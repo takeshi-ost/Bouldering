@@ -10,7 +10,7 @@ for(let n=2;n<=10001;n++) {
  assert.equal(info.category,info.height<=H?'short':info.height<=H*2?'medium':'long');
  assert.equal(JSON.stringify(info),JSON.stringify(stageLengthInfo(n)));
 }
-for(const count of Object.values(counts))assert(count>3000 && count<3700);
+for(const [key,expected] of [['short',2000],['medium',5000],['long',3000]])assert(Math.abs(counts[key]-expected)<250);
 const weights=STAGE_CONFIG.lengthWeights,bands=DIFFICULTY_CONFIG.stageBands;
 const report=[];
 for(let kind=0;kind<3;kind++) {
@@ -52,6 +52,6 @@ const days=new Set();for(let day=1;day<=31;day++) {
  const p=dailyProfile('2026-10-'+String(day).padStart(2,'0'));days.add(stageLengthInfo(p.referenceStage,p.baseSeed).category);
 }
 assert.equal(days.size,3);
-console.log('PASS length-first seeded generation: independent equal odds, fixed intro, all lengths/modes/difficulties clear with actual input, preview/retry isolation, stable daily length during layout retry');
+console.log('PASS length-first seeded generation: independent 2:5:3 odds, fixed intro, all lengths/modes/difficulties clear with actual input, preview/retry isolation, stable daily length during layout retry');
 console.log(JSON.stringify({counts,report}));
 `)(assert);

@@ -29,10 +29,15 @@ function saveOnlineCheckpoint(profile) {
     try {globalThis.localStorage?.setItem(ONLINE_PROFILE_KEY,JSON.stringify({uid:online.uid,key:onlineProfileKey(profile)}));}
     catch(_) { /* Local gameplay remains usable with storage disabled. */ }
 }
+function updateTitleUid() {
+    const uid=online.uid || readOnlineCheckpoint()?.uid || (typeof readTransferIdentity==='function'?readTransferIdentity()?.uid:null);
+    ui.playerUuid.textContent=uid?`UID ${uid}`:online.status.startsWith('オフライン')?'UID 未接続':'UID 接続中…';
+}
 function setOnlineStatus(message) {
     online.status=message;
     document.getElementById('onlineStatus').textContent=message;
-    if(online.uid)ui.playerUuid.textContent=`UID ${online.uid}`;
+    updateTitleUid();
+    if(typeof renderTransferAvailability==='function')renderTransferAvailability();
 }
 function onlineError(error) {
     setOnlineStatus('オンライン保存を待っています');
@@ -68,10 +73,10 @@ function queueOnlineProfileSave() {
     void flushOnlineProfile();
 }
 async function flushOnlineProfile(preferLocal=true) {
-    if(accountDeletion.marker || !online.ready || online.saving)return;
+    if(accountDeletion.marker || !online.ready || online.saving || (typeof transferBusy==='function' && transferBusy()))return;
     online.saving=true;
     try {
-        while(online.dirty && !accountDeletion.marker) {
+        while(online.dirty && !accountDeletion.marker && !(typeof transferBusy==='function' && transferBusy())) {
             const revision=online.revision,profile=onlineProfile();online.dirty=false;
             setOnlineStatus('オンラインに保存中…');
             const saved=await online.adapter.sync(online.uid,profile,preferLocal);
@@ -89,12 +94,13 @@ async function flushOnlineProfile(preferLocal=true) {
     finally {online.saving=false;}
 }
 async function startOnline(adapter) {
+    if(typeof transferBusy==='function' && transferBusy())return;
     if(accountDeletion.marker){await restoreDeletionSession(adapter);return;}
     if(online.connecting || online.ready)return;
     online.connecting=true;online.adapter=adapter;
     try {
         setOnlineStatus('オンラインに接続中…');
-        const user=await adapter.authenticate();online.uid=user.uid;
+        const user=await adapter.authenticate();online.uid=user.uid;updateTitleUid();
         if(accountDeletion.marker || await adapter.isDeletionLocked?.(user.uid)) {
             if(!accountDeletion.marker)markAccountDeletion(user.uid,'pending');
             online.ready=false;showDeleteUserDialog();return;
@@ -137,6 +143,7 @@ function onlineMapPlayers(first,last,mode) {
     return page.players.filter(row=>row.id!==online.uid);
 }
 function resumeOnline() {
+    if(typeof transferBusy==='function' && transferBusy())return;
     if(!online.adapter)return;
     if(accountDeletion.marker) {
         if(accountDeletion.marker.phase==='pending' && !accountDeletion.busy)void restoreDeletionSession(online.adapter);

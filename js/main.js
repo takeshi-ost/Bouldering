@@ -29,10 +29,11 @@ async function beginTitlePreparation() {
     titleReady=false;ui.titleTap.hidden=true;
     ui.titleScreen.setAttribute('aria-disabled','true');
     ui.releaseVersion.textContent=`VERSION ${RELEASE_VERSION}`;
-    ui.playerUuid.textContent=online.uid?`UID ${online.uid}`:`UUID ${playerUuid}`;
+    updateTitleUid();
+    ui.titleWallpaper.style.animation='none';
     ui.wall.classList.toggle('title-open',true);
     prepareTitleMapLayout();refreshLives();
-    const sources=[...MAP_BACKGROUNDS.map(mapBackgroundSource),'assets/map-sky.webp','assets/daily-airship.webp','assets/reward-gift.png',
+    const sources=['assets/game-wall.webp',...MAP_BACKGROUNDS.map(mapBackgroundSource),'assets/map-sky.webp','assets/daily-airship.webp','assets/reward-gift.png',
         ...Object.keys(MAP_ICON_ASSETS).map(key=>`assets/stage-icons/${key}.webp?v=${MAP_ART_VERSION}`)];
     const tasks=typeof Image==='undefined'?[]:sources.map(src=>{
         const image=new Image();
@@ -46,12 +47,13 @@ async function beginTitlePreparation() {
     // Commit layout and give the browser a frame to prepare the decoded artwork.
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     if(ticket!==titlePreparation || state!=='choosing')return;
+    ui.titleWallpaper.style.animation='';
     titleReady=true;ui.titleTap.hidden=false;
     ui.titleScreen.setAttribute('aria-disabled','false');
     ui.titleScreen.focus({preventScroll:true});
 }
 function enterPreparedMap() {
-    if(state!=='choosing' || !titleReady)return;
+    if(state!=='choosing' || !titleReady || transferBusy() || transferElement('transferDialog').open)return;
     titleReady=false;titlePreparation++;
     playSound('tap');
     state='map';ui.titleScreen.hidden=true;
@@ -61,6 +63,6 @@ function enterPreparedMap() {
     refreshDailyEntry();refreshLives();focusMapLevel();renderMapPlayers();
 }
 ui.titleScreen.onclick=enterPreparedMap;
-ui.titleScreen.onkeydown=e=>{if(e.key==='Enter' || e.key===' '){e.preventDefault();enterPreparedMap();}};
+ui.titleScreen.onkeydown=e=>{if(e.target?.closest?.('button,input,a'))return;if(e.key==='Enter' || e.key===' '){e.preventDefault();enterPreparedMap();}};
 showTitleScreen();
 startPresentation();

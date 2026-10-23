@@ -46,10 +46,10 @@ function queueOnlineScore(stage,mode,score) {
     void flushOnlineScores();return true;
 }
 async function flushOnlineScores() {
-    if(accountDeletion.marker || !online.ready || !online.adapter.saveScore || onlineScores.saving)return;
+    if(accountDeletion.marker || !online.ready || !online.adapter.saveScore || onlineScores.saving || (typeof transferBusy==='function' && transferBusy()))return;
     onlineScores.saving=true;
     try {
-        while(onlineScores.pending.size && !accountDeletion.marker) {
+        while(onlineScores.pending.size && !accountDeletion.marker && !(typeof transferBusy==='function' && transferBusy())) {
             const [board,score]=onlineScores.pending.entries().next().value;
             if(onlineScores.owner!==online.uid)return;
             const saved=await online.adapter.saveScore(online.uid,board,score);

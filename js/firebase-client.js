@@ -26,6 +26,28 @@ async function bootFirebase() {
                 await auth.authStateReady();
                 return auth.currentUser || (create?(await authSDK.signInAnonymously(auth)).user:null);
             },
+            async prepareTransferIdentity(identity) {
+                const user=auth.currentUser;
+                if(!user || user.uid!==identity.uid)throw new Error('UIDを確認できません。再読み込みしてください。');
+                const credential=authSDK.EmailAuthProvider.credential(identity.email,identity.password);
+                const linked=user.providerData?.some(provider=>provider.providerId==='password');
+                const result=linked?await authSDK.reauthenticateWithCredential(user,credential):await authSDK.linkWithCredential(user,credential);
+                if(result.user.uid!==identity.uid)throw new Error('引き継ぎ情報のUIDが一致しません。');
+            },
+            async importTransferIdentity(identity,apply) {
+                const previous=auth.currentUser;
+                await authSDK.setPersistence(auth,authSDK.browserLocalPersistence);
+                try {
+                    const result=await authSDK.signInWithEmailAndPassword(auth,identity.email,identity.password);
+                    if(result.user.uid!==identity.uid)throw new Error('ファイルのUIDと認証情報が一致しません。');
+                    if(await adapter.isDeletionLocked(identity.uid))throw new Error('削除済みユーザーのデータは引き継げません。');
+                    await apply();
+                } catch(error) {
+                    // Never leave the previous local save signed into a different UID.
+                    if(auth.currentUser!==previous)await authSDK.updateCurrentUser(auth,previous);
+                    throw error;
+                }
+            },
             async isDeletionLocked(uid) {
                 try {return (await dbSDK.getDocFromServer(dbSDK.doc(db,'accountDeletionLocks',uid))).exists();}
                 catch(error) {
@@ -44,6 +66,9 @@ async function bootFirebase() {
             },
             async deleteAccount(uid,onProgress) {
                 if(auth.currentUser?.uid!==uid)throw new Error('Authentication does not match deletion target');
+                const identity=typeof readTransferIdentity==='function'?readTransferIdentity():null;
+                if(identity?.uid===uid && auth.currentUser.providerData?.some(provider=>provider.providerId==='password'))
+                    await authSDK.reauthenticateWithCredential(auth.currentUser,authSDK.EmailAuthProvider.credential(identity.email,identity.password));
                 // Debug cleanup includes legacy scores without an owner field, all versions.
                 // Public score entries are scanned in bounded pages; only our UID is deleted.
                 let cursor=null,removed=0;
