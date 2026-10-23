@@ -28,7 +28,7 @@ for(const [moves,timeMs,rank,index] of [[9,10000,1,0],[13,9000,4,3],[14,9000,5,4
 playerName=originalName;
 assert.equal(scoreText('<img src=x onerror="x">'),'&lt;img src=x onerror=&quot;x&quot;&gt;');
 function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);}
-function begin(n=1){reset(n);advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);assert(!cameraIntro);}
+function begin(n=1){hideStageStart();playsSinceAd=0;reset(n);advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);assert(!cameraIntro);}
 reset(1);assert.equal(runTimeMs(),0);advanceCameraIntro(100);clock=1099;advanceCameraIntro(clock);
 assert(cameraIntro);assert.equal(runStartedAt,null);assert.equal(runTimeMs(),0);
 clock=1100;advanceCameraIntro(clock);assert(!cameraIntro);assert.equal(runStartedAt,1100);
@@ -57,7 +57,7 @@ const firstRecord=JSON.stringify(stageRecords.existing[1]);
 // Failing and retrying never overwrite a completed record.
 begin();stamina=1;clock+=500;play(1);assert.equal(state,'lost');assert(ui.overlay.open);assert(ui.resultStats.hidden);assert(ui.resultTap.hidden && !ui.retry.hidden && !ui.closeResult.hidden);assert(ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'');
 clock+=5000;assert.equal(runTimeMs(),500);assert.equal(JSON.stringify(stageRecords.existing[1]),firstRecord);
-ui.retry.onclick();assert(!ui.overlay.open && ui.overlay.hidden);assert.equal(runStartedAt,null);assert.equal(runTimeMs(),0);
+ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert(!ui.overlay.open && ui.overlay.hidden);assert.equal(runStartedAt,null);assert.equal(runTimeMs(),0);
 advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);
 for(let i=1;i<route.length;i++){clock+=100;play(i);}
 assert.equal(state,'won');assert.equal(stageRecords.existing[1].timeMs,100*moveCount,'Replay must replace with the latest record');

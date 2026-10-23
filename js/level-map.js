@@ -316,7 +316,8 @@ function setStageHeartItems(value) {
 }
 ui.stageHeartCount.onclick=()=>setStageHeartItems((stageStartContext?.hearts??0)+1);
 ui.stageHeartReset.onclick=()=>setStageHeartItems(0);
-function canSelectStage(n,debug=false) {
+function canSelectStage(n,debug=false,retry=false) {
+    if(retry)return state==='lost' && !dailyRun && !stageStartContext && n===level && debug===debugAttempt;
     return state==='map' && !mapPreparing && !mapTransition && !stageStartContext &&
         Number.isSafeInteger(n) && n>=1 && n<Number.MAX_SAFE_INTEGER &&
         (debug?debugMode:n<=unlockedLevel());
@@ -330,23 +331,25 @@ function hideStageStart() {
     if(typeof requestGameRender==='function')requestGameRender();
 }
 function closeStageStart() {
-    const selected=stageStartContext?.n;
+    const selected=stageStartContext?.n,retry=stageStartContext?.retry;
     hideStageStart();
+    if(retry){showLevelMap({target:selected});return;}
     if(state==='map')ui.mapNodes.querySelector?.(`[data-level="${selected}"]`)?.focus({preventScroll:true});
 }
-function openStageStart(n,debug=false,button=null,delay=0) {
-    if(!canSelectStage(n,debug))return false;
+function openStageStart(n,debug=false,button=null,delay=0,retry=false) {
+    if(!canSelectStage(n,debug,retry))return false;
     recoverLives();
     if(courseMode==='existing' && !debug && lives.count===0) {
-        requestLifeStart(()=>openStageStart(n,debug));
+        requestLifeStart(()=>openStageStart(n,debug,null,0,retry),{onCancel:retry?()=>showLevelMap({target:n}):null});
         return !!lifePrompt;
     }
     if(debug)ui.debugStage.blur?.();
-    const context={n,debug,mode:courseMode,button,hearts:0};
+    if(retry)hideResultModal();
+    const context={n,debug,mode:courseMode,button,hearts:0,retry};
     stageStartContext=context;
     const show=()=>{
         stageStartTimer=null;
-        if(stageStartContext!==context || state!=='map' || courseMode!==context.mode)return;
+        if(stageStartContext!==context || state!==(retry?'lost':'map') || courseMode!==context.mode)return;
         // Let the arrival color/effects paint during the delay before solving the course.
         ui.stageStartTitle.textContent=`STAGE ${n}`;
         ui.stageStartTitle.setAttribute('aria-label',`STAGE ${n}`);
@@ -370,10 +373,10 @@ ui.stageStartButton.onclick=()=>{
     if(!context || !ui.stageStartDialog.open || ui.stageStartButton.disabled)return;
     ui.stageStartButton.disabled=true;
     hideStageStart();
-    if(context.mode===courseMode)selectStage(context.n,context.debug,context.hearts);
+    if(context.mode===courseMode)selectStage(context.n,context.debug,context.hearts,context.retry);
 };
-function selectStage(n,debug=false,heartsUsed=0) {
-    if(!canSelectStage(n,debug) || !Number.isSafeInteger(heartsUsed) || heartsUsed<0 || heartsUsed>heartItems)return false;
+function selectStage(n,debug=false,heartsUsed=0,retry=false) {
+    if(!canSelectStage(n,debug,retry) || !Number.isSafeInteger(heartsUsed) || heartsUsed<0 || heartsUsed>heartItems)return false;
     // Dismiss the numeric keyboard before generating and opening the stage.
     if(debug)ui.debugStage.blur?.();
     const launch=()=>{
@@ -399,7 +402,7 @@ function selectStage(n,debug=false,heartsUsed=0) {
     recoverLives();
     // Reconfirm items and stage details after recovery, even if lives ran out while this dialog was open.
     if(courseMode==='existing' && !debug && lives.count===0)
-        return requestLifeStart(()=>openStageStart(n,debug));
+        return requestLifeStart(()=>openStageStart(n,debug,null,0,retry),{onCancel:retry?()=>showLevelMap({target:n}):null});
     return launch();
 }
 ui.mapNodes.onclick = e => {

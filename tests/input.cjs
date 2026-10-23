@@ -28,7 +28,7 @@ function play(i) {
  assert.equal(moveCount,i);
 }
 function fixture() {
- reset(1);advanceCameraIntro(0);advanceCameraIntro(1000);clock+=1000;
+ hideStageStart();playsSinceAd=0;reset(1);advanceCameraIntro(0);advanceCameraIntro(1000);clock+=1000;
  play(1);clock+=250;
  assert(canUndoMove());return {stamina,moveCount,undo:undoSnapshot};
 }
@@ -109,7 +109,7 @@ canvas.events.wheel({deltaY:100,deltaMode:0,preventDefault(){}});
 canvas.events.keydown({key:'End',preventDefault(){}});
 beginTouchPan([finger(1,eventAt(body)),finger(2,eventAt({x:body.x+30,y:body.y}))]);assert.equal(pan,null);
 draw(0);assert.equal(camera,lossCamera);assert(!ui.overlay.hidden);assert(!ui.overlay.classList.values.reviewing);
-e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal(state,'lost');assert.equal(bodyTap,null);ui.retry.onclick();assert.equal(state,'playing');assert(ui.overlay.hidden);assert.equal(moveCount,0);
+e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal(state,'lost');assert.equal(bodyTap,null);ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert(ui.overlay.hidden);assert.equal(moveCount,0);
 // Every stage, including a one-screen stage, blocks input until its title has lasted 1s.
 reset(1);assert(cameraIntro);e=visibleEvent();mouse('mousedown',e);mouse('mouseup',e);assert.equal(bodyTap,null);assert.equal(drag,null);
 advanceCameraIntro(100);advanceCameraIntro(1099);assert(cameraIntro);assert.equal(camera,HEIGHT-H);

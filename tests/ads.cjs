@@ -32,7 +32,7 @@ reset(1);dailyRun={...dailyProfile('2026-01-01'),returnCourse:'existing'};finish
 courseMode='prototype';reset(1);finish(true);assert.equal(playsSinceAd,0);courseMode='existing';
 // Losses, retirements and past-level retries count once, and show ads on exit or retry.
 for(let i=1;i<=3;i++){reset(i%2+1);finish(false);finish(false);assert.equal(playsSinceAd,i);if(i<3)returnFromStage();}
-ui.retry.onclick();assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert.equal(state,'playing');assert.equal(playsSinceAd,0);
+ui.retry.onclick();assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert.equal(playsSinceAd,0);
 for(let i=1;i<=3;i++){reset(1);ui.restart.onclick();assert.equal(state,'lost');returnFromStage();if(i<3)assert.equal(state,'map');}
 assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert.equal(state,'map');assert.equal(playsSinceAd,0);
 // Shared completion hook runs once before the continuation, and pauses an active timer.

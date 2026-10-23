@@ -17,8 +17,8 @@ function map(){showLevelMap();mapTransition=null;}
 function ad(){assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());}
 startCourse('existing');assert(selectStage(1));assert.equal(lives.count,3);assert(lives.inProgress);assert.equal((ui.lifeStatus.innerHTML.match(/class="life-player"/g)||[]).length,3);
 finish(false);assert.equal(lives.count,2);assert.equal((ui.lifeStatus.innerHTML.match(/class="life-player"/g)||[]).length,2);const anchor=lives.recoveryAt;finish(false);assert.equal(lives.count,2);
-ui.retry.onclick();assert.equal(state,'playing');assert.equal(lives.count,2);finish(false);assert.equal(lives.count,1);assert.equal(lives.recoveryAt,anchor);
-ui.retry.onclick();assert.equal(state,'playing');assert.equal(lives.count,1);ui.restart.onclick();assert.equal(lives.count,0);assert.equal(state,'lost');ui.retry.onclick();assert.equal(state,'ad');ad();assert.equal(lives.count,0);assert.equal(state,'life-prompt');assert(ui.lifeDialog.open);
+ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert.equal(lives.count,2);finish(false);assert.equal(lives.count,1);assert.equal(lives.recoveryAt,anchor);
+ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert.equal(lives.count,1);ui.restart.onclick();assert.equal(lives.count,0);assert.equal(state,'lost');ui.retry.onclick();assert.equal(state,'ad');ad();assert.equal(lives.count,0);assert.equal(state,'life-prompt');assert(ui.lifeDialog.open);
 assert(!canScrollStage() && !canUndoMove());ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
 assert(!selectStage(1));assert.equal(state,'life-prompt');assert(!ui.lifeDialog.hidden);ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
 // Canceling the recovery offer after Retry goes to the map, including Escape.

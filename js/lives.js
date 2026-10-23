@@ -106,19 +106,11 @@ function cancelLifePrompt() {
     refreshLives();
 }
 function restartNormalStage() {
-    if(!['playing','won','lost'].includes(state))return false;
-    const n=level;
-    settleLifeAttempt(state==='won');
-    return requestLifeStart(()=>{
-        try {restartInput(n);beginLifeAttempt();return true;}
-        catch(error) {
-            showLevelMap({target:n});ui.mapError.textContent='ステージを生成できませんでした。もう一度選んでください。';
-            ui.mapError.hidden=false;console.error(error);return false;
-        }
-    },{
-        enabled:courseMode==='existing' && !debugAttempt,
-        onCancel:()=>showLevelMap({target:n})
-    });
+    if(state!=='lost' || dailyRun || stageStartContext)return false;
+    settleLifeAttempt(false);
+    // Keep the failed wall behind confirmation. Reset and item spending happen
+    // only when Start is pressed, using the same launch path as the map.
+    return openStageStart(level,debugAttempt,null,0,true);
 }
 ui.lifeCancel.onclick=cancelLifePrompt;
 ui.lifeDialog.addEventListener('cancel',e=>{e.preventDefault();cancelLifePrompt();});
