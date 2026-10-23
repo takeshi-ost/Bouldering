@@ -10,7 +10,7 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
 `;
 new Function('assert',env+source+`
 const report=[];
-for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,80]) {
+for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
  courseMode=mode;reset(n);cameraIntro=null;
  const blue=holds.filter(h=>h.type==='hazard'),ratio=blue.length/holds.length;
  assert(ratio>=.3 && ratio<=.5,mode+' Lv'+n+' ratio '+ratio);
@@ -37,17 +37,22 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,80]) {
  }
  assert(paid>0,'Dense stage must include penalties on the planned route');
  assert.equal(state,'won');assert.equal(pickups,hearts.length*2);
- assert.equal(routeExpectedMoves(),moves+paid);assert.equal(starting,moves+paid+3);
+ assert.equal(routeExpectedMoves(),moves);assert.equal(starting,moves+paid+3);
  assert.equal(stamina,3+pickups);
  assert.equal(routeHazardCosts(route).at(-1),paid);
- debugMode=true;updateUI();assert(ui.progress.textContent.includes('想定 '+(moves+paid)+' 手'));debugMode=false;
- const expected=moves+paid;
+ debugMode=true;updateUI();assert(ui.progress.textContent.includes('想定 '+moves+' ムーブ'));debugMode=false;
+ const expected=moves;
+ if(mode==='existing' && n===47) {
+  assert.equal(moves,19);assert.equal(paid,17);assert.equal(starting,39);
+  assert.equal(clearStars(18,routeExpectedMoves()),3);
+  const preview=stagePreview(n,mode);assert.equal(preview.expectedMoves,19);assert.equal(preview.stamina,39);
+ }
  for(const [extra,stars] of [[0,3],[1,2],[2,2],[3,1]]) {
   moveCount=expected+extra;finish(true);
   assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert.equal(stageRecords[mode][n].stars,3);
  }
 
- ui.retry.onclick();assert.equal(JSON.stringify({holds,route,hearts}),saved);assert.equal(stamina,starting);
+ reset(n);assert.equal(JSON.stringify({holds,route,hearts}),saved);assert.equal(stamina,starting);
  report.push({mode,level:n,total:holds.length,blue:blue.length,moves,penalties:paid,starting});
 }
 // Heart deadlines include early penalties in the expected-move budget.
@@ -64,6 +69,6 @@ for(let n=40;n<100;n++) {
  }
  assert(items.every(h=>h.collected));
 }
-console.log('PASS dense hazards: both courses Lv40/41/42/45/80, 30-50% of all holds, protected start/wide/goal, unchanged replay, exact live costs, early hearts, complete clears, seeded retries');
+console.log('PASS dense hazards: both courses Lv40/41/42/45/47/80, 30-50% of all holds, protected start/wide/goal, unchanged replay, exact live costs, early hearts, complete clears, seeded retries');
 console.log(JSON.stringify(report));
 `)(assert);

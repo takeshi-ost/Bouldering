@@ -82,7 +82,7 @@ const snapshot=()=>JSON.stringify({holds,route,hearts,HEIGHT,initialGrips,stamin
 function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);}
 for(const [rating,key] of dates){
  assert(selectDailyDate(key));finishAds();assert.equal(level,DIFFICULTY_RULES[rating].referenceStage);assert.equal(difficulty,rating);assert.equal(courseMode,'existing');assert(dailyRun && ui.dailyCalendar.hidden);assert(ui.level.textContent.startsWith('DAILY'));
- assert.equal(stamina,routeExpectedMoves()+3);const first=snapshot();restartInput(level);assert.equal(snapshot(),first,'Daily retry changed the date seed');
+ assert.equal(stamina,routeExpectedMoves()+(routeHazardCosts(route).at(-1)||0)+3);const first=snapshot();restartInput(level);assert.equal(snapshot(),first,'Daily retry changed the date seed');
  while(featureHelpOpen)dismissStageHelp();advanceCameraIntro(clock);clock+=10000;advanceCameraIntro(clock);assert(!cameraIntro);
  if(rating<2)assert(!holds.some(h=>h.type==='hazard'));
  if(rating===3){const ratio=holds.filter(h=>h.type==='hazard').length/holds.length;assert(ratio>=.3 && ratio<=.5);}

@@ -36,7 +36,7 @@ for(const mode of ['existing','prototype']) {
    reset(n);
   }
   const expected=routeExpectedMoves(),budget=stamina;
-  assert.equal(budget,expected+3);
+  assert.equal(budget,expected+(routeHazardCosts(route).at(-1)||0)+3);
   if(n===6) {
    const preview=stagePreview(n,mode);
    assert.equal(preview.expectedMoves,expected);assert.equal(preview.stamina,budget);

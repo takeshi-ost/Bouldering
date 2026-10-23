@@ -403,10 +403,11 @@ function routeHazardCosts(path) {
     });
 }
 function routeExpectedMoves(path=route) {
-    return path.length-1+(routeHazardCosts(path).at(-1)||0);
+    return path.length-1;
 }
 function routeStamina(path) {
-    return stageStamina(routeExpectedMoves(path));
+    // Hazard penalties consume stamina, not extra player moves.
+    return stageStamina(routeExpectedMoves(path)+(routeHazardCosts(path).at(-1)||0));
 }
 
 // Use an independent stream: retries preserve both holds and items.
