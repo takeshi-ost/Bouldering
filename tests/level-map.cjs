@@ -22,7 +22,7 @@ assert.equal(new Set(Array.from({length:60},(_,i)=>mapStageVariant(i+1).height))
 for(let n=1;n<=100;n++) {
  const actual=createStageGenerator().generate(n,true);
  assert.equal(stageLengthInfo(n).height,actual.HEIGHT);
- assert.equal(mapStageVariant(n).height,actual.HEIGHT<=H?'100':actual.HEIGHT<H*2?'125':'150');
+ assert.equal(mapStageVariant(n).height,actual.HEIGHT<=H?'100':actual.HEIGHT<=H*2?'125':'150');
 }
 assert.equal(mapStageVariant(1).height,'100');
 assert.equal(mapStageVariant(2).height,{short:'100',medium:'125',long:'150'}[stageLengthRule(2).category]);

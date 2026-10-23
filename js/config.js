@@ -4,7 +4,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.2.14';
+const RELEASE_VERSION = '0.2.15';
 const GAMEPLAY_TIPS = [
     'ステージの端か2本指スワイプでスクロールできるよ！',
     '背中をタップで1ムーブだけ戻せるよ！',
@@ -44,24 +44,22 @@ const limbArrows = ["↖", "↗", "↙", "↘"];
 // 初期配置の生成。実際の想定ムーブ数は現行ルールで探索して決定します。
 const STAGE_CONFIG = {
     introGuideSteps: 5,
-    baseMoves: 20,
-    movesPerLevel: 2,
-    growthLevels: 3,
+    maxGuideSteps: 100,
     stationSpacing: 40,
     supportSpan: 5,
     introStations: [6.5, 7.5, 8.5, 11.5, 14.5],
     horizontalAmplitude: 160 - STAGE_SAFE_WIDTH,
     traverseDrop: 20,
     climbVariation: 20,
-    verticalPadding: 220,
+    goalTopMargin: 100,
     bottomMargin: 80,
     startFootSpan: 140,
     // Independent seeded draw: short / medium / long, initially equal odds.
     lengthWeights: [1,1,1],
     lengthRules: [
-        {category:'short',minHeight:H,maxHeight:H,guideScale:.5,climbHeight:200},
-        {category:'medium',minHeight:H+1,maxHeight:H*2-1,guideScale:1,climbHeight:290},
-        {category:'long',minHeight:H*2,maxHeight:MAX_HEIGHT,guideScale:1.6,climbHeight:600},
+        {category:'short',height:H,climbHeight:200},
+        {category:'medium',height:H*2,climbHeight:290},
+        {category:'long',height:MAX_HEIGHT,climbHeight:600},
     ],
     holdOffset: 8,
 };

@@ -28,8 +28,13 @@ for(let n=1;n<=100;n++) {
  assert(feetWidth<=bound,'Feet exceed maximum possible knee spread');
  const info=stageLengthInfo(n);assert.equal(HEIGHT,info.height);assert(HEIGHT<=H*3);
  if(info.category==='short')assert.equal(HEIGHT,H);
- if(info.category==='medium')assert(HEIGHT>H && HEIGHT<H*2);
- if(info.category==='long')assert(HEIGHT>=H*2);
+ if(info.category==='medium')assert(HEIGHT===H*2);
+ if(info.category==='long')assert(HEIGHT===H*3);
+ if(n!==1) {
+  const goal=stage.holds.find(h=>h.type==='goal');
+  assert(Math.abs(goal.y-STAGE_CONFIG.goalTopMargin)<=STAGE_CONFIG.holdOffset+1e-8,'Goal does not reach selected wall top');
+  assert(stage.initialGrips[2].y-goal.y>=HEIGHT-160,'Course does not span its selected height');
+ }
  heights.push(HEIGHT);
 }
 assert(heights.slice(1).some(h=>h===H),'No short stages after intro');

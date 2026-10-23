@@ -44,27 +44,31 @@ function stageLengthRule(n,seed=n) {
 // Pure shared geometry: map previews do not generate holds or solve routes.
 function stageLayout(n,random=mulberry32(n),lengthSeed=n) {
     const lengthRule=stageLengthRule(n,lengthSeed);
-    const baseSteps = n === 1 ? STAGE_CONFIG.introGuideSteps : STAGE_CONFIG.baseMoves + Math.min(n - 2, STAGE_CONFIG.growthLevels) * STAGE_CONFIG.movesPerLevel;
-    const guideSteps = Math.ceil(baseSteps * (n===1?1:lengthRule.guideScale));
-    const rows = [0,1,2,3], support = [...rows];
-    // "row" is a station every 40px ALONG the course, not a vertical grid row.
-    // Four supports span at most 200px of arc. The torso at its midpoint is
-    // within 100px + the 8px hold offset of all four supports (R = 112px).
-    for (let i = 0; i < guideSteps; i++) {
+    const height=lengthRule.height;
+    const targetRise=height-STAGE_CONFIG.bottomMargin-STAGE_CONFIG.goalTopMargin;
+    // Build enough reference geometry to reach the selected wall's top. Keep
+    // contact spacing unchanged; stretching an undersized guide breaks reach.
+    const rawCourse=n===1?s=>({x:W/2,y:-s,nx:1,ny:0}):
+        makeStageCourse(STAGE_CONFIG.maxGuideSteps*STAGE_CONFIG.supportSpan*STAGE_CONFIG.stationSpacing,
+            random()<.5?-1:1,lengthRule.climbHeight+random()*STAGE_CONFIG.climbVariation);
+    const rows=[0,1,2,3],support=[...rows];
+    const station=()=>rows.at(-1)*STAGE_CONFIG.stationSpacing;
+    const append=()=>{
         support.shift();
-        const next = support[0] + STAGE_CONFIG.supportSpan;
-        rows.push(next);
-        support.push(next);
+        const next=support[0]+STAGE_CONFIG.supportSpan;
+        rows.push(next);support.push(next);
+    };
+    if(n===1) {
+        // Preserve the dedicated tutorial exactly.
+        for(let i=0;i<STAGE_CONFIG.introGuideSteps;i++)append();
+        rows.splice(4,STAGE_CONFIG.introGuideSteps,...STAGE_CONFIG.introStations);
+    } else {
+        for(let i=0;i<STAGE_CONFIG.maxGuideSteps && -rawCourse(station()).y<targetRise;i++)append();
+        if(-rawCourse(station()).y<targetRise)throw new Error('Guide did not reach selected course height');
     }
-    // Keep the intro guide compact; its actual move count is solved with two supports.
-    // Actual playability is checked later by route.js, not this station model.
-    if (n === 1)
-        rows.splice(4, STAGE_CONFIG.introGuideSteps, ...STAGE_CONFIG.introStations);
-    const lastStation = rows[rows.length - 1] * STAGE_CONFIG.stationSpacing;
-    const rawCourse = n === 1 ? s => ({ x: W / 2, y: -s, nx: 1, ny: 0 }) : makeStageCourse(lastStation, random() < .5 ? -1 : 1, lengthRule.climbHeight + random() * STAGE_CONFIG.climbVariation);
-    const rise = -rawCourse(lastStation).y;
-    const height = n === 1 ? H : clamp(Math.ceil(rise) + STAGE_CONFIG.verticalPadding,lengthRule.minHeight,lengthRule.maxHeight);
-    const scaleY = n === 1 ? 1 : Math.min(1, (height - STAGE_CONFIG.verticalPadding) / rise);
+    const rise=-rawCourse(station()).y;
+    // Only compress the final station overshoot, never increase contact gaps.
+    const scaleY=n===1?1:targetRise/rise;
     const course = s => {
         const p = rawCourse(s);
         return { ...p, y: p.y * scaleY, ny: p.ny * scaleY };

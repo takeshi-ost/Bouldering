@@ -7,7 +7,7 @@ const counts={short:0,medium:0,long:0};
 for(let n=2;n<=10001;n++) {
  const info=stageLengthInfo(n);counts[info.category]++;
  assert.equal(info.category,stageLengthRule(n).category);
- assert.equal(info.category,info.height<=H?'short':info.height<H*2?'medium':'long');
+ assert.equal(info.category,info.height<=H?'short':info.height<=H*2?'medium':'long');
  assert.equal(JSON.stringify(info),JSON.stringify(stageLengthInfo(n)));
 }
 for(const count of Object.values(counts))assert(count>3000 && count<3700);
@@ -20,7 +20,11 @@ for(let kind=0;kind<3;kind++) {
   DIFFICULTY_CONFIG.stageBands=[{fromStage:0,weights:[0,1,2,3].map(i=>Number(i===rating))}];
   courseMode=mode;reset(23);cameraIntro=null;hideStageHelp();settingsOpen=false;state='playing';
   const info=stageLengthInfo(23),expected=['short','medium','long'][kind];
-  assert.equal(info.category,expected);assert.equal(HEIGHT,info.height);
+  assert.equal(info.category,expected);assert.equal(HEIGHT,info.height);assert.equal(HEIGHT,(kind+1)*H);
+  const goal=holds.find(h=>h.type==='goal');
+  assert(Math.abs(goal.y-STAGE_CONFIG.goalTopMargin)<=STAGE_CONFIG.holdOffset+1e-8);
+  assert(initialGrips[2].y-goal.y>=HEIGHT-160);
+  if(kind===0){assert(cameraTop()<0);assert(canScrollStage(),'Short course must remain scrollable');}
   assert(validateRouteBudget(route));assert.equal(stamina,routeExpectedMoves()+3);
   const fixed=JSON.stringify({holds,route,hearts,stamina,HEIGHT});
   const preview=stagePreview(23,mode);assert.equal(preview.stamina,stamina);assert.equal(preview.expectedMoves,routeExpectedMoves());
@@ -40,7 +44,7 @@ for(let kind=0;kind<3;kind++) {
  const seed=20261023,profile=stageLengthInfo(40,seed);
  const actual=createStageGenerator().generate(40,true,seed+123,seed);
  assert.equal(actual.HEIGHT,stageLayout(40,mulberry32(seed+123),seed).height);
- assert.equal(actual.HEIGHT<=H?'short':actual.HEIGHT<H*2?'medium':'long',profile.category);
+ assert.equal(actual.HEIGHT<=H?'short':actual.HEIGHT<=H*2?'medium':'long',profile.category);
 }
 STAGE_CONFIG.lengthWeights=weights;DIFFICULTY_CONFIG.stageBands=bands;
 // Both calendar and normal-map draws have all three lengths.
