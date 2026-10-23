@@ -101,8 +101,8 @@ function applyRouteHazards(path,intent,salt) {
     const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !protectedIds.has(h.id));
     const ordered=candidates.filter(h=>used.has(h.id)).map(h=>({h,key:random()}))
         .sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
-    const lower=intent==='consumption'?1:intent==='mixed'?5:4;
-    const upper=intent==='consumption'?3:intent==='mixed'?7:5;
+    const lower=intent==='consumption'?3:intent==='mixed'?5:4;
+    const upper=intent==='consumption'?5:intent==='mixed'?7:5;
     for(const {h} of ordered) {
         h.type='hazard';
         const cost=routeHazardCosts(path).at(-1)||0;

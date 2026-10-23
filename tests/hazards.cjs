@@ -13,6 +13,17 @@ function eventAt(p){return {clientX:p.x,clientY:p.y-camera};}
 function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);down(eventAt(body));move(eventAt(route[i]));release();assert.equal(moveCount,i);}
 // Final cost-aware route, playable optional branches, real budget and retry.
 const report=[];
+const applyRecipe=applyRouteHazards;
+let consumptionRecipes=0;
+applyRouteHazards=(path,intent,salt)=>{
+ const accepted=applyRecipe(path,intent,salt);
+ if(accepted && difficulty===2 && intent==='consumption') {
+  const extra=routeHazardCosts(path).at(-1)||0;
+  assert(extra>=3 && extra<=5,'Consumption recipe must target 3–5 extra stamina');
+  consumptionRecipes++;
+ }
+ return accepted;
+};
 for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
  courseMode=mode;reset(n);cameraIntro=null;
  const hazards=holds.filter(h=>h.type==='hazard');
@@ -23,6 +34,7 @@ for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
  const baseBody={...body},baseCommitted={...committed},baseStance=startGrips;
  assert(samePairRoute(route,replayRoute(route)),'Hazards change the validated free route');
  assert(densityStats.courseGeneration.resources.valid);
+ if(mode==='existing' && n===23){assert.equal(hazards.length,3);assert.equal(routeResources(route).penalties,3);}
  assert.deepEqual(body,baseBody);assert.deepEqual(committed,baseCommitted);assert.equal(startGrips,baseStance);
  assert(validateRouteBudget(route));
  assert(densityStats.routeOptimization.costAfter<=densityStats.routeOptimization.costBefore);
@@ -46,6 +58,7 @@ for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
  reset(n);assert.equal(JSON.stringify({holds,route,hearts}),saved);
  report.push({mode,level:n,count:hazards.length});
 }
+assert(consumptionRecipes>0);applyRouteHazards=applyRecipe;
 // Focused new-contact costs: ordinary move +1 per hazard, not per support selection.
 function fixture(two=false) {
  reset(1);cameraIntro=null;resetCharacterAnimation();
