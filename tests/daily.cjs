@@ -70,7 +70,7 @@ ui.dailyPlate.events.pointerdown({pointerId:1,clientX:100,clientY:100});ui.daily
 ui.dailyPlate.events.pointerdown({pointerId:1,clientX:100,clientY:100});ui.dailyPlate.events.pointerdown({pointerId:2,clientX:100,clientY:100,isPrimary:false});ui.dailyPlate.events.pointerup({pointerId:1,clientX:200,clientY:100});assert.equal(dailyMonth,'2026-10');
 assert(!selectDailyDate('2026-10-18'));assert(!selectDailyDate('2026-02-30'));assert.equal(state,'daily');
 nowIso='2026-10-18T00:00:00Z';refreshDailyCalendar();assert(ui.dailyGrid.innerHTML.includes('data-date="2026-10-18"'));assert(!ui.dailyGrid.innerHTML.includes('data-date="2026-10-19"'));assert(ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-19"'));assert(!ui.dailyGrid.innerHTML.includes('data-calendar-date="2026-10-18"'));
-dailyMonth='2024-02';renderDailyCalendar();assert.equal((ui.dailyGrid.innerHTML.match(/class="daily-cell/g)||[]).length,42);assert.equal(ui.dailyPlate.style.height,'344px');assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,29);
+dailyMonth='2024-02';renderDailyCalendar();assert.equal((ui.dailyGrid.innerHTML.match(/class="daily-cell/g)||[]).length,42);assert.equal(ui.dailyPlate.style.height,'360px');assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,29);
 ui.dailyPrev.onclick();assert.equal(dailyMonth,'2024-01');assert.equal(dailySelectedDate,'2024-01-31');ui.dailyNext.onclick();assert.equal(dailyMonth,'2024-02');assert.equal(dailySelectedDate,'2024-02-29');
 nowIso='2026-12-31T23:59:59Z';dailyMonth='2026-12';renderDailyCalendar();nowIso='2027-01-01T00:00:00Z';refreshDailyCalendar();assert.equal(dailyMonth,'2027-01');assert.equal((ui.dailyGrid.innerHTML.match(/data-date=/g)||[]).length,1);
 nowIso='2026-10-17T12:00:00Z';dailyMonth='2026-01';renderDailyCalendar();
@@ -138,6 +138,36 @@ for(const clearedOn of ['bad','2026-02-30','2026-10-13']) {
  const record=readDailyRecords()['2026-10-14'];assert.equal(record.clearedOn,undefined);assert.equal(dailyMedal('2026-10-14',record),'silver');
 }
 dailyRecords=JSON.parse(beforeMedals);saveDailyRecords();nowIso=beforeMedalTime;
+// Only the currently unbroken chain of same-day clears earns streak bands.
+const beforeStreak=JSON.stringify(dailyRecords),beforeStreakTime=nowIso;
+const gold=date=>({moves:2,timeMs:100,stars:3,clearedOn:date});
+dailyRecords={};nowIso='2026-10-18T12:00:00Z';
+assert.deepEqual(currentDailyStreak(),{count:0,start:null,end:null});
+dailyRecords['2026-10-17']=gold('2026-10-17');
+assert.equal(currentDailyStreak().count,1,'Yesterday remains active while today is still available');
+dailyRecords['2026-10-18']=gold('2026-10-18');assert.equal(currentDailyStreak().count,2);
+nowIso='2026-10-19T23:59:59Z';assert.equal(currentDailyStreak().count,2);
+nowIso='2026-10-20T00:00:00Z';assert.equal(currentDailyStreak().count,0);
+dailyRecords['2026-10-19']={...gold('2026-10-19'),clearedOn:'2026-10-20'};
+assert.equal(currentDailyStreak().count,0,'Backfill cannot repair a broken streak');
+dailyRecords['2026-10-20']=gold('2026-10-20');assert.equal(currentDailyStreak().count,1);
+dailyRecords['2026-10-20']={moves:2,timeMs:100,stars:3};assert.equal(currentDailyStreak().count,0,'Legacy clears cannot count');
+// Crossing a week and month produces separate rounded row segments.
+dailyRecords={};for(const date of ['2026-09-30','2026-10-01','2026-10-02','2026-10-03','2026-10-04','2026-10-05'])dailyRecords[date]=gold(date);
+nowIso='2026-10-05T12:00:00Z';dailyMonth='2026-10';renderDailyCalendar();
+assert.deepEqual(currentDailyStreak(),{count:6,start:'2026-09-30',end:'2026-10-05'});
+assert.equal(ui.dailyStreak.textContent,'ストリーク 6日');
+assert.equal((ui.dailyGrid.innerHTML.match(/daily-playable is-streak/g)||[]).length,5);
+assert.equal((ui.dailyGrid.innerHTML.match(/streak-start/g)||[]).length,2);
+assert.equal((ui.dailyGrid.innerHTML.match(/streak-end/g)||[]).length,2);
+dailyMonth='2026-09';renderDailyCalendar();assert.equal((ui.dailyGrid.innerHTML.match(/daily-playable is-streak/g)||[]).length,1);
+assert(ui.dailyGrid.innerHTML.includes('is-streak streak-start streak-end'));
+saveDailyRecords();dailyRecords=readDailyRecords();assert.equal(currentDailyStreak().count,6);
+nowIso='2026-10-07T00:00:00Z';dailyMonth='2026-10';renderDailyCalendar();assert.equal(ui.dailyStreak.textContent,'ストリーク 0日');assert(!ui.dailyGrid.innerHTML.includes('is-streak'));
+// Leap and year boundaries use calendar days, never elapsed 24-hour blocks.
+assert.equal(previousDailyDate('2024-03-01'),'2024-02-29');assert.equal(previousDailyDate('2027-01-01'),'2026-12-31');
+dailyRecords={'2026-12-31':gold('2026-12-31'),'2027-01-01':gold('2027-01-01')};assert.equal(currentDailyStreak('2027-01-01').count,2);
+dailyRecords=JSON.parse(beforeStreak);saveDailyRecords();nowIso=beforeStreakTime;
 const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]='{bad';assert.deepEqual(readDailyRecords(),{});
 data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-02-30':{moves:1,timeMs:2,stars:3},'2026-01-01':{moves:0,timeMs:2,stars:3},'2026-01-02':{moves:1,timeMs:-1,stars:3},'2026-01-03':{moves:1,timeMs:2,stars:4}});assert.deepEqual(readDailyRecords(),{});data[DAILY_RECORDS_KEY]=saved;
 const savedGet=storage.getItem;storage.getItem=()=>{throw Error('blocked');};assert.deepEqual(readDailyRecords(),{});storage.getItem=savedGet;
@@ -162,6 +192,10 @@ for(const [zone,before,after] of [
 ]) {
  process.env.TZ=zone;
  new Function('assert','before','after','html',env+source+`
+ dailyRecords={'2026-10-30':{moves:1,timeMs:1,stars:3,clearedOn:'2026-10-30'}};
+ nowIso=before;assert.equal(currentDailyStreak().count,1);
+ nowIso=after;assert.equal(currentDailyStreak().count,0);
+ dailyRecords={};
  nowIso=before;startCourse('existing');showDailyCalendar({openFromMap:true});
  assert.equal(localToday(),'2026-10-31');assert.equal(dailyMonth,'2026-10');
  const seed=dailyProfile('2026-11-01');assert.equal(seed.baseSeed,20261101);

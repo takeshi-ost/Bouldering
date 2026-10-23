@@ -114,6 +114,19 @@ function recordDailyClear() {
 function dailyMedal(date,record) {
     return record?.clearedOn===date?'gold':'silver';
 }
+// Calendar-day arithmetic in UTC keeps local date keys stable across DST changes.
+function previousDailyDate(key) {
+    const date=new Date(key+'T00:00:00Z');
+    date.setUTCDate(date.getUTCDate()-1);
+    return utcToday(date);
+}
+function currentDailyStreak(today=localToday()) {
+    const onTime=key=>dailyRecords[key]?.clearedOn===key;
+    const end=onTime(today)?today:previousDailyDate(today);
+    let cursor=end,count=0,start=null;
+    while(onTime(cursor)) {count++;start=cursor;cursor=previousDailyDate(cursor);}
+    return {count,start,end:count?end:null};
+}
 function monthParts(month=dailyMonth) {return month.split('-').map(Number);}
 function shiftedDailyMonth(delta) {
     const [year,month]=monthParts();
@@ -133,17 +146,22 @@ function renderDailyCalendar() {
     const [year,month]=monthParts();
     const firstDay=new Date(Date.UTC(year,month-1,1)).getUTCDay();
     const days=new Date(Date.UTC(year,month,0)).getUTCDate();
+    const streak=currentDailyStreak(today);
+    ui.dailyStreak.textContent=`ストリーク ${streak.count}日`;
     const cells=Array.from({length:firstDay},()=>'<div class="daily-cell" aria-hidden="true"></div>');
     for(let day=1;day<=days;day++) {
         const key=dailyMonth+'-'+String(day).padStart(2,'0');
         if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${year}年${month}月${day}日">${day}</div>`);continue;}
         const record=dailyRecords[key];
         const medal=record?dailyMedal(key,record):null;
-        cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み・'+(medal==='gold'?'金貨':'銀貨')+' '+record.stars+'スター・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?`<img class="daily-clear-icon" src="assets/daily-medal-${medal}-v2.webp" width="32" height="32" alt="" aria-hidden="true" draggable="false">`:day}</button></div>`);
+        const column=(firstDay+day-1)%7;
+        const inStreak=streak.count>0 && key>=streak.start && key<=streak.end;
+        const streakClasses=inStreak?' is-streak'+(key===streak.start || day===1 || column===0?' streak-start':'')+(key===streak.end || day===days || column===6?' streak-end':''):'';
+        cells.push(`<div class="daily-cell daily-playable${streakClasses}"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み・'+(medal==='gold'?'金貨':'銀貨')+' '+record.stars+'スター・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?`<img class="daily-clear-icon" src="assets/daily-medal-${medal}-v2.webp" width="32" height="32" alt="" aria-hidden="true" draggable="false">`:day}</button></div>`);
     }
     while(cells.length<42)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');
-    ui.dailyPlate.style.height=(6*43+86)+'px';
+    ui.dailyPlate.style.height=(6*43+102)+'px';
     ui.dailyGrid.style.gridTemplateRows='repeat(6,minmax(0,1fr))';
     ui.dailyMonthTitle.textContent=`${year}年 ${month}月`;
     ui.dailyPrev.disabled=dailyMonth<='1000-01';
