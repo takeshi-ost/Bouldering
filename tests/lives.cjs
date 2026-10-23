@@ -18,7 +18,7 @@ function ad(){assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert
 startCourse('existing');assert(selectStage(1));assert.equal(lives.count,3);assert(lives.inProgress);assert.equal((ui.lifeStatus.innerHTML.match(/class="life-player"/g)||[]).length,3);
 finish(false);assert.equal(lives.count,2);assert.equal((ui.lifeStatus.innerHTML.match(/class="life-player"/g)||[]).length,2);const anchor=lives.recoveryAt;finish(false);assert.equal(lives.count,2);
 ui.retry.onclick();assert.equal(state,'playing');assert.equal(lives.count,2);finish(false);assert.equal(lives.count,1);assert.equal(lives.recoveryAt,anchor);
-ui.retry.onclick();assert.equal(state,'playing');assert.equal(lives.count,1);ui.restart.onclick();assert.equal(lives.count,0);assert.equal(state,'lost');ui.retry.onclick();assert.equal(lives.count,0);assert.equal(state,'life-prompt');assert(ui.lifeDialog.open);
+ui.retry.onclick();assert.equal(state,'playing');assert.equal(lives.count,1);ui.restart.onclick();assert.equal(lives.count,0);assert.equal(state,'lost');ui.retry.onclick();assert.equal(state,'ad');ad();assert.equal(lives.count,0);assert.equal(state,'life-prompt');assert(ui.lifeDialog.open);
 assert(!canScrollStage() && !canUndoMove());ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
 assert(!selectStage(1));assert.equal(state,'life-prompt');assert(!ui.lifeDialog.hidden);ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
 // Canceling the recovery offer after Retry goes to the map, including Escape.
@@ -28,7 +28,7 @@ for(const escape of [false,true]) {
  assert.equal(state,'map');assert(ui.overlay.hidden && !ui.overlay.open);assert(ui.lifeDialog.hidden && !ui.lifeDialog.open);assert.equal(lives.count,0);assert(!dummyAd);
 }
 assert(!selectStage(1));ui.lifeWatchAd.onclick();assert.equal(state,'ad');assert.equal(lives.count,0);assert(!completeDummyAd());ad();assert.equal(lives.count,1);assert.equal(state,'map');assert(ui.stageStartDialog.open);assert(!lives.inProgress);ui.stageStartButton.onclick();assert.equal(state,'playing');assert(lives.inProgress);
-moveCount=1;finish(true);assert.equal(lives.count,1);ui.next.onclick();assert.equal(state,'ad');ad();map();assert.equal(lives.count,1);assert(selectStage(1));returnFromStage();assert.equal(state,'map');assert.equal(lives.count,0);returnFromStage();assert.equal(lives.count,0);
+moveCount=1;finish(true);assert.equal(lives.count,1);ui.next.onclick();assert.equal(state,'map');map();assert.equal(lives.count,1);assert(selectStage(1));returnFromStage();assert.equal(state,'map');assert.equal(lives.count,0);returnFromStage();assert.equal(lives.count,0);
 // Recovery keeps its fractional progress across additional failures and stops at 3.
 wallNow=anchor+LIFE_RECOVERY_MS-1;recoverLives();assert.equal(lives.count,0);wallNow++;recoverLives();assert.equal(lives.count,1);
 wallNow+=LIFE_RECOVERY_MS/2;assert(selectStage(1));finish(false);assert.equal(lives.count,0);assert.equal(lives.recoveryAt,anchor+LIFE_RECOVERY_MS);

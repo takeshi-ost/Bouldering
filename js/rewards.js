@@ -27,7 +27,7 @@ function hasMapReward(n) {
 }
 function recordMapRewardClear() {
     if(dailyRun || debugAttempt || !hasMapReward(level) || mapRewards[level])return;
-    mapRewards[level]={status:'pending',adRequired:playsSinceAd>=4,adCompleted:false};
+    mapRewards[level]={status:'pending',adRequired:playsSinceAd>=NORMAL_AD_PLAY_INTERVAL,adCompleted:false};
     saveMapRewards();
 }
 function startMapClearReward(n,onReturn=()=>showLevelMap({target:n+1})) {
@@ -49,7 +49,7 @@ function resumePendingMapReward() {
 function continueNormalClear({advance=true}={}) {
     const n=level,resume=()=>showLevelMap(advance?{advanceFrom:n}:{target:n});
     if(!debugAttempt && startMapClearReward(n,resume))return;
-    if(courseMode==='existing' && !debugAttempt && playsSinceAd>=4)
+    if(courseMode==='existing' && !debugAttempt && playsSinceAd>=NORMAL_AD_PLAY_INTERVAL)
         startDummyAd({onComplete:resetAdPlayCount,onReturn:resume});
     else resume();
 }

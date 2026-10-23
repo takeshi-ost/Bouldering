@@ -73,7 +73,7 @@ showLevelMap();
 assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,5);assert.equal((ui.mapNodes.innerHTML.match(/map-reward-gift/g)||[]).length,5);
 assert(hasMapReward(4));assert(hasMapReward(8));assert(hasMapReward(12));assert(hasMapReward(20));assert(!hasMapReward(9));assert(!hasMapReward(10));
 stageProgress.existing.cleared=3;showLevelMap({target:4});assert(selectStage(4));
-playsSinceAd=3;moveCount=1;finish(true);
+playsSinceAd=2;moveCount=1;finish(true);
 assert.equal(mapRewards[4].status,'pending');assert(mapRewards[4].adRequired);
 ui.overlay.events.click({target:ui.overlay});assert.equal(state,'ad');ad();assert.equal(state,'reward');assert(mapRewards[4].adCompleted);
 const mapBefore=heartItems;land(1);assert.equal(heartItems,mapBefore+5);assert.equal(mapRewards[4].status,'claimed');

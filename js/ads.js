@@ -1,4 +1,5 @@
 "use strict";
+const NORMAL_AD_PLAY_INTERVAL=3;
 const AD_PLAYS_KEY='ascent.ad-plays.v1';
 const DUMMY_AD_DURATION=10000;
 function readAdPlayCount() {
@@ -71,7 +72,7 @@ ui.dummyAd.addEventListener('cancel',e=>e.preventDefault());
 // Result dismissal and retry share the same end-of-play ad gate.
 function continueAfterNormalAd(onReturn) {
     if(dummyAd || adCoverPending)return false;
-    if(courseMode==='existing' && !dailyRun && !debugAttempt && playsSinceAd>=4)
+    if(courseMode==='existing' && !dailyRun && !debugAttempt && playsSinceAd>=NORMAL_AD_PLAY_INTERVAL)
         return startDummyAd({onComplete:resetAdPlayCount,onReturn});
     return onReturn();
 }
