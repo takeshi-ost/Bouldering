@@ -4,7 +4,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.2.10';
+const RELEASE_VERSION = '0.2.11';
 const GAMEPLAY_TIPS = [
     'ステージの端か2本指スワイプでスクロールできるよ！',
     '背中をタップで1ムーブだけ戻せるよ！',
@@ -102,8 +102,8 @@ const DENSITY_CONFIG = {
 };
 // コース固定の回復アイテム。取得時に回復し、開始予算からは差し引きません。
 const HEART_CONFIG = { minMoves: 5, maxCount: 2, recovery: 2, radius: 10, popupDuration: 1000, popupRise: 30 };
-// Difficulty 2 adds optional hazards; difficulty 3 converts 30–50% of holds.
-const HAZARD_CONFIG = { minRatio: .3, maxRatio: .5, maxCount: 5, penalty: 1, shakeDuration: 280, shakeAmplitude: 4, radius: 6, attempts: 140, spacing: 24 };
+// Difficulty 2 adds 0–5 hazards; difficulty 3 separates route cost from 0–3 alternatives.
+const HAZARD_CONFIG = { maxCount: 5, optionalMaxCount: 3, optionalSpacing: 96, optionalCandidateChecks: 12, reserveCount: 6, penalty: 1, shakeDuration: 280, shakeAmplitude: 4, radius: 6, attempts: 140, spacing: 24 };
 // 操作と描画。
 const INPUT_CONFIG = { edgeScrollWidth: STAGE_SAFE_WIDTH, dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24, tapMaxDuration: 400 };
 // Deterministic work limits keep preview/retry budgets identical on slow devices.

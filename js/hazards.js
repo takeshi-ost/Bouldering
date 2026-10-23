@@ -60,18 +60,31 @@ function addHazardHolds() {
     updateStageDensity();
 }
 
+// Convert a few reachable alternatives; never fill a percentage of the wall.
+// Existing geometry is unchanged, so the reference contact sequence stays valid.
+function addOptionalRouteHazards(path,random) {
+    const protectedIds=new Set([...initialGrips.map(h=>h.id),...path.flatMap(p=>p.grips||[])]);
+    const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !protectedIds.has(h.id))
+        .map(h=>({h,key:random()})).sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
+    const target=Math.floor(random()*(HAZARD_CONFIG.optionalMaxCount+1));
+    const selected=[];
+    let checks=0;
+    for(const {h} of candidates) {
+        if(selected.length>=target || checks>=HAZARD_CONFIG.optionalCandidateChecks)break;
+        if(holds.some(other=>other.type==='hazard' && distance(other,h)<HAZARD_CONFIG.optionalSpacing))continue;
+        checks++;
+        h.type='hazard';
+        if(findHazardMove(h,path))selected.push(h.id);
+        else h.type='normal';
+    }
+    return selected;
+}
 // Keep a free validated fallback. Search/shortening runs again after conversion.
 function convertDenseHazards() {
     const random=mulberry32(courseSeed() ^ 0x3C61D52A);
-    const protectedIds=new Set([...initialGrips.map(h=>h.id),...route.flatMap(p=>p.grips||[])]);
-    const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !protectedIds.has(h.id))
-        .map(h=>({h,key:random()})).sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
-    const min=Math.ceil(holds.length*HAZARD_CONFIG.minRatio);
-    const max=Math.min(candidates.length,Math.floor(holds.length*HAZARD_CONFIG.maxRatio));
-    if(max<min)throw new Error('Not enough ordinary holds for dense hazards');
-    const count=min+Math.floor(random()*(max-min+1));
-    for(const {h} of candidates.slice(0,count))h.type='hazard';
-    if(!samePairRoute(route,replayRoute(route)))throw new Error('Dense hazard route replay failed');
-    densityStats.hazardCount=count;
+    const optionalIds=addOptionalRouteHazards(route,random);
+    generatedCourse.hazardPlacement={routeIds:[],optionalIds};
+    if(!samePairRoute(route,replayRoute(route)))throw new Error('Optional hazard route replay failed');
+    densityStats.hazardCount=optionalIds.length;
     updateStageDensity();
 }

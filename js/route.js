@@ -238,7 +238,7 @@ function reserveDenseCandidates(path) {
     const random=mulberry32(courseSeed() ^ 0x2E8CA17B);
     const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !used.has(h.id))
         .map(h=>({h,key:random()})).sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
-    const count=Math.ceil((used.size+6)*HAZARD_CONFIG.maxRatio/(1-HAZARD_CONFIG.maxRatio));
+    const count=HAZARD_CONFIG.reserveCount;
     return new Set(candidates.slice(0,count).map(({h})=>h.id));
 }
 

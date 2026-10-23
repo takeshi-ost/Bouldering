@@ -27,7 +27,7 @@ for(let selected=0;selected<4;selected++){
 DIFFICULTY_CONFIG.dailyWeights=weights;
 // Force dense hazards on STAGE 1: progression must not disable a selected rule set.
 DIFFICULTY_CONFIG.stageBands=[{fromStage:0,weights:[0,0,0,100]}];reset(1);cameraIntro=null;
-assert.equal(difficulty,3);const ratio=holds.filter(h=>h.type==='hazard').length/holds.length;assert(ratio>=.3 && ratio<=.5);
+assert.equal(difficulty,3);assert(holds.filter(h=>h.type==='hazard').length<=10);assert(generatedCourse.hazardPlacement.optionalIds.length<=3);
 for(let i=1;i<route.length;i++){
  camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);
 }

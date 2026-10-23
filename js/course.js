@@ -80,7 +80,7 @@ function recipeHearts(path,intent,salt=0) {
 }
 function bindCourseRecipe(intent,path,salt=0) {
     generatedCourse={level,seed:courseSeed(),difficulty,mode:courseMode,holds,intent,
-        hearts:recipeHearts(path,intent,salt)};
+        hearts:recipeHearts(path,intent,salt),hazardPlacement:{routeIds:[],optionalIds:[]}};
 }
 function snapshotCourse(path) {
     return {holds:[...holds],types:holds.map(h=>h.type),path,
@@ -111,15 +111,11 @@ function applyRouteHazards(path,intent,salt) {
     }
     const paid=routeHazardCosts(path).at(-1)||0;
     if(paid<lower || paid>upper)return false;
-    const selected=holds.filter(h=>h.type==='hazard').length;
-    const optional=candidates.filter(h=>!used.has(h.id)).map(h=>({h,key:random()}))
-        .sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
-    const min=rules.hazards==='dense'?Math.ceil(holds.length*HAZARD_CONFIG.minRatio):selected;
-    const max=rules.hazards==='dense'?Math.floor(holds.length*HAZARD_CONFIG.maxRatio):HAZARD_CONFIG.maxCount;
-    if(selected>max || optional.length+selected<min)return false;
-    const target=Math.max(selected,min)+Math.floor(random()*(Math.min(max,optional.length+selected)-Math.max(selected,min)+1));
-    for(const {h} of optional.slice(0,target-selected))h.type='hazard';
-    densityStats.hazardCount=target;
+    const routeIds=holds.filter(h=>h.type==='hazard').map(h=>h.id);
+    // Route cost is already fixed; optional alternatives have their own small cap.
+    const optionalIds=rules.hazards==='dense'?addOptionalRouteHazards(path,random):[];
+    generatedCourse.hazardPlacement={routeIds,optionalIds};
+    densityStats.hazardCount=routeIds.length+optionalIds.length;
     return true;
 }
 function classifyCourse(path) {

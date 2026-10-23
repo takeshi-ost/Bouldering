@@ -9,12 +9,37 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};
 `;
 new Function('assert',env+source+`
+// Large walls must not force a percentage quota, and failed reach checks stop.
+const reach=findHazardMove;
+level=47;
+initialGrips=[{id:0,type:'start',x:0,y:0}];
+holds=[...initialGrips,{id:1,type:'normal',wide:true,x:100,y:0},
+ {id:2,type:'goal',x:200,y:0},{id:3,type:'normal',x:300,y:0},
+ ...Array.from({length:100},(_,i)=>({id:i+4,type:'normal',x:(i+4)*100,y:0}))];
+const reference=[{grips:[0]},{grips:[3]}];
+let checks=0;
+findHazardMove=()=>{checks++;return null;};
+assert.equal(addOptionalRouteHazards(reference,()=>.99).length,0);
+assert.equal(checks,HAZARD_CONFIG.optionalCandidateChecks);
+assert(holds.every(h=>h.type!=='hazard'));
+findHazardMove=()=>({});
+const optional=addOptionalRouteHazards(reference,()=>.99);
+assert.equal(optional.length,3);
+assert(optional.every(id=>id>=4));
+assert(holds.filter(h=>h.type==='hazard').length/holds.length<.03);
+findHazardMove=reach;
 const report=[];
 for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
  courseMode=mode;reset(n);cameraIntro=null;
- const blue=holds.filter(h=>h.type==='hazard'),ratio=blue.length/holds.length;
- assert(ratio>=.3 && ratio<=.5,mode+' Lv'+n+' ratio '+ratio);
- assert(blue.length>5);assert(initialGrips.every(h=>h.type!=='hazard'));
+ const blue=holds.filter(h=>h.type==='hazard');
+ const placement=generatedCourse.hazardPlacement;
+ assert(placement.optionalIds.length<=3);assert(blue.length<=10);
+ assert.equal(blue.length,placement.routeIds.length+placement.optionalIds.length);
+ for(const id of placement.optionalIds) {
+  const h=holds.find(h=>h.id===id);
+  assert(blue.every(other=>other===h || distance(h,other)>=96));
+ }
+ assert(initialGrips.every(h=>h.type!=='hazard'));
  assert(blue.every(h=>!h.wide));assert(holds.some(h=>h.type==='goal'));
  assert(samePairRoute(route,replayRoute(route)));
  const saved=JSON.stringify({holds,route,hearts}),starting=stamina;
@@ -72,6 +97,6 @@ for(let n=40;n<100;n++) {
  }
  assert(items.length<=HEART_CONFIG.maxCount);
 }
-console.log('PASS dense hazards: both courses Lv40/41/42/45/47/80, 30-50% of all holds, protected start/wide/goal, unchanged replay, exact live costs, fixed moves+3 budget, unassisted full clears, seeded retries');
+console.log('PASS dense hazards: both courses Lv40/41/42/45/47/80, separate route costs and 0-3 spaced alternatives, protected start/wide/goal, unchanged replay, exact live costs, fixed moves+3 budget, unassisted full clears, seeded retries');
 console.log(JSON.stringify(report));
 `)(assert);
