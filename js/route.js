@@ -192,7 +192,7 @@ function pruneUnusedHolds() {
             const previous=holds;
             holds=holds.filter(p=>p!==h);
             const played=replayRoute(route);
-            if(samePairRoute(route,played)) {route=played;removed=true;}
+            if(samePairRoute(route,played) && hasHazardFallbackCandidates(played)) {route=played;removed=true;}
             else holds=previous;
         }
         // A later removal can make a formerly necessary selector hold removable.
@@ -228,6 +228,13 @@ function assignWideHolds(guide) {
         h.wide = true;
         placed++;
     }
+}
+
+// Keep enough existing alternatives for a valid minimum-ratio fallback.
+function hasHazardFallbackCandidates(path) {
+    if(DIFFICULTY_RULES[difficulty].hazards!=='dense')return true;
+    const used=new Set([...initialGrips.map(h=>h.id),...path.flatMap(p=>p.grips||[])]);
+    return holds.filter(h=>h.type==='normal' && !h.wide && !used.has(h.id)).length>=Math.ceil(holds.length*HAZARD_CONFIG.minRatio);
 }
 
 // Retain off-route geometry for varied recipes and a verified safe fallback.

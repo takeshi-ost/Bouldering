@@ -60,31 +60,30 @@ function addHazardHolds() {
     updateStageDensity();
 }
 
-// Convert a few reachable alternatives; never fill a percentage of the wall.
-// Existing geometry is unchanged, so the reference contact sequence stays valid.
-function addOptionalRouteHazards(path,random) {
-    const protectedIds=new Set([...initialGrips.map(h=>h.id),...path.flatMap(p=>p.grips||[])]);
+// Convert only existing geometry, after heart placement and before cost search.
+// The initial sample treats route and off-route contacts identically. A protected
+// sample first keeps the witness free, then accepts only resource-valid changes.
+function convertDenseHazards(path=route,salt=0,safeFallback=false) {
+    const random=mulberry32(courseSeed() ^ 0x3C61D52A ^ Math.imul(salt+1,0x9E3779B9));
+    const used=new Set(path.flatMap(p=>p.grips||[]));
+    const protectedIds=new Set(initialGrips.map(h=>h.id));
     const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !protectedIds.has(h.id))
-        .map(h=>({h,key:random()})).sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
-    const target=Math.floor(random()*(HAZARD_CONFIG.optionalMaxCount+1));
+        .map(h=>({h,key:random()})).sort((a,b)=>
+            (safeFallback?Number(used.has(a.h.id))-Number(used.has(b.h.id)):0) || a.key-b.key || a.h.id-b.h.id);
+    const min=Math.ceil(holds.length*HAZARD_CONFIG.minRatio);
+    const max=Math.min(candidates.length,Math.floor(holds.length*HAZARD_CONFIG.maxRatio));
+    if(max<min)return false;
+    const target=min+Math.floor(random()*(max-min+1));
     const selected=[];
-    let checks=0;
     for(const {h} of candidates) {
-        if(selected.length>=target || checks>=HAZARD_CONFIG.optionalCandidateChecks)break;
-        if(holds.some(other=>other.type==='hazard' && distance(other,h)<HAZARD_CONFIG.optionalSpacing))continue;
-        checks++;
+        if(selected.length>=target)break;
         h.type='hazard';
-        if(findHazardMove(h,path))selected.push(h.id);
+        if(!safeFallback || routeResources(path).valid)selected.push(h.id);
         else h.type='normal';
     }
-    return selected;
-}
-// Keep a free validated fallback. Search/shortening runs again after conversion.
-function convertDenseHazards() {
-    const random=mulberry32(courseSeed() ^ 0x3C61D52A);
-    const optionalIds=addOptionalRouteHazards(route,random);
-    generatedCourse.hazardPlacement={routeIds:[],optionalIds};
-    if(!samePairRoute(route,replayRoute(route)))throw new Error('Optional hazard route replay failed');
-    densityStats.hazardCount=optionalIds.length;
-    updateStageDensity();
+    if(selected.length<min)return false;
+    generatedCourse.hazardPlacement={routeIds:selected.filter(id=>used.has(id)),
+        optionalIds:selected.filter(id=>!used.has(id)),total:holds.length,min,max,target:selected.length,safeFallback};
+    densityStats.hazardCount=selected.length;
+    return true;
 }

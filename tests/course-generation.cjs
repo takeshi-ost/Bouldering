@@ -17,6 +17,27 @@ assert.deepEqual([...natural].sort(),['choice','consumption','mixed','recovery']
 const weights=COURSE_GENERATION_CONFIG.intentWeights;
 COURSE_GENERATION_CONFIG.intentWeights=weights.map(row=>[...row]);
 const report=[];
+const convert=convertDenseHazards,search=solveCostRoute;
+let searchedInvalidWitness=0,conversions=0,searches=0;
+const frozen=new Map();
+convertDenseHazards=(path,salt,protect)=>{
+ const heartsNow=JSON.stringify(generatedCourse.hearts),geometryNow=JSON.stringify(holds.map(({type,...h})=>h));
+ const key=level+':'+courseSeed()+':'+generatedCourse.intent;
+ if(!salt && !protect)frozen.set(key,{hearts:heartsNow,geometry:geometryNow});
+ const fixed=frozen.get(key);
+ assert.equal(heartsNow,fixed.hearts);assert.equal(geometryNow,fixed.geometry);
+ conversions++;
+ return convert(path,salt,protect);
+};
+solveCostRoute=(path,...args)=>{
+ if(generatedCourse?.hazardPlacement?.target){
+  searches++;
+  const fixed=frozen.get(level+':'+courseSeed()+':'+generatedCourse.intent);
+  assert.equal(JSON.stringify(generatedCourse.hearts),fixed.hearts);
+  if(!routeResources(path).valid)searchedInvalidWitness++;
+ }
+ return search(path,...args);
+};
 for(const mode of ['existing','prototype'])for(let kind=0;kind<COURSE_INTENTS.length;kind++) {
  courseMode=mode;
  COURSE_GENERATION_CONFIG.intentWeights[3]=COURSE_INTENTS.map((_,i)=>i===kind?1:0);
@@ -26,10 +47,12 @@ for(const mode of ['existing','prototype'])for(let kind=0;kind<COURSE_INTENTS.le
  assert.equal(stamina,routeExpectedMoves()+3);assert(generation.recipeAttempts<=COURSE_GENERATION_CONFIG.recipeAttempts);
  assert.equal(generation.necessityScope,'bounded-search');
  for(const comparison of Object.values(generation.comparisons))assert(comparison.transitions<=COURSE_GENERATION_CONFIG.comparisonTransitions);
- if(kind===0){assert.equal(hearts.length,0);assert.equal(resources.penalties,0);assert.equal(generation.actual,'basic');}
+ if(kind===0)assert.equal(hearts.length,0);
  if(kind===1)for(const heart of hearts)assert(findCourseHeartMove(heart,route),'Optional heart cannot be reached');
- if(kind===2){assert(resources.penalties>0);assert.equal(hearts.length,0);}
- if(kind>=3){assert(resources.penalties>3);assert(resources.pickups>0);assert(!routeResources(route,{pickups:[]}).valid);}
+ if(kind===2)assert.equal(hearts.length,0);
+ if(kind>=3)assert.equal(hearts.length,kind===3?1:2);
+ const count=holds.filter(h=>h.type==='hazard').length;
+ assert(count>=Math.ceil(holds.length*.1) && count<=Math.floor(holds.length*.3));
  const layout=JSON.stringify(createHearts(level,route,difficulty));
  assert.equal(JSON.stringify(createHearts(level,route.slice(0,-1),difficulty)),layout,'Searching cannot relocate hearts');
  const snapshot=JSON.stringify({holds,route,hearts,stamina}),active=generatedCourse;
@@ -47,6 +70,9 @@ for(const mode of ['existing','prototype'])for(let kind=0;kind<COURSE_INTENTS.le
  assert.equal(hearts.filter(h=>h.collected).length,resources.pickups);
  report.push({mode,intent:COURSE_INTENTS[kind],actual:generation.actual,moves:resources.moves,penalties:resources.penalties,pickups:resources.pickups,remaining:stamina});
 }
+assert(searchedInvalidWitness>0,'Converted layouts must be searched even when the initial witness is exhausted');
+assert(conversions>0 && searches>0);
+convertDenseHazards=convert;solveCostRoute=search;
 // Optional hearts are present, reachable, and can be skipped in actual play.
 courseMode='existing';reset(6);cameraIntro=null;hideStageHelp();hideResultModal();settingsOpen=false;state='playing';
 assert.equal(hearts.length,2);assert.equal(routeResources(route).pickups,0);
@@ -60,7 +86,8 @@ assert.equal(state,'won');assert(hearts.every(h=>!h.collected));assert.equal(sta
 COURSE_GENERATION_CONFIG.intentWeights[3]=[0,0,0,1,0];
 dailyRun={date:'2026-10-23',baseSeed:20261023,seed:20261023,difficulty:3,referenceStage:40,returnCourse:'existing'};
 reset(40);cameraIntro=null;hideStageHelp();hideResultModal();settingsOpen=false;state='playing';
-assert(routeResources(route).penalties>3);assert(validateRouteBudget(route));
+assert(validateRouteBudget(route));
+assert(holds.filter(h=>h.type==='hazard').length>=Math.ceil(holds.length*.1));
 const dailyBudget=stamina;assert.equal(dailyBudget,routeExpectedMoves()+3);
 for(let i=1;i<route.length;i++) {
  camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});
@@ -68,16 +95,16 @@ for(let i=1;i<route.length;i++) {
 }
 assert.equal(state,'won');dailyRun=null;
 // Failed bounded recipes return to a previously verified course, never raise stamina.
-const apply=applyRouteHazards;applyRouteHazards=()=>false;
+const apply=convertDenseHazards;convertDenseHazards=(path,salt,protect)=>protect?apply(path,salt,protect):false;
 COURSE_GENERATION_CONFIG.intentWeights[3]=[0,0,0,0,1];courseMode='existing';reset(47);
 assert(densityStats.courseGeneration.usedSafeFallback);assert.equal(densityStats.courseGeneration.recipeAttempts,COURSE_GENERATION_CONFIG.recipeAttempts);
 assert(validateRouteBudget(route));assert.equal(stamina,routeExpectedMoves()+3);
-applyRouteHazards=()=>{throw Error('forced recipe failure');};reset(47);
+convertDenseHazards=(path,salt,protect)=>{if(protect)return apply(path,salt,protect);throw Error('forced recipe failure');};reset(47);
 assert(validateRouteBudget(route));assert(densityStats.courseGeneration.usedSafeFallback);assert.equal(densityStats.courseGeneration.failures.length,COURSE_GENERATION_CONFIG.recipeAttempts);
-applyRouteHazards=apply;
+convertDenseHazards=apply;
 // Search exhaustion retains a valid recovery-dependent witness.
 const limit=ROUTE_COST_SEARCH_CONFIG.maxTransitions;ROUTE_COST_SEARCH_CONFIG.maxTransitions=0;reset(47);
-assert(validateRouteBudget(route));assert(routeResources(route).penalties>3);assert.equal(densityStats.costSearch.transitions,0);
+assert(validateRouteBudget(route));assert.equal(densityStats.costSearch.transitions,0);
 ROUTE_COST_SEARCH_CONFIG.maxTransitions=limit;
 // A search error must not discard the cleared witness or assert false necessity.
 const solver=solveCostRoute;solveCostRoute=()=>{throw Error('forced search failure');};reset(47);
@@ -85,6 +112,6 @@ assert(validateRouteBudget(route));assert(densityStats.courseGeneration.searchFa
 assert.equal(densityStats.courseGeneration.heart,'unknown');assert.equal(densityStats.courseGeneration.actual,'unclassified');
 assert.equal(stamina,routeExpectedMoves()+3);solveCostRoute=solver;
 COURSE_GENERATION_CONFIG.intentWeights=weights;
-console.log('PASS five intents in both generators: frozen hearts, real unassisted input, budget prefix/one-time recovery, comparisons, preview/retry isolation, bounded repairs and valid exhausted fallback');
+console.log('PASS fixed hearts and 10-30% conversion before search in both generators: frozen hearts, real unassisted input, budget prefix/one-time recovery, comparisons, preview/retry isolation, bounded repairs and valid exhausted fallback');
 console.log(JSON.stringify(report));
 `)(assert);

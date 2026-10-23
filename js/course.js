@@ -112,8 +112,8 @@ function applyRouteHazards(path,intent,salt) {
     const paid=routeHazardCosts(path).at(-1)||0;
     if(paid<lower || paid>upper)return false;
     const routeIds=holds.filter(h=>h.type==='hazard').map(h=>h.id);
-    // Route cost is already fixed; optional alternatives have their own small cap.
-    const optionalIds=rules.hazards==='dense'?addOptionalRouteHazards(path,random):[];
+    // Difficulty 2 keeps its existing route-consumption recipes.
+    const optionalIds=[];
     generatedCourse.hazardPlacement={routeIds,optionalIds};
     densityStats.hazardCount=routeIds.length+optionalIds.length;
     return true;
@@ -150,6 +150,7 @@ function classifyCourse(path) {
         necessityScope:'bounded-search',heartResourceRequired:!routeResources(path,{pickups:[],budget}).valid};
 }
 function finalizeCourseGeneration(intent=chooseCourseIntent()) {
+    if(DIFFICULTY_RULES[difficulty].hazards==='dense')return finalizeConvertedCourse(intent);
     const began=performance.now(),base=route,baseHolds=[...holds],baseTypes=holds.map(h=>h.type);
     densityStats.initialRouteOptimization=densityStats.routeOptimization;
     const failures=[];let searchFallback=false,safeFeatureFallback=false;
@@ -193,6 +194,51 @@ function finalizeCourseGeneration(intent=chooseCourseIntent()) {
     densityStats.courseGeneration={...classification,recipeAttempts:attempts,recipeLimit:COURSE_GENERATION_CONFIG.recipeAttempts,
         usedSafeFallback:safeFeatureFallback || (selected===safe && !['basic','choice'].includes(intent)),
         searchFallback,failures,elapsedMs:performance.now()-began};
+    densityStats.routeBudgetValidated=true;
+    densityStats.hazardCount=holds.filter(h=>h.type==='hazard').length;
+    updateStageDensity();
+}
+
+// Difficulty 3: freeze ordinary geometry and pickups first, then sample types.
+// Never reject a sample just because the original witness now exceeds its budget:
+// search the converted layout first, then validate the path actually selected.
+function finalizeConvertedCourse(intent) {
+    const began=performance.now(),base=route;
+    densityStats.initialRouteOptimization=densityStats.routeOptimization;
+    bindCourseRecipe(intent,base);
+    if(!validateRouteBudget(base))throw new Error('Initial route cannot clear its base budget');
+    const plain=snapshotCourse(base),failures=[];
+    let accepted=false,attempts=0,searchFallback=false;
+    const tryLayout=()=>{
+        const solved=solveCostRoute(base,base.length-1+COURSE_GENERATION_CONFIG.maxDetourMoves);
+        if(!solved)return false;
+        route=optimizeRoute(solved);
+        return validateRouteBudget(route);
+    };
+    for(let attempt=0;attempt<COURSE_GENERATION_CONFIG.recipeAttempts;attempt++) {
+        attempts++;
+        restoreCourse(plain);
+        try {
+            if(convertDenseHazards(base,attempt) && tryLayout()){accepted=true;break;}
+        } catch(error) {failures.push(String(error.message||error));searchFallback=true;}
+    }
+    const usedSafeFallback=!accepted;
+    if(!accepted) {
+        restoreCourse(plain);
+        // Same fixed hearts/geometry and the same percentage bounds. Preserve a
+        // playable witness only after the ordinary random samples were searched.
+        if(!convertDenseHazards(base,attempts,true))throw new Error('Not enough safe holds for fallback hazard ratio');
+        const safe=snapshotCourse(base);
+        try {accepted=tryLayout();}
+        catch(error){failures.push(String(error.message||error));searchFallback=true;}
+        if(!accepted)restoreCourse(safe);
+    }
+    if(!validateRouteBudget(route))throw new Error('Final converted course cannot clear its actual base budget');
+    generatedCourse.requestedIntent=intent;
+    const classification=classifyCourse(route);
+    classification.requested=intent;
+    densityStats.courseGeneration={...classification,recipeAttempts:attempts,recipeLimit:COURSE_GENERATION_CONFIG.recipeAttempts,
+        usedSafeFallback,searchFallback,failures,elapsedMs:performance.now()-began};
     densityStats.routeBudgetValidated=true;
     densityStats.hazardCount=holds.filter(h=>h.type==='hazard').length;
     updateStageDensity();

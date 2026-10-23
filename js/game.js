@@ -484,6 +484,7 @@ function restoreMoveStamina(saved) {
 // A date keeps its difficulty even if a layout needs a deterministic retry.
 function prepareCurrentStage() {
     generatedCourse=null;
+    if(dailyRun)dailyRun.seed=dailyRun.baseSeed;
     const intent=chooseCourseIntent();
     if(!dailyRun) {
         if(courseMode==='prototype')preparePrototypeStage();else prepareStage();

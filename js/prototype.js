@@ -54,7 +54,7 @@ function preparePrototypeStage() {
             const previous = holds;
             holds = holds.filter(h => h !== hold);
             const played = replayRoute(route);
-            if (played && played.length === route.length) {
+            if (played && played.length === route.length && hasHazardFallbackCandidates(played)) {
                 route = played;
                 removed = true;
             } else holds = previous;

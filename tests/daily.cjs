@@ -85,7 +85,7 @@ for(const [rating,key] of dates){
  assert.equal(stamina,routeExpectedMoves()+3);const first=snapshot();restartInput(level);assert.equal(snapshot(),first,'Daily retry changed the date seed');
  while(featureHelpOpen)dismissStageHelp();advanceCameraIntro(clock);clock+=10000;advanceCameraIntro(clock);assert(!cameraIntro);
  if(rating<2)assert(!holds.some(h=>h.type==='hazard'));
- if(rating===3){assert(holds.filter(h=>h.type==='hazard').length<=10);assert(generatedCourse.hazardPlacement.optionalIds.length<=3);}
+ if(rating===3){const count=holds.filter(h=>h.type==='hazard').length;assert(count>=Math.ceil(holds.length*.1) && count<=Math.floor(holds.length*.3));}
  for(let i=1;i<route.length;i++){clock+=100;play(i);}
  assert.equal(state,'won');assert.equal(dailyRecords[key].stars,3);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
  assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore,'Daily clear polluted normal progress');
