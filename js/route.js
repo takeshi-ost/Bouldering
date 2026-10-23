@@ -144,8 +144,7 @@ function optimizeRoute(path, config = ROUTE_OPTIMIZATION_CONFIG) {
                             if (bothHandsOnGoal(startGrips)) { complete = true; break; }
                         }
                         const cost=complete?routeConsumption(candidate):Infinity;
-                        const extra=cost-(candidate.length-1);
-                        if (complete && extra<=3 && (cost<bestCost || (cost===bestCost && candidate.length<best.length)) && hasTraverse(candidate)) {
+                        if (complete && routeResources(candidate).valid && (cost<bestCost || (cost===bestCost && candidate.length<best.length)) && hasTraverse(candidate)) {
                             best = candidate;bestCost=cost;
                             improved = true;
                             break;
@@ -231,8 +230,8 @@ function assignWideHolds(guide) {
     }
 }
 
-// Keep optional geometry before pruning so dense hazards do not have to replace
-// the validated free route. RNG and the retained count are deterministic.
+// Retain off-route geometry for varied recipes and a verified safe fallback.
+// RNG and the retained count are deterministic.
 function reserveDenseCandidates(path) {
     if(DIFFICULTY_RULES[difficulty].hazards!=='dense')return new Set();
     const used=new Set([...initialGrips.map(h=>h.id),...path.flatMap(p=>p.grips||[])]);
@@ -245,7 +244,7 @@ function reserveDenseCandidates(path) {
 
 // Bounded cost-layer beam search on the FINAL hold types. Each edge costs the
 // same 1 + new hazard contacts as release(). A move using two hazards costs 3.
-function solveCostRoute(guide,maxMoves=40,config=ROUTE_COST_SEARCH_CONFIG) {
+function solveCostRoute(guide,maxMoves=40,config=ROUTE_COST_SEARCH_CONFIG,options={}) {
     const saved={committed,startGrips};
     const began=performance.now(),first=[...initialGrips];
     for(const pair of [[0,1],[2,3]]) {
@@ -254,20 +253,31 @@ function solveCostRoute(guide,maxMoves=40,config=ROUTE_COST_SEARCH_CONFIG) {
     }
     const start={...guide[0]},goal=holds.find(h=>h.type==='goal');
     if(!first.every((h,i)=>h && limbReachable(start,h,i)))return null;
-    const targets=[...guide.slice(1),{x:goal.x,y:goal.y+70}];
+    const pickups=createHearts(level,guide,difficulty);
+    const resourcePickups=options.noHearts?[]:pickups;
+    const fixedBudget=options.budget??null;
+    const targets=[...guide.slice(1),...pickups,{x:goal.x,y:goal.y+70}];
     const progress=p=>{
         let best=Infinity,index=0;
-        targets.forEach((q,i)=>{const d=distance(p,q);if(d<best){best=d;index=i;}});
+        guide.slice(1).forEach((q,i)=>{const d=distance(p,q);if(d<best){best=d;index=i;}});
         return index*100-best;
     };
     const fallback=replayRoute(guide);
-    let best=fallback && routeConsumption(fallback)-(fallback.length-1)<=3?fallback:null;
-    let bestCost=best?routeConsumption(best):maxMoves+4,transitions=0;
+    const fallbackResources=fallback?routeResources(fallback,{pickups:resourcePickups,budget:fixedBudget}):null;
+    let best=fallbackResources?.valid && (!options.noHazards || !fallbackResources.penalties) &&
+        (!options.noHearts || !routeResources(fallback,{pickups}).pickupMask)?fallback:null;
+    let bestCost=best?routeConsumption(best):maxMoves+3+pickups.length*HEART_CONFIG.recovery;
+    let transitions=0,limitReached=false;
     const buckets=Array.from({length:bestCost+1},()=>[]),visited=new Map();
-    buckets[0].push({p:start,stance:first,path:[start],traversed:level===1,score:progress(start),extra:0});
+    buckets[0].push({p:start,stance:first,path:[start],traversed:level===1,score:progress(start),mask:0,net:0,required:1});
     try {
-        for(let cost=0;cost<bestCost && transitions<config.maxTransitions;cost++) {
-            const beam=(buckets[cost]||[]).sort((a,b)=>b.score-a.score).slice(0,config.beamWidth);
+        for(let cost=0;cost<=bestCost && transitions<config.maxTransitions;cost++) {
+            // Preserve different pickup states rather than discarding a heart detour.
+            const groups=new Map();
+            for(const node of buckets[cost]||[]) {
+                const group=groups.get(node.mask)||[];group.push(node);groups.set(node.mask,group);
+            }
+            const beam=[...groups.values()].flatMap(group=>group.sort((a,b)=>b.score-a.score || a.required-b.required).slice(0,config.beamWidth));
             for(const node of beam) {
                 if(transitions>=config.maxTransitions)break;
                 if(node.path.length-1>=maxMoves)continue;
@@ -285,55 +295,40 @@ function solveCostRoute(guide,maxMoves=40,config=ROUTE_COST_SEARCH_CONFIG) {
                     if(!supportsReachable(p,anchor) || supportMotionFraction(node.p,p,anchor)<1-1e-9)continue;
                     const stance=attachMoving(p,anchor);
                     if(!stance?.every(Boolean))continue;
-                    const won=bothHandsOnGoal(stance);
-                    if(!won && sameContacts(stance,node.stance) && !newHazardContacts(stance,node.stance).size)continue;
-                    const edge=routeMoveCost(stance,node.stance),nextCost=cost+edge;
-                    const extra=node.extra+edge-1;
-                    if(extra>3 || nextCost>bestCost)continue;
-                    const traversed=node.traversed || isTraverse(node.p,p);
-                    const path=[...node.path,{...p,anchor,grips:stance.map(h=>h.id)}];
+                    const won=bothHandsOnGoal(stance),edge=routeMoveCost(stance,node.stance);
+                    if((options.noHazards && edge>1) || (!won && sameContacts(stance,node.stance) && edge===1))continue;
+                    const nextCost=cost+edge,moves=node.path.length;
+                    if(nextCost>bestCost)continue;
+                    const mask=coursePickupMask(pickups,node.mask,node.p,p);
+                    if(options.noHearts && mask)continue;
+                    const net=node.net+edge-(bitCount(mask)-bitCount(node.mask))*HEART_CONFIG.recovery;
+                    const required=Math.max(node.required,node.net+1,net+(won?0:1));
+                    if(required>(fixedBudget??maxMoves+3))continue;
+                    const traversed=node.traversed || isTraverse(node.p,p),ids=stance.map(h=>h.id);
+                    // No idle loops to increase the eventual moves+3 allowance.
+                    if(node.path.some((q,i)=>distance(q,p)<5 && (q.pickupMask||0)===mask &&
+                        (i?q.grips:first.map(h=>h.id)).every((id,j)=>id===ids[j])))continue;
+                    const path=[...node.path,{...p,anchor,grips:ids,pickupMask:mask}];
                     if(won) {
-                        if(traversed && (nextCost<bestCost || (nextCost===bestCost && (!best || path.length<best.length)))){best=path;bestCost=nextCost;}
+                        if(traversed && required<=(fixedBudget??moves+3) &&
+                            (nextCost<bestCost || (nextCost===bestCost && (!best || path.length<best.length)))) {best=path;bestCost=nextCost;}
                         continue;
                     }
-                    const key=traversed+':'+Math.round(p.x/8)+','+Math.round(p.y/8)+':'+stance.map(h=>h.id).join(',')+':'+extra;
-                    if((visited.get(key)??Infinity)<=nextCost)continue;
-                    visited.set(key,nextCost);
-                    if(nextCost<bestCost)(buckets[nextCost]||=[]).push({p,stance,path,traversed,score:progress(p),extra});
+                    const key=traversed+':'+Math.round(p.x/8)+','+Math.round(p.y/8)+':'+ids.join(',')+':'+mask+':'+moves;
+                    const labels=visited.get(key)||[];
+                    if(labels.some(label=>label.cost<=nextCost && label.required<=required))continue;
+                    visited.set(key,[...labels.filter(label=>label.cost<nextCost || label.required<required),{cost:nextCost,required}]);
+                    if(nextCost<bestCost)(buckets[nextCost]||=[]).push({p,stance,path,traversed,score:progress(p),mask,net,required});
                 }
             }
         }
-        densityStats.costSearch={transitions,limit:config.maxTransitions,costBefore:fallback?routeConsumption(fallback):null,costAfter:best?routeConsumption(best):null,elapsedMs:performance.now()-began};
+        limitReached=transitions>=config.maxTransitions;
+        densityStats.costSearch={transitions,limit:config.maxTransitions,limitReached,costBefore:fallback?routeConsumption(fallback):null,costAfter:best?routeConsumption(best):null,elapsedMs:performance.now()-began};
         return best;
     } finally {committed=saved.committed;startGrips=saved.startGrips;}
 }
 
-// Validate the actual base budget and swept heart pickups, without test reserves.
+// Contact replay and resource simulation must both succeed on the frozen layout.
 function validateRouteBudget(path) {
-    const played=replayRoute(path);
-    if(!samePairRoute(path,played))return false;
-    const pickups=createHearts(level,played,difficulty),costs=routeHazardCosts(played);
-    let budget=routeStamina(played);
-    for(let i=1;i<played.length;i++) {
-        if(budget<=0)return false;
-        for(const heart of pickups)if(!heart.collected && torsoTouchesHeart(played[i-1],played[i],heart)) {
-            heart.collected=true;budget+=HEART_CONFIG.recovery;
-        }
-        budget-=1+costs[i]-costs[i-1];
-        if(budget<0)return false;
-    }
-    return true;
-}
-function finalizeCostRoute() {
-    const fallback=route;
-    if(holds.some(h=>h.type==='hazard')) {
-        const solved=solveRoute(route,Math.max(40,route.length-1));
-        route=optimizeRoute(solved || fallback);
-    }
-    if(!validateRouteBudget(route)) {
-        if(!validateRouteBudget(fallback))throw new Error('Final route exceeds base stamina budget');
-        route=fallback;
-    }
-    densityStats.routeBudgetValidated=true;
-    updateStageDensity();
+    return samePairRoute(path,replayRoute(path)) && routeResources(path).valid;
 }

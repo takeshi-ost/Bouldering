@@ -4,6 +4,7 @@ assert(!/stageItem[123]|stage-start-items/.test(html));
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
 const elements={},timers=[];
+const performance={now:()=>1000};
 const document={getElementById(id){return elements[id] ||= {
  style:{},classList:{toggle(){}},events:{},focus(){},setAttribute(k,v){this[k]=v;},removeAttribute(k){delete this[k];},contains(){return true;},
  addEventListener(k,fn){this.events[k]=fn;},showModal(){this.open=true;},close(){this.open=false;},

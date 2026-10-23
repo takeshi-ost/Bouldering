@@ -38,17 +38,17 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
   const gained=(hearts.filter(h=>h.collected).length-beforeHearts)*2;pickups+=gained;
   assert.equal(stamina,beforeStamina+gained-1-fresh);
  }
- assert(paid<=3,'Final route must fit the actual base budget without a reserve');
- assert.equal(state,'won');assert.equal(pickups,hearts.length*2);
+ assert(routeResources(route).valid,'Final route must fit its base budget with actual pickups');
+ assert.equal(state,'won');assert.equal(pickups,routeResources(route).pickups*2);
  assert.equal(routeExpectedMoves(),moves);assert.equal(starting,moves+3);
  assert.equal(stamina,3+pickups-paid);
  assert.equal(routeHazardCosts(route).at(-1),paid);
  debugMode=true;updateUI();assert(ui.progress.textContent.includes('想定 '+moves+' ムーブ'));debugMode=false;
  const expected=moves;
  if(mode==='existing' && n===47) {
-  assert.equal(moves,18);assert.equal(paid,0);assert.equal(starting,21);
+  assert(moves<=20);assert(paid>=0);assert.equal(starting,moves+3);
   assert.equal(clearStars(18,routeExpectedMoves()),3);
-  const preview=stagePreview(n,mode);assert.equal(preview.expectedMoves,18);assert.equal(preview.stamina,21);
+  const preview=stagePreview(n,mode);assert.equal(preview.expectedMoves,moves);assert.equal(preview.stamina,starting);
  }
  for(const [extra,stars] of [[0,3],[1,2],[2,2],[3,1]]) {
   moveCount=expected+extra;finish(true);

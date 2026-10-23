@@ -417,7 +417,13 @@ function routeStamina(path) {
 }
 
 // Use an independent stream: retries preserve both holds and items.
-function createHearts(n, path, selectedDifficulty=dailyRun?.difficulty ?? difficultyForStage(n)) {
+function createHearts(n,path,selectedDifficulty=dailyRun?.difficulty ?? difficultyForStage(n)) {
+    if(typeof generatedCourse!=='undefined' && generatedCourse?.holds===holds &&
+        generatedCourse.level===n && generatedCourse.seed===courseSeed(n) && generatedCourse.difficulty===selectedDifficulty)
+        return generatedCourse.hearts.map(h=>({...h,collected:false}));
+    return makeRouteHearts(n,path,selectedDifficulty);
+}
+function makeRouteHearts(n, path, selectedDifficulty=dailyRun?.difficulty ?? difficultyForStage(n)) {
     const moves = path.length - 1;
     if (!DIFFICULTY_RULES[selectedDifficulty].hearts || moves < HEART_CONFIG.minMoves) return [];
     const random = mulberry32(courseSeed(n) ^ 0x48EA27B1);
@@ -477,24 +483,26 @@ function restoreMoveStamina(saved) {
 
 // A date keeps its difficulty even if a layout needs a deterministic retry.
 function prepareCurrentStage() {
+    generatedCourse=null;
+    const intent=chooseCourseIntent();
     if(!dailyRun) {
         if(courseMode==='prototype')preparePrototypeStage();else prepareStage();
         route=optimizeRoute(route);updateStageDensity();
-        addHazardHolds();finalizeCostRoute();return;
+        finalizeCourseGeneration(intent);return;
     }
     let failure;
     for(let attempt=0;attempt<16;attempt++) {
         dailyRun.seed=(dailyRun.baseSeed+Math.imul(attempt,0x9E3779B9))>>>0;
-        try {prepareStage();route=optimizeRoute(route);updateStageDensity();addHazardHolds();finalizeCostRoute();return;}catch(error){failure=error;}
+        try {prepareStage();route=optimizeRoute(route);updateStageDensity();finalizeCourseGeneration(intent);return;}catch(error){failure=error;}
     }
     throw failure;
 }
 const stagePreviewCache=new Map();
 function stagePreview(n,mode=courseMode,profile=null) {
     const selectedDifficulty=profile?.difficulty ?? difficultyForStage(n);
-    const key=JSON.stringify([n,mode,profile?.date,selectedDifficulty,STAGE_CONFIG,HOLD_CONFIG,HAZARD_CONFIG,ROUTE_OPTIMIZATION_CONFIG,ROUTE_COST_SEARCH_CONFIG]);
+    const key=JSON.stringify([n,mode,profile?.date,selectedDifficulty,STAGE_CONFIG,HOLD_CONFIG,HAZARD_CONFIG,ROUTE_OPTIMIZATION_CONFIG,ROUTE_COST_SEARCH_CONFIG,COURSE_GENERATION_CONFIG]);
     if(stagePreviewCache.has(key))return stagePreviewCache.get(key);
-    const saved={level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount};
+    const saved={level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount,generatedCourse};
     try {
         level=n;difficulty=selectedDifficulty;courseMode=mode;dailyRun=profile?{...profile}:null;
         stageGenerator=createStageGenerator();
@@ -503,7 +511,7 @@ function stagePreview(n,mode=courseMode,profile=null) {
         if(stagePreviewCache.size>=64)stagePreviewCache.delete(stagePreviewCache.keys().next().value);
         stagePreviewCache.set(key,preview);return preview;
     } finally {
-        ({level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount}=saved);
+        ({level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount,generatedCourse}=saved);
     }
 }
 function previewStaminaText(n,mode=courseMode,profile=null,bonus=0) {

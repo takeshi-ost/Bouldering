@@ -36,11 +36,20 @@ assert.equal(shortened.length-1,2,'At equal real cost, prefer fewer moves');asse
 const savedCommitted=committed,savedStart=startGrips;
 assert(solveCostRoute(path,40,{maxTransitions:0,beamWidth:2}));
 assert.equal(committed,savedCommitted);assert.equal(startGrips,savedStart);
+// A heart detour must remain searchable when gross cost exceeds a fixed budget.
+A.x=140;edges.clear();for(const [from,to] of [[S,A],[A,B],[B,G],[S,B]])edges.add(pos(from)+'>'+pos(to));
+paid[1].type='hazard';
+generatedCourse={level,seed:courseSeed(),difficulty,holds,hearts:[{id:0,x:A.x,y:A.y}]};
+const recovered=solveCostRoute(expensive,40,ROUTE_COST_SEARCH_CONFIG,{budget:2});
+assert(recovered);assert.equal(recovered.length-1,3);
+assert(routeResources(recovered,{budget:2}).valid);assert.equal(routeResources(recovered,{budget:2}).pickups,1);
+assert.equal(solveCostRoute(expensive,40,ROUTE_COST_SEARCH_CONFIG,{budget:2,noHearts:true}),null);
+generatedCourse=null;
 selectAnchor=original.selectAnchor;supportsReachable=original.supportsReachable;supportMotionFraction=original.supportMotionFraction;
 attachMoving=original.attachMoving;limbReachable=original.limbReachable;bothHandsOnGoal=original.bothHandsOnGoal;
 courseMode='existing';reset(47);cameraIntro=null;
 assert.equal(stamina,routeExpectedMoves()+3);assert(validateRouteBudget(route));
-assert(routeConsumption(route)<=routeExpectedMoves()+3);
+assert(routeResources(route).valid);
 assert(densityStats.costSearch.transitions<=ROUTE_COST_SEARCH_CONFIG.maxTransitions);
 assert(densityStats.routeOptimization.costAfter<=densityStats.routeOptimization.costBefore);
 const snapshot=JSON.stringify({holds,route,hearts,stamina});
