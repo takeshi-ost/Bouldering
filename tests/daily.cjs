@@ -125,8 +125,8 @@ dailyRun=dailyProfile('2026-10-14');nowIso='2026-10-18T00:00:00Z';recordDailyCle
 assert.equal(dailyRecords['2026-10-14'].clearedOn,'2026-10-18');
 assert.equal(dailyMedal('2026-10-14',dailyRecords['2026-10-14']),'silver');
 dailyRecords=readDailyRecords();renderDailyCalendar();
-assert(ui.dailyGrid.innerHTML.includes('assets/daily-medal-gold.webp'));
-assert(ui.dailyGrid.innerHTML.includes('assets/daily-medal-silver.webp'));
+assert(ui.dailyGrid.innerHTML.includes('assets/daily-medal-gold-v2.webp'));
+assert(ui.dailyGrid.innerHTML.includes('assets/daily-medal-silver-v2.webp'));
 assert(ui.dailyGrid.innerHTML.includes('クリア済み・金貨'));
 assert(ui.dailyGrid.innerHTML.includes('クリア済み・銀貨'));
 assert(!ui.dailyGrid.innerHTML.includes('>✓</span>'));

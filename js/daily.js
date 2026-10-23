@@ -139,7 +139,7 @@ function renderDailyCalendar() {
         if(key>today) {cells.push(`<div class="daily-cell daily-future" data-calendar-date="${key}" aria-label="${year}年${month}月${day}日">${day}</div>`);continue;}
         const record=dailyRecords[key];
         const medal=record?dailyMedal(key,record):null;
-        cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み・'+(medal==='gold'?'金貨':'銀貨')+' '+record.stars+'スター・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?`<img class="daily-clear-icon" src="assets/daily-medal-${medal}.webp" width="32" height="32" alt="" aria-hidden="true" draggable="false">`:day}</button></div>`);
+        cells.push(`<div class="daily-cell daily-playable"><button type="button" class="daily-day ${record?'is-cleared':''} ${key===dailySelectedDate?'is-selected':''}" data-date="${key}" aria-pressed="${key===dailySelectedDate}" aria-label="${year}年${month}月${day}日 ${record?'クリア済み・'+(medal==='gold'?'金貨':'銀貨')+' '+record.stars+'スター・再挑戦できません':'選択できます'}" ${key===today?'aria-current="date"':''}>${record?`<img class="daily-clear-icon" src="assets/daily-medal-${medal}-v2.webp" width="32" height="32" alt="" aria-hidden="true" draggable="false">`:day}</button></div>`);
     }
     while(cells.length<42)cells.push('<div class="daily-cell" aria-hidden="true"></div>');
     ui.dailyGrid.innerHTML=cells.join('');
