@@ -4,17 +4,12 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.2.19';
-const GAMEPLAY_TIPS = [
-    gameText("tips.scroll"),
-    gameText("tips.undo"),
-    gameText("tips.reach"),
-    gameText("tips.wideHold"),
-    gameText("tips.goal"),
-    gameText("tips.heart"),
-    gameText("tips.sideways"),
-    gameText("tips.appearance")
+const RELEASE_VERSION = '0.2.20';
+const GAMEPLAY_TIP_KEYS = [
+    'tips.scroll', 'tips.undo', 'tips.reach', 'tips.wideHold',
+    'tips.goal', 'tips.heart', 'tips.sideways', 'tips.appearance'
 ];
+const GAMEPLAY_TIPS = GAMEPLAY_TIP_KEYS.map(key=>gameText(key));
 // Bump whenever generation/gameplay changes make stage scores incomparable.
 const COURSE_VERSION = 'v1';
 // 表示サイズと可動域。単位はゲーム内の論理pxです。

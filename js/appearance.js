@@ -79,14 +79,14 @@ function updateMapAppearance() {
 // Editor-only fashion poses, inspired by the reference sheet; gameplay IK is unchanged.
 // Each limb stores [elbow/knee x, y, hand/foot x, y] in preview coordinates.
 const EDITOR_POSES=[
-    {name:gameText("editor.pose.standing"),tilt:0,limbs:[[-30,10,-30,60],[30,10,30,60],[-23,85,-32,136],[23,85,32,136]]},
-    {name:gameText("editor.pose.weightShift"),tilt:-7,limbs:[[-27,10,-20,61],[27,12,29,62],[-37,80,-20,135],[29,80,14,135]]},
-    {name:gameText("editor.pose.hip"),tilt:6,limbs:[[-59,-5,-20,22],[35,14,30,64],[-25,83,-30,136],[27,86,38,136]]},
-    {name:gameText("editor.pose.joinedHands"),tilt:0,limbs:[[-43,3,-4,26],[44,4,4,26],[-27,87,-44,136],[20,86,19,136]]},
-    {name:gameText("editor.pose.head"),tilt:10,limbs:[[-48,-18,-4,-53],[45,11,35,60],[-13,83,-18,134],[36,80,23,135]]},
-    {name:gameText("editor.pose.crossedLegs"),tilt:-4,limbs:[[-36,6,-10,22],[36,5,10,22],[-9,87,18,136],[34,84,-3,136]]},
-    {name:gameText("editor.pose.foldedArms"),tilt:0,limbs:[[-37,6,19,-14],[37,7,-19,-9],[-23,86,-32,136],[23,86,35,136]]},
-    {name:gameText("editor.pose.chest"),tilt:-8,limbs:[[-47,11,-1,-2],[30,12,26,61],[-37,83,-67,133],[40,84,57,136]]}
+    {get name(){return gameText("editor.pose.standing");},tilt:0,limbs:[[-30,10,-30,60],[30,10,30,60],[-23,85,-32,136],[23,85,32,136]]},
+    {get name(){return gameText("editor.pose.weightShift");},tilt:-7,limbs:[[-27,10,-20,61],[27,12,29,62],[-37,80,-20,135],[29,80,14,135]]},
+    {get name(){return gameText("editor.pose.hip");},tilt:6,limbs:[[-59,-5,-20,22],[35,14,30,64],[-25,83,-30,136],[27,86,38,136]]},
+    {get name(){return gameText("editor.pose.joinedHands");},tilt:0,limbs:[[-43,3,-4,26],[44,4,4,26],[-27,87,-44,136],[20,86,19,136]]},
+    {get name(){return gameText("editor.pose.head");},tilt:10,limbs:[[-48,-18,-4,-53],[45,11,35,60],[-13,83,-18,134],[36,80,23,135]]},
+    {get name(){return gameText("editor.pose.crossedLegs");},tilt:-4,limbs:[[-36,6,-10,22],[36,5,10,22],[-9,87,18,136],[34,84,-3,136]]},
+    {get name(){return gameText("editor.pose.foldedArms");},tilt:0,limbs:[[-37,6,19,-14],[37,7,-19,-9],[-23,86,-32,136],[23,86,35,136]]},
+    {get name(){return gameText("editor.pose.chest");},tilt:-8,limbs:[[-47,11,-1,-2],[30,12,26,61],[-37,83,-67,133],[40,84,57,136]]}
 ];
 function editorPoseRoot(i,pose) {
     const root=limbRoot({x:0,y:0},i),angle=pose.tilt*Math.PI/180;

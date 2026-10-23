@@ -7,7 +7,7 @@ const ui = Object.fromEntries([
     "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapEditCharacter", "mapDebugMode",
     "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "paletteSwatches", "editorRandom", "editorConfirm", "editorCancel",
-    "titleWallpaper", "titleTransfer", "titleScreen", "releaseVersion", "playerUuid", "titleTap", "prototypeCourse", "prototypeDescription", "showHelp", "helpDialog", "helpScroll", "closeHelp"
+    "languageChoice", "titleWallpaper", "titleTransfer", "titleScreen", "releaseVersion", "playerUuid", "titleTap", "prototypeCourse", "prototypeDescription", "showHelp", "helpDialog", "helpScroll", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
 let debugMode = false;
@@ -861,7 +861,7 @@ function finish(won) {
     ui.resultRanking.hidden=!showRanking;
     ui.overlay.classList.toggle('has-ranking',showRanking);
     ui.resultDifficulty.hidden=!won || showRanking;
-    ui.resultDifficulty.textContent=won ? (dailyRun ? dailyDateLabel(dailyRun.date).replace('(','（').replace(')','）') : difficultyLabel(difficulty)) : '';
+    ui.resultDifficulty.textContent=won ? (dailyRun ? dailyResultDateLabel(dailyRun.date) : difficultyLabel(difficulty)) : '';
     ui.overlay.classList.toggle('is-daily-clear',won && !!dailyRun);
     ui.resultStats.hidden=!won || showRanking;
     ui.resultStats.textContent=won ? formatStageRecord({moves:moveCount,timeMs:runElapsedMs}) : '';

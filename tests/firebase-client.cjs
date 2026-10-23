@@ -39,7 +39,7 @@ client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\
  const scoreFunctions=fs.readFileSync(path.join(__dirname,'../js/online-scores.js'),'utf8');
  const scoreValidation=scoreFunctions.slice(scoreFunctions.indexOf('function validStageScore'),scoreFunctions.indexOf('function validScoreBoard'));
  const comparator=fs.readFileSync(path.join(__dirname,'../js/leaderboard.js'),'utf8').match(/function compareStageScores[^\n]+/)[0];
- const textSource=['text-ja.js','text-dev-ja.js','text.js'].map(file=>fs.readFileSync(path.join(__dirname,'../js',file),'utf8')).join('\n');
+ const textSource=['text-ja.js','text-en.js','text-dev-ja.js','text.js'].map(file=>fs.readFileSync(path.join(__dirname,'../js',file),'utf8')).join('\n');
  const env=textSource+scoreValidation+comparator+`const accountDeletion=hooks.deletion={marker:null};function readTransferIdentity(){return hooks.transferIdentity||null;}function showDeleteUserDialog(){hooks.completeShown=true;}
  const online={adapter:null};function startOnline(a){return hooks.start(a);}function setOnlineStatus(s){hooks.status(s);}
  function onlineProfileFrom(p){const {updatedAt,...profile}=p;return profile;}function mergeOnlineProfile(local,remote,prefer){return remote&&!prefer?remote:local;}
