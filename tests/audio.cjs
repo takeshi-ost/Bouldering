@@ -46,12 +46,12 @@ const elements={},gameEvents={};const document={getElementById(id){return elemen
 const window={addEventListener(){}};function requestAnimationFrame(){}
 `+source+`
 const sounds=[];playSound=name=>{sounds.push(name);};
-reset(1);advanceCameraIntro(0);advanceCameraIntro(2000);assert(sounds.includes('start'));
+reset(1);advanceCameraIntro(0);assert.deepEqual(sounds,['start']);assert(cameraIntro);advanceCameraIntro(2000);assert.equal(sounds.filter(s=>s==='start').length,1);
 sounds.length=0;const beforeMove=route.length;
 for(let i=1;i<route.length;i++){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();}
 assert.equal(state,'won');assert.equal(sounds.filter(s=>s==='clear').length,1);assert.equal(sounds.filter(s=>s==='move').length,beforeMove-2);
 finish(true);assert.equal(sounds.filter(s=>s==='clear').length,1);
-reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);const pointFor=p=>({clientX:p.x,clientY:p.y-camera});down(pointFor(body));move(pointFor(route[1]));release();assert(undoMove());assert.equal(sounds.filter(s=>s==='undo').length,1);hearts=[{x:body.x,y:body.y,collected:false}];collectHearts(body,body);collectHearts(body,body);assert.equal(sounds.filter(s=>s==='pickup').length,1);
+reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);const pointFor=p=>({clientX:p.x,clientY:p.y-camera});down(pointFor(body));move(pointFor(route[1]));release();const beforeUndo=sounds.filter(s=>s==='move').length;assert(undoMove());assert.equal(sounds.filter(s=>s==='move').length,beforeUndo+1);hearts=[{x:body.x,y:body.y,collected:false}];collectHearts(body,body);collectHearts(body,body);assert.equal(sounds.filter(s=>s==='heart').length,1);
 finish(false);assert.equal(sounds.filter(s=>s==='fail').length,1);
 // Shared cues must be emitted once by the actual UI/event hooks.
 sounds.length=0;grantLife();assert.deepEqual(sounds,['pickup']);

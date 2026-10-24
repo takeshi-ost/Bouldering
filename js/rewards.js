@@ -91,6 +91,17 @@ function rewardWheelMarkup() {
         return `<path d="M160 160 L${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}Z" fill="${fill}" stroke="#fffaf0" stroke-width="3"/><g transform="translate(${x} ${y}) rotate(${theta+90})">${label}</g>`;
     }).join('')}<circle cx="160" cy="160" r="23" fill="#fff6d9" stroke="#b9721a" stroke-width="4"/></svg>`;
 }
+// Count 90-degree travel independently of sector sizes (the sectors are weighted).
+function updateRewardAngle(sequence,angle) {
+    const travel=Math.max(0,angle-sequence.angle);
+    const before=Math.floor(((sequence.clickTravel||0)+1e-7)/90);
+    sequence.clickTravel=(sequence.clickTravel||0)+travel;
+    sequence.angle=angle;
+    const crossings=Math.floor((sequence.clickTravel+1e-7)/90)-before;
+    // Normal frames cross at most one boundary. Spread a delayed frame's clicks
+    // slightly and cap catch-up to one turn; hidden time never advances the wheel.
+    for(let i=0;i<Math.min(crossings,4);i++)playSound('roulette',i*.045);
+}
 function requestRewardFrame() {
     if(rewardSequence && rewardSequence.phase!=='result' && !document.hidden && rewardFrame===null)
         rewardFrame=requestAnimationFrame(advanceRewardSequence);
@@ -103,7 +114,7 @@ function startRewardSequence({onGrant=()=>{},onReturn=null}={}) {
     if(wasTiming){runElapsedMs=runTimeMs();runStartedAt=null;}
     release(true);endPan();bodyTap=null;touchId=null;ignoreTouches=false;
     hideSettings();hideResultModal();
-    rewardSequence={phase:'spinning',angle:Math.random()*360,lastTime:performance.now(),
+    rewardSequence={phase:'spinning',angle:Math.random()*360,clickTravel:0,lastTime:performance.now(),
         previousState,wasResultOpen,wasTiming,onGrant,onReturn};
     state='reward';
     ui.rewardWheel.innerHTML=rewardWheelMarkup();
@@ -118,7 +129,7 @@ function stopRewardSequence(now=performance.now()) {
     const sequence=rewardSequence;
     if(!sequence || sequence.phase!=='spinning' || document.hidden)return false;
     // Include the interval since the last frame so the visible stopping point follows the tap.
-    if(sequence.lastTime!==null)sequence.angle+=Math.max(0,now-sequence.lastTime)*ROULETTE_SPEED;
+    if(sequence.lastTime!==null)updateRewardAngle(sequence,sequence.angle+Math.max(0,now-sequence.lastTime)*ROULETTE_SPEED);
     sequence.lastTime=now;sequence.from=sequence.angle;sequence.brakeElapsed=0;sequence.phase='braking';
     ui.rewardStop.textContent=gameText("action.tap");ui.rewardStatus.textContent='';
     requestRewardFrame();return true;
@@ -148,11 +159,11 @@ function advanceRewardSequence(now=performance.now()) {
     const sequence=rewardSequence;
     if(!sequence || document.hidden || sequence.phase==='result')return;
     const delta=sequence.lastTime===null?0:Math.max(0,now-sequence.lastTime);sequence.lastTime=now;
-    if(sequence.phase==='spinning')sequence.angle=(sequence.angle+delta*ROULETTE_SPEED)%360;
+    if(sequence.phase==='spinning')updateRewardAngle(sequence,sequence.angle+delta*ROULETTE_SPEED);
     else {
         sequence.brakeElapsed=Math.min(ROULETTE_BRAKE_MS,sequence.brakeElapsed+delta);
         const t=sequence.brakeElapsed/ROULETTE_BRAKE_MS;
-        sequence.angle=sequence.from+ROULETTE_SPEED*ROULETTE_BRAKE_MS/3*(1-(1-t)**3);
+        updateRewardAngle(sequence,sequence.from+ROULETTE_SPEED*ROULETTE_BRAKE_MS/3*(1-(1-t)**3));
     }
     ui.rewardWheel.style.transform=`rotate(${sequence.angle}deg)`;
     if(sequence.phase==='braking' && sequence.brakeElapsed===ROULETTE_BRAKE_MS) {

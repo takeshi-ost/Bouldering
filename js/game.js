@@ -469,7 +469,7 @@ function collectHearts(from, to) {
     for (const heart of hearts) {
         if (!heart.collected && torsoTouchesHeart(from,to,heart)) {
             heart.collected = true;
-            playSound('pickup');
+            playSound('heart');
             stamina += HEART_CONFIG.recovery;
             heartPopups.push({x:heart.x,y:heart.y,start:performance.now()});
         }
@@ -826,7 +826,7 @@ function canUndoMove() {
 }
 function undoMove() {
     if (!canUndoMove()) return false;
-    playSound('undo');
+    playSound('move');
     hazardShakeStart = null;
     anchorRings = [];
     heartPopups = heartPopups.filter(p => p.kind !== 'hazard');
@@ -896,14 +896,15 @@ function advanceCameraIntro(now) {
     if (featureHelpOpen || !cameraIntro || state !== 'playing')
         return;
 
-    if (cameraIntro.start === null)
+    if (cameraIntro.start === null) {
         cameraIntro.start = now;
+        playSound('start');
+    }
 
     camera = Math.min(cameraIntro.to, cameraIntro.from +
         Math.max(0,now-cameraIntro.start) * CAMERA_CONFIG.introSpeed / 1000);
     if (camera >= cameraIntro.to && now-cameraIntro.start >= CAMERA_CONFIG.introMinDuration) {
         cameraIntro = null;
-        playSound('start');
         runStartedAt=now;runElapsedMs=0;
         updateUI();
     }

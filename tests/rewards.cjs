@@ -100,5 +100,21 @@ data[MAP_REWARDS_KEY]=savedMap;
 // Generic callers can insert a reward in a playing stage without restarting it.
 showLevelMap();assert(selectStage(1));cameraIntro=null;runStartedAt=clock-200;const attempt=lifeAttemptId;
 assert(startRewardSequence());assert.equal(runStartedAt,null);land(1);finishRewardSequence();assert.equal(state,'playing');assert.equal(lifeAttemptId,attempt);assert.equal(runTimeMs(),200);
-console.log('PASS rewards: all 4 weighted stops, single grant/return, caps, map milestones/glints/recovery, hidden pause, today/past/second-attempt routing, persistence/recovery and generic in-play continuation');
+// One click per quarter-turn, including braking; pause time never catches up.
+const cueCalls=[];playSound=(name,delay=0)=>cueCalls.push({name,delay});
+assert(startRewardSequence());rewardSequence.angle=0;rewardSequence.clickTravel=0;rewardSequence.lastTime=clock;
+const spinStart=clock;
+clock=spinStart+89/ROULETTE_SPEED;advanceRewardSequence(clock);assert.equal(cueCalls.length,0);
+clock=spinStart+90/ROULETTE_SPEED;advanceRewardSequence(clock);assert.equal(cueCalls.length,1);advanceRewardSequence(clock);assert.equal(cueCalls.length,1);
+for(const angle of [135,180,225,270,315,360]){clock=spinStart+angle/ROULETTE_SPEED;advanceRewardSequence(clock);}
+assert.equal(cueCalls.filter(c=>c.name==='roulette').length,4);assert(stopRewardSequence(clock));
+for(let t=20;t<=ROULETTE_BRAKE_MS;t+=20){clock=spinStart+360/ROULETTE_SPEED+t;advanceRewardSequence(clock);}
+assert.equal(rewardSequence.phase,'result');assert.equal(cueCalls.filter(c=>c.name==='roulette').length,8);
+const completed=cueCalls.length;advanceRewardSequence(clock+50000);assert.equal(cueCalls.length,completed);finishRewardSequence();
+assert(startRewardSequence());rewardSequence.angle=0;rewardSequence.clickTravel=0;rewardSequence.lastTime=clock;cueCalls.length=0;
+clock+=90/ROULETTE_SPEED;advanceRewardSequence(clock);assert.equal(cueCalls.length,1);
+visibility(true);clock+=50000;advanceRewardSequence(clock);assert.equal(cueCalls.length,1);visibility(false);advanceRewardSequence(clock);assert.equal(cueCalls.length,1);
+clock+=90/ROULETTE_SPEED;advanceRewardSequence(clock);assert.equal(cueCalls.length,2);
+cueCalls.length=0;clock+=360/ROULETTE_SPEED;advanceRewardSequence(clock);assert.deepEqual(cueCalls.map(c=>c.delay),[0,.045,.09,.135]);
+console.log('PASS rewards: all 4 weighted stops, single grant/return, caps, map milestones/glints/recovery, hidden pause, today/past/second-attempt routing, persistence/recovery, generic continuation and quarter-turn spin/brake clicks without hidden catch-up');
 `)(assert,data);}finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}
