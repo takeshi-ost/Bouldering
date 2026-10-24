@@ -371,6 +371,7 @@ function openStageStart(n,debug=false,button=null,delay=0,retry=false) {
 ui.stageStartButton.onclick=()=>{
     const context=stageStartContext;
     if(!context || !ui.stageStartDialog.open || ui.stageStartButton.disabled)return;
+    playSound('launch');
     ui.stageStartButton.disabled=true;
     hideStageStart();
     if(context.mode===courseMode)selectStage(context.n,context.debug,context.hearts,context.retry);

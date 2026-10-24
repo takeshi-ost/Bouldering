@@ -9,7 +9,7 @@ const bgmCache=new Map();
 let bgmTrack='main',bgmPlayback=null,bgmOffset=0,bgmFadeSeconds=.03,bgmFadeElapsed=0;
 let bgmPageActive=!document.hidden,bgmAdBlocked=false,bgmAfterAdPending=false,bgmSceneUpdateQueued=false;
 async function prepareBackgroundMusic(retry=false,name=bgmTrack) {
-    if(!soundEnabled || typeof globalThis.fetch!=='function')return;
+    if(!musicEnabled || typeof globalThis.fetch!=='function')return;
     let entry=bgmCache.get(name);
     if(!entry){entry={};bgmCache.set(name,entry);}
     if(!entry.loading || (retry && entry.failed)) {
@@ -78,7 +78,7 @@ function resumeBackgroundMusicAfterAd() {
     bgmAdBlocked=false;bgmAfterAdPending=true;queueBackgroundMusicScene();
 }
 function syncBackgroundMusic() {
-    if(!soundEnabled || !bgmPageActive || document.hidden || bgmAdBlocked || bgmAfterAdPending) {pauseBackgroundMusic();return;}
+    if(!musicEnabled || !bgmPageActive || document.hidden || bgmAdBlocked || bgmAfterAdPending) {pauseBackgroundMusic();return;}
     if(bgmPlayback && bgmPlayback.context!==soundContext)pauseBackgroundMusic();
     if(!soundContext || soundContext.state!=='running' || bgmPlayback)return;
     const entry=bgmCache.get(bgmTrack);
@@ -92,7 +92,7 @@ function syncBackgroundMusic() {
         if(buffer.duration<track.loopStart+duration)return;
         const remaining=Math.max(0,bgmFadeSeconds-bgmFadeElapsed);
         source.buffer=buffer;source.loop=true;source.loopStart=track.loopStart;source.loopEnd=track.loopStart+duration;
-        source.connect(gain);gain.connect(soundMaster);
+        source.connect(gain);gain.connect(musicMaster);
         gain.gain.setValueAtTime(remaining?volume*bgmFadeElapsed/bgmFadeSeconds:0,context.currentTime);
         gain.gain.linearRampToValueAtTime(volume,context.currentTime+(remaining || .03));
         source.start(context.currentTime,track.loopStart+offset);

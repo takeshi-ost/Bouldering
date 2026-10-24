@@ -334,6 +334,7 @@ ui.dailyGrid.onclick=e=>{
 };
 ui.dailyStartButton.onclick=()=>{
     if(state!=='daily' || settingsOpen || ui.dailyStartButton.disabled || !dailySelectedDate)return;
+    playSound('launch');
     ui.dailyStartButton.disabled=true;
     if(!selectDailyDate(dailySelectedDate))renderDailyCalendar();
 };

@@ -55,7 +55,7 @@ async function beginTitlePreparation() {
 function enterPreparedMap() {
     if(state!=='choosing' || !titleReady || transferBusy() || transferElement('transferDialog').open)return;
     titleReady=false;titlePreparation++;
-    playSound('tap');
+    playSound('launch');
     state='map';ui.titleScreen.hidden=true;
     ui.levelMap.inert=false;ui.levelMap.removeAttribute?.('aria-hidden');
     ui.wall.classList.toggle('title-open',false);

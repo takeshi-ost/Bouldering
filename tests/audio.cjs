@@ -10,7 +10,7 @@ class Audio {
  createGain(){return {gain:param(),connect(){},disconnect(){}};}
  createOscillator(){const voice={frequency:param(),connect(){},disconnect(){},start(){this.started=true;},stop(){this.stopped=true;}};voices.push(voice);return voice;}
 }
-const env={assert,AudioContext:Audio,localStorage:{getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v},document:{getElementById:()=>control,addEventListener:(k,fn)=>events[k]=fn},window:{addEventListener:(k,fn)=>events[k]=fn}};
+const env={assert,AudioContext:Audio,localStorage:{getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v},document:{getElementById:id=>id==='soundEnabled'?control:({}),addEventListener:(k,fn)=>events[k]=fn},window:{addEventListener:(k,fn)=>events[k]=fn}};
 const c=vm.createContext(env);vm.runInContext(audio,c);
 assert.equal(contexts,0,'No sound context or autoplay before a user gesture');assert(control.checked);
 vm.runInContext("assert.equal(playSound('clear'),false)",c);events.pointerdown();assert.equal(contexts,1);
@@ -38,7 +38,7 @@ vm.runInContext(audio,safari);safariEvents.pointerdown();
 vm.runInContext("assert.equal(soundContext.state,'suspended');assert.equal(playSound('tap'),false);assert(pendingSound);",safari);
 activated=true;safariEvents.touchend();assert(primers>=2);
 vm.runInContext("assert.equal(soundContext.state,'running');assert.equal(pendingSound,null);assert(soundVoices.size>0);soundContext.state='interrupted';",safari);
-safariEvents.touchend();vm.runInContext("assert.equal(soundContext.state,'running');setSoundEnabled(false);soundContext.state='interrupted';",safari);
+safariEvents.touchend();vm.runInContext("assert.equal(soundContext.state,'running');setSoundEnabled(false);setMusicEnabled(false);soundContext.state='interrupted';",safari);
 safariEvents.touchend();vm.runInContext("assert.equal(soundContext.state,'interrupted');assert.equal(pendingSound,null);",safari);
 // Exercise the actual game hooks, without a sound device or changing game rules.
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
@@ -64,6 +64,13 @@ cancelMapReveal();state='map';mapTransition={from:1,to:2,start:0};sounds.length=
 dailyRun=null;reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);down(pointFor(body));grips[0]=null;
 const invalidBefore=JSON.stringify({body:committed,grips:startGrips,moveCount,stamina});sounds.length=0;release();assert.deepEqual(sounds,['move']);assert.equal(JSON.stringify({body,grips,moveCount,stamina}),invalidBefore);
 
+// Accepted title/Start taps use the dedicated launch cue once, without the generic tap.
+showTitleScreen();titleReady=true;sounds.length=0;ui.titleScreen.onclick();ui.titleScreen.onclick();assert.deepEqual(sounds,['launch']);
+showLevelMap();assert(openStageStart(1));sounds.length=0;
+gameEvents.click({target:{closest:()=>({id:'stageStartButton',disabled:false,closest:()=>null})}});ui.stageStartButton.onclick();ui.stageStartButton.onclick();assert.deepEqual(sounds,['launch']);
+showDailyCalendar();sounds.length=0;
+gameEvents.click({target:{closest:()=>({id:'dailyStartButton',disabled:false,closest:()=>null})}});ui.dailyStartButton.onclick();ui.dailyStartButton.onclick();assert.deepEqual(sounds,['launch']);
+dailyRun=null;
 // Preview contacts sound before release; unchanged frames and detachment are silent.
 reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);
 sounds.length=0;down(pointFor(body));assert.deepEqual(sounds,[]);

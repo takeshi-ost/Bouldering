@@ -25,7 +25,7 @@ function snapshotTransferData() {
     return JSON.parse(JSON.stringify({
         profile:{name:playerName,colors:[...playerColors],headColor:playerHeadColor},
         progress:stageProgress,records:stageRecords,dailyRecords,dailyAttempts,dailyPlayAdState,
-        heartItems,lives:{...lives,inProgress:false},mapRewards,featureHelpSeen,soundEnabled,playsSinceAd,
+        heartItems,lives:{...lives,inProgress:false},mapRewards,featureHelpSeen,soundEnabled,audioSettings:{musicEnabled,musicVolume,soundVolume},playsSinceAd,
         pendingScores:[...onlineScores.pending],localId:playerUuid
     }));
 }
@@ -58,6 +58,8 @@ function validateTransferFile(value) {
         !transferObject(d.mapRewards) || !transferObject(d.featureHelpSeen) ||
         typeof d.featureHelpSeen.heart!=='boolean' || typeof d.featureHelpSeen.hazard!=='boolean' ||
         typeof d.soundEnabled!=='boolean' || !transferInteger(d.playsSinceAd))fail();
+    if(d.audioSettings!==undefined && (!transferObject(d.audioSettings) ||
+        typeof d.audioSettings.musicEnabled!=='boolean' || !validAudioVolume(d.audioSettings.musicVolume) || !validAudioVolume(d.audioSettings.soundVolume)))fail();
     for(const [key,reward] of Object.entries(d.mapRewards)) {
         if(!/^[1-9]\d*$/.test(key) || !transferInteger(Number(key),1) || (Number(key)%4 && Number(key)%10) ||
             !transferObject(reward) || !['pending','claimed'].includes(reward.status) ||
@@ -80,7 +82,8 @@ function transferStorageEntries(file) {
         [PROGRESS_KEY,d.progress],[RECORDS_KEY,d.records],[DAILY_RECORDS_KEY,d.dailyRecords],
         [DAILY_ATTEMPTS_KEY,d.dailyAttempts],[DAILY_PLAY_AD_KEY,d.dailyPlayAdState],[HEART_ITEMS_KEY,d.heartItems],
         [LIVES_KEY,d.lives],[MAP_REWARDS_KEY,d.mapRewards],[FEATURE_HELP_KEY,d.featureHelpSeen],
-        [SOUND_KEY,d.soundEnabled],[AD_PLAYS_KEY,d.playsSinceAd],
+        [SOUND_KEY,d.soundEnabled],[MUSIC_KEY,{enabled:d.audioSettings?.musicEnabled ?? d.soundEnabled,volume:d.audioSettings?.musicVolume ?? 1}],
+        [SOUND_VOLUME_KEY,d.audioSettings?.soundVolume ?? 1],[AD_PLAYS_KEY,d.playsSinceAd],
         [ONLINE_SCORES_KEY,{uid:file.identity.uid,items:d.pendingScores}],[TRANSFER_IDENTITY_KEY,file.identity],
         [ONLINE_PROFILE_KEY,undefined],...(d.localId?[[PLAYER_UUID_KEY,d.localId]]:[])
     ]);

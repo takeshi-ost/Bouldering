@@ -1,6 +1,11 @@
 "use strict";
 // Approved English player copy. Placeholder names match the Japanese source.
 const GAME_TEXT_EN = Object.freeze({
+    "audio.music": "Music",
+    "audio.effects": "Effects",
+    "audio.musicVolume": "Music volume",
+    "audio.effectsVolume": "Effects volume",
+
     "appearance.confirmCharacterEditor": "Your name and colors have been applied, but could not be saved on this device.",
     "appearance.renderCharacterEditor": "Color {value2}",
     "appearance.renderCharacterEditor.2": "Head color {value11}",
@@ -176,7 +181,6 @@ const GAME_TEXT_EN = Object.freeze({
     "ui.settingsTitle": "Settings",
     "ui.restart": "Give Up",
     "ui.mapEditCharacter": "Character Editor",
-    "ui.mapSettingsControls.label.span": "Sound",
     "ui.mapSettingsControls.label.span.2": "Language",
     "ui.languageChoice.option": "日本語",
     "ui.languageChoice.option.2": "English",

@@ -30,15 +30,15 @@ const tick=()=>new Promise(r=>setImmediate(r));
  assert.equal(h.run('bgmPlayback.source'),first,'Gestures and SE voice eviction never restart music');assert(!first.stopped);
  h.run('soundContext.currentTime=70;');h.document.hidden=true;h.emit('visibilitychange');assert(first.stopped);h.run('assert.equal(bgmOffset,6);assert.equal(bgmPlayback,null);');
  h.document.hidden=false;h.emit('visibilitychange');await tick();h.run('assert.equal(bgmPlayback.offset,6);');
- h.run('soundContext.currentTime=75;setSoundEnabled(false);assert.equal(bgmOffset,11);assert.equal(bgmPlayback,null);');
- h.run('setSoundEnabled(true);assert.equal(bgmPlayback.offset,11);');
+ h.run('soundContext.currentTime=75;setMusicEnabled(false);assert.equal(bgmOffset,11);assert.equal(bgmPlayback,null);');
+ h.run('setMusicEnabled(true);assert.equal(bgmPlayback.offset,11);');
  h.run('soundContext.currentTime=80;');h.emit('blur');h.run('assert.equal(bgmPlayback,null);');h.emit('focus');await tick();h.run('assert.equal(bgmPlayback.offset,16);');
  h.emit('pagehide');h.emit('pageshow');await tick();h.run('assert.equal(bgmPlayback.offset,16);');
  h.run('soundContext.state="closed";unlockSound();');await tick();h.run('assert(bgmPlayback);assert.equal(bgmPlayback.offset,16);');
  assert.equal(h.contexts.length,2);assert(h.contexts.every(c=>c.decodes===1));assert.equal(h.requests.filter(s=>s.includes('bgm-loop')).length,1);
  // A download completing after mute/blur must remain silent until explicitly resumed.
- const delayed=fixture();delayed.emit('pointerdown');delayed.run('setSoundEnabled(false)');delayed.emit('blur');delayed.release();await tick();delayed.run('assert.equal(bgmPlayback,null);');
- delayed.emit('focus');delayed.run('assert.equal(bgmPlayback,null);setSoundEnabled(true);');await tick();delayed.run('assert(bgmPlayback);');
+ const delayed=fixture();delayed.emit('pointerdown');delayed.run('setMusicEnabled(false)');delayed.emit('blur');delayed.release();await tick();delayed.run('assert.equal(bgmPlayback,null);');
+ delayed.emit('focus');delayed.run('assert.equal(bgmPlayback,null);setMusicEnabled(true);');await tick();delayed.run('assert(bgmPlayback);');
  const muted=fixture({muted:true});muted.release();muted.emit('pointerdown');await tick();assert.equal(muted.contexts.length,0);assert.equal(muted.requests.length,0);
  const safari=fixture({blocked:true});safari.release();safari.emit('pointerdown');await tick();safari.run('assert.equal(bgmPlayback,null)');safari.allow();safari.emit('touchend');await tick();safari.run('assert(bgmPlayback);');
  const offline=fixture({offline:true});offline.release();offline.emit('pointerdown');await tick();offline.run('assert.equal(bgmPlayback,null)');offline.online();offline.emit('online');await tick();offline.run('assert(bgmPlayback);');
@@ -60,7 +60,7 @@ const tick=()=>new Promise(r=>setImmediate(r));
  h.run("assert.equal(bgmPlayback.track,'stage');assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.sets),JSON.stringify([[0,2]]));assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.42,3]]));");
  h.run("state='ad';stopBackgroundMusicForAd();state='won';resumeBackgroundMusicAfterAd();state='reward';queueBackgroundMusicScene();");await tick();
  h.run("assert.equal(bgmPlayback.track,'main');assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.42,3]]));");
- h.run("state='ad';stopBackgroundMusicForAd();setSoundEnabled(false);state='map';resumeBackgroundMusicAfterAd();");await tick();h.run('assert.equal(bgmPlayback,null);setSoundEnabled(true);assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.42,3]]));');
+ h.run("state='ad';stopBackgroundMusicForAd();setMusicEnabled(false);state='map';resumeBackgroundMusicAfterAd();");await tick();h.run('assert.equal(bgmPlayback,null);setMusicEnabled(true);assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.42,3]]));');
  // A stage download finishing during an ad stays silent, then starts the correct scene at zero.
  const late=fixture();late.emit('pointerdown');late.run("let state='playing';startStageBackgroundMusic();state='ad';stopBackgroundMusicForAd();");late.release();await tick();late.run('assert.equal(bgmPlayback,null);');
  late.run("state='daily';resumeBackgroundMusicAfterAd();");await tick();late.run("assert.equal(bgmPlayback.track,'main');assert.equal(bgmPlayback.offset,0);assert.equal(bgmFadeSeconds,1);");

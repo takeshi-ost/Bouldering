@@ -4,13 +4,15 @@ Replace these PCM WAV files with your own finished audio:
 
 | File | Trigger |
 | --- | --- |
+| `move.wav` | Move/Undo/invalid-move contact, processed from the supplied plug insertion reference (0.33 s) |
+| `launch.wav` | Accepted title TAP and normal/daily Start taps, processed from confirmation button 47 (1.25 s) |
 | `stage-start.wav` | Beginning of the stage intro, before controls unlock |
 | `stage-clear.wav` | Successful ascent |
 | `stage-fail.wav` | Failed ascent or retirement |
 
-The included files are audible synthesized placeholders. Recommended delivery: **WAV (.wav), linear PCM, 16-bit, 44.1 kHz, mono**. Export with minimal leading silence. Short clips of roughly 0.3–3 seconds work well; game progression does not wait for playback to end. No loop is used.
+Start/clear/fail are audible synthesized placeholders; move/launch are processed user-supplied references (mono, normalized peak 0.6 with short edge fades). Recommended delivery: **WAV (.wav), linear PCM, 16-bit, 44.1 kHz, mono**. Export with minimal leading silence. Short clips of roughly 0.3–3 seconds work well; game progression does not wait for playback to end. No loop is used.
 
-Files are fetched once and decoded into reusable Web Audio buffers after a user gesture. They share the sound setting/master volume, voice limit, mute and visibility cleanup with other effects. The game never waits for a download or decoding; a short fallback cue is played if the file is unavailable or not ready. The same event is not replayed when loading finishes. Failed downloads can retry when the connection returns.
+Files are fetched once and decoded into reusable Web Audio buffers after a user gesture. They share the Effects enable/volume bus, voice limit, mute and visibility cleanup with other effects. Music uses a separate enable/volume bus. Both settings are persisted and included in transfer files, with backward-compatible defaults for older files. The game never waits for a download or decoding; a short fallback cue is played if the file is unavailable or not ready. The same event is not replayed when loading finishes. Failed downloads can retry when the connection returns.
 
 After replacing a file, run `python scripts/version-assets.py` and commit both the file and updated JS/HTML. Content hashes refresh the browser cache automatically. Per-file gain can be adjusted in `SOUND_FILES` in `js/audio.js`.
 
@@ -27,4 +29,4 @@ Before encoding, prepend the last one second of the loop and append the first on
 
 Encoding: `ffmpeg -i guarded.wav -c:a libmp3lame -b:a 160k -write_xing 1 -map_metadata -1 output.mp3`. Validate decoded length, seam continuity, and peak level before publishing. The original approved 80 ms seam smoothing is retained in the audio, not applied again at runtime.
 
-`js/bgm.js` fetches both tracks asynchronously and starts native Web Audio buffer loops only after activation. Main-screen music covers title, maps/calendar, editor and roulette; stage music covers normal/daily play and results. Each stage attempt restarts stage music at zero gain with a 5-second linear fade. Ads block both tracks until the ad cover is removed and navigation resolves, then the destination track restarts from zero with a 1-second fade, including direct ad-to-stage transitions. Same-track screen changes continue playback. Mute/background pause preserves position and fade progress. BGM voices are independent of the SE voice limit. Downloads and decoding never block game flow; reconnect retries failed downloads. Per-track gain is configured in `BACKGROUND_MUSIC`. Run `python scripts/version-assets.py` after replacements.
+`js/bgm.js` fetches both tracks asynchronously and starts native Web Audio buffer loops only after activation. Main-screen music covers title, maps/calendar, editor and roulette; stage music covers normal/daily play and results. Each stage attempt restarts stage music at zero gain with a 5-second linear fade. Ads block both tracks until the ad cover is removed and navigation resolves, then the destination track restarts from zero with a 1-second fade, including direct ad-to-stage transitions. Same-track screen changes continue playback. Music mute/background pause preserves position and fade progress. Effects mute leaves music running, and live music volume changes do not restart the loop or its fade. BGM voices are independent of the SE voice limit. Downloads and decoding never block game flow; reconnect retries failed downloads. Per-track gain is configured in `BACKGROUND_MUSIC`. Run `python scripts/version-assets.py` after replacements.

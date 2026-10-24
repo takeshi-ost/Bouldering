@@ -1,6 +1,11 @@
 "use strict";
 // Player-facing Japanese copy, including accessibility and recoverable errors.
 const GAME_TEXT_JA = Object.freeze({
+    "audio.music": "音楽",
+    "audio.effects": "効果音",
+    "audio.musicVolume": "音楽の音量",
+    "audio.effectsVolume": "効果音の音量",
+
     "appearance.confirmCharacterEditor": "名前と配色を適用しました。この端末への保存はできませんでした。",
     "appearance.renderCharacterEditor": "色 {value2}",
     "appearance.renderCharacterEditor.2": "頭の色 {value11}",
@@ -176,7 +181,6 @@ const GAME_TEXT_JA = Object.freeze({
     "ui.settingsTitle": "設定",
     "ui.restart": "リタイヤ",
     "ui.mapEditCharacter": "キャラクターエディット",
-    "ui.mapSettingsControls.label.span": "サウンド",
     "ui.mapSettingsControls.label.span.2": "言語",
     "ui.languageChoice.option": "日本語",
     "ui.languageChoice.option.2": "English",

@@ -3,7 +3,7 @@
 <h1>Language layout check</h1><p>Isolated preview: Firebase is disabled and browser storage is blocked.</p>
 <label>Language <select id="language"><option>en</option><option>ja</option></select></label>
 <label>Viewport <select id="size"><option>320×640</option><option>375×667</option><option>390×844</option><option>430×932</option></select></label>
-<label>Screen <select id="screen"><option>settings</option><option>daily</option><option>stage-start</option><option>clear</option><option>daily-clear</option><option>failure</option><option>editor</option><option>reward</option><option>life</option><option>feature</option><option>title</option><option>transfer</option></select></label>
+<label>Screen <select id="screen"><option>settings</option><option>daily-settings</option><option>stage-settings</option><option>daily</option><option>stage-start</option><option>clear</option><option>daily-clear</option><option>failure</option><option>editor</option><option>reward</option><option>life</option><option>feature</option><option>title</option><option>transfer</option></select></label>
 <button id="render">Render</button><pre id="report">Preparing…</pre><iframe id="preview" title="Game preview" sandbox="allow-scripts"></iframe>
 <script>
 const preview=document.getElementById('preview'),report=document.getElementById('report');
@@ -22,6 +22,8 @@ async function render(){
   playerName='ABCDEFGHIJ';stageProgress.existing.cleared=47;stageRecords.existing[47]={moves:18,timeMs:123456,stars:3,version:COURSE_VERSION};
   const screen=${JSON.stringify(screen)};
   if(screen==='settings')openSettings();
+  else if(screen==='daily-settings'){showDailyCalendar();openSettings();}
+  else if(screen==='stage-settings'){reset(1);cameraIntro=null;hideStageHelp();openSettings();}
   else if(screen==='daily'){showDailyCalendar();chooseDailyDate(localToday());}
   else if(screen==='stage-start')openStageStart(47);
   else if(screen==='editor')showCharacterEditor();
@@ -39,7 +41,7 @@ async function render(){
   }
   await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   const issues=[],hidden=el=>!el.getClientRects().length || el.closest('[hidden]');
-  for(const el of document.querySelectorAll('button,h1,h2,.score-row,.score-status,.stage-start-heading,.result-heading,.daily-clear-record,.editor-actions,.daily-heading')){
+  for(const el of document.querySelectorAll('.audio-settings-row,input[type=range],button,h1,h2,.score-row,.score-status,.stage-start-heading,.result-heading,.daily-clear-record,.editor-actions,.daily-heading')){
    if(hidden(el)||el.classList.contains('map-node'))continue;const r=el.getBoundingClientRect(),style=getComputedStyle(el);
    if(r.left<-.5||r.right>innerWidth+.5)issues.push({kind:'viewport',id:el.id||el.className,text:el.textContent.trim(),left:r.left,right:r.right});
    if(el.scrollWidth>el.clientWidth+2 && !['hidden','clip'].includes(style.overflowX))issues.push({kind:'overflow',id:el.id||el.className,text:el.textContent.trim(),scroll:el.scrollWidth,client:el.clientWidth});
@@ -47,6 +49,11 @@ async function render(){
     const range=document.createRange();range.selectNodeContents(el);const t=range.getBoundingClientRect();
     if(t.left<r.left-1||t.right>r.right+1)issues.push({kind:'button-text',id:el.id,text:el.textContent.trim(),textWidth:t.width,width:r.width});
    }
+  }
+  for(const row of document.querySelectorAll('.audio-settings-row')){
+   if(hidden(row))continue;
+   const toggle=row.querySelector('label').getBoundingClientRect(),slider=row.querySelector('input[type=range]').getBoundingClientRect();
+   if(slider.width<60||slider.left<toggle.right-1||Math.abs((toggle.top+toggle.bottom-slider.top-slider.bottom)/2)>1)issues.push({kind:'audio-row',toggleWidth:toggle.width,sliderWidth:slider.width});
   }
   if(screen==='editor')for(const id of ['playerName','editorRandom','editorCancel','editorConfirm']){const r=document.getElementById(id).getBoundingClientRect();if(r.bottom>innerHeight||r.top<0)issues.push({kind:'editor-height',id,bottom:r.bottom});}
   parent.postMessage({type:'layout',language:${JSON.stringify(language)},screen,width:innerWidth,height:innerHeight,heading:document.querySelector('dialog[open] h1,dialog[open] h2')?.textContent,issues},'*');

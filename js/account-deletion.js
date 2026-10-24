@@ -54,7 +54,7 @@ async function waitForAccountWrites() {
 function clearLocalGameData() {
     // Leave other applications on the same GitHub Pages origin untouched.
     const keys=[APPEARANCE_KEY,PLAYER_NAME_KEY,PLAYER_UUID_KEY,ONLINE_PROFILE_KEY,ONLINE_SCORES_KEY,
-        PROGRESS_KEY,RECORDS_KEY,HEART_ITEMS_KEY,LIVES_KEY,MAP_REWARDS_KEY,FEATURE_HELP_KEY,SOUND_KEY,
+        PROGRESS_KEY,RECORDS_KEY,HEART_ITEMS_KEY,LIVES_KEY,MAP_REWARDS_KEY,FEATURE_HELP_KEY,SOUND_KEY,MUSIC_KEY,SOUND_VOLUME_KEY,
         LANGUAGE_KEY,AD_PLAYS_KEY,DAILY_RECORDS_KEY,DAILY_ATTEMPTS_KEY,DAILY_PLAY_AD_KEY,
         'ascent.ad-clears.v1','ascent.daily-entry-ad.v1','ascent.transfer-identity.v1'];
     for(const key of keys)globalThis.localStorage?.removeItem(key);
