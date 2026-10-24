@@ -712,9 +712,12 @@ function move(e) {
     const attached =
         attachMoving(body, drag.anchor);
 
-    if (attached)
+    if (attached) {
+        // Only new provisional limb/hold contacts, never a held pose or detachment.
+        if(attached.some((h,i)=>h && h!==grips[i] && !drag.anchor.includes(i)))
+            playSound('contact');
         grips = attached;
-    else
+    } else
         body = previousBody;
 
     collectHearts(previousBody,body);

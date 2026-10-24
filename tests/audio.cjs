@@ -15,6 +15,7 @@ const c=vm.createContext(env);vm.runInContext(audio,c);
 assert.equal(contexts,0,'No sound context or autoplay before a user gesture');assert(control.checked);
 vm.runInContext("assert.equal(playSound('clear'),false)",c);events.pointerdown();assert.equal(contexts,1);
 vm.runInContext("assert(playSound('move'));assert.equal(playSound('move'),false);soundContext.currentTime+=.1;assert(playSound('pickup'));",c);
+vm.runInContext("for(const cue of ['tap','pickup','page','contact']){soundContext.currentTime+=.1;assert(playSound(cue),cue);}",c);
 assert(voices.every(v=>v.started));const count=voices.length;
 control.checked=false;control.onchange();assert.equal(data['ascent.sound-enabled.v1'],'false');assert(voices.every(v=>v.stopped));
 vm.runInContext("assert.equal(playSound('clear'),false)",c);assert.equal(voices.length,count);
@@ -28,8 +29,8 @@ vm.runInContext(audio+";assert.doesNotThrow(unlockSound);assert.doesNotThrow(()=
 // buffer must be started in that gesture, and interrupted contexts can recover.
 let activated=false,primers=0,safariEvents={};
 class SafariAudio extends Audio {
- createBuffer(){return {};}
- createBufferSource(){return {connect(){},disconnect(){},start(){primers++;}};}
+ createBuffer(channels,length){return super.createBuffer(channels,length);}
+ createBufferSource(){const voice=super.createBufferSource(),start=voice.start;voice.start=function(){primers++;start.call(this);};return voice;}
  resume(){if(activated)this.state='running';return Promise.resolve();}
 }
 const safari=vm.createContext({assert,AudioContext:SafariAudio,document:{getElementById:()=>({}),addEventListener:(k,fn)=>safariEvents[k]=fn},window:{addEventListener(){}}});
@@ -62,6 +63,24 @@ gameEvents.click({target:{closest:()=>({id:'dailyPrev',disabled:false,closest:()
 cancelMapReveal();state='map';mapTransition={from:1,to:2,start:0};sounds.length=0;advanceLevelMap(MAP_HOP_DURATION);assert.deepEqual(sounds,['page']);hideStageStart();
 dailyRun=null;reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);down(pointFor(body));grips[0]=null;
 const invalidBefore=JSON.stringify({body:committed,grips:startGrips,moveCount,stamina});sounds.length=0;release();assert.deepEqual(sounds,['move']);assert.equal(JSON.stringify({body,grips,moveCount,stamina}),invalidBefore);
+
+// Preview contacts sound before release; unchanged frames and detachment are silent.
+reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);
+sounds.length=0;down(pointFor(body));assert.deepEqual(sounds,[]);
+move(pointFor(route[1]));assert(sounds.includes('contact'));assert.equal(moveCount,0);
+sounds.length=0;move(pointFor(route[1]));assert.deepEqual(sounds,[]);
+// Isolate contact transitions while retaining the real drag/input path.
+const realAttachMoving=attachMoving,contactPose={...body},preview=[...grips];
+const moving=preview.map((h,i)=>i).filter(i=>!drag.anchor.includes(i));
+let nextPreview=[...preview];attachMoving=()=>nextPreview;
+nextPreview=[...preview];nextPreview[moving[0]]=null;
+move(pointFor(contactPose));assert.deepEqual(sounds,[]);
+nextPreview=[...preview];move(pointFor(contactPose));assert.deepEqual(sounds,['contact']);
+sounds.length=0;move(pointFor(contactPose));assert.deepEqual(sounds,[]);
+nextPreview=[...preview];for(const i of moving)nextPreview[i]={...preview[i],id:999+i};
+move(pointFor(contactPose));assert.deepEqual(sounds,['contact'],'Simultaneous contacts share one short cue');
+sounds.length=0;release(true);assert.deepEqual(sounds,[]);assert.equal(moveCount,0);
+attachMoving=realAttachMoving;
 
 `)(assert);
 console.log('PASS audio: gesture unlock/no autoplay, sound toggle persistence, mute stops voices, unsupported APIs/storage, cooldown, actual start/move/pickup/clear/fail, shared life/confirm/page/invalid cues, rollback and no duplicate click/result cues');

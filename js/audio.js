@@ -5,15 +5,16 @@ let soundEnabled=true;
 try {soundEnabled=globalThis.localStorage?.getItem(SOUND_KEY)!=='false';} catch(_) {}
 let soundContext=null,soundMaster=null,soundPrimed=false,pendingSound=null;
 const soundVoices=new Set(),soundLastPlayed=new Map();
-// Seven synthesized cues; start/clear/fail are loaded from the files below.
+// Eight synthesized cues; start/clear/fail are loaded from the files below.
 const SOUND_NOTES={
-    tap:[[720,480,0,.045,'sine',.45]],
+    tap:[[0,0,0,.018,'noise',.55],[2400,1200,0,.025,'triangle',.3],[1500,900,.018,.025,'triangle',.18]],
     move:[[0,0,0,.055,'noise',.65],[1100,650,0,.025,'triangle',.14]],
+    contact:[[280,160,0,.035,'sine',.45]],
     heart:[[880,1175,0,.12,'sine',.4],[1320,1320,.07,.15,'sine',.3]],
     roulette:[[1500,1000,0,.018,'triangle',.22]],
-    pickup:[[660,660,0,.11,'sine',.5],[990,990,.065,.16,'sine',.45]],
+    pickup:[[523,523,0,.55,'triangle',.32],[659,659,0,.55,'triangle',.26],[784,784,0,.6,'triangle',.24],[1047,1047,0,.65,'sine',.2]],
     hazard:[[250,140,0,.14,'triangle',.5],[185,105,.035,.12,'sine',.4]],
-    page:[[420,620,0,.07,'sine',.25]],
+    page:[[0,0,0,.14,'swoosh',.65]],
 };
 // Replace these files with externally produced sounds. Run version-assets.py after replacement.
 const SOUND_FILES=Object.freeze({
@@ -124,12 +125,18 @@ function playSound(name,delaySeconds=0) {
         }
         if(file)void prepareSoundFile(name);
         for(const [from,to,delay,duration,type,volume] of notes) {
-            const oscillator=type==='noise'?soundContext.createBufferSource():soundContext.createOscillator(),gain=soundContext.createGain(),start=now+delay;
-            if(type==='noise') {
-                // A bright, dry contact sound: remove low-end weight from white noise.
+            const isNoise=type==='noise' || type==='swoosh';
+            const oscillator=isNoise?soundContext.createBufferSource():soundContext.createOscillator(),gain=soundContext.createGain(),start=now+delay;
+            if(isNoise) {
+                // Dry clicks emphasize high frequencies; page swishes use softened noise.
                 const buffer=soundContext.createBuffer(1,Math.ceil(soundContext.sampleRate*duration),soundContext.sampleRate);
-                const samples=buffer.getChannelData(0);let previous=0;
-                for(let i=0;i<samples.length;i++) {const sample=Math.random()*2-1;samples[i]=(sample-previous)*.5;previous=sample;}
+                const samples=buffer.getChannelData(0);let previous=0,soft=0;
+                for(let i=0;i<samples.length;i++) {
+                    const sample=Math.random()*2-1;
+                    soft+=.35*(sample-soft);
+                    samples[i]=type==='swoosh'?soft*1.8:(sample-previous)*.5;
+                    previous=sample;
+                }
                 oscillator.buffer=buffer;
             } else {
                 oscillator.type=type;
@@ -137,7 +144,7 @@ function playSound(name,delaySeconds=0) {
                 oscillator.frequency.exponentialRampToValueAtTime(to,start+duration);
             }
             gain.gain.setValueAtTime(.0001,start);
-            gain.gain.exponentialRampToValueAtTime(volume,start+(type==='noise'?.002:.006));
+            gain.gain.exponentialRampToValueAtTime(volume,start+(type==='swoosh'?.035:type==='noise'?.002:.006));
             gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
             connectSoundVoice(oscillator,gain);
             oscillator.start(start);oscillator.stop(start+duration+.01);
