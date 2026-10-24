@@ -68,6 +68,7 @@ function connectSoundVoice(source,gain) {
     source.onended=()=>{soundVoices.delete(source);source.disconnect();gain.disconnect();};
 }
 function stopSounds() {
+    if(typeof pauseBackgroundMusic==='function')pauseBackgroundMusic();
     for(const voice of soundVoices) {try {voice.stop();} catch(_) {}}
     soundVoices.clear();soundLastPlayed.clear();pendingSound=null;
 }
@@ -86,6 +87,7 @@ function unlockSound() {
             soundContext=new Audio();
             soundMaster=soundContext.createGain();soundMaster.gain.value=.18;
             soundMaster.connect(soundContext.destination);
+            soundContext.onstatechange=()=>{if(typeof syncBackgroundMusic==='function')syncBackgroundMusic();};
         }
         preloadSoundFiles();
         // A real source is started synchronously inside the gesture. In Safari,
@@ -98,9 +100,10 @@ function unlockSound() {
         }
         if(soundContext.state==='suspended' || soundContext.state==='interrupted') {
             const resumed=soundContext.resume();
-            resumed?.then(flushPendingSound).catch(()=>{});
+            resumed?.then(()=>{flushPendingSound();if(typeof syncBackgroundMusic==='function')syncBackgroundMusic();}).catch(()=>{});
         }
         flushPendingSound();
+        if(typeof syncBackgroundMusic==='function')syncBackgroundMusic();
     } catch(_) { /* Audio failure must never interrupt a game or a button action. */ }
 }
 function setSoundEnabled(enabled) {
