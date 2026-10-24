@@ -5,20 +5,17 @@ let soundEnabled=true;
 try {soundEnabled=globalThis.localStorage?.getItem(SOUND_KEY)!=='false';} catch(_) {}
 let soundContext=null,soundMaster=null,soundPrimed=false,pendingSound=null;
 const soundVoices=new Set(),soundLastPlayed=new Map();
+// Nine shared cues. Event hooks select these names directly.
 const SOUND_NOTES={
     tap:[[720,480,0,.045,'sine',.45]],
     move:[[0,0,0,.055,'noise',.65],[1100,650,0,.025,'triangle',.14]],
-    blocked:[[150,90,0,.09,'sine',.45]],
     pickup:[[660,660,0,.11,'sine',.5],[990,990,.065,.16,'sine',.45]],
     hazard:[[250,140,0,.14,'triangle',.5],[185,105,.035,.12,'sine',.4]],
     undo:[[700,420,0,.10,'sine',.45],[420,280,.07,.12,'sine',.4]],
     start:[[392,392,0,.09,'triangle',.35],[523,523,.09,.16,'sine',.5]],
     clear:[[523,523,0,.14,'triangle',.4],[659,659,.11,.14,'triangle',.4],[784,784,.22,.15,'triangle',.4],[1047,1047,.34,.3,'sine',.5]],
     fail:[[330,220,0,.2,'triangle',.35],[220,110,.17,.32,'sine',.5]],
-    life:[[523,523,0,.12,'sine',.5],[784,784,.08,.22,'sine',.45]],
-    step:[[260,180,0,.06,'sine',.5],[340,230,.075,.06,'sine',.35]],
     page:[[420,620,0,.07,'sine',.25]],
-    confirm:[[523,523,0,.08,'sine',.4],[784,784,.06,.15,'sine',.4]],
 };
 function stopSounds() {
     for(const voice of soundVoices) {try {voice.stop();} catch(_) {}}

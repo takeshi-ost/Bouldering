@@ -207,7 +207,7 @@ function confirmCharacterEditor() {
     const appearanceSaved=saveAppearance({colors:playerColors,headColor:playerHeadColor});
     const saved=appearanceSaved && nameSaved;
     queueOnlineProfileSave();
-    playSound('confirm');
+    playSound('tap');
     updateMapAppearance();returnFromCharacterEditor();refreshLives();
     if(!saved) {ui.mapError.textContent=gameText("appearance.confirmCharacterEditor");ui.mapError.hidden=false;}
     return true;

@@ -37,7 +37,7 @@ function consumeLife(now=Date.now()) {
     saveLives();refreshLives();
 }
 function grantLife() {
-    playSound('life');
+    playSound('pickup');
     recoverLives();lives.count=Math.min(LIFE_MAX,lives.count+1);
     if(lives.count>=LIFE_RECOVERY_CAP)lives.recoveryAt=null;
     saveLives();refreshLives();

@@ -784,7 +784,7 @@ function release(cancel = false) {
         invalid ||
         (sameContacts(grips, startGrips) && !newHazards.size)
     ) {
-        if(invalid && !cancel)playSound('blocked');
+        if(invalid && !cancel)playSound('move');
         body = { ...committed };
         grips = [...startGrips];
     } else {

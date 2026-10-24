@@ -293,7 +293,7 @@ function advanceLevelMap(now) {
     } else positionMapMarker({x:from.x+(to.x-from.x)*s,y:from.y+(to.y-from.y)*s});
     if (t===1) {
         mapSelected=mapTransition.to;mapTransition=null;
-        playSound('step');
+        playSound('page');
         renderLevelMap();focusMapLevel();
         openStageStart(mapSelected,false,null,500);
     }

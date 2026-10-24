@@ -42,7 +42,7 @@ safariEvents.touchend();vm.runInContext("assert.equal(soundContext.state,'interr
 // Exercise the actual game hooks, without a sound device or changing game rules.
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 new Function('assert',`
-const elements={};const document={getElementById(id){return elements[id] ||= {style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};
+const elements={},gameEvents={};const document={getElementById(id){return elements[id] ||= {style:{},classList:{toggle(){}},focus(){},addEventListener(k,fn){gameEvents[k]=fn;},setAttribute(){},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};
 const window={addEventListener(){}};function requestAnimationFrame(){}
 `+source+`
 const sounds=[];playSound=name=>{sounds.push(name);};
@@ -53,5 +53,15 @@ assert.equal(state,'won');assert.equal(sounds.filter(s=>s==='clear').length,1);a
 finish(true);assert.equal(sounds.filter(s=>s==='clear').length,1);
 reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);const pointFor=p=>({clientX:p.x,clientY:p.y-camera});down(pointFor(body));move(pointFor(route[1]));release();assert(undoMove());assert.equal(sounds.filter(s=>s==='undo').length,1);hearts=[{x:body.x,y:body.y,collected:false}];collectHearts(body,body);collectHearts(body,body);assert.equal(sounds.filter(s=>s==='pickup').length,1);
 finish(false);assert.equal(sounds.filter(s=>s==='fail').length,1);
+// Shared cues must be emitted once by the actual UI/event hooks.
+sounds.length=0;grantLife();assert.deepEqual(sounds,['pickup']);
+state='map';mapPreparing=false;settingsOpen=false;showCharacterEditor();ui.playerName.value='Player';
+sounds.length=0;gameEvents.click({target:{closest:()=>({id:'editorConfirm',disabled:false,closest:()=>null})}});ui.editorConfirm.onclick();assert.deepEqual(sounds,['tap']);
+cancelMapReveal();state='daily';settingsOpen=false;dailyMonth=localToday().slice(0,7);sounds.length=0;
+gameEvents.click({target:{closest:()=>({id:'dailyPrev',disabled:false,closest:()=>null})}});assert(changeDailyMonth(-1));assert.deepEqual(sounds,['page']);
+cancelMapReveal();state='map';mapTransition={from:1,to:2,start:0};sounds.length=0;advanceLevelMap(MAP_HOP_DURATION);assert.deepEqual(sounds,['page']);hideStageStart();
+dailyRun=null;reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);down(pointFor(body));grips[0]=null;
+const invalidBefore=JSON.stringify({body:committed,grips:startGrips,moveCount,stamina});sounds.length=0;release();assert.deepEqual(sounds,['move']);assert.equal(JSON.stringify({body,grips,moveCount,stamina}),invalidBefore);
+
 `)(assert);
-console.log('PASS audio: gesture unlock/no autoplay, sound toggle persistence, mute stops voices, unsupported APIs/storage, cooldown, actual stage start/move/pickup/clear/fail hooks and no duplicate result cues');
+console.log('PASS audio: gesture unlock/no autoplay, sound toggle persistence, mute stops voices, unsupported APIs/storage, cooldown, actual start/move/pickup/clear/fail, shared life/confirm/page/invalid cues, rollback and no duplicate click/result cues');
