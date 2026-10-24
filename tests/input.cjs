@@ -5,7 +5,9 @@ assert(!/id="(?:showPath|mapDebug|courseMenu)"/.test(html));
 assert.equal((html.match(/type="checkbox"/g)||[]).length,6);
 assert(/<dialog id="settingsDialog"[\s\S]*id="restart"[\s\S]*?<\/dialog>/.test(html));
 assert(!html.includes('id="mapButton"'));assert(/id="restart"[^>]*data-i18n="ui.restart"/.test(html));
-const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const nativeTest=process.env.ASCENT_NATIVE_TEST==='1';
+const nativeSource=require('../scripts/native-bundle-source.cjs');
+const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>{const s=fs.readFileSync(path.join(root,m[1]),'utf8');return nativeTest?nativeSource(path.basename(m[1]),s):s;}).join('\n');
 const env=`
 let clock=0;const performance={now:()=>clock};
 const elements={};const document={getElementById(id){return elements[id] ||= {
@@ -14,7 +16,7 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
  getBoundingClientRect(){return {left:15,top:30,width:300,height:525};}
 };}};const window={events:{},addEventListener(name,fn){const previous=this.events[name];this.events[name]=previous?e=>{previous(e);fn(e);}:fn;},devicePixelRatio:1};function requestAnimationFrame(){}
 `;
-new Function('assert','html',env+source+`
+new Function('assert','html','nativeTest',env+source+`
 // A fixed palette isolates press feedback from randomized first-run appearance.
 playerColors=['#39785b'];
 function eventAt(p) {const r=canvas.getBoundingClientRect();return {clientX:r.left+p.x*r.width/W,clientY:r.top+(p.y-camera)*r.height/H,button:0,preventDefault(){}};}
@@ -141,5 +143,22 @@ edge=finger(52,eventAt({x:STAGE_SAFE_WIDTH/2,y:camera+300}));const second=finger
 touch('touchstart',[edge]);touch('touchstart',[edge,second],[second]);assert(pan && !pan.edge && ignoreTouches);
 touch('touchend',[edge],[second]);touch('touchend',[],[edge]);assert(!pan && !ignoreTouches && !drag && !bodyTap);
 assert.equal(JSON.stringify({body,grips,stamina,moveCount,undoSnapshot}),edgeSnapshot);
+if(nativeTest) {
+ showTitleScreen();startCourse('existing');refreshLives();assert(state==='map' && ui.hud.hidden);
+ assert(ui.lifeStatus.classList.values['map-lives']);
+ hideStageStart();reset(1);assert(!ui.hud.hidden);refreshLives();assert(!ui.lifeStatus.classList.values['map-lives']);
+ returnFromStage();refreshLives();assert(state==='map' && ui.hud.hidden);assert(ui.lifeStatus.classList.values['map-lives']);
+ hideStageStart();reset(1);reset(1);refreshLives();assert(!ui.hud.hidden && !ui.lifeStatus.classList.values['map-lives']);
+ const rules=JSON.stringify({W,H,HEIGHT,holds,route,stamina,moveCount,body,camera});
+ globalThis.ASCENT_STAGE_VIEWPORT={padding:50};
+ canvas.getBoundingClientRect=()=>({left:15,top:47,width:390,height:780});
+ for(const p of [{x:0,y:camera-50},{x:200,y:camera+200},{x:400,y:camera+750}]) {
+  const out=point({clientX:15+p.x*.975,clientY:47+(p.y-camera+50)*.975});
+  assert(Math.abs(out.x-p.x)<1e-9 && Math.abs(out.y-p.y)<1e-9);
+ }
+ assert.equal(JSON.stringify({W,H,HEIGHT,holds,route,stamina,moveCount,body,camera}),rules);
+ showTitleScreen();assert(ui.hud.hidden);delete globalThis.ASCENT_STAGE_VIEWPORT;
+ console.log('PASS native navigation and uniform expanded viewport input; game geometry/camera/rules preserved');
+}
 console.log('PASS map settings debug controls, settings modal cancellation/navigation/input guards and timer; body-tap Undo: visible pose, jitter, mouse/touch, single use, drag/return, long press, cancel, blur, two fingers, result modal input guards; centered STAGE label and 1s input lock');
-`)(assert,html);
+`)(assert,html,nativeTest);

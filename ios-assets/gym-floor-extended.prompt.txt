@@ -1,0 +1,11 @@
+Built-in image_gen edit, 2026-10-24. Original: assets/gym-floor.webp (800x100).
+Output: gym-floor-extended.png (1774x887). Only its lower continuation is drawn;
+the existing original floor remains unchanged. No Python/image-library edits.
+
+Initial prompt: Extend only downward to a wide 2:1 canvas, preserve the original
+upper narrow band without stretching, naturally continue its muted green-gray
+low-poly gym floor, perspective and diagonal seams. No objects/text/tiling.
+The first edit left a seam; a second edit repaired the left join.
+
+Final exact correction prompt:
+Precise correction to this outpainted gym floor: preserve the top quarter and left half completely. Fix ONLY the right-hand dark diagonal floor seam below the horizontal outpainting join at about y=215 in this 1774x887 image. In the original upper strip, the right seam runs from approximately x=1110,y=0 toward x=1500,y=215. Continue THAT SAME STRAIGHT SEAM from x≈1500,y≈215 toward the right edge x=1774 around y≈360. The existing incorrect lower seam starts around x=1100,y=215 and runs to the bottom-right near y=820: REMOVE that incorrect lower line entirely, replacing it with matching uninterrupted gray-green low-poly floor texture. There must be only one continuous right seam with no jump, no kink, no detached diagonal, no horizontal line at the join. All other original floor colors, subtle polygon texture and the continuous left seam are unchanged. No stretching, no objects, no text.

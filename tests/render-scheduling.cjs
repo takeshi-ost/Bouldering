@@ -1,8 +1,9 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const nativeTest=process.env.ASCENT_NATIVE_TEST==='1',nativeSource=require('../scripts/native-bundle-source.cjs');
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)]
- .filter(m=>m[1]!=='js/main.js').map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
-new Function('assert',`
+ .filter(m=>m[1]!=='js/main.js').map(m=>{const s=fs.readFileSync(path.join(root,m[1]),'utf8');return nativeTest?nativeSource(path.basename(m[1]),s):s;}).join('\n');
+new Function('assert','nativeTest',`
 let clock=0,sequence=0,clears=0;
 const frames=new Map(),timers=new Map(),events={},windowEvents={};
 const epoch=Date.UTC(2026,9,20,12);
@@ -49,5 +50,27 @@ advance(10000);document.hidden=false;fire('visibilitychange');drain();
 assert.equal(dummyAd.remaining,0,'Visible again: the ad deadline must be reconciled immediately');
 assert.equal(frames.size,0);assert.equal(clears,adClears);
 console.log('PASS render scheduling: idle/modal/result RAF stop, coalesced input, finite motion, recovery/ad deadlines, midnight timer, hidden cancellation and foreground catch-up');
+if(nativeTest) {
+ document.hidden=false;presentationEnabled=false;hideStageStart();hideSettings();hideResultModal();
+ reset(1);cameraIntro=null;state='playing';inspecting=true;
+ const goal=holds.find(h=>h.type==='goal');camera=goal.y-100;
+ globalThis.ASCENT_STAGE_VIEWPORT={padding:50};
+ let matrix,background;paint.setTransform=(...args)=>matrix=args;
+ const oldFill=paint.fillRect;paint.fillRect=(...args)=>{if(args[1]===-50)background=args;oldFill(...args);};
+ const rules=JSON.stringify({W,H,HEIGHT,holds,route,stamina,moveCount,body,camera});
+ draw(0);
+ assert.equal(canvas.width,800);assert.equal(canvas.height,1600);
+ assert.deepEqual(matrix,[2,0,0,2,0,100]);assert.deepEqual(background,[0,-50,400,800]);
+ assert.equal(ui.goalEffects.style.top,'150px');
+ assert.equal(JSON.stringify({W,H,HEIGHT,holds,route,stamina,moveCount,body,camera}),rules);
+ const overlays=[];paint.fillRect=(...args)=>overlays.push(args);
+ cameraIntro={from:camera,to:camera,start:0};drawStageIntro();
+ assert.deepEqual(overlays,[[0,-50,400,800]],'Intro tint covers the entire extended viewport without old-boundary bands');
+ cameraIntro=null;ui.overlay.hidden=true;pan={edge:true,scrolling:true,side:'left'};draw(1);
+ assert(overlays.some(a=>a[0]===0 && a[1]===-50 && a[2]===STAGE_SAFE_WIDTH && a[3]===800),'Scroll assistance extends uniformly too');
+ pan=null;
+ delete globalThis.ASCENT_STAGE_VIEWPORT;
+ console.log('PASS native viewport: uniform render scale, extended backing height/background, goal DOM alignment; world geometry and camera unchanged');
+}
 })(TestDate);
-`)(assert);
+`)(assert,nativeTest);

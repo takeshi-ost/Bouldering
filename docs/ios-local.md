@@ -1,5 +1,29 @@
 # ASCENT のローカル iOS 版
 
+## 音声復帰の原因と修正
+
+前回の復帰処理は、ユーザーの実機ではタップ・設定切替後も復旧しなかった。模擬テスト合格を実機解決とは扱わない。
+実機検証用の Release 0.3.12／ビルド5 では、ゲームデバッグを OFF に保ち、一時的な音声専用診断で現象を記録した。保存するソースでは記録処理を Debug 専用へ戻し、Release では環境変数に関係なく記録しない。Debug も `ASCENT_AUDIO_DIAGNOSTICS=1` を明示した場合だけ最大300回・2秒間隔で記録する。JavaScript の診断履歴もこの Debug 診断時以外は収集しない。
+内容は音声のフラグ・音量・context時刻・再生ノード有無・resumeの結果・ネイティブイベントと音声セッション・viewport寸法のみで、セーブ・アカウント・認証情報は読まない。ファイルの取得先は Git 管理外の build/。
+実機の再現ログを build/physical-audio-reproduction-215108.json に保全した。中断前は running・時刻進行・BGMノードあり・Speaker。復帰通知は届いており、resume が一度 InvalidStateError / Failed to start the audio device で失敗。その後 running に戻り BGM ノードも再作成されたが、AudioContext.currentTime は337.552のまま約36秒停止した。ネイティブの setActive エラー・音量ゼロ・通知未達は観測していない。内部の音声デバイス停止の詳細原因は未確定だが、同じ context を再利用するだけでは復旧しないことを確認した。
+復帰後700msの時刻進行を一度確認し、停止が続く場合だけ旧ノード・context を閉じて音声基盤を一度再作成する。音量・ON/OFFと同梱音源のバイトキャッシュは保持し、SEは再発火しない。バックグラウンド化でチェックを取消し、正常復帰・両方OFFでは再作成しない。OSが新contextの自動開始を拒否した場合は次のタップで再試行する。修正後はユーザーが中断・復帰後の BGM／SE の実音を確認した。通話など別種類の割り込み・長時間の反復試験は未検証。
+ステージ開始の半透明演出と側面スクロール補助は、旧H=700の矩形ではなく拡張viewport全体を覆うようにした。必要な演出を保ちつつ、旧境界の帯をなくす。マップ・Dailyは縦のviewportに揃え、横方向はセーフエリア内の全幅を保つ（横画面で細いcanvas幅へ縮めない）。
+この音声時刻停止対策・帯修正・横画面補正を含む Release 0.3.12／ビルド5 は、最終同梱 assets 検査と署名検証、実機への上書き更新・前面起動に成功した。ユーザーが帯の消失と復帰後の音声を実機で確認済み。保存時はソースを0.3.13／ビルド6に更新したが、実機は確認済み0.3.12／ビルド5のまま。差分は版番号・assetsハッシュ更新と通常Releaseからの診断収集除外で、再ビルドはしていない。
+
+床の下方延長は image_gen で作成した `ios-assets/gym-floor-extended.png`（1774×887）。元の `assets/gym-floor.webp`（800×100）を高さ80で描く処理は維持し、生成画像の下部だけを HEIGHT より下へ240ゲーム単位追加する。実機の追加 viewport は上下約41.27ゲーム単位。元画像の変更・Python等による画像編集はしていない。編集記録は隣の `.prompt.txt` に保存した。
+
+## 実機向けの追加変更（ソース0.3.13／ビルド6）
+
+Personal Team を設定し、iPhone 13 Pro／iOS 26.6.2 で Release を検証する。
+生成時の `native-bundle-source.cjs` はコピーした iOS assets だけを変更し、Web の元のゲームソース・CSS・HTML は変更しない。
+縦画面ではセーフエリア内まで canvas の描画 viewport を広げ、上下に追加のワールドを表示する。400×700 のゲーム内座標、カメラ制御、到達距離、生成・スコアは維持し、描画を等倍率のまま平行移動する。タッチ・ドラッグ・スクロールと DOM のゴール演出も同じ倍率・余白を使う。横画面は既存の 4:7 を維持する。
+
+HUD 用の属性・位置変数はステージを離れると解除する。`game-lives` はマップでも共有されるため `.map-lives` をステージ CSS から明示的に除外する。
+iOS の Scene 中断・復帰を WebView に通知し、復帰時は音声セッションの再有効化と既存 AudioContext の再開を試みる。中断中の再生を禁止し、保存済みの音楽／SE の ON/OFF・音量を保持する。OS に自動再開を拒否された場合は次のユーザー操作で再試行する。実音と繰り返し復帰の実機確認は自動テストとは別に必要。
+
+軽量チェック: `node tests/ios-stage-layout.cjs`、`node tests/ios-audio-lifecycle.cjs`、`ASCENT_NATIVE_TEST=1 node tests/input.cjs`、`ASCENT_NATIVE_TEST=1 node tests/render-scheduling.cjs`。関連する既存の音声・モーダル・ビルド方針のテストも行う。署名ビルドは直列に行い、キーチェーン確認はユーザーが手動操作する。
+今回の結合 Release はビルド・署名検証・同梱 assets 検査に合格し、同じ iPhone 13 Pro へ削除せず上書きインストール・前面起動した。マップ・Daily・ステージの配置、床延長、帯の消失と復帰後の実音はユーザー確認済み。
+
 基準は Web 版 0.3.10、コミット `15e482dc3b12587b35dcad629b5065b74bfb3e5a`。
 `feature/ios-app` の別 worktree で作成した。既存 main の作業フォルダと公開 Web は変更していない。
 このブランチの共通ソースでは、後述の説明モーダル修正と版番号・assets 参照の更新だけを行った。ゲーム本体・音源・画像は維持している。
@@ -10,14 +34,14 @@
 ## 用途と制限
 
 - アプリ名: ASCENT Local
-- 仮 Bundle ID: `local.ascent.simulator.t20261024`。シミュレーター検証専用で、正式な ID ではない。
-- ソースの表示バージョン: 0.3.12、ビルド番号: 5、iOS 最低バージョン: 15.0。
+- 仮 Bundle ID: `local.ascent.simulator.t20261024`。ローカル実機・シミュレーター検証用で、正式な ID ではない。
+- ソースの表示バージョン: 0.3.13、ビルド番号: 6、iOS 最低バージョン: 15.0。
 - Firebase は無効。実装・接続設定を含む `js/firebase-client.js` を同梱しない。
 - 生成する HTML に CSP を追加。外部スクリプト・外部通信・iframe・フォーム送信を禁止する。同梱音声の fetch のため `connect-src 'self'` のみ許可する。
 - Firebase の匿名認証、ユーザー作成、プロフィール・ランキング更新は起動しない。引継ぎ・オンラインランキングは検証対象外。
 - 広告は既存の仮広告。実広告 SDK、追加の Capacitor プラグイン、CocoaPods は導入しない。
 - 保存領域はアプリのローカル領域であり、Web ブラウザの進捗・認証情報を自動的には引き継がない。
-- Apple アカウント、実機署名、配布設定は未設定。
+- ユーザー承認の Personal Team による開発署名を設定済み。証明書・秘密鍵・プロファイル・診断ログ・端末識別子はコミットしない。配布設定は未設定。
 
 ## ツール
 
@@ -155,14 +179,14 @@ export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 npm run sync:ios
 
 xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
-  -sdk iphonesimulator -destination 'platform=iOS Simulator,id=70062A63-64BF-4D6C-8004-D28A596DB797' \
+  -sdk iphonesimulator -destination 'platform=iOS Simulator,id=<SIMULATOR_UDID>' \
   -derivedDataPath build/DerivedData -packageAuthorizationProvider netrc \
   -disableAutomaticPackageResolution -jobs 2 \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
 node tests/ios-assets.cjs --built
 
 xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
-  -sdk iphonesimulator -destination 'platform=iOS Simulator,id=70062A63-64BF-4D6C-8004-D28A596DB797' \
+  -sdk iphonesimulator -destination 'platform=iOS Simulator,id=<SIMULATOR_UDID>' \
   -derivedDataPath build/DerivedData -packageAuthorizationProvider netrc \
   -disableAutomaticPackageResolution -jobs 2 \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build

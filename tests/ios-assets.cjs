@@ -4,13 +4,17 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
+const nativeSource = require('../scripts/native-bundle-source.cjs');
 const bundle = path.join(root, 'www');
 const read = name => fs.readFileSync(path.join(bundle, name), 'utf8');
 const html = read('index.html');
 assert(!fs.existsSync(path.join(bundle, 'js/firebase-client.js')), 'Never ship Firebase bootstrap/config');
+assert.deepEqual(fs.readFileSync(path.join(bundle,'assets/native/gym-floor-extended.png')),fs.readFileSync(path.join(root,'ios-assets/gym-floor-extended.png')));
 assert(!html.includes('firebase-client.js'));
 assert(html.indexOf('js/native-audio-fetch.js') >= 0 && html.indexOf('js/native-audio-fetch.js') < html.indexOf('js/audio.js'), 'Native audio adapter must load before audio preload');
 assert.equal(read('js/native-audio-fetch.js'), fs.readFileSync(path.join(root, 'scripts/native-audio-fetch.js'), 'utf8'));
+assert.equal(read('js/native-stage-layout.js'), fs.readFileSync(path.join(root, 'scripts/native-stage-layout.js'), 'utf8'));
+assert.equal(read('native-stage-layout.css'), fs.readFileSync(path.join(root, 'scripts/native-stage-layout.css'), 'utf8'));
 const policy = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
 assert(policy, 'Native bundle must have a CSP');
 for (const directive of ["default-src 'self'", "script-src 'self'", "connect-src 'self'", "frame-src 'none'", "form-action 'none'"]) {
@@ -36,10 +40,10 @@ vm.runInNewContext(read('js/native-offline.js'), env);
 assert.equal(env.ASCENT_NATIVE_OFFLINE, true);
 assert.match(env.ui.playerUuid.textContent, /Offline test/);
 assert.equal(calls.length, 1);
-// Every bundled game script and audio/image asset stays byte-for-byte Web source.
+// Only explicitly anchored native adaptations may differ from the Web source.
 for (const name of fs.readdirSync(path.join(root, 'js'))) {
     if (!name.endsWith('.js') || name === 'firebase-client.js') continue;
-    assert.deepEqual(fs.readFileSync(path.join(bundle, 'js', name)), fs.readFileSync(path.join(root, 'js', name)));
+    assert.equal(read(`js/${name}`), nativeSource(name, fs.readFileSync(path.join(root, 'js', name),'utf8')));
 }
 assert.deepEqual(fs.readFileSync(path.join(bundle, 'styles.css')), fs.readFileSync(path.join(root, 'styles.css')));
 for (const entry of fs.readdirSync(path.join(root, 'assets'), {recursive: true, withFileTypes: true})) {
@@ -57,12 +61,16 @@ for (const relative of nativeDirectories) {
     assert(fs.existsSync(nativePublic), `Missing native bundle: ${relative}`);
     assert.equal(fs.readFileSync(path.join(nativePublic, 'index.html'), 'utf8'), html, 'Run sync after rebuilding');
     assert(!fs.existsSync(path.join(nativePublic, 'js/firebase-client.js')));
+    assert.deepEqual(fs.readFileSync(path.join(nativePublic,'assets/native/gym-floor-extended.png')),fs.readFileSync(path.join(root,'ios-assets/gym-floor-extended.png')));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-offline.js'), 'utf8'), read('js/native-offline.js'));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-audio-fetch.js'), 'utf8'), read('js/native-audio-fetch.js'));
+    assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-stage-layout.js'), 'utf8'), read('js/native-stage-layout.js'));
+    assert.equal(fs.readFileSync(path.join(nativePublic, 'native-stage-layout.css'), 'utf8'), read('native-stage-layout.css'));
+    assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-audio-lifecycle.js'), 'utf8'), read('js/native-audio-lifecycle.js'));
     if(relative.startsWith('build/')) {
         assert.equal(fs.readFileSync(path.join(root,builtApp,'ascent-build-configuration.txt'),'utf8').trim(),configuration);
         const expected=configuration==='Release'?read('js/game.js').replace('let debugMode = false;','const debugMode = false;'):read('js/game.js');
         assert.equal(fs.readFileSync(path.join(nativePublic,'js/game.js'),'utf8'),expected,'Wrong native debug mutability for this configuration');
     }
 }
-console.log('PASS iOS bundle: Firebase absent, local-only CSP/resources, offline bootstrap, unchanged game scripts and synced HTML');
+console.log('PASS iOS bundle: Firebase absent, local-only CSP/resources, offline bootstrap, verified native adaptations and synced HTML');
