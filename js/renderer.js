@@ -691,6 +691,7 @@ function drawStageIntro() {
 var presentationEnabled=false;
 let gameFrame=null,presentationTimer=null,presentationStateKey='',lastStagePaintKey='';
 function requestGameRender() {
+    if(typeof queueBackgroundMusicScene==='function')queueBackgroundMusicScene();
     if(!presentationEnabled || document.hidden)return;
     if(gameFrame===null)gameFrame=requestAnimationFrame(draw);
 }

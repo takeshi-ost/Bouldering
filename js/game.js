@@ -587,6 +587,7 @@ function reset(n,staminaBonus=0) {
     ui.levelMap.hidden = true;
     ui.wall.classList.toggle('map-open',false);
 
+    startStageBackgroundMusic();
     updateUI();
 }
 

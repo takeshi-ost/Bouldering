@@ -15,6 +15,7 @@ function finishDummyAdCover() {
     if(!adCoverPending)return;
     adCoverPending=false;
     ui.dummyAd.close?.();ui.dummyAd.hidden=true;
+    resumeBackgroundMusicAfterAd();
 }
 function saveAdPlayCount() {
     try {globalThis.localStorage?.setItem(AD_PLAYS_KEY,JSON.stringify(playsSinceAd));}
@@ -36,6 +37,7 @@ function startDummyAd({onComplete=()=>{},onReturn=null}={}) {
     hideSettings();hideResultModal();
     dummyAd={start:performance.now(),previousState,wasResultOpen,wasTiming,onComplete,onReturn,remaining:10};
     state='ad';ui.dummyAd.hidden=false;
+    stopBackgroundMusicForAd();
     ui.adCounter.textContent='10';ui.adComplete.hidden=true;
     ui.dummyAd.showModal?.();ui.dummyAd.focus();
     requestGameRender();schedulePresentationUpdates();

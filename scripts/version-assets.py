@@ -5,7 +5,7 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 index = root / 'index.html'
-audio_pattern = r"(assets/audio/[^'\"?]+\.wav)(?:\?v=[^'\"]*)?"
+audio_pattern = r"(assets/audio/[^'\"?]+\.(?:wav|bin))(?:\?v=[^'\"]*)?"
 def audio_version(match):
     digest = hashlib.sha256((root / match[1]).read_bytes()).hexdigest()[:12]
     return f'{match[1]}?v={digest}'
