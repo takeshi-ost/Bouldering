@@ -99,10 +99,11 @@ button:focus-visible {
 
 button:disabled { opacity: .45; cursor: default; }
 
-.help-dialog { width: min(540px, calc(100% - 32px)); max-height: calc(100dvh - 40px); overflow: hidden; border: 1px solid #b9c3b5; border-radius: 18px; padding: 0 22px 22px; background: #f8f6ee; color: #25372f; }
+.help-dialog { width: min(540px, calc(100% - 32px)); max-height: min(560px, calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 48px)); overflow: hidden; border: 1px solid #b9c3b5; border-radius: 18px; padding: 0 22px 22px; background: #f8f6ee; color: #25372f; }
+.help-dialog[open] { display:flex; flex-direction:column; }
 .help-dialog::backdrop { background: #23372dbd; }
-.help-scroll { max-height:calc(100dvh - 140px); overflow-y:auto; overscroll-behavior:contain; }
-.help-dialog .help-heading { position:relative; min-height:60px; }
+.help-scroll { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; }
+.help-dialog .help-heading { position:relative; min-height:60px; flex:0 0 auto; }
 .help-heading { position: sticky; top:0; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #f8f6ee; padding: 18px 0 12px; border-bottom: 1px solid #dce0d4; }
 .help-heading h2 { margin: 0; font-size: 20px; }
 .help-heading button { flex-shrink: 0; padding: 10px 14px; }

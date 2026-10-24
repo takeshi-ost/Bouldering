@@ -1,0 +1,8 @@
+{
+  "appId": "local.ascent.simulator.t20261024",
+  "appName": "ASCENT Local",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never"
+  }
+}
