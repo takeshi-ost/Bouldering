@@ -7,7 +7,8 @@ let soundContext=null,soundMaster=null,soundPrimed=false,pendingSound=null;
 const soundVoices=new Set(),soundLastPlayed=new Map();
 // Eight synthesized cues; start/clear/fail are loaded from the files below.
 const SOUND_NOTES={
-    tap:[[0,0,0,.018,'noise',.55],[2400,1200,0,.025,'triangle',.3],[1500,900,.018,.025,'triangle',.18]],
+    // Reference: a dry ~800 Hz strike, then a lighter ~1200 Hz click 70 ms later.
+    tap:[[800,760,0,.026,'triangle',.48],[550,520,0,.022,'sine',.2],[0,0,0,.012,'noise',.12],[1200,1160,.072,.023,'triangle',.24],[0,0,.072,.009,'noise',.07]],
     move:[[0,0,0,.055,'noise',.65],[1100,650,0,.025,'triangle',.14]],
     contact:[[280,160,0,.035,'sine',.45]],
     heart:[[880,1175,0,.12,'sine',.4],[1320,1320,.07,.15,'sine',.3]],
