@@ -578,7 +578,7 @@ button.modal-close:focus-visible { outline:none; }
 /* The stage wall moves from its bottom to its top once over five minutes. */
 .title-wallpaper { position:absolute; inset:0 0 auto; height:300%; pointer-events:none;
     background:url('assets/game-wall.webp') center/100% 100% no-repeat;
-    transform:translateY(-66.6666667%); animation:title-ascent 300s linear forwards; }
+    transform:translateY(-66.6666667%); animation:title-ascent 150s linear forwards; }
 @keyframes title-ascent { from { transform:translateY(-66.6666667%); } to { transform:translateY(0); } }
 .title-content { position:relative; z-index:1; }
 .title-transfer { position:absolute; left:16px; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); z-index:2;
