@@ -14,7 +14,7 @@ Start/clear/fail are audible synthesized placeholders; move/launch are processed
 
 Files are fetched once and decoded into reusable Web Audio buffers after a user gesture. They share the Effects enable/volume bus, voice limit, mute and visibility cleanup with other effects. Music uses a separate enable/volume bus. Both settings are persisted and included in transfer files, with backward-compatible defaults for older files. The game never waits for a download or decoding; a short fallback cue is played if the file is unavailable or not ready. The same event is not replayed when loading finishes. Failed downloads can retry when the connection returns.
 
-After replacing a file, run `python scripts/version-assets.py` and commit both the file and updated JS/HTML. Content hashes refresh the browser cache automatically. Per-file gain can be adjusted in `SOUND_FILES` in `js/audio.js`.
+After replacing a file, run `python scripts/version-assets.py` and commit both the file and updated JS/HTML. Content hashes refresh the browser cache automatically. Per-file gain can be adjusted in `SOUND_FILES` in `js/audio.js`. `SOUND_LEVELS` calibrates cue loudness against the launch reference (launch/start stay at 1); the same calibration applies to decoded files, synthesized cues and file fallbacks, upstream of the independent user Effects volume. Quiet tap/contact/roulette cues receive the largest boosts. Music and saved slider values are unaffected.
 
 ## Background music
 

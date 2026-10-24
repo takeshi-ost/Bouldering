@@ -17,6 +17,12 @@ try {
 }catch(_){}
 let soundContext=null,soundMaster=null,soundEffectsGain=null,musicMaster=null,soundPrimed=false,pendingSound=null;
 const soundVoices=new Set(),soundLastPlayed=new Map();
+// Match other cues to the launch sound; keep music and the user's volume separate.
+const SOUND_LEVELS=Object.freeze({
+    launch:1,start:1,
+    tap:3,move:2,contact:8.5,roulette:6,
+    heart:1.5,pickup:1.1,hazard:1.5,page:1.4,clear:1.15,fail:1.15
+});
 // Seven synthesized cues; move/launch/start/clear/fail use audio files.
 const SOUND_NOTES={
     // Reference: a dry ~800 Hz strike, then a lighter ~1200 Hz click 70 ms later.
@@ -143,11 +149,12 @@ function playSound(name,delaySeconds=0) {
     const notes=SOUND_NOTES[name] || SOUND_FILE_FALLBACKS[name],now=soundContext.currentTime+Math.max(0,Number.isFinite(delaySeconds)?delaySeconds:0);
     if(!notes || now-(soundLastPlayed.get(name)??-Infinity)<.04)return false;
     soundLastPlayed.set(name,now);
+    const level=SOUND_LEVELS[name] ?? 1;
     try {
         const file=SOUND_FILES[name],cached=soundFileCache.get(name);
         if(file && cached?.buffer && cached.context===soundContext) {
             const source=soundContext.createBufferSource(),gain=soundContext.createGain();
-            source.buffer=cached.buffer;gain.gain.value=file.volume;
+            source.buffer=cached.buffer;gain.gain.value=file.volume*level;
             connectSoundVoice(source,gain);source.start(now);return true;
         }
         if(file)void prepareSoundFile(name);
@@ -170,9 +177,9 @@ function playSound(name,delaySeconds=0) {
                 oscillator.frequency.setValueAtTime(from,start);
                 oscillator.frequency.exponentialRampToValueAtTime(to,start+duration);
             }
-            gain.gain.setValueAtTime(.0001,start);
-            gain.gain.exponentialRampToValueAtTime(volume,start+(type==='swoosh'?.035:type==='noise'?.002:.006));
-            gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+            gain.gain.setValueAtTime(.0001*level,start);
+            gain.gain.exponentialRampToValueAtTime(volume*level,start+(type==='swoosh'?.035:type==='noise'?.002:.006));
+            gain.gain.exponentialRampToValueAtTime(.0001*level,start+duration);
             connectSoundVoice(oscillator,gain);
             oscillator.start(start);oscillator.stop(start+duration+.01);
         }

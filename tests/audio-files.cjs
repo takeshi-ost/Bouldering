@@ -6,7 +6,7 @@ class Audio {
  constructor(){this.state='suspended';this.currentTime=0;this.destination={};this.sampleRate=44100;}
  resume(){this.state='running';return Promise.resolve();}
  createBuffer(channels,length){return {length,getChannelData:()=>new Float32Array(length)};}
- createBufferSource(){const s={kind:'buffer',connect(){},disconnect(){},start(at){this.started=at;},stop(){this.stopped=true;}};sources.push(s);return s;}
+ createBufferSource(){const s={kind:'buffer',connect(to){this.output=to;},disconnect(){},start(at){this.started=at;},stop(){this.stopped=true;}};sources.push(s);return s;}
  createOscillator(){const s={kind:'oscillator',frequency:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){},start(at){this.started=at;},stop(){this.stopped=true;}};sources.push(s);return s;}
  createGain(){return {gain:{value:0,setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}
  async decodeAudioData(bytes){
@@ -27,7 +27,7 @@ const context=vm.createContext(env);vm.runInContext(source,context);
  await vm.runInContext("Promise.all(Object.keys(SOUND_FILES).map(name=>prepareSoundFile(name)))",context);
  assert.equal(decoded.length,5);assert.equal(sources.length,count,'A completed download must not replay a stale event');
  vm.runInContext("setSoundEnabled(true);soundContext.currentTime=1;assert(playSound('start'));soundContext.currentTime=2;assert(playSound('clear'));soundContext.currentTime=3;assert(playSound('fail'));soundContext.currentTime=4;assert(playSound('move'));soundContext.currentTime=5;assert(playSound('launch'));",context);
- const files=sources.filter(s=>s.buffer?.decoded);assert.equal(files.length,5);assert(files.every(s=>s.kind==='buffer' && s.buffer.duration>0));
+ const files=sources.filter(s=>s.buffer?.decoded);assert.equal(files.length,5);assert(files.every(s=>s.kind==='buffer' && s.buffer.duration>0));assert.equal(files[4].output.gain.value,1,'Launch reference volume is unchanged');assert(files[3].output.gain.value>files[4].output.gain.value,'Move receives its own gain boost before the user volume bus');
  await vm.runInContext("Promise.all(Object.keys(SOUND_FILES).map(name=>prepareSoundFile(name)))",context);
  assert.equal(requests.length,5);assert.equal(decoded.length,5,'One decode per file/context');
  events.blur();assert(files.every(s=>s.stopped));
