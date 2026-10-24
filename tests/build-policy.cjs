@@ -8,10 +8,11 @@ const temp=fs.mkdtempSync(path.join(os.tmpdir(),'ascent-build-policy-'));
 try {
     const src=path.join(temp,'source');fs.mkdirSync(path.join(src,'App/public/js'),{recursive:true});
     fs.writeFileSync(path.join(src,'App/public/js/game.js'),game);
+    fs.writeFileSync(path.join(src,'App/public/native-firebase-mode.json'),JSON.stringify({mode:'offline'}));
     function prepare(configuration,product=configuration) {
         const target=path.join(temp,product);fs.mkdirSync(path.join(target,'App.app/public/js'),{recursive:true});
         const result=spawnSync('/bin/sh',[path.join(root,'scripts/prepare-ios-build.sh')],{
-            env:{...process.env,SRCROOT:src,TARGET_BUILD_DIR:target,UNLOCALIZED_RESOURCES_FOLDER_PATH:'App.app',CONFIGURATION:configuration},encoding:'utf8'});
+            env:{...process.env,ASCENT_FIREBASE_MODE:'offline',SRCROOT:src,TARGET_BUILD_DIR:target,UNLOCALIZED_RESOURCES_FOLDER_PATH:'App.app',CONFIGURATION:configuration},encoding:'utf8'});
         assert.equal(result.status,0,result.stderr);
         assert.equal(fs.readFileSync(path.join(target,'App.app/ascent-build-configuration.txt'),'utf8').trim(),configuration);
         return fs.readFileSync(path.join(target,'App.app/public/js/game.js'),'utf8');
@@ -21,6 +22,8 @@ try {
     assert.equal(prepare('Debug','Release'),game,'An old Release product must not make a subsequent Debug immutable');
     assert.equal(prepare('Release','Debug'),release,'An old Debug product must not leak mutable debug state into Release');
     assert.equal(fs.readFileSync(path.join(src,'App/public/js/game.js'),'utf8'),game,'Never modify shared source assets');
+    const mismatch=spawnSync('/bin/sh',[path.join(root,'scripts/prepare-ios-build.sh')],{env:{...process.env,SRCROOT:src,TARGET_BUILD_DIR:path.join(temp,'Release'),UNLOCALIZED_RESOURCES_FOLDER_PATH:'App.app',CONFIGURATION:'Release',ASCENT_FIREBASE_MODE:'read-only'},encoding:'utf8'});
+    assert.notEqual(mismatch.status,0,'Offline/online assets must never silently mix');
     const envSource=`
 const elements={};
 const document={getElementById(id){return elements[id] ||= {

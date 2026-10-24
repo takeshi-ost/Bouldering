@@ -3,6 +3,28 @@ import Capacitor
 import WebKit
 import AVFAudio
 
+#if DEBUG
+// Explicit local test report. Never accepts UIDs, tokens, config or documents.
+private class FirebaseReadTestReporter: NSObject, WKScriptMessageHandler {
+    private var remaining = 256
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard remaining > 0, let input = message.body as? [String: Any] else { return }
+        let allowed = ["phase","authenticated","restored","createdThisRun","sameIdentity","readQueries","mapDocuments","scoreDocuments","blockedWrites","writesIssued","lastError","pendingUnchanged","boundaryPersisted","freshPending","freshDelivered","profilePending","profileNamePreserved","syncError","profileUpdates","freshScoreWrites"]
+        var safe: [String: Any] = [:]
+        for key in allowed {
+            if let value = input[key] as? NSNumber { safe[key] = value }
+            else if let value = input[key] as? String, value.count < 90,
+                    value.range(of: "^[a-z0-9/-]*$", options: .regularExpression) != nil { safe[key] = value }
+        }
+        guard let data = try? JSONSerialization.data(withJSONObject: safe, options: [.sortedKeys]),
+              let folder = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else { return }
+        remaining -= 1
+        try? data.write(to: folder.appendingPathComponent("ascent-firebase-test-report.json"), options: .atomic)
+    }
+}
+
+#endif
+
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
@@ -72,12 +94,25 @@ class AscentBridgeViewController: CAPBridgeViewController {
         let debugAllowed = false
         let audioDiagnosticsEnabled = false
 #endif
-        let policy: [String: Any] = ["configuration": configuration, "debugAllowed": debugAllowed, "firebaseEnabled": false, "audioDiagnosticsEnabled": audioDiagnosticsEnabled]
+        let firebaseMode = Bundle.main.object(forInfoDictionaryKey: "ASCENTFirebaseMode") as? String ?? "offline"
+        let readOnlyFirebase = firebaseMode == "read-only"
+        let automaticSync = firebaseMode == "auto-sync"
+        let firebaseEnabled = readOnlyFirebase || automaticSync
+        let policy: [String: Any] = ["configuration": configuration, "debugAllowed": debugAllowed,
+            "firebaseMode": firebaseMode, "firebaseEnabled": firebaseEnabled,
+            "firebaseAuthAllowed": firebaseEnabled, "firebaseAnonymousAllowed": readOnlyFirebase, "firebaseReadsAllowed": firebaseEnabled,
+            "firebaseAutomaticSyncAllowed": automaticSync,
+            "audioDiagnosticsEnabled": audioDiagnosticsEnabled]
         if let data = try? JSONSerialization.data(withJSONObject: policy, options: [.sortedKeys]),
            let json = String(data: data, encoding: .utf8) {
             let source = "Object.defineProperty(globalThis, 'ASCENT_IOS_BUILD', {value:Object.freeze(\(json)), writable:false, configurable:false});"
             webView?.configuration.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         }
+#if DEBUG
+        if ProcessInfo.processInfo.environment["ASCENT_FIREBASE_READ_TEST"] == "1" {
+            webView?.configuration.userContentController.add(FirebaseReadTestReporter(), name: "ascentFirebaseReport")
+        }
+#endif
 #if DEBUG
         guard audioDiagnosticsEnabled else { return }
         var samples = 0

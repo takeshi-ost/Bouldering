@@ -163,6 +163,7 @@
 			inputPaths = (
 				"$(SRCROOT)/../../scripts/prepare-ios-build.sh",
 				"$(SRCROOT)/App/public/js/game.js",
+				"$(SRCROOT)/App/public/native-firebase-mode.json",
 			);
 			name = "Enforce ASCENT Build Policy";
 			outputPaths = (
@@ -322,7 +323,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
+				ASCENT_FIREBASE_MODE = offline;
 				DEVELOPMENT_TEAM = 28DX847WFR;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -330,7 +332,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.13;
+				MARKETING_VERSION = 0.3.14;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = local.ascent.simulator.t20261024;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -346,7 +348,8 @@
 				CAPACITOR_DEBUG = false;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
+				ASCENT_FIREBASE_MODE = offline;
 				DEVELOPMENT_TEAM = 28DX847WFR;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -354,7 +357,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.13;
+				MARKETING_VERSION = 0.3.14;
 				PRODUCT_BUNDLE_IDENTIFIER = local.ascent.simulator.t20261024;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";

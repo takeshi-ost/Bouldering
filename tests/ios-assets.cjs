@@ -8,6 +8,11 @@ const nativeSource = require('../scripts/native-bundle-source.cjs');
 const bundle = path.join(root, 'www');
 const read = name => fs.readFileSync(path.join(bundle, name), 'utf8');
 const html = read('index.html');
+const firebaseMode=JSON.parse(read('native-firebase-mode.json')).mode;
+assert(['offline','read-only','auto-sync'].includes(firebaseMode));
+assert(fs.existsSync(path.join(bundle,'vendor/firebase-sdk.js')));
+assert(!/import\s*\(['"]https?:/.test(read('vendor/firebase-sdk.js')));
+if(firebaseMode==='offline')assert(!/apiKey\s*:/.test(read('js/native-firebase-control.js')),'Offline must not include connection config');
 assert(!fs.existsSync(path.join(bundle, 'js/firebase-client.js')), 'Never ship Firebase bootstrap/config');
 assert.deepEqual(fs.readFileSync(path.join(bundle,'assets/native/gym-floor-extended.png')),fs.readFileSync(path.join(root,'ios-assets/gym-floor-extended.png')));
 assert(!html.includes('firebase-client.js'));
@@ -17,10 +22,12 @@ assert.equal(read('js/native-stage-layout.js'), fs.readFileSync(path.join(root, 
 assert.equal(read('native-stage-layout.css'), fs.readFileSync(path.join(root, 'scripts/native-stage-layout.css'), 'utf8'));
 const policy = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
 assert(policy, 'Native bundle must have a CSP');
-for (const directive of ["default-src 'self'", "script-src 'self'", "connect-src 'self'", "frame-src 'none'", "form-action 'none'"]) {
+const connects="connect-src 'self'"+(firebaseMode!=='offline'?' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com':'');
+for (const directive of ["default-src 'self'", "script-src 'self'", connects, "frame-src 'none'", "form-action 'none'"]) {
     assert(policy.split(';').some(part => part.trim() === directive));
 }
-assert(!/https?:|\*|unsafe-eval/.test(policy));
+assert(!/\*|unsafe-eval/.test(policy));
+if(firebaseMode==='offline')assert(!/https?:/.test(policy));
 for (const match of html.matchAll(/\b(?:src|href)="([^"]+)"/g)) {
     const ref = match[1].split('?')[0];
     if (ref.startsWith('#')) continue;
@@ -30,7 +37,7 @@ for (const match of html.matchAll(/\b(?:src|href)="([^"]+)"/g)) {
 for (const name of fs.readdirSync(path.join(bundle, 'js'))) {
     const source = read(`js/${name}`);
     assert(!/https?:\/\//i.test(source), `External endpoint in ${name}`);
-    assert(!/initializeApp\(|signInAnonymously\(|bootFirebase\(/.test(source), `Firebase bootstrap in ${name}`);
+    if(name!=='native-firebase-control.js')assert(!/initializeApp\(|signInAnonymously\(|bootFirebase\(/.test(source), `Firebase bootstrap in ${name}`);
 }
 // Exercise the shipped offline bootstrap, without allowing a network primitive.
 const calls = [];
@@ -61,6 +68,8 @@ for (const relative of nativeDirectories) {
     assert(fs.existsSync(nativePublic), `Missing native bundle: ${relative}`);
     assert.equal(fs.readFileSync(path.join(nativePublic, 'index.html'), 'utf8'), html, 'Run sync after rebuilding');
     assert(!fs.existsSync(path.join(nativePublic, 'js/firebase-client.js')));
+    assert.equal(fs.readFileSync(path.join(nativePublic,'native-firebase-mode.json'),'utf8'),read('native-firebase-mode.json'));
+    for(const file of ['js/native-firebase-control.js','vendor/firebase-sdk.js'])assert.equal(fs.readFileSync(path.join(nativePublic,file),'utf8'),read(file));
     assert.deepEqual(fs.readFileSync(path.join(nativePublic,'assets/native/gym-floor-extended.png')),fs.readFileSync(path.join(root,'ios-assets/gym-floor-extended.png')));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-offline.js'), 'utf8'), read('js/native-offline.js'));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-audio-fetch.js'), 'utf8'), read('js/native-audio-fetch.js'));
@@ -73,4 +82,4 @@ for (const relative of nativeDirectories) {
         assert.equal(fs.readFileSync(path.join(nativePublic,'js/game.js'),'utf8'),expected,'Wrong native debug mutability for this configuration');
     }
 }
-console.log('PASS iOS bundle: Firebase absent, local-only CSP/resources, offline bootstrap, verified native adaptations and synced HTML');
+console.log('PASS iOS bundle: '+firebaseMode+' Firebase gates, exact CSP/resources, no Web bootstrap, verified native adaptations and synced HTML');

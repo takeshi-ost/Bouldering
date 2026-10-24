@@ -5,6 +5,32 @@ function replaceOnce(source, before, after) {
     return source.replace(before, after);
 }
 module.exports = function nativeSource(name, source) {
+    if(name==='online.js') {
+        source=replaceOnce(source,'function queueOnlineProfileSave() {',"function queueOnlineProfileSave() {\n    if(globalThis.ASCENT_NATIVE_SYNC){globalThis.ASCENT_NATIVE_SYNC.queueProfile(onlineProfile());return;}");
+        source=replaceOnce(source,'async function startOnline(adapter) {',"async function startOnline(adapter) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().legacySync!==true)return;");
+        source=replaceOnce(source,'async function flushOnlineProfile(preferLocal=true) {',"async function flushOnlineProfile(preferLocal=true) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().profileWrites!==true)return;");
+    }
+    if(name==='online-scores.js') {
+        source=replaceOnce(source,'function queueOnlineScore(stage,mode,score) {',"function queueOnlineScore(stage,mode,score) {\n    if(globalThis.ASCENT_NATIVE_SYNC)return false;");
+        source=replaceOnce(source,'function connectOnlineScores(uid) {',"function connectOnlineScores(uid) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().pendingScores!==true)return;");
+        source=replaceOnce(source,'async function flushOnlineScores() {',"async function flushOnlineScores() {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().pendingScores!==true)return;");
+    }
+    if(name==='level-map.js')source=replaceOnce(source,'        queueOnlineScore(level,courseMode,candidate);',
+        '        globalThis.ASCENT_NATIVE_SYNC?.recordClear(level,courseMode,candidate);\n        queueOnlineScore(level,courseMode,candidate);');
+    if(name==='appearance.js') {
+        source=replaceOnce(source,'    ui.playerName.blur?.();playerName=name;', '    const nativeNameWasEdited=name!==playerName;\n    ui.playerName.blur?.();playerName=name;');
+        source=replaceOnce(source,'    queueOnlineProfileSave();','    if(globalThis.ASCENT_NATIVE_SYNC)globalThis.ASCENT_NATIVE_SYNC.profileEdited(onlineProfile(),nativeNameWasEdited);else queueOnlineProfileSave();');
+    }
+    if(name==='transfer.js') {
+        source=replaceOnce(source,'const ready=online.ready &&',"const ready=globalThis.ASCENT_NATIVE_FIREBASE?.permissions().transfer===true && online.ready &&");
+        source=replaceOnce(source,'async function withTransferLock(action) {',"async function withTransferLock(action) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().transfer!==true)throw Error('native-firebase/transfer-disabled');");
+        source=replaceOnce(source,'function commitTransferFile(file) {',"function commitTransferFile(file) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().transfer!==true)throw Error('native-firebase/transfer-disabled');");
+    }
+    if(name==='account-deletion.js') {
+        for(const anchor of ['async function restoreDeletionSession(adapter) {','async function deleteCurrentAccount() {','function clearLocalGameData() {']) {
+            source=replaceOnce(source,anchor,anchor+"\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().deletion!==true)return;");
+        }
+    }
     if (name === 'audio.js') {
         source = replaceOnce(source, 'const resumed=soundContext.resume();',
             "globalThis.ASCENT_AUDIO_TRACE?.('resume-attempt');\n            const resumed=soundContext.resume();");

@@ -158,6 +158,25 @@ if(nativeTest) {
  }
  assert.equal(JSON.stringify({W,H,HEIGHT,holds,route,stamina,moveCount,body,camera}),rules);
  showTitleScreen();assert(ui.hud.hidden);delete globalThis.ASCENT_STAGE_VIEWPORT;
+ // iOS read-only preparation may not claim, erase or flush an old queue.
+ onlineScores.owner='old-guest';onlineScores.pending.set('v1_existing_3',{moves:2,timeMs:40});persistPendingScores();
+ const queued=JSON.stringify([...onlineScores.pending]),owner=onlineScores.owner;
+ let nativeWrites=0;online.ready=true;online.uid='new-guest';online.adapter={sync(){nativeWrites++;},saveScore(){nativeWrites++;}};
+ connectOnlineScores(online.uid);void flushOnlineScores();void flushOnlineProfile();
+ assert.equal(onlineScores.owner,owner);assert.equal(JSON.stringify([...onlineScores.pending]),queued);assert.equal(nativeWrites,0);
+ const localSave=globalThis.localStorage?.getItem(RECORDS_KEY);clearLocalGameData();assert.equal(globalThis.localStorage?.getItem(RECORDS_KEY),localSave);
+ assert.throws(()=>commitTransferFile({}),/transfer-disabled/);
+ // The post-enable hook receives the current run, before historical-best and
+ // old-queue comparisons can discard it. No production score is fabricated.
+ online.ready=false;hideStageStart();reset(1);dailyRun=null;debugAttempt=false;
+ stageRecords.existing[1]={moves:4,timeMs:500,version:'v1',stars:3};
+ moveCount=15;runElapsedMs=8000;let fresh,editFlag;
+ globalThis.ASCENT_NATIVE_SYNC={recordClear:(n,mode,score)=>fresh={n,mode,...score},queueProfile(){},profileEdited:(p,changed)=>editFlag=changed};
+ const historical=JSON.stringify([...onlineScores.pending]);recordStageClear();
+ assert.equal(fresh.moves,15);assert.equal(fresh.timeMs,8000);assert.equal(stageRecords.existing[1].moves,4);assert.equal(JSON.stringify([...onlineScores.pending]),historical);
+ showTitleScreen();startCourse('existing');showCharacterEditor();ui.playerName.value=playerName;confirmCharacterEditor();assert.equal(editFlag,false);
+ showCharacterEditor();ui.playerName.value='新しい公開名';confirmCharacterEditor();assert.equal(editFlag,true);
+ delete globalThis.ASCENT_NATIVE_SYNC;
  console.log('PASS native navigation and uniform expanded viewport input; game geometry/camera/rules preserved');
 }
 console.log('PASS map settings debug controls, settings modal cancellation/navigation/input guards and timer; body-tap Undo: visible pose, jitter, mouse/touch, single use, drag/return, long press, cancel, blur, two fingers, result modal input guards; centered STAGE label and 1s input lock');
