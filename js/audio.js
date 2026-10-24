@@ -10,7 +10,7 @@ const SOUND_NOTES={
     // Reference: a dry ~800 Hz strike, then a lighter ~1200 Hz click 70 ms later.
     tap:[[800,760,0,.026,'triangle',.48],[550,520,0,.022,'sine',.2],[0,0,0,.012,'noise',.12],[1200,1160,.072,.023,'triangle',.24],[0,0,.072,.009,'noise',.07]],
     move:[[0,0,0,.055,'noise',.65],[1100,650,0,.025,'triangle',.14]],
-    contact:[[280,160,0,.035,'sine',.45]],
+    contact:[[1500,1000,0,.015,'triangle',.16]],
     heart:[[880,1175,0,.12,'sine',.4],[1320,1320,.07,.15,'sine',.3]],
     roulette:[[1500,1000,0,.018,'triangle',.22]],
     pickup:[[523,523,0,.55,'triangle',.32],[659,659,0,.55,'triangle',.26],[784,784,0,.6,'triangle',.24],[1047,1047,0,.65,'sine',.2]],
