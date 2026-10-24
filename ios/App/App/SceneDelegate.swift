@@ -28,9 +28,21 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 // Diagnostics are opt-in for local Debug runs and contain audio state only.
 // They never read game saves, identity, credentials, or change system volume.
 class AscentBridgeViewController: CAPBridgeViewController {
-#if DEBUG
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
+        let configuration = Bundle.main.object(forInfoDictionaryKey: "ASCENTBuildConfiguration") as? String ?? "Unknown"
+#if DEBUG
+        let debugAllowed = configuration == "Debug"
+#else
+        let debugAllowed = false
+#endif
+        let policy: [String: Any] = ["configuration": configuration, "debugAllowed": debugAllowed, "firebaseEnabled": false]
+        if let data = try? JSONSerialization.data(withJSONObject: policy, options: [.sortedKeys]),
+           let json = String(data: data, encoding: .utf8) {
+            let source = "Object.defineProperty(globalThis, 'ASCENT_IOS_BUILD', {value:Object.freeze(\(json)), writable:false, configurable:false});"
+            webView?.configuration.userContentController.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        }
+#if DEBUG
         guard ProcessInfo.processInfo.environment["ASCENT_AUDIO_DIAGNOSTICS"] == "1" else { return }
         var samples = 0
         Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] timer in
@@ -70,6 +82,6 @@ class AscentBridgeViewController: CAPBridgeViewController {
                 }
             }
         }
-    }
 #endif
+    }
 }

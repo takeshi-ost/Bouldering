@@ -317,6 +317,7 @@ function setStageHeartItems(value) {
 ui.stageHeartCount.onclick=()=>setStageHeartItems((stageStartContext?.hearts??0)+1);
 ui.stageHeartReset.onclick=()=>setStageHeartItems(0);
 function canSelectStage(n,debug=false,retry=false) {
+    if(debug && !DEBUG_FEATURES_ALLOWED)return false;
     if(retry)return state==='lost' && !dailyRun && !stageStartContext && n===level && debug===debugAttempt;
     return state==='map' && !mapPreparing && !mapTransition && !stageStartContext &&
         Number.isSafeInteger(n) && n>=1 && n<Number.MAX_SAFE_INTEGER &&

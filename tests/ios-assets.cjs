@@ -49,7 +49,9 @@ for (const entry of fs.readdirSync(path.join(root, 'assets'), {recursive: true, 
     assert.deepEqual(fs.readFileSync(path.join(bundle, relative)), fs.readFileSync(source), `Changed asset: ${relative}`);
 }
 const nativeDirectories = ['ios/App/App/public'];
-if (process.argv.includes('--built')) nativeDirectories.push('build/DerivedData/Build/Products/Debug-iphonesimulator/App.app/public');
+const configuration=process.argv.includes('--release')?'Release':'Debug';
+const builtApp=`build/DerivedData/Build/Products/${configuration}-iphonesimulator/App.app`;
+if (process.argv.includes('--built')) nativeDirectories.push(`${builtApp}/public`);
 for (const relative of nativeDirectories) {
     const nativePublic = path.join(root, relative);
     assert(fs.existsSync(nativePublic), `Missing native bundle: ${relative}`);
@@ -57,5 +59,10 @@ for (const relative of nativeDirectories) {
     assert(!fs.existsSync(path.join(nativePublic, 'js/firebase-client.js')));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-offline.js'), 'utf8'), read('js/native-offline.js'));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-audio-fetch.js'), 'utf8'), read('js/native-audio-fetch.js'));
+    if(relative.startsWith('build/')) {
+        assert.equal(fs.readFileSync(path.join(root,builtApp,'ascent-build-configuration.txt'),'utf8').trim(),configuration);
+        const expected=configuration==='Release'?read('js/game.js').replace('let debugMode = false;','const debugMode = false;'):read('js/game.js');
+        assert.equal(fs.readFileSync(path.join(nativePublic,'js/game.js'),'utf8'),expected,'Wrong native debug mutability for this configuration');
+    }
 }
 console.log('PASS iOS bundle: Firebase absent, local-only CSP/resources, offline bootstrap, unchanged game scripts and synced HTML');

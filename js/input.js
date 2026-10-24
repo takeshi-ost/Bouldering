@@ -196,6 +196,7 @@ function showTitleScreen() {
 }
 function startCourse(mode) {
     if (mode !== 'existing' && mode !== 'prototype') return;
+    if (!DEBUG_FEATURES_ALLOWED && mode === 'prototype') return;
     courseMode = mode;
     showLevelMap();
 }
@@ -203,6 +204,8 @@ ui.prototypeCourse.onclick = () => {
     if(debugMode && ['map','daily'].includes(state) && settingsOpen)startCourse(courseMode==='prototype'?'existing':'prototype');
 };
 function syncDebugCourseControls() {
+    ui.mapDebugModeRow.hidden=!DEBUG_FEATURES_ALLOWED;
+    ui.mapDebugMode.disabled=!DEBUG_FEATURES_ALLOWED;
     if(typeof updateDeleteUserButton==='function')updateDeleteUserButton();
     ui.prototypeCourse.hidden=!debugMode;
     ui.prototypeCourse.textContent=courseMode==='prototype'?gameText("input.syncDebugCourseControls.2"):gameText("input.syncDebugCourseControls");
@@ -249,7 +252,12 @@ ui.closeLife.onclick=cancelLifePrompt;
 dismissOutside(ui.lifeDialog,cancelLifePrompt,true);
 
 function setDebugMode(enabled) {
-    debugMode=enabled;
+    if(!DEBUG_FEATURES_ALLOWED) {
+        ui.mapDebugMode.checked=false;
+        syncDebugCourseControls();
+        return;
+    }
+    debugMode=!!enabled;
     ui.mapDebugMode.checked=debugMode;
     syncDebugCourseControls();
     updateUI();

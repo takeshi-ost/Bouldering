@@ -4,13 +4,14 @@
 `feature/ios-app` の別 worktree で作成した。既存 main の作業フォルダと公開 Web は変更していない。
 このブランチの共通ソースでは、後述の説明モーダル修正と版番号・assets 参照の更新だけを行った。ゲーム本体・音源・画像は維持している。
 ユーザー承認によりローカルコミットへ保存する。push・merge・公開は行わない。
-`AGENTS.md` に従い保存するソースは 0.3.11／ビルド4 としたが、再ビルド・再起動はしていない。Simulator で検証済みのインストール版は 0.3.10／ビルド3。版番号・ビルド番号とそれに伴う config の assets ハッシュが異なる。
+最初のローカルコミット `cb13aae` では `AGENTS.md` に従いソースを 0.3.11／ビルド4 とし、その時点ではインストール版 0.3.10／ビルド3 を維持した。
+その後、下記の Debug／Release 対応を 0.3.11／ビルド4 で両構成ともビルド・検証した。ユーザー承認により追加分を新規ローカルコミットへ保存する。保存時のソースは規約に従い 0.3.12／ビルド5 としたが、再ビルド・再インストールはしていない。18 Pro のインストール済み検証版は Release 0.3.11／ビルド4 のまま。差は版番号・ビルド番号と config の assets ハッシュ。
 
 ## 用途と制限
 
 - アプリ名: ASCENT Local
 - 仮 Bundle ID: `local.ascent.simulator.t20261024`。シミュレーター検証専用で、正式な ID ではない。
-- ソースの表示バージョン: 0.3.11、ビルド番号: 4、iOS 最低バージョン: 15.0。
+- ソースの表示バージョン: 0.3.12、ビルド番号: 5、iOS 最低バージョン: 15.0。
 - Firebase は無効。実装・接続設定を含む `js/firebase-client.js` を同梱しない。
 - 生成する HTML に CSP を追加。外部スクリプト・外部通信・iframe・フォーム送信を禁止する。同梱音声の fetch のため `connect-src 'self'` のみ許可する。
 - Firebase の匿名認証、ユーザー作成、プロフィール・ランキング更新は起動しない。引継ぎ・オンラインランキングは検証対象外。
@@ -134,3 +135,56 @@ SceneDelegate の Debug 専用診断は `ASCENT_AUDIO_DIAGNOSTICS=1` の実行�
 - 全体テストの既存5件の失敗は今回変更していない。今回の最終保存時は重い全体テスト・ビルドを繰り返していない。
 - 18 Pro の上書き前に同端末のアプリ内 localStorage を読み取りバックアップした。ゲームの削除・リセット・Duo からのデータ移植はしていない。
 - ユーザーの発熱対応の依頼で Duo だけ shutdown。18 Pro は起動したまま維持し、Duo のアプリ・セーブは削除していない。
+
+## Debug／Release の切替
+
+Firebase 無効・外部通信禁止は今回のローカル検証用設定であり、ビルド構成と独立して両方に適用する。Release へ切り替えても本番接続は有効にならない。
+
+| 構成 | ゲーム内デバッグ |
+| --- | --- |
+| Debug | 設定に切替を表示。初期値 OFF、ON/OFF を操作可能 |
+| Release | OFF 固定。切替・任意ステージ・検証コース・デバッグ削除等の UI を非表示 |
+
+Xcode では `ios/App/App.xcodeproj` を開き、**Product → Scheme → Edit Scheme → Run → Info → Build Configuration** で Debug または Release を選ぶ。実行先は iPhone 18 Pro の Simulator を選ぶ。これは実機署名・Archive・App Store 公開の手順ではない。
+
+コマンドで再現する場合は、リポジトリのルートで assets を更新してから両構成を直列にビルドする。
+
+```sh
+export PATH="$(pwd)/../.tools/node-v24.22.1-darwin-arm64/bin:$PATH"
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+npm run sync:ios
+
+xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+  -sdk iphonesimulator -destination 'platform=iOS Simulator,id=70062A63-64BF-4D6C-8004-D28A596DB797' \
+  -derivedDataPath build/DerivedData -packageAuthorizationProvider netrc \
+  -disableAutomaticPackageResolution -jobs 2 \
+  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+node tests/ios-assets.cjs --built
+
+xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+  -sdk iphonesimulator -destination 'platform=iOS Simulator,id=70062A63-64BF-4D6C-8004-D28A596DB797' \
+  -derivedDataPath build/DerivedData -packageAuthorizationProvider netrc \
+  -disableAutomaticPackageResolution -jobs 2 \
+  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+node tests/ios-assets.cjs --built --release
+```
+
+アプリは次の別々の場所に生成される。同じ仮 Bundle ID なので、Simulator 上では上書きして構成を切り替える（ゲームの削除やデータリセットは不要）。
+
+- Debug: `build/DerivedData/Build/Products/Debug-iphonesimulator/App.app`
+- Release: `build/DerivedData/Build/Products/Release-iphonesimulator/App.app`
+
+必要な方を `xcrun simctl install <対象UDID> <App.appのパス>` で入れ、`xcrun simctl launch --terminate-running-process <対象UDID> local.ascent.simulator.t20261024` で起動する。インストール先 UDID は操作前に必ず確認する。
+
+### 強制条件と検証
+
+- Native 側が Xcode のコンパイル条件と `ASCENTBuildConfiguration` から固定ポリシーを作り、ページ読込の最初に凍結・再定義不可の `ASCENT_IOS_BUILD` を渡す。Native でポリシーが欠けた場合もデバッグ許可は false。
+- Copy Bundle Resources の後に `prepare-ios-build.sh` が**構成別の生成物だけ**を加工する。Release の `debugMode` は `const false`、Debug は切替可能な `let`。共有の `www` や native public の元ソースをこのフェーズで書き換えない。
+- Release では通常の切替関数を拒否し、検証コース・デバッグステージ開始・旧デバッグ挑戦の再試行を拒否する。初期値 false だけに頼らない。
+- 現在のゲームには debug 状態の保存・URL復元はない。旧設定を想定して `ascent.debug-mode.v1=true` を1キーだけ実際の18 Proに一時注入し、Release の設定画面にデバッグ切替・検証コース等が現れないことを確認した。
+- テストキーは元の値または未保存状態に復元済み。他の localStorage 全行が検証前後で一致することも確認した。Duo は shutdown のまま、データ移植・削除・リセットは行っていない。
+- Debug の実画面で切替 ON/OFF と開発用項目の表示／非表示を確認。Release の実画面で切替 UI が非表示であることを確認。
+- 自動テストは旧保存値・URL指定・Release定数への直接代入・旧デバッグ挑戦・検証コース経路を検証し、Debug→Release／Release→Debug の生成で混ざらないことを確認する。
+- 両ネイティブビルド、構成別 assets の安全性・変数の可変性・構成マーカーの検査に合格。署名アカウント・資格情報・公開は使用していない。
+
+追加テスト: `node tests/build-policy.cjs`。実機、App Store 用 Release、Release での全ステージ通しプレイは未検証。
