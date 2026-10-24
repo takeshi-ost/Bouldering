@@ -1,8 +1,9 @@
 "use strict";
 // Separate from SE voices: screen changes select tracks without render/audio polling.
+// One second of cyclic audio at each end keeps encoder padding outside the loop.
 const BACKGROUND_MUSIC={
-    main:{src:'assets/audio/bgm-loop.wav?v=d6dfae503385',volume:.42},
-    stage:{parts:['assets/audio/bgm-stage-loop-1.bin?v=6dc748f570da','assets/audio/bgm-stage-loop-2.bin?v=7e8b73c0481e'],volume:.42}
+    main:{src:'assets/audio/bgm-loop.mp3?v=30c3fda2ce8a',volume:.42,loopStart:1,loopSeconds:64},
+    stage:{src:'assets/audio/bgm-stage-loop.mp3?v=21690a060444',volume:.42,loopStart:1,loopSeconds:3704399/44100}
 };
 const bgmCache=new Map();
 let bgmTrack='main',bgmPlayback=null,bgmOffset=0,bgmFadeSeconds=.03,bgmFadeElapsed=0;
@@ -14,16 +15,9 @@ async function prepareBackgroundMusic(retry=false,name=bgmTrack) {
     if(!entry.loading || (retry && entry.failed)) {
         entry.failed=false;
         entry.loading=(async()=>{
-            const track=BACKGROUND_MUSIC[name];
-            const chunks=await Promise.all((track.parts || [track.src]).map(async src=>{
-                const response=await globalThis.fetch(src);
-                if(!response.ok)throw new Error('Music unavailable');
-                return new Uint8Array(await response.arrayBuffer());
-            }));
-            const bytes=new Uint8Array(chunks.reduce((sum,chunk)=>sum+chunk.length,0));
-            let offset=0;
-            for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-            entry.bytes=bytes.buffer;
+            const response=await globalThis.fetch(BACKGROUND_MUSIC[name].src);
+            if(!response.ok)throw new Error('Music unavailable');
+            entry.bytes=await response.arrayBuffer();
         })().catch(()=>{entry.failed=true;});
     }
     await entry.loading;
@@ -93,14 +87,16 @@ function syncBackgroundMusic() {
     if(!(buffer.duration>0))return;
     try {
         const context=soundContext,source=context.createBufferSource(),gain=context.createGain();
-        const offset=bgmOffset%buffer.duration,volume=BACKGROUND_MUSIC[bgmTrack].volume;
+        const track=BACKGROUND_MUSIC[bgmTrack],duration=track.loopSeconds;
+        const offset=bgmOffset%duration,volume=track.volume;
+        if(buffer.duration<track.loopStart+duration)return;
         const remaining=Math.max(0,bgmFadeSeconds-bgmFadeElapsed);
-        source.buffer=buffer;source.loop=true;source.loopStart=0;source.loopEnd=buffer.duration;
+        source.buffer=buffer;source.loop=true;source.loopStart=track.loopStart;source.loopEnd=track.loopStart+duration;
         source.connect(gain);gain.connect(soundMaster);
         gain.gain.setValueAtTime(remaining?volume*bgmFadeElapsed/bgmFadeSeconds:0,context.currentTime);
         gain.gain.linearRampToValueAtTime(volume,context.currentTime+(remaining || .03));
-        source.start(context.currentTime,offset);
-        bgmPlayback={source,gain,context,offset,started:context.currentTime,duration:buffer.duration,track:bgmTrack,fadeElapsed:bgmFadeElapsed};
+        source.start(context.currentTime,track.loopStart+offset);
+        bgmPlayback={source,gain,context,offset,started:context.currentTime,duration,track:bgmTrack,fadeElapsed:bgmFadeElapsed};
     }catch(_) { /* Music must never block game startup or input. */ }
 }
 function resumeBackgroundMusic() {
