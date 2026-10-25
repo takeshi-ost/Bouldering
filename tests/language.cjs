@@ -29,7 +29,7 @@ showCharacterEditor();const draft=JSON.stringify([ui.playerName.value,draftColor
 assert.equal(snapshot(),before);assert.equal(JSON.stringify([ui.playerName.value,draftColors,draftStripeCount]),draft);assert(EDITOR_POSES[0].name.includes('Standing'));
 assert.equal(formatStageRecord({moves:18,timeMs:1234}),'Moves: 18 00:01:23');
 map();dailyRun=null;reset(1);cameraIntro=null;moveCount=1;finish(false);const tip=GAMEPLAY_TIPS.indexOf(ui.resultTipText.textContent);before=snapshot();
-setGameLanguage('ja');assert.equal(ui.resultTitle.textContent,'登頂失敗…');assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[tip]);assert.equal(snapshot(),before);
+setGameLanguage('ja');assert.equal(ui.resultTitle.textContent,'登頂失敗…');assert.equal(ui.retry.textContent,'もういちど');assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[tip]);assert.equal(snapshot(),before);
 setGameLanguage('en');assert.equal(ui.resultTitle.textContent,'Climb Failed…');assert.equal(ui.retry.textContent,'RETRY');assert.equal(snapshot(),before);
 assert.equal(data['other.app'],'keep');
 console.log('PASS language: live map/daily settings, retained modal/date/month, persistence, UID/offline status, tips and pose labels, plural dates, unchanged game/profile/inventory/timer, transfer guard and invalid locale');

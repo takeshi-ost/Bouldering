@@ -24,6 +24,6 @@ class Copy(HTMLParser):
  def value(self):return {'text':re.sub(r'\s+',' ',''.join(self.text)).strip(),'attributes':self.attrs}
 current=Copy(True);current.feed((root/'index.html').read_text())
 digest=hashlib.sha256(json.dumps(current.value(),ensure_ascii=False,sort_keys=True).encode()).hexdigest()
-# Reviewed local help fix: use the shared × close glyph; all localized help copy is unchanged.
-assert digest == 'ee1ce4382e138c7be7a866bf62e75dc95660b392fa8cba4ff8904e21ea07ea19', 'Static game copy changed; review intentional wording changes before updating the snapshot.'
+# Reviewed change: Japanese failure/retry action is もういちど; English is unchanged.
+assert digest == 'a2c225c709d7fabd65763c6390d2fa24eee9c6218665b7ef57ec63227744974f', 'Static game copy changed; review intentional wording changes before updating the snapshot.'
 print('PASS static text: reviewed labels/help text and accessibility attributes match the cleaned snapshot')

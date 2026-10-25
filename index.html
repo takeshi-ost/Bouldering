@@ -4,21 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=712a64aaf8ea">
+    <link rel="stylesheet" href="styles.css?v=7615add82e42">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
-    <script src="js/text-ja.js?v=b7987684218c" defer></script>
+    <script src="js/text-ja.js?v=2dbb77ca11ef" defer></script>
     <script src="js/text-en.js?v=7e66d0a7ef76" defer></script>
     <script src="js/text-dev-ja.js?v=1b5c7df9ff1a" defer></script>
     <script src="js/text.js?v=dd38409b5d98" defer></script>
     <script src="js/score-metadata.js?v=441ae01051a0" defer></script>
-    <script src="js/config.js?v=e43ac8a2a73d" defer></script>
+    <script src="js/config.js?v=1caa9864411b" defer></script>
     <script src="js/viewport.js?v=b5ffb9620615" defer></script>
     <script src="js/audio.js?v=66f137186fb4" defer></script>
     <script src="js/bgm.js?v=c96d77ab4e58" defer></script>
     <script src="js/utils.js?v=d73670fd1f8d" defer></script>
     <script src="js/difficulty.js?v=8d73c2087e46" defer></script>
     <script src="js/stage.js?v=85b9524ab10d" defer></script>
-    <script src="js/game.js?v=92f23911ae39" defer></script>
+    <script src="js/game.js?v=23dac723397f" defer></script>
     <script src="js/route.js?v=a39b29d1a50e" defer></script>
     <script src="js/prototype.js?v=6d1c0d9e2472" defer></script>
     <script src="js/course.js?v=c052c290539f" defer></script>
@@ -30,7 +30,7 @@
     <script src="js/lives.js?v=9cc51f608393" defer></script>
     <script src="js/rewards.js?v=a8e05040a97a" defer></script>
     <script src="js/input.js?v=5659004aec1c" defer></script>
-    <script src="js/renderer.js?v=5d040e04db2f" defer></script>
+    <script src="js/renderer.js?v=2c181fced5d5" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
     <script src="js/appearance.js?v=d2a169c18333" defer></script>
     <script src="js/leaderboard.js?v=6f7a5a3383ff" defer></script>
@@ -102,8 +102,8 @@
                     <div class="eyebrow" id="mapCourse"></div>
                     <button id="openDaily" class="daily-airship" aria-label="" data-i18n-aria-label="ui.openDaily.aria-label">
                         <i class="daily-sparkle" aria-hidden="true"></i><i class="daily-sparkle" aria-hidden="true"></i><i class="daily-sparkle" aria-hidden="true"></i><i class="daily-sparkle" aria-hidden="true"></i>
-                        <img src="assets/daily-airship.webp" alt="" width="672" height="374">
-                        <span id="dailyEntryDate" aria-hidden="true"></span>
+                        <span class="daily-airship-body"><img src="assets/daily-airship.webp" alt="" width="672" height="374">
+                        <span id="dailyEntryDate" class="daily-airship-date" aria-hidden="true"></span></span>
                     </button>
                 </div>
                 <p id="mapError" class="map-error" role="alert" hidden></p>
@@ -130,7 +130,7 @@
                 <h1 id="dailyTitle" class="daily-heading" data-i18n="ui.openDaily.aria-label"></h1>
                 <button id="dailySettingsButton" class="settings-button map-settings-button" aria-label="" aria-haspopup="dialog" aria-controls="settingsDialog" data-i18n-aria-label="ui.settingsButton.aria-label"><svg viewBox="0 0 24 24" aria-hidden="true" fill="#000" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path fill-rule="evenodd" d="M19.24,10.06 L21.43,10.84 L21.43,13.16 L19.24,13.94 L18.50,15.75 L19.49,17.85 L17.85,19.49 L15.75,18.50 L13.94,19.24 L13.16,21.43 L10.84,21.43 L10.06,19.24 L8.25,18.50 L6.15,19.49 L4.51,17.85 L5.50,15.75 L4.76,13.94 L2.57,13.16 L2.57,10.84 L4.76,10.06 L5.50,8.25 L4.51,6.15 L6.15,4.51 L8.25,5.50 L10.06,4.76 L10.84,2.57 L13.16,2.57 L13.94,4.76 L15.75,5.50 L17.85,4.51 L19.49,6.15 L18.50,8.25Z M15 12a3 3 0 1 0-6 0a3 3 0 1 0 6 0Z"/></svg></button>
                 <div class="map-heading daily-scenery">
-                    <button id="dailyBack" class="daily-airship" type="button" aria-label="" data-i18n-aria-label="ui.dailyBack.aria-label"><img src="assets/daily-airship.webp" alt="" width="672" height="374"><span id="dailySkyDate" aria-hidden="true"></span></button>
+                    <button id="dailyBack" class="daily-airship" type="button" aria-label="" data-i18n-aria-label="ui.dailyBack.aria-label"><span class="daily-airship-body"><img src="assets/daily-airship.webp" alt="" width="672" height="374"><span id="dailySkyDate" class="daily-airship-date" aria-hidden="true"></span></span></button>
                 </div>
                 <div class="daily-content">
                     <div id="dailyPlate" class="daily-calendar-plate">

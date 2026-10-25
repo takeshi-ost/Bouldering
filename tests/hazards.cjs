@@ -67,7 +67,7 @@ function fixture(two=false) {
  const feet=[{id:2,x:160,y:378,type:'normal'},{id:3,x:240,y:378,type:'normal'}];
  const targets=[{id:4,x:160,y:388,type:'hazard'},{id:5,x:240,y:388,type:two?'hazard':'normal'}];
  holds=[...hands,...feet,...targets];grips=[...hands,...feet];startGrips=[...grips];initialGrips=[...grips];
- playerPath=[{...body}];return targets;
+ return targets;
 }
 function reach(pair,p){down(eventAt(body));drag.anchor=pair;move(eventAt(p));assert(grips.every(Boolean));}
 let targets=fixture();reach([0,1],{x:200,y:310});assert(grips.includes(targets[0]));release(true);assert.equal(stamina,10);

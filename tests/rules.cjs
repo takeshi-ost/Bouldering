@@ -47,7 +47,7 @@ function checkUndo(snapshot) {
  assert.equal(undoMove(),true);assert.equal(state,'playing');
  assert.deepEqual(body,snapshot.body);assert.deepEqual(grips,snapshot.grips);
  assert.equal(stamina,snapshot.stamina);assert.equal(moveCount,snapshot.moveCount);
- assert.deepEqual(playerPath,snapshot.playerPath);
+
  assert.deepEqual(characterPose(performance.now()).body,snapshot.visibleBody);
  assert.equal(holds,stage);assert.equal(route,routeBefore);
  assert(ui.overlay.hidden);assert(!canUndoMove());assert.equal(undoMove(),false);
@@ -85,12 +85,12 @@ assert.equal(ui.stamina.textContent,String(stamina));
 const drawnColors=[],drawnLabels=[];
 ctx.stroke=()=>drawnColors.push(ctx.strokeStyle);
 ctx.fillText=text=>drawnLabels.push(text);
-debugMode=false;state='won';playerPath=[{x:100,y:300},{x:150,y:250}];
-drawPath();assert(drawnColors.includes('#d14479'));assert(!drawnColors.includes('#527faa9c'));
-assert(drawnLabels.includes('実際のルート'));
+debugMode=false;state='won';
+drawPath();assert.equal(drawnColors.length,0);
+assert(!drawnLabels.includes('実際のルート'));
 drawnColors.length=0;state='playing';drawPath();assert.equal(drawnColors.length,0);
 debugMode=true;state='won';drawPath();
-assert(drawnColors.includes('#527faa9c') && drawnColors.includes('#d14479'));
+assert(drawnColors.includes('#527faa9c') && !drawnColors.includes('#d14479'));
 debugMode=false;
 // Every route length starts with exactly three spare moves.
 for(const [moves,budget] of [[1,4],[5,8],[9,12],[10,13],[19,22],[20,23],[29,32],[30,33],[39,42],[40,43]])

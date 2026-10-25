@@ -119,9 +119,9 @@ button:disabled { opacity: .45; cursor: default; }
 .map-heading > * { pointer-events:auto; }
 .map-heading .daily-airship { position:relative; margin-left:auto; width:128px; height:72px; min-width:44px; min-height:44px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; letter-spacing:0; animation:daily-airship-float 6s ease-in-out infinite; }
 .daily-airship img { display:block; width:100%; height:100%; object-fit:contain; pointer-events:none; }
-.daily-airship span { position:absolute; left:49%; top:42%; transform:translate(-50%,-50%); color:#fff; -webkit-text-stroke:2px #000; paint-order:stroke fill; font:900 22px/1 Arial,sans-serif; letter-spacing:-1px; white-space:nowrap; pointer-events:none; }
+.daily-airship .daily-airship-date { position:absolute; left:49%; top:42%; transform:translate(-50%,-50%); color:#fff; -webkit-text-stroke:2px #000; paint-order:stroke fill; font:900 22px/1 Arial,sans-serif; letter-spacing:-1px; white-space:nowrap; pointer-events:none; }
 #openDaily:hover { background:transparent; filter:brightness(1.04); }
-#openDaily:active { transform:scale(.97); }
+
 @keyframes daily-airship-float { 0%,100% { translate:0 -8px; } 50% { translate:0 8px; } }
 .map-heading .eyebrow { letter-spacing:1px; font-size:10px; }
 .map-secondary { padding:11px 12px; background:#dde5d6; color:#3f5b47; min-width:44px; min-height:44px; }
@@ -285,7 +285,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 @media (max-width:350px) { .daily-stage-start { padding:14px; } .daily-stage-start h2 { font-size:18px; } }
 .daily-calendar .map-error { flex:none; margin:0; }
 #dailyBack:hover { background:transparent; filter:brightness(1.04); }
-#dailyBack:active { transform:scale(.97); }
+
 /* The shared logical viewport is at least 700 high; no physical-height compact override. */
 
 #overlay .result-difficulty {margin:8px 0;font-size:16px;font-weight:700;letter-spacing:.12em;color:#526b59;}
@@ -621,3 +621,11 @@ dialog.help-dialog, dialog.transfer-dialog { width:368px; }
 dialog.editor-palette { zoom:var(--viewport-scale,1); left:calc(var(--viewport-dialog-left,0px) + 260px); top:var(--viewport-dialog-center-y,350px); max-height:calc(var(--viewport-height,700px) - 24px); }
 dialog.help-dialog { max-height:min(560px,calc(var(--viewport-height,700px) - 32px)); }
 .help-scroll { min-width:0; }
+
+/* Keep the hit box and float/scene animation on the button; only its artwork
+   grows on press. Suppress the browser's rectangular mobile tap overlay. */
+.map-heading .daily-airship { -webkit-tap-highlight-color:transparent; appearance:none; }
+.daily-airship-body { position:relative; display:block; width:100%; height:100%; pointer-events:none; transition:transform 100ms ease-out; transform-origin:center; }
+.daily-airship:active > .daily-airship-body { transform:scale(1.04); }
+.daily-airship:focus-visible { outline:3px solid #d5aa47; outline-offset:3px; }
+@media (prefers-reduced-motion:reduce) { .daily-airship-body { transition:none; } }

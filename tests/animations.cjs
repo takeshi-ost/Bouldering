@@ -6,7 +6,7 @@ vm.runInContext(`
 function assert(v,m){if(!v)throw Error(m);}
 body={x:200,y:300};committed={...body};
 grips=limbs.map(p=>({x:body.x+p.x,y:body.y+p.y}));
-playerPath=[{...body}];const before=JSON.stringify({body,committed,grips,playerPath});
+const before=JSON.stringify({body,committed,grips});
 startPoseSettle();const start=characterAnimation.start;
 for(const ms of [0,60,120,240,800]){
  const v=characterPose(start+ms);
@@ -18,7 +18,7 @@ for(const ms of [0,60,120,240,800]){
 const settled=characterPose(start+240).body;
 const initialValue=bodyPoseEvaluation(body,grips),settledValue=bodyPoseEvaluation(settled,grips);
 assert(comparePoseEvaluation(settledValue,initialValue)<=0,'Settling worsens pose');
-assert(JSON.stringify({body,committed,grips,playerPath})===before,'Animation modified game state');
+assert(JSON.stringify({body,committed,grips})===before,'Animation modified game state');
 // Four fully extended limbs pin the body: no reachable improvement exists.
 grips=[{x:180,y:164},{x:220,y:164},{x:180,y:446},{x:220,y:446}];
 startPoseSettle();assert(distance(characterAnimation.target,body)<1e-5,'Pinned pose moved');
@@ -58,7 +58,7 @@ for(let sample=0;sample<40;sample++) {
 assert(improvedCount>0,'Search never resolves conflicting requirements');
 console.log('Body search improved requirement counts in '+improvedCount+'/40 varied poses');
 const goal={x:200,y:232,type:'goal'};grips=[goal,goal,{x:160,y:378},{x:240,y:378}];
-const wonPose=JSON.stringify({body,grips,playerPath});startGoalHang();const began=characterAnimation.start;
+const wonPose=JSON.stringify({body,grips});startGoalHang();const began=characterAnimation.start;
 for(const ms of [0,160,325,650,1000,2000]){
  const v=characterPose(began+ms);
  assert(v.contacts[0].x===goal.x && v.contacts[0].y===goal.y && v.contacts[1].y===goal.y,'Hands left goal');
@@ -81,12 +81,12 @@ const thighAngle=Math.atan2(knee.x-hip.x,knee.y-hip.y),calfAngle=Math.atan2(foot
 assert(Math.abs(thighAngle-calfAngle)>.01,'Knee segment moves rigidly with thigh');
 const nextHang=characterPose(began+1200);
 assert(distance(nextHang.joints[2],knee)>1,'Knee does not follow the swing');
-assert(JSON.stringify({body,grips,playerPath})===wonPose,'Hang modified actual contacts');
+assert(JSON.stringify({body,grips})===wonPose,'Hang modified actual contacts');
 // Loss detaches the entire visible skeleton and accelerates it out of the
 // current viewport, even at the very bottom of a multi-screen wall.
 resetCharacterAnimation();camera=1400;HEIGHT=2100;body={x:200,y:1950};committed={...body};
 grips=limbs.map(p=>({x:body.x+p.x,y:body.y+p.y}));
-const lossBefore=JSON.stringify({body,committed,grips,playerPath});
+const lossBefore=JSON.stringify({body,committed,grips});
 startPoseSettle();const released=characterPose(performance.now());startFall();const fallStart=characterAnimation.start;
 const firstFall=characterPose(fallStart);
 assert(distance(firstFall.body,released.body)<1,'Fall jumps at release');
@@ -104,7 +104,7 @@ const fall100=characterPose(fallStart+100),fall200=characterPose(fallStart+200);
 assert(Math.abs((fall200.body.y-firstFall.body.y)/(fall100.body.y-firstFall.body.y)-4)<1e-6,'Fall does not accelerate');
 const gone=characterPose(fallStart+2000);
 assert(gone.body.y-TORSO.height/2-25>camera+H && gone.contacts.every(h=>h.y>camera+H),'Character remains on screen');
-assert(JSON.stringify({body,committed,grips,playerPath})===lossBefore,'Fall changes saved gameplay state');
+assert(JSON.stringify({body,committed,grips})===lossBefore,'Fall changes saved gameplay state');
 resetCharacterAnimation();assert(characterAnimation===null && characterPose(0).body.y===body.y,'Animation reset failed');
 `,context);
 console.log('PASS pose settling, reach limits, goal hanging, accelerating off-screen fall, fixed bones, unchanged physics');

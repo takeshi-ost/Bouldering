@@ -98,7 +98,6 @@ let stamina = 0;
 let moveCount = 0;
 let camera = 0;
 let cameraIntro = null;
-let playerPath = [];
 let inspecting = false;
 let drag = null;
 let bodyTap = null;
@@ -560,11 +559,6 @@ function reset(n,staminaBonus=0) {
 
     moveCount = 0;
 
-    playerPath = [{
-        x: body.x,
-        y: body.y
-    }];
-
     camera = clamp(
         holds.find(h => h.type === 'goal').y - CAMERA_CONFIG.goalTopPadding,
         cameraTop(),
@@ -659,7 +653,7 @@ function down(e) {
     moveSnapshot = {
         body:{...body}, grips:[...grips], stamina, moveCount,
         collectedHearts:hearts.map(heart=>heart.collected),
-        playerPath:playerPath.map(p=>({...p})), camera,
+        camera,
         visibleBody:{...characterPose(performance.now()).body},
         joints:jointHistory.map(p=>p && ({...p}))
     };
@@ -795,10 +789,6 @@ function release(cancel = false) {
         const now=performance.now();
         anchorRings=movingLimbs.map(i=>({x:grips[i].x,y:grips[i].y,start:now}));
         undoSnapshot = moveSnapshot;
-        playerPath.push({
-            x: body.x,
-            y: body.y
-        });
 
         stamina = Math.max(0,stamina-1-newHazards.size*HAZARD_CONFIG.penalty);
         if (newHazards.size) {
@@ -841,7 +831,6 @@ function undoMove() {
     grips = [...saved.grips]; startGrips = [...grips];
     restoreMoveStamina(saved);
     moveCount = saved.moveCount;
-    playerPath = saved.playerPath.map(p=>({...p}));
     camera = saved.camera; inspecting = false; warning = 0; state = 'playing';
     runElapsedMs=elapsed;runStartedAt=performance.now()-elapsed;
     resetCharacterAnimation();

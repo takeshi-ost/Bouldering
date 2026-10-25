@@ -356,8 +356,7 @@ function danglingTip(p, index, time) {
 
 function drawPath() {
     const showPlanned=debugMode && debugDisplay.route;
-    if (!showPlanned && state !== 'won')
-        return;
+    if (!showPlanned)return;
 
     ctx.save();
 
@@ -452,112 +451,11 @@ function drawPath() {
         });
     }
 
-    if (
-        state === 'won' &&
-        playerPath.length > 1
-    ) {
-        ctx.font = 'bold 10px system-ui';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.setLineDash([6, 5]);
-
-        for (
-            let i = 1;
-            i < playerPath.length;
-            i++
-        ) {
-            const a = playerPath[i - 1];
-            const b = playerPath[i];
-
-            line(
-                a,
-                b,
-                '#d14479',
-                2
-            );
-
-            const angle = Math.atan2(
-                b.y - a.y,
-                b.x - a.x
-            );
-
-            const mid = {
-                x: (a.x + b.x) / 2,
-                y: (a.y + b.y) / 2
-            };
-
-            ctx.setLineDash([]);
-
-            for (const offset of [-.55, .55]) {
-                line(
-                    mid,
-                    {
-                        x: mid.x - 7 * Math.cos(angle + offset),
-                        y: mid.y - 7 * Math.sin(angle + offset)
-                    },
-                    '#d14479',
-                    1.5
-                );
-            }
-
-            ctx.setLineDash([6, 5]);
-        }
-
-        ctx.setLineDash([]);
-
-        playerPath.forEach((p, i) => {
-            circle(
-                p.x,
-                p.y,
-                3,
-                '#f3f0e7',
-                '#d14479'
-            );
-
-            // Put actual move numbers opposite the planned move numbers.
-            const x =
-                p.x > W - 65
-                    ? p.x + 20
-                    : p.x - 20;
-
-            circle(
-                x,
-                p.y,
-                11,
-                '#fff0f5ee'
-            );
-
-            ctx.fillStyle = '#d14479';
-            ctx.textAlign = 'center';
-
-            ctx.fillText(
-                String(i),
-                x,
-                p.y
-            );
-        });
-
-        const end =
-            playerPath[playerPath.length - 1];
-
-        ctx.fillStyle = '#d14479';
-        ctx.textAlign = 'left';
-
-        ctx.fillText(
-            gameText("debug.actualRoute"),
-            clamp(
-                end.x + 30,
-                10,
-                W - 90
-            ),
-            end.y - 16
-        );
-    }
 
     ctx.restore();
 }
 
-// Presentation state only: never writes body, grips, committed or playerPath.
+// Presentation state only: never writes body, grips or committed.
 let characterAnimation = null;
 function resetCharacterAnimation() { characterAnimation=null; }
 // Opening-only crouch, with all four holds unchanged throughout the descent.
@@ -1037,7 +935,7 @@ function draw(now = 0) {
             if (stroke) { ctx.strokeStyle=stroke; ctx.stroke(); }
         };
 
-        if (active) {
+        if (active && !h.wide) {
             holdShape(
                 h.x,
                 h.y,
@@ -1081,6 +979,14 @@ function draw(now = 0) {
                 2,
                 '#ffffff70'
             );
+        }
+
+        // Wide holds can share one world contact. Paint a normal circular marker
+        // per attached limb at that real contact, over the wider sprite. Shared
+        // contacts may overlap; never invent offsets or alter grip geometry.
+        if (active && h.wide) {
+            for(const contact of grips)if(contact===h)circle(contact.x,contact.y,hazard?11:gold?18:14,
+                hazard?'#a34bd220':'#70987920',gold?'#cfaa48':hazard?'#a34bd2':'#84a78c');
         }
 
         if (gold || (green && h.wide)) {

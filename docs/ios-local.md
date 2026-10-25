@@ -227,3 +227,7 @@ iOS対応とスコア来歴4項目を含むソースは0.4.0/build8。スコア�
 ## 0.4.2 の保存範囲
 
 共通viewportとUIKit safe area橋渡しを追加し、Web/iOSのtitle/map/Daily/stage/HUD/modalを幅400・最小高700の同じ論理枠へ統一。コース/採点v1は維持。既存の床延長素材をassetsへ移して共用する。保存版は0.4.2/build10、実機確認版は0.4.1/build9のまま。一時geometryログ収集は保存前に除去し、計測ログはGit対象外。詳細はcommon-viewport.md。
+
+## 0.4.3 の保存範囲
+
+共通UI4点（大きいホールドの固定点円、ゴール後ルートの停止、飛行船押下の絵だけの拡大、日本語「もういちど」）をWebで確認。保存版0.4.3/build11、実機は確認済み0.4.1/build9を維持しており、この4点は未反映。コース/採点v1とFirebase同期は変更しない。詳細はshared-ui-polish.md。

@@ -67,7 +67,6 @@ for(let n=1;n<=20;n++){
         release();
         check(moveCount===i,'Commit failed '+n+'/'+i);
         check(grips.every((h,k)=>h.id===target.grips[k]),'Different contact sequence');
-        check(playerPath.length===i+1,'Committed path incorrect');
     }
     check(state==='won'&&bothHandsOnGoal()&&stamina===stageStamina(route.length-1)-(route.length-1)+hearts.filter(h=>h.collected).length*2,'Goal or budget failed');
     check(hearts.every(h=>h.collected),'Missed recovery on validated route');
@@ -86,7 +85,7 @@ for(const p of [{x:375,y:80},{x:25,y:80},{x:25,y:HEIGHT-40}]){
     check(JSON.stringify(drag.anchor)===JSON.stringify(selected),'Curved swipe changed supports');
 }
 release(true);
-check(distance(body,origin)===0&&stamina===budget&&playerPath.length===1,'Cancel did not restore state');
+check(distance(body,origin)===0&&stamina===budget,'Cancel did not restore state');
 // A no-op with a legitimate pair retains both the posture and stamina.
 committed={...body};startGrips=[...grips];drag={anchor:[0,1]};release();
 check(stamina===budget&&moveCount===0,'No-op consumed stamina');
@@ -97,7 +96,7 @@ const pose=attachMoving({x:200,y:300},[2,3]);
 check(pose && pose[0]===goal && pose[1]===goal && pose[2]===left && pose[3]===right,'Two-support goal sharing failed');
 check(attachMoving({x:200,y:300},2)===null,'Single-support attachment still permitted');
 restartInput(1);const repeated=JSON.stringify({holds,route});
-ui.retry.onclick();check(JSON.stringify({holds,route})===repeated && cameraIntro && playerPath.length===1,'Retry failed');
+ui.retry.onclick();check(JSON.stringify({holds,route})===repeated && cameraIntro,'Retry failed');
 state='won';recordStageClear();playsSinceAd=0;ui.next.onclick();check(state==='map','Next should open map');advanceLevelMap(0);advanceLevelMap(650);selectStage(2);check(level===2 && cameraIntro,'Next stage failed');
 JSON.stringify(report);
 `,context));
