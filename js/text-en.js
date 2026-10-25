@@ -106,7 +106,6 @@ const GAME_TEXT_EN = Object.freeze({
     "hold.start": "START",
     "hold.goal": "GOAL",
     "label.height": "{value0} M",
-    "debug.actualRoute": "Actual Route",
     "rewards.rewardResultMarkup": "Chalk Bag",
     "rewards.rewardResultMarkup.2": "Extra Life",
     "rewards.rewardResultMarkup.3": "Lives are capped at {value0}",

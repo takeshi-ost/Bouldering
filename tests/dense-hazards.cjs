@@ -66,7 +66,10 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
  debugMode=true;updateUI();assert(ui.progress.textContent.includes('想定 '+moves+' ムーブ'));debugMode=false;
  const expected=moves;
  if(mode==='existing' && n===47) {
-  assert(moves<=20);assert(paid>=0);assert.equal(starting,moves+3);
+  // Length-first generation no longer promises a fixed 20-move ceiling.
+  assert.equal(moveCount,moves);assert.equal(state,'won');
+  assert(routeResources(route).valid);assert.equal(starting,moves+3);
+  assert.equal(stamina,starting-moves-paid+pickups);
   assert.equal(clearStars(moves,routeExpectedMoves()),3);
   const preview=stagePreview(n,mode);assert.equal(preview.expectedMoves,moves);assert.equal(preview.stamina,starting);
  }

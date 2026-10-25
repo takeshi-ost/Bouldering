@@ -1,12 +1,13 @@
 // End-to-end regression for the existing two-support course.
-const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const root=path.join(__dirname,'..'),context=vm.createContext({performance});
-vm.runInContext(`const elements={};const document={getElementById(id){return elements[id]||(elements[id]={style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}});}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};`,context);
-for(const match of fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g))
-    vm.runInContext(fs.readFileSync(path.join(root,match[1]),'utf8'),context,{filename:match[1]});
+const fs=require('node:fs'),path=require('node:path');
+const root=path.join(__dirname,'..');
+const environment=`let timerId=0;const timers=new Map();function setTimeout(fn){timers.set(++timerId,fn);return timerId;}function clearTimeout(id){timers.delete(id);}function flushTimers(){const pending=[...timers.values()];timers.clear();pending.forEach(fn=>fn());}const elements={};const document={getElementById(id){return elements[id]||(elements[id]={style:{},classList:{toggle(){}},focus(){},showModal(){this.open=true;},close(){this.open=false;},addEventListener(){},setAttribute(){},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}});}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};`;
+const source=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)]
+    .map(match=>fs.readFileSync(path.join(root,match[1]),'utf8')).join('\n');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-if(!html.includes('id="existingCourse"') || !html.includes('id="prototypeCourse"'))throw Error('Course choice missing');
-console.log(vm.runInContext(`
+if(!html.includes('id="titleTap"') || !/id="prototypeCourse"[^>]*hidden/.test(html))throw Error('Current title/debug course controls missing');
+// Same native-function fixture as the other geometry tests; no VM proxy overhead.
+console.log(new Function(environment+source+`
 function check(v,m){if(!v)throw Error(m);}
 check(state==='choosing' && !cameraIntro && !ui.titleScreen.hidden,'Course menu startup failed');
 startCourse('existing');check(state==='map','Course should open map');selectStage(1);
@@ -68,8 +69,9 @@ for(let n=1;n<=20;n++){
         check(moveCount===i,'Commit failed '+n+'/'+i);
         check(grips.every((h,k)=>h.id===target.grips[k]),'Different contact sequence');
     }
-    check(state==='won'&&bothHandsOnGoal()&&stamina===stageStamina(route.length-1)-(route.length-1)+hearts.filter(h=>h.collected).length*2,'Goal or budget failed');
-    check(hearts.every(h=>h.collected),'Missed recovery on validated route');
+    check(state==='won'&&bothHandsOnGoal()&&stamina===budget-(route.length-1)-routeHazardCosts(route).at(-1)+hearts.filter(h=>h.collected).length*HEART_CONFIG.recovery,'Goal or actual pickup/hazard budget failed '+n);
+    const swept=hearts.filter(h=>route.slice(1).some((p,i)=>torsoTouchesHeart(route[i],p,h))).map(h=>h.id);
+    check(JSON.stringify(hearts.filter(h=>h.collected).map(h=>h.id))===JSON.stringify(swept),'Validated route must collect all and only swept recoveries');
     check(holds.filter(h=>h.wide).length<=3,'Too many wide holds');
     report.push({level:n,moves:moveCount,holds:holds.length,wide:holds.filter(h=>h.wide).length,selectionHolds:densityStats.selectionHoldIds.length});
 }
@@ -96,7 +98,7 @@ const pose=attachMoving({x:200,y:300},[2,3]);
 check(pose && pose[0]===goal && pose[1]===goal && pose[2]===left && pose[3]===right,'Two-support goal sharing failed');
 check(attachMoving({x:200,y:300},2)===null,'Single-support attachment still permitted');
 restartInput(1);const repeated=JSON.stringify({holds,route});
-ui.retry.onclick();check(JSON.stringify({holds,route})===repeated && cameraIntro,'Retry failed');
-state='won';recordStageClear();playsSinceAd=0;ui.next.onclick();check(state==='map','Next should open map');advanceLevelMap(0);advanceLevelMap(650);selectStage(2);check(level===2 && cameraIntro,'Next stage failed');
-JSON.stringify(report);
-`,context));
+finish(false);playsSinceAd=0;lives.count=LIFE_MAX;ui.retry.onclick();check(stageStartContext?.retry && ui.stageStartDialog.open,'Retry confirmation missing');ui.stageStartButton.onclick();check(JSON.stringify({holds,route})===repeated && cameraIntro,'Retry failed');
+state='won';recordStageClear();playsSinceAd=0;ui.next.onclick();check(state==='map','Next should open map');advanceLevelMap(0);advanceLevelMap(650);check(stageStartContext?.n===2,'Next stage confirmation missing');flushTimers();check(ui.stageStartDialog.open,'Next stage dialog missing');ui.stageStartButton.onclick();check(level===2 && cameraIntro,'Next stage failed');
+return JSON.stringify(report);
+`)());

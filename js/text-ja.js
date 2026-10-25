@@ -106,7 +106,6 @@ const GAME_TEXT_JA = Object.freeze({
     "hold.start": "START",
     "hold.goal": "GOAL",
     "label.height": "{value0} M",
-    "debug.actualRoute": "実際のルート",
     "rewards.rewardResultMarkup": "チョークバッグ",
     "rewards.rewardResultMarkup.2": "ライフアップ",
     "rewards.rewardResultMarkup.3": "ライフは上限{value0}です",

@@ -13,13 +13,13 @@ assert.deepEqual(runtime('0.3.14'),{appVersion:'0.3.14',buildNumber:null,platfor
 const sourceConfig=fs.readFileSync('js/config.js','utf8'),project=fs.readFileSync('ios/App/App.xcodeproj/project.pbxproj','utf8');
 const actualVersion=sourceConfig.match(/const RELEASE_VERSION = '([^']+)'/)[1];
 const actualSpec=sourceConfig.match(/const COURSE_VERSION = '([^']+)'/)[1];
-assert.equal(actualVersion,'0.4.4');assert.equal(actualSpec,'v1');
+assert.equal(actualVersion,'0.4.5');assert.equal(actualSpec,'v1');
 assert.equal(JSON.parse(fs.readFileSync('package.json','utf8')).version,actualVersion);
 assert.equal(JSON.parse(fs.readFileSync('package-lock.json','utf8')).version,actualVersion);
-assert.deepEqual([...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map(m=>m[1]),['12','12']);
+assert.deepEqual([...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map(m=>m[1]),['13','13']);
 assert.deepEqual([...project.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map(m=>m[1]),[actualVersion,actualVersion]);
-assert.deepEqual(runtime(actualVersion,'12'),{appVersion:'0.4.4',buildNumber:'12',platform:'iOS',scoreSpecVersion:'v1'});
-assert.deepEqual(runtime(actualVersion),{appVersion:'0.4.4',buildNumber:null,platform:'Web',scoreSpecVersion:'v1'});
+assert.deepEqual(runtime(actualVersion,'13'),{appVersion:'0.4.5',buildNumber:'13',platform:'iOS',scoreSpecVersion:'v1'});
+assert.deepEqual(runtime(actualVersion),{appVersion:'0.4.5',buildNumber:null,platform:'Web',scoreSpecVersion:'v1'});
 assert.equal(oldMeta.platform,'iOS');assert.equal(newMeta.scoreSpecVersion,oldMeta.scoreSpecVersion);
 assert.deepEqual(scoreMetadata({version:'v1'}),{appVersion:null,buildNumber:null,platform:null,scoreSpecVersion:null});
 (async()=>{

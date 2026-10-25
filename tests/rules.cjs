@@ -5,7 +5,7 @@ assert(!html.includes('id="undo"') && !html.includes('id="changeCourse"'));
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const environment=`
 const elements={};const document={getElementById(id){return elements[id] ||= {
- style:{},classList:{toggle(){}},focus(){},events:{},addEventListener(name,fn){this.events[name]=fn;},setAttribute(){},
+ style:{},classList:{toggle(){}},focus(){},showModal(){this.open=true;},close(){this.open=false;},events:{},addEventListener(name,fn){this.events[name]=fn;},setAttribute(){},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}})},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){}
@@ -65,7 +65,7 @@ for(let i=1;i<route.length;i++)winning=playStep(route[i]);
 assert.equal(state,'won');assert.equal(stamina,3);assert.equal(characterAnimation.kind,'hang');checkUndo(winning);
 reset(2);assert.equal(undoSnapshot,null);assert.equal(canUndoMove(),false);
 // Every stage starts with its own fixed budget; no carryover or bonus suffix.
-reset(1);const regular=stamina;
+playsSinceAd=0;reset(1);const regular=stamina;
 for(let i=1;i<route.length;i++)playStep(route[i]);
 assert.equal(state,'won');draw(2000);
 assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
@@ -75,13 +75,13 @@ const nextBudget=stageStamina(route.length-1);
 assert.equal(stamina,nextBudget);assert.equal(ui.stamina.textContent,String(nextBudget));
 ui.next.onclick();assert.equal(level,2,'Repeated Next advances twice');
 advanceCameraIntro(0);advanceCameraIntro(1650);playStep(route[1]);
-ui.retry.onclick();assert.equal(stamina,nextBudget);
+finish(false);playsSinceAd=0;lives.count=LIFE_MAX;ui.retry.onclick();assert(stageStartContext?.retry);assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert.equal(stamina,nextBudget);
 startCourse('prototype');assert.equal(state,'map');assert(selectStage(1));assert.equal(stamina,stageStamina(route.length-1));
 assert.equal(courseMode,'prototype');assert.equal(ui.level.textContent,'STAGE 1');
 // Replenish the test fixture after its deliberate failures/restarts.
 lives.count=LIFE_MAX;startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert.equal(courseMode,'existing');assert.equal(ui.level.textContent,'STAGE 1');
 assert.equal(ui.stamina.textContent,String(stamina));
-// Actual route is automatic after winning; planned route still follows the checkbox.
+// Completed paths stay hidden; the planned route still follows the debug checkbox.
 const drawnColors=[],drawnLabels=[];
 ctx.stroke=()=>drawnColors.push(ctx.strokeStyle);
 ctx.fillText=text=>drawnLabels.push(text);
@@ -130,28 +130,23 @@ for(let moves=5;moves<=40;moves++)for(let n=5;n<105;n++) {
  }
  assert.equal(budget-(moves-step),stageStamina(moves)-moves+items.length*2);
 }
-// Lv14 regression: both recoveries must be reached before the final third.
+// Current recipes may include optional, off-route hearts. The actual validated
+// path must collect exactly the swept pickups and remain playable after one cost.
 for(const mode of ['existing','prototype']) {
  courseMode=mode;reset(14);cameraIntro=null;
- const count=route.length-1;
- assert.equal(hearts.length,2);
- const schedule=hearts.map(h=>route.findIndex(p=>p.x===h.x && p.y===h.y));
- assert(schedule[1]<=Math.floor(count*2/3));
- const initial=stamina;
- // Consume one point to model an extra cost before reaching the second heart.
+ const count=route.length-1,initial=stamina,snapshot=JSON.stringify({holds,route,hearts});
+ const pickupIds=hearts.filter(h=>route.slice(1).some((p,i)=>torsoTouchesHeart(route[i],p,h))).map(h=>h.id);
+ assert(hearts.length<=HEART_CONFIG.maxCount);
  stamina--;
- for(let i=1;i<route.length;i++) {
-  playStep(route[i]);
-  if(i===schedule[1])assert(hearts.every(h=>h.collected) && stamina>0);
- }
- assert.equal(state,'won','Lv14 runs out before the late heart');
- assert.equal(stamina,stageStamina(count)-count-1+hearts.length*2);
- ui.retry.onclick();
- assert.equal(stamina,initial);assert(hearts.every(h=>!h.collected));
- assert.deepEqual(hearts.map(h=>route.findIndex(p=>p.x===h.x && p.y===h.y)),schedule);
+ for(let i=1;i<route.length;i++)playStep(route[i]);
+ assert.equal(state,'won','Lv14 validated path must finish with one extra cost');
+ assert.deepEqual(hearts.filter(h=>h.collected).map(h=>h.id),pickupIds);
+ assert.equal(stamina,initial-count-1+pickupIds.length*HEART_CONFIG.recovery-routeHazardCosts(route).at(-1));
+ reset(14);assert.equal(stamina,initial);assert(hearts.every(h=>!h.collected));
+ assert.equal(JSON.stringify({holds,route,hearts}),snapshot,'Retry generation preserves the recipe');
 }
 courseMode='existing';
-console.log('PASS early heart deadlines across 3600 routes; Lv14 both courses with one stamina spent before pickup');
+console.log('PASS early heart deadlines across 3600 routes; Lv14 both course recipes with one extra stamina cost');
 assert(torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:300}),'Fast sweep misses heart');
 assert(!torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:347}),'Arm/leg contact collects heart');
 reset(1);cameraIntro=null;
@@ -238,7 +233,15 @@ startCourse('existing');ui.mapSettingsButton.onclick();
 ui.helpDialog.showModal=function(){this.open=true;};ui.helpDialog.close=function(){this.open=false;};
 ui.showHelp.onclick();assert.equal(ui.helpDialog.open,true);assert.equal(state,'map');assert(settingsOpen);
 ui.closeHelp.onclick();assert.equal(ui.helpDialog.open,false);
-assert(html.includes('くわしい説明') && html.includes('手足の制限') && html.includes('ホールドの種類'));
-console.log('PASS fixed stage stamina, no carryover, retry, Next guard, automatic actual route and optional planned route');
+assert(html.includes('aria-controls="helpDialog"') && html.includes('id="helpScroll"'));
+assert.equal(gameText('ui.showHelp'),'詳しい説明');assert.equal(gameText('help.holds.heading'),'ホールドとスタミナ');
+// An eligible normal clear waits for the ad, then continues to map exactly once.
+hideSettings();state='won';playsSinceAd=NORMAL_AD_PLAY_INTERVAL;
+ui.next.onclick();assert.equal(state,'ad');assert(dummyAd);assert.equal(mapTransition,null);
+ui.next.onclick();assert.equal(state,'ad','Repeated Next cannot bypass the ad');
+advanceDummyAd(dummyAd.start+DUMMY_AD_DURATION);assert.equal(dummyAd.remaining,0);
+assert(completeDummyAd());assert.equal(state,'map');assert.equal(playsSinceAd,0);
+assert.equal(completeDummyAd(),false,'Ad completion cannot advance twice');
+console.log('PASS fixed stage stamina, no carryover, retry, Next guard, hidden completed route and optional planned route');
 console.log('PASS Undo: actual input, single use, rearming, cancel, loss, win, reset, visible pose; wide holds: hands/feet sharing and mixed exclusion');
 `)(assert,html);

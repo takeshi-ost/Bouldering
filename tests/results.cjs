@@ -2,7 +2,9 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 assert(!html.includes('id="resultTag"') && !html.includes('id="resultText"'));
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
-const env=`
+const scoreFixture=require('./helpers/score-fixtures.cjs').scoreFixture;
+const env=`const expectedScore=${scoreFixture.toString()};
+
 let clock=100;const performance={now:()=>clock};
 const elements={};const document={getElementById(id){return elements[id] ||= {
  style:{},classList:{toggle(){}},focus(){document.activeElement=this;},events:{},setAttribute(){},addEventListener(k,fn){this.events[k]=fn;},
@@ -39,7 +41,7 @@ clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(ru
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
 assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
 assert(ui.resultStats.hidden && !ui.resultStars.hidden && ui.resultDifficulty.hidden);assert(!ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
-const result={moves:moveCount,timeMs:Math.floor(clock-1100),stars:3,version:COURSE_VERSION};
+const result=expectedScore({moves:moveCount,timeMs:Math.floor(clock-1100),stars:3,version:COURSE_VERSION},{appVersion:RELEASE_VERSION,platform:'Web',scoreSpecVersion:COURSE_VERSION});
 assert.deepEqual(stageRecords.existing[1],result);
 assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert(ui.resultLeaderboard.innerHTML.includes(formatClearTime(result.timeMs)));assert.equal((ui.resultLeaderboard.innerHTML.match(/class="score-row/g)||[]).length,5);assert.equal((ui.resultLeaderboard.innerHTML.match(/is-player/g)||[]).length,1);
 assert.equal(formatClearTime(0),'00:00:00');assert.equal(formatClearTime(999),'00:00:99');
@@ -70,7 +72,7 @@ const before=JSON.stringify(stageRecords);debugAttempt=true;begin();for(let i=1;
 assert.equal(JSON.stringify(stageRecords),before);debugAttempt=false;
 const saved=data[RECORDS_KEY];data[RECORDS_KEY]='{broken';assert.deepEqual(readStageRecords(),{existing:{},prototype:{}});
 data[RECORDS_KEY]=JSON.stringify({existing:{'1':{moves:2,timeMs:1234},'2':{moves:0,timeMs:0},'3':{moves:4,timeMs:-1},'4':{moves:4,timeMs:'123'},'__proto__':{},'1e2':{moves:2,timeMs:1}}});
-assert.deepEqual(readStageRecords(),{existing:{'1':{moves:2,timeMs:1234}},prototype:{}});data[RECORDS_KEY]=saved;
+assert.deepEqual(readStageRecords(),{existing:{'1':expectedScore({moves:2,timeMs:1234})},prototype:{}});data[RECORDS_KEY]=saved;
 const get=storage.getItem;storage.getItem=()=>{throw Error('blocked');};assert.deepEqual(readStageRecords(),{existing:{},prototype:{}});storage.getItem=get;
 const set=storage.setItem;storage.setItem=()=>{throw Error('full');};
 begin();for(let i=1;i<route.length;i++){clock+=10;play(i);}assert.equal(state,'won');assert(stageRecords.prototype[1]);storage.setItem=set;
@@ -108,7 +110,7 @@ showLevelMap();assert(ui.mapNodes.innerHTML.includes('⭐️⭐️⭐️'));asse
 const savedRecords=data[RECORDS_KEY];
 for(const stars of [0,4,1.5,'3',null]) {
  data[RECORDS_KEY]=JSON.stringify({existing:{'1':{moves:2,timeMs:100,stars}}});
- assert.deepEqual(readStageRecords().existing[1],{moves:2,timeMs:100});
+ assert.deepEqual(readStageRecords().existing[1],expectedScore({moves:2,timeMs:100}));
 }
 data[RECORDS_KEY]=savedRecords;
 // Card, backdrop and keyboard all use the same continuation, once per visible clear.
