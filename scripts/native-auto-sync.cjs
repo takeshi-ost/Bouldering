@@ -54,6 +54,6 @@ function createNativeAutoSync({storage,owner,controller,onReport=()=>{},clock=Da
             void flush();return true;
         }catch(e){halted=true;fail(e.message);return false;}
     }
-    notify();return Object.freeze({queueProfile,profileEdited:(p,changed)=>queueProfile(p,changed),recordClear,flush,report:()=>({...stats})});
+    notify();return Object.freeze({queueProfile,profileEdited:(p,changed)=>queueProfile(p,changed),recordClear,flush,pendingForBoard:board=>Array.isArray(state?.events)&&state.events.some(item=>item.board===board),report:()=>({...stats})});
 }
 module.exports={createNativeAutoSync,SYNC_KEY};

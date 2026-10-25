@@ -4,8 +4,8 @@
 
 | フィールド | 新規記録の値 | 旧記録・値不明 |
 | --- | --- | --- |
-| appVersion | クリア時の RELEASE_VERSION（現在0.4.0） | null |
-| buildNumber | iOS同梱Info.plistのCFBundleVersionをネイティブから注入（現在文字列8） | null。Webでは捏造しない |
+| appVersion | クリア時の RELEASE_VERSION（現在0.4.1） | null |
+| buildNumber | iOS同梱Info.plistのCFBundleVersionをネイティブから注入（現在文字列9） | null。Webでは捏造しない |
 | platform | iOSラッパーはiOS、ブラウザはWeb | null |
 | scoreSpecVersion | クリア時のCOURSE_VERSION（現在v1） | null |
 
@@ -37,3 +37,7 @@ COURSE_VERSIONは既に「コース生成・ゲームプレイ変更でスコア
 署名済みRelease 0.3.14/build7をiPhone 13 Proへ上書きし、ユーザーが通常STAGE10を実プレイでクリア。公式Firebaseコンソールでv1_existing_10の本人用スコアを読み取り、appVersion=0.3.14、buildNumber=文字列7、platform=iOS、scoreSpecVersion=v1、moves=23、timeMs=20507、更新時刻2026-10-25 10:18:31 UTC+9を確認。同じ所有者のプロフィールはiOS接続テスト、到達ステージ11。
 通常Releaseの診断収集は無効。iPhone内のローカル記録・キュー・認証UIDを直接取得していないため、ローカルとの完全数値照合・全キュー消化・更新前後UID一致を独立に確認したとは扱わない。サーバー保存4項目と同梱版の期待値の一致を確認した。
 既存文書の埋め戻し・削除・架空スコア生成は行っていない。
+
+## 同期診断修正後の版
+
+現在のソースは0.4.1/build9、仕様世代はv1を維持。実機は診断Debug限定化まで最終確認済みの通常Release 0.4.0/build8。保存時の版番号とassets更新のためだけの実機再ビルドは行わない。

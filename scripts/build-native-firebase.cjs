@@ -24,13 +24,17 @@ export const firestore={getFirestore,doc,collection,getDocFromServer,getDocsFrom
     const entry=`
 const {createNativeFirebaseController}=require('./scripts/native-firebase-controller.cjs');
 const {createNativeAutoSync}=require('./scripts/native-auto-sync.cjs');
+const {createNativeSyncStatus}=require('./scripts/native-sync-status.cjs');
 const mode=${JSON.stringify(mode)},config=${JSON.stringify(config)||'undefined'};
 let storage;try{storage=globalThis.localStorage;}catch(_){}
 function pendingValue(){try{return storage?.getItem('ascent.pending-scores.v1');}catch(_){return 'unavailable';}}
 const baseline=pendingValue();
 let sync;
-function publish(report){
- const safe={...report,...(sync?.report()||{}),pendingUnchanged:pendingValue()===baseline};
+const statusPresenter=createNativeSyncStatus({document:globalThis.document,policy:()=>globalThis.ASCENT_IOS_BUILD,language:()=>typeof GAME_TEXT_LANGUAGE==='string'?GAME_TEXT_LANGUAGE:'ja'});
+Object.defineProperty(globalThis,'ASCENT_NATIVE_SYNC_STATUS',{value:statusPresenter,writable:false,configurable:false});
+function publish(report,stats=sync?.report()||{}){
+ statusPresenter.update(report,stats);
+ const safe={...report,...stats,pendingUnchanged:pendingValue()===baseline};
  globalThis.webkit?.messageHandlers?.ascentFirebaseReport?.postMessage(safe);
 }
 const controller=createNativeFirebaseController({mode,config,policy:()=>globalThis.ASCENT_IOS_BUILD,
@@ -38,11 +42,7 @@ const controller=createNativeFirebaseController({mode,config,policy:()=>globalTh
  knownUid:()=>readOnlineCheckpoint()?.uid || onlineScores.owner || null,onReport:publish});
 Object.defineProperty(globalThis,'ASCENT_NATIVE_FIREBASE',{value:controller,writable:false,configurable:false});
 if(controller.permissions().automaticSync){
- sync=createNativeAutoSync({storage,owner:storage.getItem('ascent.native-firebase.identity-check.v1'),controller,onReport:stats=>{
-  publish(controller.report());
-  if(stats.syncError || stats.freshPending || stats.profilePending)setOnlineStatus('同期保留 / Sync pending');
-  else if(controller.report().authenticated)setOnlineStatus('オンライン同期 / Online sync');
- }});
+ sync=createNativeAutoSync({storage,owner:storage.getItem('ascent.native-firebase.identity-check.v1'),controller,onReport:stats=>publish(controller.report(),stats)});
  Object.defineProperty(globalThis,'ASCENT_NATIVE_SYNC',{value:sync,writable:false,configurable:false});
  for(const event of ['online','focus','ascent-native-resume'])window.addEventListener(event,()=>{void sync.flush();});
 }

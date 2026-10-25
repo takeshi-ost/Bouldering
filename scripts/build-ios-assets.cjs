@@ -32,6 +32,7 @@ fs.copyFileSync(path.join(root, 'scripts/native-stage-layout.css'), path.join(ou
 fs.copyFileSync(path.join(root, 'scripts/native-audio-lifecycle.js'), path.join(out, 'js/native-audio-lifecycle.js'));
 html = html.replace('</head>', '    <link rel="stylesheet" href="native-stage-layout.css">\n    <script src="js/native-stage-layout.js" defer></script>\n    <script src="js/native-audio-lifecycle.js" defer></script>\n</head>');
 buildNativeFirebase(root,out,firebaseMode);
+html = html.replace('<p id="onlineStatus"', '<p hidden id="onlineStatus"');
 html = html.replace('</head>','    <script src="js/native-firebase-control.js" defer></script>\n</head>');
 // Local media fetch stays available. Only explicitly enabled Firebase hosts may
 // connect; external scripts, frames and form submissions always stay blocked.

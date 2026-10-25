@@ -89,9 +89,11 @@ class AscentBridgeViewController: CAPBridgeViewController {
         let configuration = Bundle.main.object(forInfoDictionaryKey: "ASCENTBuildConfiguration") as? String ?? "Unknown"
 #if DEBUG
         let debugAllowed = configuration == "Debug"
+        let syncStatusAllowed = configuration == "Debug"
         let audioDiagnosticsEnabled = debugAllowed && ProcessInfo.processInfo.environment["ASCENT_AUDIO_DIAGNOSTICS"] == "1"
 #else
         let debugAllowed = false
+        let syncStatusAllowed = false
         let audioDiagnosticsEnabled = false
 #endif
         let firebaseMode = Bundle.main.object(forInfoDictionaryKey: "ASCENTFirebaseMode") as? String ?? "offline"
@@ -99,6 +101,7 @@ class AscentBridgeViewController: CAPBridgeViewController {
         let automaticSync = firebaseMode == "auto-sync"
         let firebaseEnabled = readOnlyFirebase || automaticSync
         let policy: [String: Any] = ["configuration": configuration, "debugAllowed": debugAllowed,
+            "syncStatusAllowed": syncStatusAllowed,
             "buildNumber": Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "",
             "firebaseMode": firebaseMode, "firebaseEnabled": firebaseEnabled,
             "firebaseAuthAllowed": firebaseEnabled, "firebaseAnonymousAllowed": readOnlyFirebase, "firebaseReadsAllowed": firebaseEnabled,

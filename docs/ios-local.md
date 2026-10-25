@@ -38,7 +38,7 @@ iOS の Scene 中断・復帰を WebView に通知し、復帰時は音声セッ
 
 - アプリ名: ASCENT Local
 - 仮 Bundle ID: `local.ascent.simulator.t20261024`。ローカル実機・シミュレーター検証用で、正式な ID ではない。
-- ソースの表示バージョン: 0.4.0、ビルド番号: 8、iOS 最低バージョン: 15.0。
+- ソースの表示バージョン: 0.4.1、ビルド番号: 9、iOS 最低バージョン: 15.0。
 - Firebase は既定で無効。既存の書込用 `js/firebase-client.js` は同梱せず、固定版SDKと制御されたiOS専用アダプターを使う。承認済み read-only テストのみ認証と読み取りを許可する。
 - 生成する HTML に CSP を追加。外部スクリプト・外部通信・iframe・フォーム送信を禁止する。同梱音声の fetch のため `connect-src 'self'` のみ許可する。
 - 既定のofflineでは匿名認証も行わない。read-onlyでは匿名作成を最大1件に制限し、プロフィール・ランキング更新、保留スコア送信、削除・引継ぎは許可しない。
@@ -219,3 +219,7 @@ node tests/ios-assets.cjs --built --release
 ## 0.4.0 の保存範囲
 
 iOS対応とスコア来歴4項目を含むソースは0.4.0/build8。スコア仕様世代COURSE_VERSIONはv1のまま。実機はSTAGE10保存を確認した0.3.14/build7を維持し、コミット・pushのためだけの実機再ビルドや更新は行わない。詳細は score-metadata.md と firestore-rules-local-review.md を参照。
+
+## 0.4.1 の保存範囲
+
+送信待ち表示をiOS新キューへ統一し、通信状態・件数・詳細エラーの表示をDebugビルド限定化した。ゲーム内デバッグモードとは独立する。実機は通常Release 0.4.0/build8で最終確認済み。保存時のソース0.4.1/build9は版番号・assets更新のみ追加し、実機再ビルド・更新は行わない。詳細は ios-sync-status.md を参照。

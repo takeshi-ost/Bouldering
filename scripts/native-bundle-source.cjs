@@ -6,6 +6,7 @@ function replaceOnce(source, before, after) {
 }
 module.exports = function nativeSource(name, source) {
     if(name==='online.js') {
+        source=replaceOnce(source,"    document.getElementById('onlineStatus').textContent=message;", "    const nativeStatus=document.getElementById('onlineStatus');nativeStatus.hidden=true;nativeStatus.textContent='';globalThis.ASCENT_NATIVE_SYNC_STATUS?.refresh();");
         source=replaceOnce(source,'function queueOnlineProfileSave() {',"function queueOnlineProfileSave() {\n    if(globalThis.ASCENT_NATIVE_SYNC){globalThis.ASCENT_NATIVE_SYNC.queueProfile(onlineProfile());return;}");
         source=replaceOnce(source,'async function startOnline(adapter) {',"async function startOnline(adapter) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().legacySync!==true)return;");
         source=replaceOnce(source,'async function flushOnlineProfile(preferLocal=true) {',"async function flushOnlineProfile(preferLocal=true) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().profileWrites!==true)return;");
@@ -14,9 +15,18 @@ module.exports = function nativeSource(name, source) {
         // Native uses its separate post-enable ledger. Never rewrite historical
         // Web queues, even while loading/normalizing old optional metadata.
         source=replaceOnce(source,"    try {globalThis.localStorage?.setItem(ONLINE_SCORES_KEY,JSON.stringify({uid:onlineScores.owner,items:[...onlineScores.pending]}));}catch(_) {}",'    // Historical pending storage is immutable in the native wrapper.');
+        source=replaceOnce(source,`    const status=document.getElementById('onlineScoreStatus');
+    status.hidden=onlineScores.pending.size===0;
+    status.textContent=onlineScores.pending.size?gameText("online-scores.persistPendingScores", {value0: onlineScores.pending.size}):'';`,"    const status=document.getElementById('onlineScoreStatus');status.hidden=true;status.textContent='';globalThis.ASCENT_NATIVE_SYNC_STATUS?.refresh();");
         source=replaceOnce(source,'function queueOnlineScore(stage,mode,score) {',"function queueOnlineScore(stage,mode,score) {\n    if(globalThis.ASCENT_NATIVE_SYNC)return false;");
         source=replaceOnce(source,'function connectOnlineScores(uid) {',"function connectOnlineScores(uid) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().pendingScores!==true)return;");
         source=replaceOnce(source,'async function flushOnlineScores() {',"async function flushOnlineScores() {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().pendingScores!==true)return;");
+        source=replaceOnce(source,'function stageScoreStatus(stage,mode) {',"function stageScoreStatus(stage,mode) {\n    if(globalThis.ASCENT_IOS_BUILD?.configuration!=='Debug' || globalThis.ASCENT_IOS_BUILD?.syncStatusAllowed!==true)return '';" );
+        source=replaceOnce(source,'if(onlineScores.pending.has(board))', 'if(globalThis.ASCENT_NATIVE_SYNC?.pendingForBoard?.(board))');
+    }
+    if(name==='language.js') {
+        source=replaceOnce(source,`    const pending=document.getElementById('onlineScoreStatus');
+    pending.textContent=onlineScores.pending.size?gameText("online-scores.persistPendingScores",{value0:onlineScores.pending.size}):'';`,"    const pending=document.getElementById('onlineScoreStatus');pending.hidden=true;pending.textContent='';globalThis.ASCENT_NATIVE_SYNC_STATUS?.refresh();");
     }
     if(name==='level-map.js')source=replaceOnce(source,'        queueOnlineScore(level,courseMode,candidate);',
         '        globalThis.ASCENT_NATIVE_SYNC?.recordClear(level,courseMode,candidate);\n        queueOnlineScore(level,courseMode,candidate);');
