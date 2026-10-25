@@ -132,6 +132,8 @@ const points=[];ctx.moveTo=(x,y)=>points.push({x,y});ctx.lineTo=(x,y)=>points.pu
 drawJaggedHold(100,200,HAZARD_CONFIG.radius,'#9442be');assert.equal(points.length,16);assert.equal(ctx.fillStyle,'#9442be');
 assert(HAZARD_CONFIG.radius<8);
 points.forEach((p,i)=>assert(Math.abs(distance(p,{x:100,y:200})-HAZARD_CONFIG.radius*(i%2?.66:1))<1e-8));
+const originalPlaySound=playSound,emitted=[];playSound=name=>emitted.push(name);
+fixture();reach([0,1],{x:200,y:310});assert.deepEqual(emitted,[],'No normal preview before hazard confirmation');release();assert.deepEqual(emitted,['hazard'],'Hazard replaces the normal move/contact cue');playSound=originalPlaySound;
 console.log('PASS hazards: Lv19 boundary, 0-5 seeded placement, optional real moves, free-route clears in both courses, retry, contact transitions, cancel, stacked costs, zero clamp, Undo and heart recovery; purple penalty and vector loading fallback');
 console.log(JSON.stringify(report));
 `)(assert);

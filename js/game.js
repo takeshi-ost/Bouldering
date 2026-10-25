@@ -709,7 +709,10 @@ function move(e) {
 
     if (attached) {
         // Only new provisional limb/hold contacts, never a held pose or detachment.
-        if(attached.some((h,i)=>h && h!==grips[i] && !drag.anchor.includes(i)))
+        const freshContacts=attached.filter((h,i)=>h && h!==grips[i] && !drag.anchor.includes(i));
+        // Hazard confirmation has its own release cue; do not preface it with
+        // the normal provisional contact sound (including mixed limb pairs).
+        if(freshContacts.length && !freshContacts.some(h=>h.type==='hazard'))
             playSound('contact');
         grips = attached;
     } else

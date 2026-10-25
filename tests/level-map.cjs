@@ -3,6 +3,11 @@ const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 assert(!/id="(?:mapStatus|mapRange)"|class="map-navigation"|class="map-hint"/.test(html));
 assert(/id="mapNext"[^>]*><svg/.test(html));assert(/id="mapPrev"[^>]*><svg/.test(html));
+const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
+assert(/\.map-page \{[^}]*width:100px; height:44px;[^}]*background:transparent;[^}]*-webkit-tap-highlight-color:transparent;/.test(css));
+assert(css.includes('.map-page:active:not(:disabled) > svg { transform:scale(1.1); }'));
+assert(css.includes('.map-page:focus-visible { outline:3px solid #d5aa47; outline-offset:3px; }'));
+assert(css.includes('.map-page-prev { bottom:40px; transform:translateX(-50%) rotate(180deg); }'));
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
 const elements={};const document={getElementById(id){return elements[id] ||= {

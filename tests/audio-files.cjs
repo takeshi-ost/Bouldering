@@ -1,5 +1,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('js/audio.js','utf8');
+const nativeStatusZero=process.argv.includes('--native-status-zero');
 const events={},sources=[],requests=[],decoded=[];let release;
 const ready=new Promise(resolve=>release=resolve);
 class Audio {
@@ -17,30 +18,35 @@ class Audio {
  }
 }
 const env={assert,AudioContext:Audio,document:{getElementById:()=>({}),addEventListener:(type,fn)=>events[type]=fn},window:{addEventListener:(type,fn)=>events[type]=fn},
- async fetch(url){requests.push(url);await ready;const bytes=fs.readFileSync(url.split('?')[0]);return {ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)};}};
-const context=vm.createContext(env);vm.runInContext(source,context);
+ async fetch(url){requests.push(url);await ready;const bytes=fs.readFileSync(url.split('?')[0]);return {ok:!nativeStatusZero,status:nativeStatusZero?0:200,type:'basic',headers:new Headers({'Content-Type':'audio/wav'}),arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)};}};
+if(nativeStatusZero)Object.assign(env,{URL,Response,location:{protocol:'capacitor:',hostname:'localhost',port:'',href:'capacitor://localhost/index.html'}});
+const context=vm.createContext(env);
+if(nativeStatusZero)vm.runInContext(fs.readFileSync('scripts/native-audio-fetch.js','utf8'),context);
+vm.runInContext(source,context);
+const fileCount=vm.runInContext('Object.keys(SOUND_FILES).length',context);
 (async()=>{
- assert.equal(sources.length,0);assert.equal(requests.length,5);
+ assert.equal(sources.length,0);assert.equal(requests.length,fileCount);
  events.pointerdown();vm.runInContext("assert(playSound('start'));",context);
  assert(sources.some(s=>s.kind==='oscillator'),'Immediate fallback while downloading');
  vm.runInContext('setSoundEnabled(false)',context);const count=sources.length;release();
  await vm.runInContext("Promise.all(Object.keys(SOUND_FILES).map(name=>prepareSoundFile(name)))",context);
- assert.equal(decoded.length,5);assert.equal(sources.length,count,'A completed download must not replay a stale event');
+ assert.equal(decoded.length,fileCount);assert.equal(sources.length,count,'A completed download must not replay a stale event');
  vm.runInContext("setSoundEnabled(true);soundContext.currentTime=1;assert(playSound('start'));soundContext.currentTime=2;assert(playSound('clear'));soundContext.currentTime=3;assert(playSound('fail'));soundContext.currentTime=4;assert(playSound('move'));soundContext.currentTime=5;assert(playSound('launch'));",context);
- const files=sources.filter(s=>s.buffer?.decoded);assert.equal(files.length,5);assert(files.every(s=>s.kind==='buffer' && s.buffer.duration>0));assert.equal(files[4].output.gain.value,1,'Launch reference volume is unchanged');assert(files[3].output.gain.value>files[4].output.gain.value,'Move receives its own gain boost before the user volume bus');
+ vm.runInContext("for(const name of ['heart','hazard','mapStep']){soundContext.currentTime+=1;assert(playSound(name));}",context);
+ const files=sources.filter(s=>s.buffer?.decoded);assert.equal(files.length,fileCount);assert(files.every(s=>s.kind==='buffer' && s.buffer.duration>0));assert.equal(files[4].output.gain.value,1,'Launch reference volume is unchanged');assert(files[3].output.gain.value>files[4].output.gain.value,'Move receives its own gain boost before the user volume bus');
  await vm.runInContext("Promise.all(Object.keys(SOUND_FILES).map(name=>prepareSoundFile(name)))",context);
- assert.equal(requests.length,5);assert.equal(decoded.length,5,'One decode per file/context');
+ assert.equal(requests.length,fileCount);assert.equal(decoded.length,fileCount,'One decode per file/context');
  events.blur();assert(files.every(s=>s.stopped));
  vm.runInContext('soundContext.state="closed";unlockSound();',context);
  await vm.runInContext("Promise.all(Object.keys(SOUND_FILES).map(name=>prepareSoundFile(name)))",context);
- assert.equal(requests.length,5);assert.equal(decoded.length,10,'Recreated context uses cached bytes');
+ assert.equal(requests.length,fileCount);assert.equal(decoded.length,fileCount*2,'Recreated context uses cached bytes');
  // Offline and invalid files remain non-blocking; retry downloads on connection recovery.
  const failedEvents={};let attempts=0;
  const offline=vm.createContext({assert,AudioContext:Audio,document:{getElementById:()=>({}),addEventListener:(t,fn)=>failedEvents[t]=fn},window:{addEventListener:(t,fn)=>failedEvents[t]=fn},fetch:async()=>{attempts++;return {ok:false};}});
  vm.runInContext(source,offline);await vm.runInContext('Promise.all([...soundFileCache.values()].map(e=>e.loading))',offline);
- failedEvents.pointerdown();vm.runInContext("assert(playSound('clear'));setSoundEnabled(false);assert(!playSound('fail'));",offline);assert.equal(attempts,5);
- vm.runInContext('setSoundEnabled(true)',offline);failedEvents.online();await vm.runInContext('Promise.all([...soundFileCache.values()].map(e=>e.loading))',offline);assert.equal(attempts,10);
+ failedEvents.pointerdown();vm.runInContext("assert(playSound('clear'));setSoundEnabled(false);assert(!playSound('fail'));",offline);assert.equal(attempts,fileCount);
+ vm.runInContext('setSoundEnabled(true)',offline);failedEvents.online();await vm.runInContext('Promise.all([...soundFileCache.values()].map(e=>e.loading))',offline);assert.equal(attempts,fileCount*2);
  const corrupt=vm.createContext({...env,AudioContext:class extends Audio {async decodeAudioData(){throw Error('bad file');}}});
  vm.runInContext(source,corrupt);vm.runInContext('unlockSound()',corrupt);await vm.runInContext('Promise.all(Object.keys(SOUND_FILES).map(name=>prepareSoundFile(name)))',corrupt);vm.runInContext("assert(playSound('fail'));",corrupt);
- console.log('PASS file audio: actual PCM WAV headers/levels, deferred context, file-buffer playback, caching/recreated context, mute/blur, no late replay, offline retry and decode-error fallback');
+ console.log('PASS file audio'+(nativeStatusZero?' through Capacitor status-0 adapter':'')+': actual PCM WAV headers/levels, deferred context, file-buffer playback, caching/recreated context, mute/blur, no late replay, offline retry and decode-error fallback');
 })().catch(e=>{console.error(e);process.exitCode=1;});

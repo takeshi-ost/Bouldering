@@ -290,8 +290,11 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 
 #overlay .result-difficulty {margin:8px 0;font-size:16px;font-weight:700;letter-spacing:.12em;color:#526b59;}
 
-.map-page { position:absolute; z-index:3; left:50%; transform:translateX(-50%); display:grid; place-items:center; width:100px; height:44px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
-.map-page svg { display:block; width:100%; height:28px; overflow:visible; fill:#f4dfa0; stroke:#fff; stroke-width:2; stroke-linejoin:round; pointer-events:none; }
+.map-page { position:absolute; z-index:3; left:50%; transform:translateX(-50%); display:grid; place-items:center; width:100px; height:44px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; appearance:none; -webkit-tap-highlight-color:transparent; }
+.map-page svg { display:block; width:100%; height:28px; overflow:visible; fill:#f4dfa0; stroke:#fff; stroke-width:2; stroke-linejoin:round; pointer-events:none; transform-origin:center; transition:transform 100ms ease-out; }
+.map-page:active:not(:disabled) > svg { transform:scale(1.1); }
+.map-page:focus-visible { outline:3px solid #d5aa47; outline-offset:3px; }
+@media (prefers-reduced-motion:reduce) { .map-page svg { transition:none; } }
 .map-page:hover { background:transparent; filter:brightness(1.1); }
 .map-page[hidden] { display:none; }
 .map-page-next { top:12px; }

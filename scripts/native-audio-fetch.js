@@ -8,6 +8,8 @@
     const paths = new Set([
         '/assets/audio/bgm-loop.mp3', '/assets/audio/bgm-stage-loop.mp3',
         '/assets/audio/move.wav', '/assets/audio/launch.wav',
+        '/assets/audio/heart-recovery.wav', '/assets/audio/hazard-fix.wav',
+        '/assets/audio/map-steps.wav',
         '/assets/audio/stage-start.wav', '/assets/audio/stage-clear.wav',
         '/assets/audio/stage-fail.wav'
     ]);

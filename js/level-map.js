@@ -284,7 +284,7 @@ function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
 }
 function advanceLevelMap(now) {
     if (state!=='map' || mapPreparing || !mapTransition) return;
-    if (mapTransition.start===null) {mapTransition.start=now;return;}
+    if (mapTransition.start===null) {mapTransition.start=now;playSound('mapStep');return;}
     const t=clamp((now-mapTransition.start)/MAP_HOP_DURATION,0,1),s=t*t*(3-2*t);
     const from=mapPoint(mapTransition.from),to=mapPoint(mapTransition.to);
     if(mapTransition.from>mapPage*MAP_PAGE_SIZE) {
@@ -293,7 +293,6 @@ function advanceLevelMap(now) {
     } else positionMapMarker({x:from.x+(to.x-from.x)*s,y:from.y+(to.y-from.y)*s});
     if (t===1) {
         mapSelected=mapTransition.to;mapTransition=null;
-        playSound('page');
         renderLevelMap();focusMapLevel();
         openStageStart(mapSelected,false,null,500);
     }

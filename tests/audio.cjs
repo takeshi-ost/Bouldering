@@ -60,7 +60,7 @@ state='map';mapPreparing=false;settingsOpen=false;showCharacterEditor();ui.playe
 sounds.length=0;gameEvents.click({target:{closest:()=>({id:'editorConfirm',disabled:false,closest:()=>null})}});ui.editorConfirm.onclick();assert.deepEqual(sounds,['tap']);
 cancelMapReveal();state='daily';settingsOpen=false;dailyMonth=localToday().slice(0,7);sounds.length=0;
 gameEvents.click({target:{closest:()=>({id:'dailyPrev',disabled:false,closest:()=>null})}});assert(changeDailyMonth(-1));assert.deepEqual(sounds,['page']);
-cancelMapReveal();state='map';mapTransition={from:1,to:2,start:0};sounds.length=0;advanceLevelMap(MAP_HOP_DURATION);assert.deepEqual(sounds,['page']);hideStageStart();
+cancelMapReveal();state='map';mapTransition={from:1,to:2,start:null};sounds.length=0;advanceLevelMap(0);assert.deepEqual(sounds,['mapStep']);advanceLevelMap(325);advanceLevelMap(MAP_HOP_DURATION);assert.deepEqual(sounds,['mapStep'],'One movement cue at hop start, no completion page cue');hideStageStart();
 dailyRun=null;reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);down(pointFor(body));grips[0]=null;
 const invalidBefore=JSON.stringify({body:committed,grips:startGrips,moveCount,stamina});sounds.length=0;release();assert.deepEqual(sounds,['move']);assert.equal(JSON.stringify({body,grips,moveCount,stamina}),invalidBefore);
 
@@ -86,6 +86,8 @@ nextPreview=[...preview];move(pointFor(contactPose));assert.deepEqual(sounds,['c
 sounds.length=0;move(pointFor(contactPose));assert.deepEqual(sounds,[]);
 nextPreview=[...preview];for(const i of moving)nextPreview[i]={...preview[i],id:999+i};
 move(pointFor(contactPose));assert.deepEqual(sounds,['contact'],'Simultaneous contacts share one short cue');
+sounds.length=0;nextPreview=[...preview];for(const i of moving)nextPreview[i]={...preview[i],type:'hazard',id:2000+i};
+move(pointFor(contactPose));assert.deepEqual(sounds,[],'Hazard preview must not double normal contact with its release cue');
 sounds.length=0;release(true);assert.deepEqual(sounds,[]);assert.equal(moveCount,0);
 attachMoving=realAttachMoving;
 

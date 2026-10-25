@@ -21,9 +21,9 @@ const soundVoices=new Set(),soundLastPlayed=new Map();
 const SOUND_LEVELS=Object.freeze({
     launch:1,start:1,
     tap:3,move:2,contact:8.5,roulette:6,
-    heart:1.5,pickup:1.1,hazard:1.5,page:1.4,clear:1.15,fail:1.15
+    heart:1.5,pickup:1.1,hazard:1.5,page:1.4,mapStep:1,clear:1.15,fail:1.15
 });
-// Seven synthesized cues; move/launch/start/clear/fail use audio files.
+// Cues remain immediate fallbacks; selected events use original PCM audio files.
 const SOUND_NOTES={
     // Reference: a dry ~800 Hz strike, then a lighter ~1200 Hz click 70 ms later.
     tap:[[800,760,0,.026,'triangle',.48],[550,520,0,.022,'sine',.2],[0,0,0,.012,'noise',.12],[1200,1160,.072,.023,'triangle',.24],[0,0,.072,.009,'noise',.07]],
@@ -36,14 +36,18 @@ const SOUND_NOTES={
 };
 // Replace these files with externally produced sounds. Run version-assets.py after replacement.
 const SOUND_FILES=Object.freeze({
+    heart:{src:'assets/audio/heart-recovery.wav?v=226640b13e93',volume:1},
+    hazard:{src:'assets/audio/hazard-fix.wav?v=23fd4fafe352',volume:2},
+    mapStep:{src:'assets/audio/map-steps.wav?v=8ef9a7775664',volume:1},
     move:{src:'assets/audio/move.wav?v=7ce4a0435ed9',volume:1},
     launch:{src:'assets/audio/launch.wav?v=b249caf6daf6',volume:1},
     start:{src:'assets/audio/stage-start.wav?v=a118bc59616d',volume:1},
-    clear:{src:'assets/audio/stage-clear.wav?v=fea78574b882',volume:1},
+    clear:{src:'assets/audio/stage-clear.wav?v=1ff713c6772b',volume:1},
     fail:{src:'assets/audio/stage-fail.wav?v=ebca63cdb2cb',volume:1}
 });
 // Missing, undecodable, or not-yet-ready files use a short cue immediately, never a late replay.
 const SOUND_FILE_FALLBACKS={
+    mapStep:[[0,0,0,.08,'noise',.20],[0,0,.16,.08,'noise',.17],[0,0,.325,.08,'noise',.18],[0,0,.49,.08,'noise',.14]],
     move:[[0,0,0,.055,'noise',.65],[1100,650,0,.025,'triangle',.14]],
     launch:[[523,523,0,.15,'triangle',.35],[659,659,.06,.18,'sine',.3],[784,784,.12,.3,'sine',.3]],
     start:[[392,392,0,.09,'triangle',.35],[523,523,.09,.16,'sine',.5]],

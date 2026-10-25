@@ -17,7 +17,12 @@ function setup(protocol = 'capacitor:', response = raw()) {
     assert.deepEqual(new Uint8Array(await result.arrayBuffer()), payload);
     assert.equal(result.headers.get('Content-Type'), 'audio/mpeg');
     assert.equal(env.ASCENT_NATIVE_AUDIO.normalized[0].rawStatus, 0);
-    for (const name of ['bgm-stage-loop.mp3', 'move.wav', 'launch.wav', 'stage-start.wav', 'stage-clear.wav', 'stage-fail.wav']) {
+    // Derive the coverage from the actual product audio paths so new SE cannot
+    // silently fall back only on WKURLSchemeHandler's status-0 responses.
+    const audioSource=fs.readFileSync('js/audio.js','utf8');
+    const files=[...audioSource.matchAll(/src:'assets\/audio\/([^'?]+)(?:\?[^']*)?'/g)].map(m=>m[1]);
+    assert.equal(files.length,8);
+    for (const name of ['bgm-stage-loop.mp3', ...files]) {
         assert((await env.fetch(`assets/audio/${name}`)).ok);
     }
     for (const [url, init] of [['https://example.invalid/assets/audio/bgm-loop.mp3'],
