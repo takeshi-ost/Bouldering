@@ -1,4 +1,5 @@
 'use strict';
+const {scoreMetadata}=require('../js/score-metadata.js');
 const PROJECT='bouldering-7482d';
 const ATTEMPT_KEY='ascent.native-firebase.auth-attempt.v1';
 const IDENTITY_KEY='ascent.native-firebase.identity-check.v1';
@@ -135,7 +136,7 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
             if(previous && (!Number.isSafeInteger(previous.moves) || !Number.isSafeInteger(previous.timeMs)))throw error('native-firebase/invalid-remote-score');
             if(previous && (previous.moves<score.moves || (previous.moves===score.moves && previous.timeMs<=score.timeMs)))return {written:false};
             requirePermission('automaticSync');if(auth.currentUser?.uid!==owner)throw error('native-firebase/identity-mismatch');
-            t.set(ref,{moves:score.moves,timeMs:score.timeMs,updatedAt:f.serverTimestamp()});return {written:true};
+            t.set(ref,{moves:score.moves,timeMs:score.timeMs,...scoreMetadata(score),updatedAt:f.serverTimestamp()});return {written:true};
         });
         if(result.written){report.writesIssued++;report.freshScoreWrites=(report.freshScoreWrites||0)+1;}report.lastError='';report.phase='synced';publish();return result;
     }

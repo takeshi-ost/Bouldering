@@ -99,6 +99,7 @@ class AscentBridgeViewController: CAPBridgeViewController {
         let automaticSync = firebaseMode == "auto-sync"
         let firebaseEnabled = readOnlyFirebase || automaticSync
         let policy: [String: Any] = ["configuration": configuration, "debugAllowed": debugAllowed,
+            "buildNumber": Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "",
             "firebaseMode": firebaseMode, "firebaseEnabled": firebaseEnabled,
             "firebaseAuthAllowed": firebaseEnabled, "firebaseAnonymousAllowed": readOnlyFirebase, "firebaseReadsAllowed": firebaseEnabled,
             "firebaseAutomaticSyncAllowed": automaticSync,

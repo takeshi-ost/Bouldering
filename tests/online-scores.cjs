@@ -16,7 +16,7 @@ assert(validScoreBoard(scoreBoardKey(1,'existing')));assert(!validScoreBoard('v0
 stageRecords.existing[1]={moves:1,timeMs:1,stars:3};assert.equal(onlineScores.pending.size,0);
 queueOnlineScore(1,'existing',{moves:12,timeMs:5000});queueOnlineScore(1,'existing',{moves:13,timeMs:100});
 queueOnlineScore(1,'existing',{moves:12,timeMs:4000});
-const board=scoreBoardKey(1,'existing');assert.deepEqual(onlineScores.pending.get(board),{moves:12,timeMs:4000});
+const board=scoreBoardKey(1,'existing');assert.deepEqual(onlineScores.pending.get(board),{moves:12,timeMs:4000,...scoreMetadata(null)});
 assert.equal(JSON.parse(data[ONLINE_SCORES_KEY]).items.length,1);
 onlineScores.pending.clear();readPendingScores();assert.equal(onlineScores.pending.size,1,'Offline queue survives reload');
 const stored=new Map();let fail=false,writes=0;
@@ -68,5 +68,22 @@ resolves.get(scoreBoardKey(5,'existing'))(records);await tick();assert(ui.stageS
 // Debug clears never queue records; normal replays preserve best and highest stars.
 stageStartContext=null;online.ready=false;debugAttempt=true;const pending=onlineScores.pending.size;recordStageClear();assert.equal(onlineScores.pending.size,pending);
 debugAttempt=false;reset(1);moveCount=30;runElapsedMs=50000;recordStageClear();assert.equal(stageRecords.existing[1].moves,8);assert(onlineScores.pending.has(board));
+// Metadata is captured at the real clear, retained through reload and best ties.
+online.ready=false;onlineScores.pending.clear();reset(20);dailyRun=null;debugAttempt=false;
+moveCount=12;runElapsedMs=4500;recordStageClear();
+const meta=currentScoreMetadata(),freshBoard=scoreBoardKey(20,'existing');
+assert.equal(meta.platform,'Web');assert.equal(meta.buildNumber,null);assert.equal(meta.scoreSpecVersion,COURSE_VERSION);
+assert.deepEqual(scoreMetadata(stageRecords.existing[20]),meta);
+assert.deepEqual(scoreMetadata(onlineScores.pending.get(freshBoard)),meta);
+const captured=JSON.stringify(onlineScores.pending.get(freshBoard));onlineScores.pending.clear();readPendingScores();
+assert.equal(JSON.stringify(onlineScores.pending.get(freshBoard)),captured);
+moveCount=13;runElapsedMs=1;recordStageClear();assert.deepEqual(scoreMetadata(stageRecords.existing[20]),meta);
+const legacy={moves:2,timeMs:20,version:COURSE_VERSION,stars:2};
+data[RECORDS_KEY]=JSON.stringify({existing:{21:legacy},prototype:{}});
+assert.deepEqual(scoreMetadata(readStageRecords().existing[21]),scoreMetadata(null),'Old v1 does not imply captured metadata');
+stageRecords.existing[22]={moves:3,timeMs:30,version:COURSE_VERSION,stars:3,...scoreMetadata(null)};
+level=22;moveCount=4;runElapsedMs=40;recordStageClear();assert.deepEqual(scoreMetadata(stageRecords.existing[22]),scoreMetadata(null),'Worse run does not stamp an old best');
+online.adapter.saveScore=async()=>({moves:3,timeMs:30,...meta});online.ready=true;onlineScores.owner=online.uid;
+await flushOnlineScores();assert.deepEqual(scoreMetadata(stageRecords.existing[22]),scoreMetadata(null),'Equal remote result keeps local best provenance');
 console.log('PASS online scores: version/bounds, fresh-clear-only submission, offline queue/reload, monotonic personal best, concurrent improvements, guest ownership, real profiles/ranking, self deduplication, 100+ fallback, loading ranks, stale modal isolation and debug exclusion');
 })();`)(assert,data);}finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -63,7 +63,7 @@ function readDailyRecords() {
             if(validDailyDate(date) && Number.isSafeInteger(record?.moves) && record.moves>0 &&
                 Number.isSafeInteger(record?.timeMs) && record.timeMs>=0 &&
                 Number.isInteger(record?.stars) && record.stars>=1 && record.stars<=3) {
-                records[date]={moves:record.moves,timeMs:record.timeMs,stars:record.stars};
+                records[date]={moves:record.moves,timeMs:record.timeMs,stars:record.stars,...scoreMetadata(record)};
                 if(validDailyDate(record.clearedOn) && record.clearedOn>=date)
                     records[date].clearedOn=record.clearedOn;
                 if(record.rewardStatus==='pending' || record.rewardStatus==='claimed') {
@@ -107,7 +107,7 @@ function recordDailyClear() {
     const date=dailyRun.date;
     const stars=clearStars(moveCount,routeExpectedMoves());
     const clearedOn=localToday();
-    dailyRecords[date]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars,clearedOn};
+    dailyRecords[date]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars,clearedOn,...currentScoreMetadata()};
     if(date===clearedOn)dailyRecords[date].rewardStatus='pending';
     saveDailyRecords();
 }

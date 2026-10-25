@@ -105,8 +105,8 @@ async function bootFirebase() {
                 return dbSDK.runTransaction(db,async transaction=>{
                     const snapshot=await transaction.get(ref),previous=snapshot.exists()?snapshot.data():null;
                     if(previous && !validStageScore(previous))throw new Error('Invalid stored score');
-                    if(previous && compareStageScores(previous,score)<=0)return {moves:previous.moves,timeMs:previous.timeMs};
-                    transaction.set(ref,{moves:score.moves,timeMs:score.timeMs,updatedAt:dbSDK.serverTimestamp()});
+                    if(previous && compareStageScores(previous,score)<=0)return {moves:previous.moves,timeMs:previous.timeMs,...scoreMetadata(previous)};
+                    transaction.set(ref,{moves:score.moves,timeMs:score.timeMs,...scoreMetadata(score),updatedAt:dbSDK.serverTimestamp()});
                     return score;
                 });
             },

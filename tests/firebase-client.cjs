@@ -40,7 +40,7 @@ client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\
  const scoreValidation=scoreFunctions.slice(scoreFunctions.indexOf('function validStageScore'),scoreFunctions.indexOf('function validScoreBoard'));
  const comparator=fs.readFileSync(path.join(__dirname,'../js/leaderboard.js'),'utf8').match(/function compareStageScores[^\n]+/)[0];
  const textSource=['text-ja.js','text-en.js','text-dev-ja.js','text.js'].map(file=>fs.readFileSync(path.join(__dirname,'../js',file),'utf8')).join('\n');
- const env=textSource+scoreValidation+comparator+`const accountDeletion=hooks.deletion={marker:null};function readTransferIdentity(){return hooks.transferIdentity||null;}function showDeleteUserDialog(){hooks.completeShown=true;}
+ const env=fs.readFileSync(path.join(__dirname,'../js/score-metadata.js'),'utf8')+textSource+scoreValidation+comparator+`const accountDeletion=hooks.deletion={marker:null};function readTransferIdentity(){return hooks.transferIdentity||null;}function showDeleteUserDialog(){hooks.completeShown=true;}
  const online={adapter:null};function startOnline(a){return hooks.start(a);}function setOnlineStatus(s){hooks.status(s);}
  function onlineProfileFrom(p){const {updatedAt,...profile}=p;return profile;}function mergeOnlineProfile(local,remote,prefer){return remote&&!prefer?remote:local;}
  function onlineProfileKey(p){return JSON.stringify(p);}`;
@@ -53,7 +53,7 @@ client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\
  assert.deepEqual(store.get('players/existing-user'),{...profile,updatedAt:{serverTime:true}});
  const saved=store.get('players/existing-user');await adapter.sync(user.uid,profile,true);assert.equal(store.get('players/existing-user'),saved,'Unchanged login does not write again');
  const rows=await adapter.players(1,20,'existing');assert.equal(rows.length,20);assert.equal(new Set(rows.map(p=>p.id)).size,20);assert(peak<=4);
- const board='v1_existing_1',score={moves:10,timeMs:1000};
+ const board='v1_existing_1',score={moves:10,timeMs:1000,appVersion:'0.3.14',buildNumber:null,platform:'Web',scoreSpecVersion:'v1'};
  await adapter.saveScore(user.uid,board,score);
  const scorePath='stageScores/'+board+'/entries/'+user.uid;
  const savedScore=store.get(scorePath);assert.deepEqual(savedScore,{...score,updatedAt:{serverTime:true}});

@@ -56,8 +56,12 @@ function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=
  const auto=fixture({mode:'auto-sync',policy:autoPolicy,data:identity(),allowWrites:true});
  await auto.control.syncAutomaticProfile('existing-test',input.profile);assert.equal(auto.calls.write,1);
  await auto.control.syncAutomaticProfile('existing-test',input.profile);assert.equal(auto.calls.write,1,'Unchanged profile is not rewritten');
- await auto.control.syncFreshScore('existing-test','v1_existing_2',{moves:12,timeMs:8000});assert.equal(auto.calls.write,2);
+ const capturedMeta={appVersion:'0.3.14',buildNumber:'7',platform:'iOS',scoreSpecVersion:'v1'};
+ await auto.control.syncFreshScore('existing-test','v1_existing_2',{moves:12,timeMs:8000,...capturedMeta});assert.equal(auto.calls.write,2);
  await auto.control.syncFreshScore('existing-test','v1_existing_2',{moves:14,timeMs:9000});assert.equal(auto.calls.write,2,'Server best is retained but worse new clear is acknowledged');
+ assert.deepEqual(require('../js/score-metadata.js').scoreMetadata(auto.remote.get('stageScores/v1_existing_2/entries/existing-test')),capturedMeta);
+ await auto.control.syncFreshScore('existing-test','v1_existing_2',{moves:12,timeMs:8000,appVersion:'future',buildNumber:'9'});assert.equal(auto.calls.write,2);
+ assert.deepEqual(require('../js/score-metadata.js').scoreMetadata(auto.remote.get('stageScores/v1_existing_2/entries/existing-test')),capturedMeta);
  await auto.control.syncFreshScore('existing-test','v1_existing_2',{moves:10,timeMs:11000});assert.equal(auto.calls.write,3);
  await assert.rejects(auto.control.adapter().saveScore(),/write-disabled/);await assert.rejects(auto.control.syncFreshScore('another-owner','v1_existing_2',{moves:1,timeMs:1}),/identity-mismatch/);assert.equal(auto.calls.create,0);
  console.log('PASS native Firebase mock: dormant offline SDK; separate auth/read gates; persistence fail-stop; durable one-attempt creation; restored identity; every write/transfer/delete denied; queues preserved; reports sanitized');

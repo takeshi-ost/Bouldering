@@ -38,7 +38,7 @@ iOS の Scene 中断・復帰を WebView に通知し、復帰時は音声セッ
 
 - アプリ名: ASCENT Local
 - 仮 Bundle ID: `local.ascent.simulator.t20261024`。ローカル実機・シミュレーター検証用で、正式な ID ではない。
-- ソースの表示バージョン: 0.3.14、ビルド番号: 7、iOS 最低バージョン: 15.0。
+- ソースの表示バージョン: 0.4.0、ビルド番号: 8、iOS 最低バージョン: 15.0。
 - Firebase は既定で無効。既存の書込用 `js/firebase-client.js` は同梱せず、固定版SDKと制御されたiOS専用アダプターを使う。承認済み read-only テストのみ認証と読み取りを許可する。
 - 生成する HTML に CSP を追加。外部スクリプト・外部通信・iframe・フォーム送信を禁止する。同梱音声の fetch のため `connect-src 'self'` のみ許可する。
 - 既定のofflineでは匿名認証も行わない。read-onlyでは匿名作成を最大1件に制限し、プロフィール・ランキング更新、保留スコア送信、削除・引継ぎは許可しない。
@@ -215,3 +215,7 @@ node tests/ios-assets.cjs --built --release
 - 両ネイティブビルド、構成別 assets の安全性・変数の可変性・構成マーカーの検査に合格。署名アカウント・資格情報・公開は使用していない。
 
 追加テスト: `node tests/build-policy.cjs`。実機、App Store 用 Release、Release での全ステージ通しプレイは未検証。
+
+## 0.4.0 の保存範囲
+
+iOS対応とスコア来歴4項目を含むソースは0.4.0/build8。スコア仕様世代COURSE_VERSIONはv1のまま。実機はSTAGE10保存を確認した0.3.14/build7を維持し、コミット・pushのためだけの実機再ビルドや更新は行わない。詳細は score-metadata.md と firestore-rules-local-review.md を参照。

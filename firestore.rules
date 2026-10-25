@@ -66,12 +66,24 @@ service cloud.firestore {
       allow delete: if signedIn() && request.auth.uid == uid;
     }
 
+    // Optional for old clients/documents; absent or null means unknown.
+    function optionalScoreText(data, key, maxLength, pattern) {
+      return !(key in data) || data[key] == null
+        || (data[key] is string && data[key].size() >= 1 && data[key].size() <= maxLength
+          && data[key].matches(pattern));
+    }
+
     match /stageScores/{board}/entries/{uid} {
       function validScore() {
         let data = request.resource.data;
         return board.matches('^v1_(existing|prototype)_[1-9][0-9]{0,5}$')
           && data.keys().hasAll(['moves', 'timeMs', 'updatedAt'])
-          && data.keys().hasOnly(['moves', 'timeMs', 'updatedAt'])
+          && data.keys().hasOnly(['moves', 'timeMs', 'updatedAt',
+            'appVersion', 'buildNumber', 'platform', 'scoreSpecVersion'])
+          && optionalScoreText(data, 'appVersion', 64, '^[0-9]+[.][0-9]+[.][0-9]+$')
+          && optionalScoreText(data, 'buildNumber', 32, '^[0-9]+([.][0-9]+){0,2}$')
+          && optionalScoreText(data, 'platform', 32, '^(iOS|Web)$')
+          && optionalScoreText(data, 'scoreSpecVersion', 32, '^v1$')
           && data.moves is int && data.moves >= 1 && data.moves <= 1000000
           && data.timeMs is int && data.timeMs >= 0 && data.timeMs <= 604800000
           && data.updatedAt == request.time;

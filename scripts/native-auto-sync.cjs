@@ -1,4 +1,5 @@
 'use strict';
+const {scoreMetadata}=require('../js/score-metadata.js');
 const SYNC_KEY='ascent.native-sync.after-enable.v1';
 function createNativeAutoSync({storage,owner,controller,onReport=()=>{},clock=Date.now}) {
     let state,flight=null,halted=false;
@@ -49,7 +50,7 @@ function createNativeAutoSync({storage,owner,controller,onReport=()=>{},clock=Da
             const sequence=state.sequence+1;
             // Capture the actual just-finished run, never stageRecords/local best
             // or the legacy pending queue. Only post-boundary hooks can add here.
-            commit({...state,sequence,events:[...state.events,{sequence,board:`v1_${mode}_${stage}`,score:{moves:candidate.moves,timeMs:candidate.timeMs}}]});
+            commit({...state,sequence,events:[...state.events,{sequence,board:`v1_${mode}_${stage}`,score:{moves:candidate.moves,timeMs:candidate.timeMs,...scoreMetadata(candidate)}}]});
             void flush();return true;
         }catch(e){halted=true;fail(e.message);return false;}
     }

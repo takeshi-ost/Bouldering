@@ -23,7 +23,7 @@ function readPendingScores() {
         if(!saved || !Array.isArray(saved.items) || saved.items.length>10000)return;
         onlineScores.owner=typeof saved.uid==='string'?saved.uid:null;
         for(const entry of saved.items)if(Array.isArray(entry) && entry.length===2 && validScoreBoard(entry[0]) && validStageScore(entry[1]))
-            onlineScores.pending.set(entry[0],{moves:entry[1].moves,timeMs:entry[1].timeMs});
+            onlineScores.pending.set(entry[0],{moves:entry[1].moves,timeMs:entry[1].timeMs,...scoreMetadata(entry[1])});
     } catch(_) {}
 }
 readPendingScores();
@@ -39,7 +39,7 @@ function queueOnlineScore(stage,mode,score) {
     if(!validScoreBoard(board) || !validStageScore(score))return false;
     const existing=onlineScores.pending.get(board);
     if(!existing || compareStageScores(score,existing)<0)
-        onlineScores.pending.set(board,{moves:score.moves,timeMs:score.timeMs});
+        onlineScores.pending.set(board,{moves:score.moves,timeMs:score.timeMs,...scoreMetadata(score)});
     if(!onlineScores.owner)onlineScores.owner=online.uid || readOnlineCheckpoint()?.uid || null;
     persistPendingScores();
     const cached=onlineScores.boards.get(board);if(cached)cached.at=0;
@@ -58,8 +58,8 @@ async function flushOnlineScores() {
             if(onlineScores.pending.get(board)===score)onlineScores.pending.delete(board);
             const [version,mode,n]=board.split('_'),stage=Number(n);
             const previous=stageRecords[mode][stage];
-            const best=previous?.version===version && compareStageScores(previous,saved)<0?previous:saved;
-            stageRecords[mode][stage]={moves:best.moves,timeMs:best.timeMs,version,...(previous?.stars?{stars:previous.stars}:{})};
+            const best=previous?.version===version && compareStageScores(previous,saved)<=0?previous:saved;
+            stageRecords[mode][stage]={moves:best.moves,timeMs:best.timeMs,...scoreMetadata(best),version,...(previous?.stars?{stars:previous.stars}:{})};
             try {globalThis.localStorage?.setItem(RECORDS_KEY,JSON.stringify(stageRecords));}catch(_) {}
             persistPendingScores();
             const cached=onlineScores.boards.get(board);if(cached){cached.at=0;cached.retry=cached.pending;}
@@ -90,7 +90,7 @@ function onlineStageScores(stage,mode) {
         void online.adapter.scores(online.uid,board).then(rows=>{
             page.rows=rows.filter(row=>typeof row.id==='string' && validStageScore(row)).map(row=>{
                 const profile=onlineProfileFrom(row.profile);
-                return {id:row.id,moves:row.moves,timeMs:row.timeMs,name:profile?.name || gameText("online-scores.onlineStageScores"),
+                return {id:row.id,moves:row.moves,timeMs:row.timeMs,...scoreMetadata(row),name:profile?.name || gameText("online-scores.onlineStageScores"),
                     appearance:profile?{colors:profile.colors,headColor:profile.headColor}:null};
             });
             page.loaded=true;
