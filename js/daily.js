@@ -318,7 +318,7 @@ ui.dailyPlate.addEventListener('pointerdown',e=>{
 ui.dailyPlate.addEventListener('pointerup',e=>{
     const start=dailySwipe;dailySwipe=null;
     if(!start || e.pointerId!==start.id || state!=='daily' || settingsOpen)return;
-    const dx=e.clientX-start.x,dy=e.clientY-start.y;
+    const dx=viewportUiDelta(e.clientX-start.x),dy=viewportUiDelta(e.clientY-start.y);
     if(Math.abs(dx)<48 || Math.abs(dx)<=Math.abs(dy)*1.4)return;
     dailySwipeConsumed=true;
     changeDailyMonth(dx<0?1:-1);

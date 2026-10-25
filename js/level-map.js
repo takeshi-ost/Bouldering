@@ -188,7 +188,7 @@ window.addEventListener('pointerup',event=>{
 window.addEventListener('pointercancel',hideMapPlayerName);
 window.addEventListener('pointermove',event=>{
     const hold=mapPlayerNameHold;
-    if(hold && hold.pointerId===event.pointerId && Math.hypot(event.clientX-hold.x,event.clientY-hold.y)>8)hideMapPlayerName();
+    if(hold && hold.pointerId===event.pointerId && Math.hypot(viewportUiDelta(event.clientX-hold.x),viewportUiDelta(event.clientY-hold.y))>8)hideMapPlayerName();
 });
 window.addEventListener('blur',hideMapPlayerName);
 ui.mapScroll.addEventListener('scroll',hideMapPlayerName,{passive:true});

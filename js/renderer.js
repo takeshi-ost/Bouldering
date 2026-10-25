@@ -7,9 +7,14 @@ function drawWallBackground() {
     if(!gameWallImage?.complete || !gameWallImage.naturalWidth)return;
     const top=cameraTop();
     ctx.drawImage(gameWallImage,0,top,W,HEIGHT-top);
+    const viewTop=camera-stageViewPadding(),viewBottom=camera+H+stageViewPadding();
+    if(viewTop<top)ctx.drawImage(gameWallImage,0,0,gameWallImage.naturalWidth,1,0,viewTop,W,top-viewTop);
+    if(viewBottom>HEIGHT)ctx.drawImage(gameWallImage,0,gameWallImage.naturalHeight-1,gameWallImage.naturalWidth,1,0,HEIGHT,W,viewBottom-HEIGHT);
 }
 
 
+const floorExtensionImage=typeof Image==='function'?new Image():null;
+if(floorExtensionImage){floorExtensionImage.src='assets/gym-floor-extended.png';floorExtensionImage.addEventListener?.('load',()=>{if(typeof requestGameRender==='function')requestGameRender();});}
 const gymFloorImage=typeof Image==='function'?new Image():null;
 if(gymFloorImage)gymFloorImage.src='assets/gym-floor.webp';
 function drawGymFloor() {
@@ -20,6 +25,13 @@ function drawGymFloor() {
     } else {
         ctx.fillStyle='#969e91';
         ctx.fillRect(0,top,W,height);
+    }
+    // Preserve the original floor and foot margin; draw only the outpainted
+    // continuation below HEIGHT, with the source band's existing scale.
+    if(floorExtensionImage?.complete && floorExtensionImage.naturalWidth) {
+        const image=floorExtensionImage,band=image.naturalWidth/8;
+        ctx.drawImage(image,0,band,image.naturalWidth,image.naturalHeight-band,
+            0,HEIGHT,W,HOLD_CONFIG.bottomMargin*(image.naturalHeight-band)/band);
     }
 }
 function isFloorStartHold(h) {
@@ -171,7 +183,7 @@ function drawDebugHoldNumbers() {
     ctx.lineWidth=3;ctx.lineJoin='round';
     ctx.strokeStyle='#fffdf3';ctx.fillStyle='#26382f';
     for(const h of holds) {
-        if(h.y<camera-35 || h.y>camera+H+35)continue;
+        if(h.y<camera - stageViewPadding() - 35 || h.y>camera + H + stageViewPadding() + 35)continue;
         const text=String(h.id+1),x=clamp(h.x,12,W-12),y=Math.min(HEIGHT-7,h.y+(h.wide ? 26 : 21));
         ctx.strokeText(text,x,y);ctx.fillText(text,x,y);
     }
@@ -357,8 +369,8 @@ function drawPath() {
             const b = route[i];
 
             if (
-                Math.max(a.y, b.y) < camera - 24 ||
-                Math.min(a.y, b.y) > camera + H + 24
+                Math.max(a.y, b.y) < camera - stageViewPadding() - 24 ||
+                Math.min(a.y, b.y) > camera + H + stageViewPadding() + 24
             )
                 continue;
 
@@ -404,8 +416,8 @@ function drawPath() {
 
         route.forEach((p, i) => {
             if (
-                p.y < camera - 24 ||
-                p.y > camera + H + 24
+                p.y < camera - stageViewPadding() - 24 ||
+                p.y > camera + H + stageViewPadding() + 24
             )
                 return;
 
@@ -672,7 +684,7 @@ function drawStageIntro() {
     if (featureHelpOpen || !cameraIntro || state!=='playing') return;
     ctx.save();
     ctx.fillStyle='#f3f0e780';
-    ctx.fillRect(0,0,W,H);
+    ctx.fillRect(0,-stageViewPadding(),W,H+stageViewPadding()*2);
     ctx.fillStyle='#253f32';
     ctx.strokeStyle='#fffdf4';
     ctx.lineWidth=6;
@@ -704,14 +716,14 @@ function updateGoalEffects() {
     if(!ui.goalEffects)return;
     const goal=holds.find(h=>h.type==='goal');
     const visible=['playing','won','lost'].includes(state) && goal &&
-        goal.y>=camera-30 && goal.y<=camera+H+30;
+        goal.y>=camera - stageViewPadding() - 30 && goal.y<=camera + H + stageViewPadding() + 30;
     ui.goalEffects.hidden=!visible;
     ui.goalEffects.classList.toggle('is-paused',presentationBlocked() || !!document.hidden);
     if(!visible)return;
     const rect=canvas.getBoundingClientRect(),wall=ui.wall.getBoundingClientRect();
-    ui.goalEffects.style.left=(rect.left-wall.left+goal.x*rect.width/W)+'px';
-    ui.goalEffects.style.top=(rect.top-wall.top+(goal.y-camera)*rect.height/H)+'px';
-    ui.goalEffects.style.transform=`scale(${rect.width/W})`;
+    ui.goalEffects.style.left=((rect.left-wall.left)*W/rect.width+goal.x)+'px';
+    ui.goalEffects.style.top=((rect.top-wall.top)*W/rect.width+goal.y-camera+stageViewPadding())+'px';
+    ui.goalEffects.style.transform='none';
 }
 function schedulePresentationUpdates() {
     if(!presentationEnabled)return;
@@ -829,14 +841,16 @@ function draw(now = 0) {
             camera+(desired-camera)*CAMERA_CONFIG.followRate;
     }
 
+    const viewportHeight = H + stageViewPadding()*2;
     const ratio = Math.min(
-        window.devicePixelRatio || 1,
-        RENDER_CONFIG.maxPixelRatio
+        (window.devicePixelRatio || 1) * canvas.getBoundingClientRect().width / W,
+        RENDER_CONFIG.maxPixelRatio,
+        Math.sqrt(2000000/(W*viewportHeight)) // Raster budget only; never changes world/input coordinates.
     );
 
-    if (canvas.width !== W * ratio) {
-        canvas.width = W * ratio;
-        canvas.height = H * ratio;
+    if (canvas.width !== Math.round(W * ratio) || canvas.height !== Math.round(viewportHeight * ratio)) {
+        canvas.width = Math.round(W * ratio);
+        canvas.height = Math.round(viewportHeight * ratio);
     }
 
     ctx.setTransform(
@@ -845,16 +859,11 @@ function draw(now = 0) {
         0,
         ratio,
         0,
-        0
+        stageViewPadding()*ratio
     );
 
     ctx.fillStyle = '#deddda';
-    ctx.fillRect(
-        0,
-        0,
-        W,
-        H
-    );
+    ctx.fillRect(0, -stageViewPadding(), W, viewportHeight);
 
     ctx.save();
     ctx.translate(
@@ -882,7 +891,7 @@ function draw(now = 0) {
         y <
         Math.min(
             HEIGHT,
-            camera + H + 200
+            camera + H + stageViewPadding() + 200
         );
         y += 200
     ) {
@@ -1001,8 +1010,8 @@ function draw(now = 0) {
         // Invisible floor anchors remain available to the existing grip/snap logic.
         if(isFloorStartHold(h))continue;
         if (
-            h.y < camera - 30 ||
-            h.y > camera + H + 30
+            h.y < camera - stageViewPadding() - 30 ||
+            h.y > camera + H + stageViewPadding() + 30
         )
             continue;
 
@@ -1092,7 +1101,7 @@ function draw(now = 0) {
     }
 
     for (const heart of hearts) {
-        if (heart.collected || heart.y < camera-20 || heart.y > camera+H+20) continue;
+        if (heart.collected || heart.y < camera - stageViewPadding() - 20 || heart.y > camera + H + stageViewPadding() + 20) continue;
         drawCourseHeart(heart);
     }
 
@@ -1216,7 +1225,7 @@ function draw(now = 0) {
     ctx.restore();
     if(pan?.edge && pan.scrolling && canScrollStage()) {
         ctx.fillStyle=RENDER_CONFIG.safeAreaColor;
-        ctx.fillRect(pan.side==='left'?0:W-STAGE_SAFE_WIDTH,0,STAGE_SAFE_WIDTH,H);
+        ctx.fillRect(pan.side==='left'?0:W-STAGE_SAFE_WIDTH,-stageViewPadding(),STAGE_SAFE_WIDTH,H+stageViewPadding()*2);
     }
     drawStageIntro();
     lastStagePaintKey=paintKey;

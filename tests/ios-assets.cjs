@@ -14,12 +14,12 @@ assert(fs.existsSync(path.join(bundle,'vendor/firebase-sdk.js')));
 assert(!/import\s*\(['"]https?:/.test(read('vendor/firebase-sdk.js')));
 if(firebaseMode==='offline')assert(!/apiKey\s*:/.test(read('js/native-firebase-control.js')),'Offline must not include connection config');
 assert(!fs.existsSync(path.join(bundle, 'js/firebase-client.js')), 'Never ship Firebase bootstrap/config');
-assert.deepEqual(fs.readFileSync(path.join(bundle,'assets/native/gym-floor-extended.png')),fs.readFileSync(path.join(root,'ios-assets/gym-floor-extended.png')));
+assert.deepEqual(fs.readFileSync(path.join(bundle,'assets/gym-floor-extended.png')),fs.readFileSync(path.join(root,'assets/gym-floor-extended.png')));
 assert(!html.includes('firebase-client.js'));
 assert(html.indexOf('js/native-audio-fetch.js') >= 0 && html.indexOf('js/native-audio-fetch.js') < html.indexOf('js/audio.js'), 'Native audio adapter must load before audio preload');
 assert.equal(read('js/native-audio-fetch.js'), fs.readFileSync(path.join(root, 'scripts/native-audio-fetch.js'), 'utf8'));
-assert.equal(read('js/native-stage-layout.js'), fs.readFileSync(path.join(root, 'scripts/native-stage-layout.js'), 'utf8'));
-assert.equal(read('native-stage-layout.css'), fs.readFileSync(path.join(root, 'scripts/native-stage-layout.css'), 'utf8'));
+assert(!html.includes('native-stage-layout'));
+assert.equal(read('js/viewport.js'), fs.readFileSync(path.join(root,'js/viewport.js'),'utf8'));
 const policy = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
 assert(policy, 'Native bundle must have a CSP');
 const connects="connect-src 'self'"+(firebaseMode!=='offline'?' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com':'');
@@ -70,11 +70,9 @@ for (const relative of nativeDirectories) {
     assert(!fs.existsSync(path.join(nativePublic, 'js/firebase-client.js')));
     assert.equal(fs.readFileSync(path.join(nativePublic,'native-firebase-mode.json'),'utf8'),read('native-firebase-mode.json'));
     for(const file of ['js/native-firebase-control.js','vendor/firebase-sdk.js'])assert.equal(fs.readFileSync(path.join(nativePublic,file),'utf8'),read(file));
-    assert.deepEqual(fs.readFileSync(path.join(nativePublic,'assets/native/gym-floor-extended.png')),fs.readFileSync(path.join(root,'ios-assets/gym-floor-extended.png')));
+    assert.deepEqual(fs.readFileSync(path.join(nativePublic,'assets/gym-floor-extended.png')),fs.readFileSync(path.join(root,'assets/gym-floor-extended.png')));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-offline.js'), 'utf8'), read('js/native-offline.js'));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-audio-fetch.js'), 'utf8'), read('js/native-audio-fetch.js'));
-    assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-stage-layout.js'), 'utf8'), read('js/native-stage-layout.js'));
-    assert.equal(fs.readFileSync(path.join(nativePublic, 'native-stage-layout.css'), 'utf8'), read('native-stage-layout.css'));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-audio-lifecycle.js'), 'utf8'), read('js/native-audio-lifecycle.js'));
     if(relative.startsWith('build/')) {
         assert.equal(fs.readFileSync(path.join(root,builtApp,'ascent-build-configuration.txt'),'utf8').trim(),configuration);

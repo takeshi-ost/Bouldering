@@ -70,7 +70,44 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 // Diagnostics are opt-in for local Debug runs; Release cannot record them.
 // They never read game saves, identity, credentials, or change system volume.
+// Geometry-only bridge. No game saves, identity, network or system settings.
+private final class ViewportMessageHandler: NSObject, WKScriptMessageHandler {
+    weak var owner: AscentBridgeViewController?
+    init(_ owner: AscentBridgeViewController) { self.owner = owner }
+    func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard let body = message.body as? [String: Any] else { return }
+        if body["kind"] as? String == "request" { owner?.publishSafeViewport(force: true) }
+    }
+}
+
 class AscentBridgeViewController: CAPBridgeViewController {
+    private var lastViewportGeometry = ""
+
+    private func safeViewportGeometry() -> [String: Any]? {
+        guard let webView = webView, webView.bounds.width > 0, webView.bounds.height > 0 else { return nil }
+        // Convert UIKit's actual safe rectangle into WebView coordinates. If a
+        // shell has already inset the WebView, intersection produces zero edge
+        // insets instead of subtracting the notch/home-indicator area twice.
+        let safeInView = webView.convert(view.safeAreaLayoutGuide.layoutFrame, from: view)
+        let safeInWindow = webView.window.map { webView.convert($0.safeAreaLayoutGuide.layoutFrame, from: $0) } ?? safeInView
+        let safe = webView.bounds.intersection(safeInView).intersection(safeInWindow)
+        guard !safe.isNull, safe.width > 0, safe.height > 0 else { return nil }
+        return ["width": webView.bounds.width, "height": webView.bounds.height,
+                "safe": ["left": safe.minX, "top": safe.minY, "right": safe.maxX, "bottom": safe.maxY]]
+    }
+
+    fileprivate func publishSafeViewport(force: Bool = false) {
+        guard let geometry = safeViewportGeometry(),
+              let data = try? JSONSerialization.data(withJSONObject: geometry, options: [.sortedKeys]),
+              let json = String(data: data, encoding: .utf8), force || json != lastViewportGeometry else { return }
+        lastViewportGeometry = json
+        webView?.evaluateJavaScript("globalThis.ASCENT_NATIVE_SAFE_AREA=Object.freeze(\(json));window.dispatchEvent(new Event('ascent-native-safe-area'));", completionHandler: nil)
+    }
+
+    override func viewDidLayoutSubviews() { super.viewDidLayoutSubviews(); publishSafeViewport() }
+    override func viewSafeAreaInsetsDidChange() { super.viewSafeAreaInsetsDidChange(); publishSafeViewport() }
+    override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated); publishSafeViewport(force: true) }
+
 #if DEBUG
     private var nativeAudioEvents: [[String: Any]] = []
     private var audioRecords: [[String: Any]] = []
@@ -86,6 +123,10 @@ class AscentBridgeViewController: CAPBridgeViewController {
 
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
+        webView?.configuration.userContentController.add(ViewportMessageHandler(self), name: "ascentViewport")
+        if let geometry = safeViewportGeometry(), let data = try? JSONSerialization.data(withJSONObject: geometry), let json = String(data: data, encoding: .utf8) {
+            webView?.configuration.userContentController.addUserScript(WKUserScript(source: "globalThis.ASCENT_NATIVE_SAFE_AREA=Object.freeze(\(json));", injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        }
         let configuration = Bundle.main.object(forInfoDictionaryKey: "ASCENTBuildConfiguration") as? String ?? "Unknown"
 #if DEBUG
         let debugAllowed = configuration == "Debug"

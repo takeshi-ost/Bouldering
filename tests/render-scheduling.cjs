@@ -54,7 +54,7 @@ if(nativeTest) {
  document.hidden=false;presentationEnabled=false;hideStageStart();hideSettings();hideResultModal();
  reset(1);cameraIntro=null;state='playing';inspecting=true;
  const goal=holds.find(h=>h.type==='goal');camera=goal.y-100;
- globalThis.ASCENT_STAGE_VIEWPORT={padding:50};
+ canvas.getBoundingClientRect=()=>({left:0,top:0,width:400,height:800});
  let matrix,background;paint.setTransform=(...args)=>matrix=args;
  const oldFill=paint.fillRect;paint.fillRect=(...args)=>{if(args[1]===-50)background=args;oldFill(...args);};
  const rules=JSON.stringify({W,H,HEIGHT,holds,route,stamina,moveCount,body,camera});

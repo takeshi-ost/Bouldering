@@ -22,7 +22,7 @@ function beginPointer(e) {
 function movePointer(e) {
     if (bodyTap) {
         const r=canvas.getBoundingClientRect(),origin=bodyTap.event;
-        const moved=Math.hypot((e.clientX-origin.clientX)*W/r.width,(e.clientY-origin.clientY)*H/r.height);
+        const moved=Math.hypot(viewportClientDelta(e.clientX-origin.clientX,r),viewportClientDelta(e.clientY-origin.clientY,r));
         if (moved<INPUT_CONFIG.dragThreshold) return;
         bodyTap=null;
         down(origin);
@@ -58,7 +58,7 @@ canvas.addEventListener('keydown', e => {
 canvas.addEventListener('wheel', e => {
     if (!canScrollStage() || pan) return;
     e.preventDefault();endPointer(null,true);inspecting=true;
-    const scale=e.deltaMode===1 ? 16 : e.deltaMode===2 ? H : H/canvas.getBoundingClientRect().height;
+    const scale=e.deltaMode===1 ? 16 : e.deltaMode===2 ? H : viewportClientDelta(1,canvas.getBoundingClientRect());
     camera=clamp(camera+e.deltaY*scale,cameraTop(),HEIGHT-H);
 }, {passive:false});
 canvas.addEventListener('mousedown', e => {
@@ -66,7 +66,7 @@ canvas.addEventListener('mousedown', e => {
 });
 function moveEdgePan(e) {
     if(!pan?.edge || !canScrollStage())return;
-    const dy=(e.clientY-pan.y)*H/canvas.getBoundingClientRect().height;
+    const dy=(e.clientY-pan.y)*viewportClientDelta(1,canvas.getBoundingClientRect());
     if(Math.abs(dy)>=INPUT_CONFIG.dragThreshold)pan.scrolling=true;
     camera=clamp(pan.camera-dy,cameraTop(),HEIGHT-H);
 }
@@ -111,7 +111,7 @@ canvas.addEventListener('touchmove', e => {
         const fingers=pan.ids.map(id=>Array.from(e.touches).find(t=>t.identifier===id));
         if (e.touches.length!==2 || fingers.some(t=>!t)) { endPan(); return; }
         const y=(fingers[0].clientY+fingers[1].clientY)/2;
-        camera=clamp(pan.camera-(y-pan.y)*H/canvas.getBoundingClientRect().height,cameraTop(),HEIGHT-H);
+        camera=clamp(pan.camera-(y-pan.y)*viewportClientDelta(1,canvas.getBoundingClientRect()),cameraTop(),HEIGHT-H);
         return;
     }
     if (ignoreTouches) return;

@@ -610,12 +610,7 @@ function updateUI() {
 }
 
 function point(e) {
-    const r = canvas.getBoundingClientRect();
-
-    return {
-        x: (e.clientX - r.left) * W / r.width,
-        y: (e.clientY - r.top) * H / r.height + camera
-    };
+    return viewportClientPoint(e,canvas.getBoundingClientRect(),camera);
 }
 
 function limbRoot(p, index) {

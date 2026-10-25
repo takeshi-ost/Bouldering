@@ -150,7 +150,7 @@ if(nativeTest) {
  returnFromStage();refreshLives();assert(state==='map' && ui.hud.hidden);assert(ui.lifeStatus.classList.values['map-lives']);
  hideStageStart();reset(1);reset(1);refreshLives();assert(!ui.hud.hidden && !ui.lifeStatus.classList.values['map-lives']);
  const rules=JSON.stringify({W,H,HEIGHT,holds,route,stamina,moveCount,body,camera});
- globalThis.ASCENT_STAGE_VIEWPORT={padding:50};
+ globalThis.ASCENT_STAGE_VIEWPORT={padding:50}; // Legacy value intentionally ignored; use actual canvas bounds.
  canvas.getBoundingClientRect=()=>({left:15,top:47,width:390,height:780});
  for(const p of [{x:0,y:camera-50},{x:200,y:camera+200},{x:400,y:camera+750}]) {
   const out=point({clientX:15+p.x*.975,clientY:47+(p.y-camera+50)*.975});

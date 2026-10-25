@@ -13,8 +13,6 @@ fs.mkdirSync(path.join(out, 'js'), {recursive: true});
 for (const name of ['styles.css', 'assets']) {
     fs.cpSync(path.join(root, name), path.join(out, name), {recursive: true});
 }
-fs.mkdirSync(path.join(out,'assets/native'),{recursive:true});
-fs.copyFileSync(path.join(root,'ios-assets/gym-floor-extended.png'),path.join(out,'assets/native/gym-floor-extended.png'));
 for (const name of fs.readdirSync(path.join(root, 'js'))) {
     if (!name.endsWith('.js') || name === 'firebase-client.js') continue;
     fs.writeFileSync(path.join(out, 'js', name), nativeSource(name, fs.readFileSync(path.join(root, 'js', name), 'utf8')));
@@ -27,10 +25,8 @@ if ([...html.matchAll(firebaseTag)].length !== 1) {
 html = html.replace(firebaseTag, firebaseMode==='offline'?'<script src="js/native-offline.js" defer></script>':'');
 html = html.replace('    <!-- classic scripts', '    <script src="js/native-audio-fetch.js" defer></script>\n    <!-- classic scripts');
 fs.copyFileSync(path.join(root, 'scripts/native-audio-fetch.js'), path.join(out, 'js/native-audio-fetch.js'));
-fs.copyFileSync(path.join(root, 'scripts/native-stage-layout.js'), path.join(out, 'js/native-stage-layout.js'));
-fs.copyFileSync(path.join(root, 'scripts/native-stage-layout.css'), path.join(out, 'native-stage-layout.css'));
 fs.copyFileSync(path.join(root, 'scripts/native-audio-lifecycle.js'), path.join(out, 'js/native-audio-lifecycle.js'));
-html = html.replace('</head>', '    <link rel="stylesheet" href="native-stage-layout.css">\n    <script src="js/native-stage-layout.js" defer></script>\n    <script src="js/native-audio-lifecycle.js" defer></script>\n</head>');
+html = html.replace('</head>', '    <script src="js/native-audio-lifecycle.js" defer></script>\n</head>');
 buildNativeFirebase(root,out,firebaseMode);
 html = html.replace('<p id="onlineStatus"', '<p hidden id="onlineStatus"');
 html = html.replace('</head>','    <script src="js/native-firebase-control.js" defer></script>\n</head>');
