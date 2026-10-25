@@ -1,6 +1,21 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const title=html.slice(html.indexOf('id="titleScreen"'),html.indexOf('<section id="characterEditor"'));
+assert(title.indexOf('data-i18n="title.brand"')<title.indexOf('data-i18n="title.tagline"'));
+assert(title.indexOf('data-i18n="title.tagline"')<title.indexOf('class="release-version title-version-space"'));
+assert(title.indexOf('class="release-version title-version-space"')<title.indexOf('id="titleTap"'));
+assert(title.indexOf('class="title-identity"')<title.indexOf('id="playerUuid"'));
+assert(title.indexOf('id="playerUuid"')<title.indexOf('id="releaseVersion"'));
+assert(title.includes('aria-hidden="true">&nbsp;</p>'));
+assert(title.indexOf('id="titleTap"')<title.indexOf('data-i18n="title.publisher"'));
+assert(title.includes('<div class="title-publisher modal-tap" data-i18n="title.publisher"></div>'));
+assert(fs.readFileSync(path.join(root,'styles.css'),'utf8').includes('.title-content .title-publisher { margin:48px 0 0; }'));
+assert(title.indexOf('class="title-footer"')<title.indexOf('id="playerUuid"'));
+assert(title.indexOf('id="titleTap"')<title.indexOf('class="title-footer"'));
+for(const [file,catalog] of [['js/text-ja.js','GAME_TEXT_JA'],['js/text-en.js','GAME_TEXT_EN']]) {
+ const text=require('node:vm').runInNewContext(fs.readFileSync(path.join(root,file),'utf8')+`;${catalog}`);
+ assert.equal(text['title.tagline'],'One-swipe bouldering');assert.equal(text['title.publisher'],'KAMOGAWA GAMES');
+}
 assert(title.includes('id="titleTransfer"'));assert(title.includes('id="titleWallpaper"'));assert.equal((title.match(/<button\b/g)||[]).length,1);
 assert(!/id="(?:existingCourse|editCharacter|debugMode)"/.test(html));
 assert(html.indexOf('id="showHelp"')>html.indexOf('id="settingsDialog"'));

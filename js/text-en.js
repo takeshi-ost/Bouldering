@@ -156,6 +156,8 @@ const GAME_TEXT_EN = Object.freeze({
     "ui.closeHelp.aria-label": "Close Instructions",
     "title.document": "ASCENT — Climbing Puzzle",
     "title.brand": "ASCENT",
+    "title.tagline": "One-swipe bouldering",
+    "title.publisher": "KAMOGAWA GAMES",
     "ui.titleTransfer": "Data Transfer",
     "ui.characterEditor.label": "Player Name",
     "ui.playerNameError": "Please enter a player name.",

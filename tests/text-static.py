@@ -24,6 +24,6 @@ class Copy(HTMLParser):
  def value(self):return {'text':re.sub(r'\s+',' ',''.join(self.text)).strip(),'attributes':self.attrs}
 current=Copy(True);current.feed((root/'index.html').read_text())
 digest=hashlib.sha256(json.dumps(current.value(),ensure_ascii=False,sort_keys=True).encode()).hexdigest()
-# Reviewed change: Japanese failure/retry action is もういちど; English is unchanged.
-assert digest == 'a2c225c709d7fabd65763c6390d2fa24eee9c6218665b7ef57ec63227744974f', 'Static game copy changed; review intentional wording changes before updating the snapshot.'
+# Reviewed change: exact shared brands in ASCENT / tagline / TAP / publisher order; bottom identity shows UID then VERSION.
+assert digest == '1d08de9e0c93b37b1bc17061b68e50c29f7702df235616ab4a0451479504383c', 'Static game copy changed; review intentional wording changes before updating the snapshot.'
 print('PASS static text: reviewed labels/help text and accessibility attributes match the cleaned snapshot')

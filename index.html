@@ -4,14 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=ffb3e14f9f2c">
+    <link rel="stylesheet" href="styles.css?v=880590831cc0">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
-    <script src="js/text-ja.js?v=441140b35e76" defer></script>
-    <script src="js/text-en.js?v=5d82a4da6634" defer></script>
+    <script src="js/text-ja.js?v=2e0bf40f5529" defer></script>
+    <script src="js/text-en.js?v=729bfef09818" defer></script>
     <script src="js/text-dev-ja.js?v=1b5c7df9ff1a" defer></script>
     <script src="js/text.js?v=dd38409b5d98" defer></script>
     <script src="js/score-metadata.js?v=441ae01051a0" defer></script>
-    <script src="js/config.js?v=15faed1fe000" defer></script>
+    <script src="js/config.js?v=1fad1d7ea4da" defer></script>
     <script src="js/viewport.js?v=b5ffb9620615" defer></script>
     <script src="js/audio.js?v=41bbba9ffab4" defer></script>
     <script src="js/bgm.js?v=c96d77ab4e58" defer></script>
@@ -72,11 +72,18 @@
                 <div id="titleWallpaper" class="title-wallpaper" aria-hidden="true"></div>
                 <div class="title-content">
                     <h1 class="brand"><span data-i18n="title.brand"></span><span class="brand-dot">.</span></h1>
-                    <p id="releaseVersion" class="release-version"></p>
-                    <p id="playerUuid" class="player-uuid"></p>
+                    <p class="title-tagline" data-i18n="title.tagline"></p>
+                    <p class="release-version title-version-space" aria-hidden="true">&nbsp;</p>
                     <div id="titleTap" class="title-tap modal-tap" aria-live="polite" hidden data-i18n="action.tap"></div>
+                    <div class="title-publisher modal-tap" data-i18n="title.publisher"></div>
                 </div>
-                <button id="titleTransfer" class="title-transfer secondary" type="button" data-i18n="ui.titleTransfer"></button>
+                <div class="title-footer">
+                    <button id="titleTransfer" class="title-transfer secondary" type="button" data-i18n="ui.titleTransfer"></button>
+                    <div class="title-identity">
+                        <p id="playerUuid" class="player-uuid"></p>
+                        <p id="releaseVersion" class="release-version"></p>
+                    </div>
+                </div>
             </div>
             <section id="characterEditor" class="character-editor" aria-label="" hidden data-i18n-aria-label="ui.characterEditor.aria-label">
                 <label class="player-name-label" for="playerName" data-i18n="ui.characterEditor.label"></label>
