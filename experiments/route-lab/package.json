@@ -1,14 +1,14 @@
 {
   "name": "ascent-route-lab",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
-  "description": "Offline existing-generator baseline trial",
+  "description": "Isolated playable single-skeleton comparison trial",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "build": "node build.cjs",
     "dev": "node server.cjs",
-    "test": "node --test test.cjs integration/offline-runtime.test.cjs"
+    "test": "node --test test.cjs integration/*.test.cjs"
   }
 }

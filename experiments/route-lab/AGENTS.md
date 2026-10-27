@@ -1,7 +1,7 @@
 # Route Lab 作業範囲
 
 - この独立試作のバージョンは package.json と入口画面で管理する。通常版 js/config.js / index.html / iOSファイルを変更しない。
-- 現段階はGitHub main3728558の既存方式をオフライン試遊する。新生成方式の実装は別途承認が必要。旧prototype.jsを配信しない。
+- GitHub main3728558を基準に、承認済みの単独骨格（straight/meander/branch）比較を試作アダプターだけで実装する。旧prototype.jsを復活・配信しない。ハート・尖ホールド・複数区間の合成は今回の対象外。
 - main、既存Pages、Firebaseを変更しない。同じ本人限定Site ID/URLを継続利用する。
 - 公開はpublic/のみ。public/game/はbuild.cjsと固定baseline-manifest.jsonから再生成する。基準を無断で新しい版へ変更しない。
 - 本番通信・本番UID・保存・引き継ぎ・広告SDK・購入を追加しない。メモリのみの保存とCSP通信拒否を維持する。

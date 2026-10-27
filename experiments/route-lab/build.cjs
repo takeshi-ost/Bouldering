@@ -16,13 +16,14 @@ for(const file of Object.keys(manifest.files)) {
 }
 const audio=Object.fromEntries(Object.keys(manifest.files).filter(f=>f.startsWith('assets/audio/')).map(f=>[f,fs.readFileSync(path.join(root,f)).toString('base64')]));
 fs.writeFileSync(path.join(target,'audio-bundle.js'),'"use strict";globalThis.ASCENT_LAB_AUDIO_B64=Object.freeze('+JSON.stringify(audio)+');\n');
-for(const file of ['bootstrap.js','offline.js','offline.css'])fs.copyFileSync(path.join(__dirname,'integration',file),path.join(target,file));
+for(const file of ['bootstrap.js','offline.js','offline.css','skeleton.js'])fs.copyFileSync(path.join(__dirname,'integration',file),path.join(target,file));
 let html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 html=html.replace(/\s*<script[^>]+src="([^"?]+)(?:\?[^"\s]*)?"[^>]*><\/script>/g,(tag,file)=>exclude.has(file)?'':tag);
 html=html.replace('<meta charset="utf-8">','<meta charset="utf-8">\n    <meta http-equiv="Content-Security-Policy" content="'+policy.game+'">\n    <meta name="referrer" content="no-referrer">\n    <meta name="robots" content="noindex,nofollow">');
 html=html.replace('    <!-- classic scripts','    <link rel="stylesheet" href="offline.css">\n    <script src="audio-bundle.js" defer></script>\n    <script src="bootstrap.js" defer></script>\n    <!-- classic scripts');
 html=html.replace(/(    <script src="js\/main\.js)/,'    <script src="offline.js" defer></script>\n$1');
 html=html.replace(/(<[^>]*id="dummyAd"[^>]*>)/,'$1<p id="labAdLabel"></p>');
+html=html.replace('</body>','    <script src="skeleton.js" defer></script>\n</body>');
 fs.writeFileSync(path.join(target,'index.html'),html);
 const shell=fs.readFileSync(path.join(__dirname,'public/index.html'),'utf8').replace(/(<meta http-equiv="Content-Security-Policy" content=")[^"]*(">)/,'$1'+policy.shell+'$2');
 fs.writeFileSync(path.join(__dirname,'public/index.html'),shell);
