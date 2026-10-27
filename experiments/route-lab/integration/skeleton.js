@@ -1,6 +1,6 @@
 'use strict';
 // Route Lab only. Original files are copied byte-for-byte; no movement rule is replaced.
-const LAB_SKELETON_VERSION='0.3.1';
+const LAB_SKELETON_VERSION='0.3.2';
 function labReadConfig(search) {
  const q=new URLSearchParams(search); if(!q.has('lab'))return null;
  if(q.get('lab')!=='1')throw Error('無効な試遊モードです。入口で選び直してください。');
@@ -106,6 +106,38 @@ function labBranchSpread(points,paths,height){
   grid50x100Occupancy:new Set(points.map(h=>Math.floor(h.x/50)+','+Math.floor(h.y/100))).size,
   sideStats:[-1,1].map(side=>{const xs=scatter.filter(h=>side*(h.x-200)>0).map(h=>h.x),mean=xs.reduce((a,b)=>a+b,0)/(xs.length||1);return {side,count:xs.length,xStd:Math.sqrt(xs.reduce((sum,x)=>sum+(x-mean)**2,0)/(xs.length||1)),xRange:xs.length?Math.max(...xs)-Math.min(...xs):0};})};
 }
+// A small branch-only nudge of existing random scatter, never route supports.
+// Round to whole holds (target one in eight), cap at two and one per 160px band.
+// Both contact witnesses must remain byte-for-byte playable after each removal.
+function labNudgeBranchScatter(correctSide,wrongPath,seed,cutoff){
+ const paths=[route,wrongPath],used=new Set([...initialGrips.map(h=>h.id),...paths.flatMap(path=>path.flatMap(p=>p.grips||[]))]);
+ const config={targetFraction:.125,maxRemoved:2,minRetainedScatter:4,bandHeight:160,sideOffsetMin:26,sideOffsetMax:166,topMargin:100,startMargin:180};
+ const inSide=(h,side)=>side*(h.x-200)>=config.sideOffsetMin&&side*(h.x-200)<=config.sideOffsetMax;
+ const isScatter=h=>h.row===null&&h.type==='normal';
+ const trueScatter=holds.filter(h=>isScatter(h)&&inSide(h,correctSide));
+ const eligible=holds.filter(h=>isScatter(h)&&!h.wide&&!used.has(h.id)&&inSide(h,correctSide)&&h.y>=config.topMargin&&h.y<=HEIGHT-config.startMargin);
+ const window={yMin:cutoff+40,yMax:HEIGHT-config.startMargin,sideOffsetMin:config.sideOffsetMin,sideOffsetMax:config.sideOffsetMax};
+ window.area=(window.yMax-window.yMin)*(window.sideOffsetMax-window.sideOffsetMin);
+ const segment=(p,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy,t=den?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/den,0,1):0;return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);};
+ const measure=()=>[-1,1].map(side=>{const path=side===correctSide?route:wrongPath,scatter=holds.filter(h=>isScatter(h)&&inSide(h,side)&&h.y>=window.yMin&&h.y<=window.yMax),extras=scatter.filter(h=>!used.has(h.id));
+  const distances=extras.map(h=>Math.min(...path.slice(1).map((p,i)=>segment(h,path[i],p))));
+  return {side,role:side===correctSide?'correct':'wrong',scatter:scatter.length,extra:extras.length,extraPer10000:extras.length/window.area*10000,distanceBands:[distances.filter(d=>d<45).length,distances.filter(d=>d>=45&&d<90).length,distances.filter(d=>d>=90).length]};});
+ const before=measure(),target=Math.min(config.maxRemoved,Math.max(0,trueScatter.length-config.minRetainedScatter),Math.round(trueScatter.length*config.targetFraction));
+ // Prefer the common-height comparison region; ties use a separate seeded stream.
+ const ranked=eligible.map(h=>({h,common:h.y>=window.yMin&&h.y<=window.yMax,key:mulberry32(seed^0x4A17B3D9^h.id)()})).sort((a,b)=>Number(b.common)-Number(a.common)||a.key-b.key||a.h.id-b.h.id);
+ const removed=[],replayRejected=[],bands=new Set();
+ for(const {h} of ranked){
+  if(removed.length>=target)break;
+  const band=Math.floor(h.y/config.bandHeight);if(bands.has(band))continue;
+  const previous=holds;holds=holds.filter(p=>p.id!==h.id);
+  if(samePairRoute(route,replayRoute(route))&&samePairRoute(wrongPath,labReplayPartial(wrongPath))){removed.push(h.id);bands.add(band);}
+  else {holds=previous;replayRejected.push(h.id);}
+ }
+ densityStats.selectionHoldIds=(densityStats.selectionHoldIds||[]).filter(id=>holds.some(h=>h.id===id));
+ updateStageDensity();
+ return {config,window,correctSide,wrongSide:-correctSide,mandatoryIds:[...used].sort((a,b)=>a-b),trueScatterBefore:trueScatter.length,trueScatterAfter:trueScatter.length-removed.length,eligibleIds:eligible.map(h=>h.id),target,removedIds:removed,replayRejectedIds:replayRejected,before,after:measure()};
+}
+
 function labGenerateDeadEnd(config){
  const height={short:700,middle:1400,long:2100}[config.length],seed=config.seed;
  if(!height||!Number.isInteger(seed)||seed<0||seed>4294967295)throw Error('無効な分岐設定です。');
@@ -159,6 +191,9 @@ function labGenerateDeadEnd(config){
   const separation=correctSide<0?endpoint.x-Math.min(...route.map(p=>p.x)):Math.max(...route.map(p=>p.x))-endpoint.x;
   if(separation<200)throw Error('左右の経路の間隔が不足しています。');
   placement.pruneRemoved=filteredCount-holds.length;
+  placement.densityBias=labNudgeBranchScatter(correctSide,wrong.path,seed,cutoff);
+  placement.protectedScatterIds=placement.protectedScatterIds.filter(id=>holds.some(h=>h.id===id));
+  placement.protectedScatterCount=placement.protectedScatterIds.length;
   placement.spreadFinal=labBranchSpread(holds,[route,wrong.path],HEIGHT);
   return {primary:route,wrong:wrong.path,before,placement,details:{kind:'dead-end',correctSide,wrongSide,cutoff,bodySeparation:separation,endpoint,
    search:{transitions:wrong.transitions,expanded:wrong.expanded,limit:wrong.limit,maxMoves:wrong.maxMoves,beamWidth:wrong.beamWidth},

@@ -8,7 +8,18 @@ assert(files.indexOf('skeleton.js')>files.indexOf('js/main.js'),'Skeleton boot m
 // Native-function fixture, like the original routes test. The globalThis parameter
 // is a fresh isolated object: bootstrap cannot replace Node global storage/network.
 // Omit only the large audio data bundle; sound semantics are covered separately.
-const source=files.filter(f=>f!=='audio-bundle.js').map(f=>fs.readFileSync(path.join(root,f),'utf8')).join('\n');
+// Capture pre-nudge holds without altering the engine's candidate or replay logic.
+const densityCapture=`
+let labTestDensityBefore=null;
+if(typeof labNudgeBranchScatter==='function'){
+ const nudge=labNudgeBranchScatter;
+ labNudgeBranchScatter=function(...args){labTestDensityBefore=[...holds];return nudge(...args);};
+}
+`;
+const source=files.filter(f=>f!=='audio-bundle.js').map(f=>{
+ const text=fs.readFileSync(path.join(root,f),'utf8');
+ return f==='skeleton.js'?text.replace(/\nlabBootSkeleton\(\);\s*$/,densityCapture+'\nlabBootSkeleton();'):text;
+}).join('\n');
 const environment=`
 let clock=2000;const performance={now:()=>clock};
 const elements={};const document={getElementById(id){return elements[id] ||= {style:{},events:{},classList:{toggle(){}},focus(){},setAttribute(){},removeAttribute(){},showModal(){this.open=true},close(){this.open=false},addEventListener(k,f){this.events[k]=f},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){}}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}}}};
@@ -112,6 +123,25 @@ function labTestPlay(alternative=false){return labTestTouchReplay(alternative?la
 return {
  fingerprint:labTestFingerprint,validate:labTestValidate,play:labTestPlay,
  playPartial(undoLast=true){return labTestTouchReplay(labSkeletonReport.branchRoute,{expectClear:false,undoLast});},
+ densityBefore(){return JSON.parse(JSON.stringify(labTestDensityBefore));},
+ verifyDensityRemovalReplays(){
+  const saved=holds,wrong=labSkeletonReport.branchRoute;
+  try{holds=[...labTestDensityBefore];for(const id of labSkeletonReport.placement.densityBias.removedIds){
+   holds=holds.filter(h=>h.id!==id);
+   assert(samePairRoute(route,replayRoute(route)),'every accepted removal preserves the exact primary contacts');
+   assert(samePairRoute(wrong,labReplayPartial(wrong)),'every accepted removal preserves the exact wrong-path contacts');
+  }}finally{holds=saved;}
+ },
+ rejectDensityReplay(kind){
+  const saved={holds,densityStats,replayRoute,labReplayPartial,before:labTestDensityBefore};
+  try{
+   holds=[...labTestDensityBefore];densityStats=JSON.parse(JSON.stringify(densityStats));
+   if(kind==='primary')replayRoute=()=>null;else labReplayPartial=()=>null;
+   const before=JSON.stringify(holds),bias=labNudgeBranchScatter(labSkeletonReport.branchDetails.correctSide,labSkeletonReport.branchRoute,labSkeletonConfig.seed,labSkeletonReport.branchDetails.cutoff);
+   assert(bias.target>0&&bias.eligibleIds.length>0);assert.equal(bias.removedIds.length,0,'failed '+kind+' replay rejects every candidate');
+   assert.equal(bias.replayRejectedIds.length,bias.eligibleIds.length);assert.equal(JSON.stringify(holds),before,'rejected candidates restore original holds');
+  }finally{holds=saved.holds;densityStats=saved.densityStats;replayRoute=saved.replayRoute;labReplayPartial=saved.labReplayPartial;labTestDensityBefore=saved.before;}
+ },
  straightDirection:labStraightDirection,
  reset(){reset(1);},retry(){ui.retry.onclick();},next(){ui.next.onclick();},back(){returnFromStage();},
  snapshot(){return {state,config:labSkeletonConfig,report:labSkeletonReport,error:elements.labGenerationError?.textContent||'',titleHidden:ui.titleScreen.hidden,mapHidden:ui.levelMap.hidden};},
@@ -152,11 +182,164 @@ function geometryMetrics(layout,report){
   centralScatterAboveOldGap:scatter.filter(h=>h.y<layout.HEIGHT-410&&h.x>68&&h.x<332).length};
 }
 
+// SHA-256 snapshots from the saved released v0.3.1 adapter; no runtime reference-file dependency.
+const meanderV6FinalHashes={
+ "short:0": "bd117800e4d6f8434ecfcf32d78b49f67bbd508fc1cbdef1dc8f582f9e98480c",
+ "short:42": "d9c0a5372130adc25763e88136cf79846eabfdb14d8e20ca5b43690e1cde4d09",
+ "short:2026": "c7789ba415ff8fd443ebd98a5e6ca7d4a2b36d9e59cc6a396836597e28d5bc9a",
+ "middle:0": "f69ff6c8e9867f258b16b52d3724cac867842e0947325406faaaa2c688bfb6fe",
+ "middle:42": "9963d15cc0dfc1c7061d8d83266643af6128f8a9bd209bc543be933a9146eaa5",
+ "middle:2026": "009fff2111f17fc6ccb6e87a05dbdae33ae23c713f58e24882ce8c492501ea73",
+ "long:0": "89c02894ae05ccfb391ac8019721c9e20cd647fb60908c88de390fa90553fa1e",
+ "long:42": "3bb4d291063c40869acc622830cbb769de9b950a055ec01b674c6707111ea571",
+ "long:2026": "dc09f1534c45b3b162f28e3b211abcab8da95c22952d3629954000e1cda86125"
+};
+const branchV6Hashes={
+ "short:0": {
+  "holds": "8f519ac2fdcb6b9c646301ad4f6497145fc6a7ebe914b30f32d7ae968c0f5f89",
+  "primary": "b33a5813a988da550d8ea85f9873ff9fba84baee17cca64b03d4b14827489a21",
+  "wrong": "4ad544d83792b61aeeb58d51e8f0dc4c2be83bc2be0dc6b95e88eef624c9fc8c",
+  "wrongHolds": "384beba7925be75908f711de658aa1d16d68d256208e8d1f6bc73d65d60cbc7d"
+ },
+ "short:42": {
+  "holds": "27886613d30277a83bb00060e7ad22d7be3d6f18225f2344ede31766ca59326f",
+  "primary": "b2603bf66e32d896ab5f09179ab4c1e8b248f8eb5c0e74d50438f241cca64080",
+  "wrong": "8d32af91ece8ea1194457552b422446e9262974a514fb5da62c93555d37355e2",
+  "wrongHolds": "885fa984e7fa18ddec706e2ffbab18ad421049b769ad574b6b90e2837fc1ee71"
+ },
+ "short:2026": {
+  "holds": "2703cecfe9925ae143cbff5e71e0daddc8a4a89b5b0de19a4538e2a9825306f8",
+  "primary": "8a52a2cf02117d64731ba651dfdd6cf5fbcf01d373b831c6c8061c86ff3f64d4",
+  "wrong": "db8fc2232f42bbeca74fe8587fe73192e0002c60e24790d1a8e3c968dc961bce",
+  "wrongHolds": "1293f3c10f60e347ab5775eb283f28d45fad0d1d548e7569b8694dc8eeb8956a"
+ },
+ "middle:0": {
+  "holds": "1b5cc9cc95dcb22ccfc02b540d233da0e0b9004e09eebd5162ca44d10d33419e",
+  "primary": "3fcbe7383a1aa921e7fc1a242b490ad80403011e75dc417bbecf429a3a95bc0f",
+  "wrong": "dece9188b16063d4b62df39a324963a7a33c64b8e09d2ee50c54609d1e77ede5",
+  "wrongHolds": "ea2551efe83816ba889c20a42d1a9e95bb685e0f467dc3d046dd4d485e22a081"
+ },
+ "middle:42": {
+  "holds": "bdd64d2774af8dd7a50cecf4b199244b19233e6b30e6567dc6b0055b73723615",
+  "primary": "7e7b2550f679d4bb4ee0407630f63ed361b6ebcd5234ebfd708845c94a36643d",
+  "wrong": "5f6f398a765202637d64c8909a7e4f75d5d12d6c84195ffe6404f2b70c1be330",
+  "wrongHolds": "33f80e1549ab6c23831e19c183e8bc7761720246ab7b22dd2df6d39799fccf35"
+ },
+ "middle:2026": {
+  "holds": "9e7ef0b4dd633a41452b537ca067da1d1eff18c6c84bcfc9b23bd5376bb65152",
+  "primary": "eb3b8785bc83fa6441178967430d11cfdc166afadddb38f8c2d09a7c2ff6d914",
+  "wrong": "7b44a073e74884da0bf8f6a413af106403a4b52bd997ceaaf6622eae4596fa8f",
+  "wrongHolds": "0696a2e484410d100d60af27d58c38703f63d22a2febbdb7ee284fa4c7ffc44b"
+ },
+ "long:0": {
+  "holds": "39a55a64c39739c24e304e551b4897463b50ed2a42310af572dbcd07639d6e7b",
+  "primary": "47bbf4eb78c4de063bc997296b425cf2affc0d7f3b9710cded51acfb927d0693",
+  "wrong": "083377256d229e4a296168a13aa0c92e69e84ab476a42e6eb4b34334a167cf94",
+  "wrongHolds": "a2bffcee0776fc189ebc6bdd67105009b391be9bac7f7c0167ebd57815cbf7ad"
+ },
+ "long:42": {
+  "holds": "ef92ce576803bce00857d224fe2f68147f7f43028124f0e3593b4da6ca881c0f",
+  "primary": "939cf93ba6c0791a1be2d3b8e8ba6cd296d1502536c8065f631e4678e82fcb76",
+  "wrong": "7f0981842741a7b9b2b17f12fc408340728bf6c320943ea620290cbfb1eb3991",
+  "wrongHolds": "4140ce306d1de05f3615f427c5f2592d1d1bece663786dee5e0582612b6d9b39"
+ },
+ "long:2026": {
+  "holds": "5063e68f87a63b1e8f7ca3207dd4d0c6e9805f6c6732d215d3b4b6e242cd4968",
+  "primary": "923595f7aad5c1bafe5100bbc0273c4270a221009276a9c2554657d287c73745",
+  "wrong": "15c7992966f6bfc1d6f8c13cc603f9726fd34a8c7bec2f84132c67e560c5abbc",
+  "wrongHolds": "7983c0d1c699334b8141b9dad7b3dea6b8382dc2e54fe7544c0a25ec0b30c7fa"
+ },
+ "short:1": {
+  "holds": "b5a1701471c206e867f3270671862a5183d6da9097028dc05d63d806fc59b5e0",
+  "primary": "61adf72f3b9d1791b6a514b4ed157b81ac74eeeef18ab8b38d5e50a1f77a1574",
+  "wrong": "b69ecc80ac910815d65b26c75b08ce0912b07feb59beb7c0ce0eab29e7d6c168",
+  "wrongHolds": "869c75a7ae28cf60e957368aea7098559a6c3e380d41124aa0547d6f8141d486"
+ },
+ "middle:1": {
+  "holds": "d547a0dc358d5e8cf849965e92979f8bfb43936143a4cdd05cb55c1cc9f63d19",
+  "primary": "556094df674e147757a5da47c164cfb7c820184e785a80aecdb763a847f7e75c",
+  "wrong": "fae1bf52af6e11fbf90340a8a50f131985c1a1b0cd7b7ea0fc7b18926d5b36af",
+  "wrongHolds": "2d87ef0b0f342568eaa163475e7afc965239b171af4e5e7eb1f0c1709f8b2fc7"
+ },
+ "long:1": {
+  "holds": "48661a4bdcc45cf882000ecfec542f63015c80fa4cfd22581f24e2ce29789232",
+  "primary": "79e63f4f6f2683330bfd4e8aaf0b8f7516bc563c82a179b3413c23fe97350058",
+  "wrong": "a24db806dfd2cddac8a77406c2ae68f543c155c5734fa3b974333ce9b178c277",
+  "wrongHolds": "0acc3bfabb233ed16f411a5b63b18992ee67e36726452d3ac79efa0e54163cf7"
+ },
+ "long:7": {
+  "holds": "8f9581a2d6543735f8ddfe4808df9eae2598cfc55b362150a8a60646a765a73b",
+  "primary": "9b283bbda0fb95f8443695e15d7a4670ba25146584e0229fb82792b3bd59f823",
+  "wrong": "5a580fc6115f1f91d38507656fa73b56d41952b10227314c69b462ff1c7c2c5e",
+  "wrongHolds": "5a31b60a045365da55169e2f6f07148d33e66f0de8f44860a06c3a7863e1452e"
+ },
+ "long:17": {
+  "holds": "0f22bd75ffc8d584688537c7aed25e2ff69839aeb91c85678e8276420b58fdf5",
+  "primary": "1c4a2b6fe57fc07a235438294aabf516ed8832982fdd4a5e7f83d33517cb21e6",
+  "wrong": "d55db45a565c62ca003e87ff11d0fe692a5cdf875875fe747feac34c9cc7db54",
+  "wrongHolds": "1f9b7953c6a290ca06c5c3d59cf31480e90140d028d42481b9a8c492e3f1cf3d"
+ },
+ "long:99": {
+  "holds": "4906c75f89d004057501d9a3db3ddc277bf96a02816c616f50a4a51e95e686bf",
+  "primary": "ee0755d4431bc492741ba91dc4691ff463114f41da03a546b295fb274ad9fdc1",
+  "wrong": "42340005150c965105d3527bae52ad86331c535468ec08df803d0a2d2d4d6de0",
+  "wrongHolds": "6606d2f39339172f5e7f5d5aaa088d13fe20dcb0b6fb88cdbde1b04ea4b7fdcc"
+ },
+ "long:2027": {
+  "holds": "6e069fa0fd3bb51dd496f5450377b458e8e5c3c755ced056d51f473b8d147cab",
+  "primary": "1cd5a6cb7ce39ca6764feff009fc139c74bb79cbb6ca070de44957cb7590fae3",
+  "wrong": "c3680a1f375f24fbe3ac939f47574c09139750360d0a7ae2796ff15c6a8bba3b",
+  "wrongHolds": "b00fb6c9a9c44e3372448ff49930e79ce382468334fcb58ddfbf85952fac990e"
+ }
+};
+const sha=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+
 const branchExtraSamples=[['short',1],['middle',1],... [1,7,17,99,2027].map(seed=>['long',seed])];
 const observedMetrics=[];
+function validateDensityBias(length,seed,api,layout,report){
+ const before=api.densityBefore(),bias=report.placement.densityBias,reference=branchV6Hashes[length+':'+seed],side=report.branchDetails.correctSide;
+ assert(bias&&before&&reference,'density bias and released reference are available');
+ assert.equal(sha(before),reference.holds,'pre-nudge holds exactly match v0.3.1');
+ assert.equal(sha(layout.route),reference.primary,'primary route unchanged from v0.3.1');
+ assert.equal(sha(report.branchRoute),reference.wrong,'wrong route unchanged from v0.3.1');
+ assert.equal(sha(layout.holds.filter(h=>-side*(h.x-200)>0)),reference.wrongHolds,'all wrong-side holds unchanged from v0.3.1');
+ const used=new Set([...layout.initialGrips.map(h=>h.id),...[layout.route,report.branchRoute].flatMap(route=>route.flatMap(p=>p.grips||[]))]);
+ assert.deepEqual(bias.mandatoryIds,[...used].sort((a,b)=>a-b),'mandatory contacts include initial and both route grip unions');
+ assert.deepEqual(bias.config,{targetFraction:.125,maxRemoved:2,minRetainedScatter:4,bandHeight:160,sideOffsetMin:26,sideOffsetMax:166,topMargin:100,startMargin:180});
+ assert.equal(bias.correctSide,side);assert.equal(bias.wrongSide,-side);
+ const isScatter=h=>h.row===null&&h.type==='normal',inSide=(h,s)=>s*(h.x-200)>=26&&s*(h.x-200)<=166;
+ const trueScatter=before.filter(h=>isScatter(h)&&inSide(h,side)),eligible=before.filter(h=>isScatter(h)&&!h.wide&&!used.has(h.id)&&inSide(h,side)&&h.y>=100&&h.y<=layout.HEIGHT-180);
+ assert.deepEqual(bias.eligibleIds,eligible.map(h=>h.id));
+ assert.equal(bias.trueScatterBefore,trueScatter.length);
+ assert.equal(bias.target,Math.min(2,Math.max(0,trueScatter.length-4),Math.round(.125*trueScatter.length)));
+ assert(bias.removedIds.length<=bias.target);assert.equal(new Set(bias.removedIds).size,bias.removedIds.length);
+ const removed=bias.removedIds.map(id=>before.find(h=>h.id===id));
+ assert(removed.every(h=>h&&eligible.some(e=>e.id===h.id)),'only eligible correct-side random holds can be removed');
+ assert.equal(new Set(removed.map(h=>Math.floor(h.y/160))).size,removed.length,'at most one removal per vertical band');
+ assert.deepEqual(layout.holds,before.filter(h=>!bias.removedIds.includes(h.id)),'no movement, insertion or additional removal is hidden');
+ assert(before.filter(h=>used.has(h.id)||h.type==='start'||h.type==='goal'||h.wide||h.y<100||h.y>layout.HEIGHT-180).every(h=>layout.holds.some(p=>p.id===h.id)),'route contacts, start/goal/wide, top and start zones are protected');
+ assert.equal(bias.trueScatterAfter,trueScatter.length-removed.length);assert(bias.trueScatterAfter>=Math.min(4,trueScatter.length));
+ const window={yMin:report.branchDetails.cutoff+40,yMax:layout.HEIGHT-180,sideOffsetMin:26,sideOffsetMax:166};window.area=(window.yMax-window.yMin)*140;
+ assert.deepEqual(bias.window,window,'comparison uses equal mirrored rectangles, not unequal full-height sides');
+ const segmentDistance=(h,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((h.x-a.x)*dx+(h.y-a.y)*dy)/(dx*dx+dy*dy||1)));return Math.hypot(h.x-a.x-t*dx,h.y-a.y-t*dy);};
+ const measure=holds=>[-1,1].map(s=>{
+  const route=s===side?layout.route:report.branchRoute,scatter=holds.filter(h=>isScatter(h)&&inSide(h,s)&&h.y>=window.yMin&&h.y<=window.yMax),extra=scatter.filter(h=>!used.has(h.id));
+  const distances=extra.map(h=>Math.min(...route.slice(1).map((p,i)=>segmentDistance(h,route[i],p))));
+  return {side:s,role:s===side?'correct':'wrong',scatter:scatter.length,extra:extra.length,extraPer10000:extra.length/window.area*10000,distanceBands:[distances.filter(d=>d<45).length,distances.filter(d=>d>=45&&d<90).length,distances.filter(d=>d>=90).length]};
+ });
+ assert.deepEqual(bias.before,measure(before));assert.deepEqual(bias.after,measure(layout.holds),'window metrics and own-route distance bins independently match');
+ const correctBefore=bias.before.find(s=>s.role==='correct'),correctAfter=bias.after.find(s=>s.role==='correct');
+ assert(correctAfter.scatter<=correctBefore.scatter&&correctAfter.extra<=correctBefore.extra);
+ assert.deepEqual(bias.after.find(s=>s.role==='wrong'),bias.before.find(s=>s.role==='wrong'));
+ api.verifyDensityRemovalReplays();
+ return {trueScatterBefore:bias.trueScatterBefore,trueScatterAfter:bias.trueScatterAfter,target:bias.target,removed:bias.removedIds.length,replayRejected:bias.replayRejectedIds.length,window,before:bias.before,after:bias.after};
+}
+
 function recordMetrics(type,length,seed,api,report){
- const metrics=geometryMetrics(api.finalLayout(),report);
+ const layout=api.finalLayout(),metrics=geometryMetrics(layout,report);let densityBias=null;
+ if(type==='meander')assert.equal(sha(layout),meanderV6FinalHashes[length+':'+seed],'meander final layout must remain exactly v0.3.1');
  if(type==='branch'){
+  densityBias=validateDensityBias(length,seed,api,layout,report);
   const {centralScatterAboveOldGap,...spread}=metrics;
   assert.deepEqual(report.placement.spreadFinal,spread,'reported final spread matches independent measurements');
   assert(metrics.sideStats.every(side=>side.count>0&&side.xRange>45),'retained original scatter spans both sides in two dimensions');
@@ -168,7 +351,7 @@ function recordMetrics(type,length,seed,api,report){
    assert(metrics.offRoute65>prior.off,'seed42 retains more off-route scatter than v0.3.0');
   }
  }
- const entry={type,length,seed,accepted:true,moves:report.movesAfter,wrongMoves:report.branchMoves,...metrics,placedHolds:report.placement.placedHolds,pruneRemoved:report.placement.pruneRemoved};
+ const entry={type,length,seed,accepted:true,moves:report.movesAfter,wrongMoves:report.branchMoves,...metrics,densityBias,placedHolds:report.placement.placedHolds,pruneRemoved:report.placement.pruneRemoved};
  observedMetrics.push(entry);return entry;
 }
 after(()=>{if(process.env.LAB_METRICS_PATH)fs.writeFileSync(process.env.LAB_METRICS_PATH,JSON.stringify(observedMetrics,null,2)+'\n');});
@@ -297,6 +480,11 @@ test('bounded extra branch samples retain determinism, 2D scatter, goal clear an
   const stopped=api.playPartial(true);assert.equal(stopped.state,'playing');assert(stopped.stamina>=1);accepted++;
  }
  assert.equal(accepted,7);t.diagnostic('7/7 additional branch configurations accepted: short/middle seed1; long seeds1,7,17,99,2027. All clear the real goal and replay wrong-path touch + single Undo; no return/crossover assertion.');
+});
+
+test('branch density nudge rejects candidates if either exact contact replay fails',{skip:!testTypes.includes('branch')},()=>{
+ const {api}=create(query('branch','short',42));api.validate();
+ api.rejectDensityReplay('primary');api.rejectDensityReplay('wrong');
 });
 
 test('invalid settings fail visibly without silently substituting a baseline or different skeleton',()=>{

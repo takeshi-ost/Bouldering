@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id);
 const home=$('home'),play=$('play'),host=$('frameHost'),dialog=$('confirmReset');
 const types={straight:'ストレート',meander:'蛇行',branch:'分岐'},lengths={short:'ショート',middle:'ミドル',long:'ロング'};
-const descriptions={straight:'ストレート：seed によって垂直・左斜め・右斜めを選び、ほぼ一方向に進む骨格です。',meander:'蛇行：従来の通常コースの折り返す骨格と配置処理を使います。',branch:'分岐：一方は本物のゴールへ、誤側は途中でホールドが途切れる枝へ。誤側の先端への到達を確認し、帰還できることや横移りできないことは生成条件にしません。偽ゴールは置きません。Undo はボディの短いタップで直前の1手だけです。'};
+const descriptions={straight:'ストレート：seed によって垂直・左斜め・右斜めを選び、ほぼ一方向に進む骨格です。',meander:'蛇行：従来の通常コースの折り返す骨格と配置処理を使います。',branch:'分岐：本物のゴールは1個だけ。誤側は途中でホールドが途切れる枝です。必要な足場を残し、ゴール側の余分な乱数ホールドだけ少し減らします。誤側は先端到達を確認し、帰還や横移り不能は生成条件にしません。偽ゴールなし。Undo はボディの短いタップで直前の1手だけです。'};
 let currentFrame=null,currentConfig=null,lastStatus='',returnFocus='launchLab';
 function error(message){$('configError').textContent=message;$('configError').hidden=!message;}
 function validateConfig(config){
