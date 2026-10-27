@@ -1,6 +1,6 @@
 {
   "name": "ascent-route-lab",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
   "description": "Original-generator based isolated skeleton comparison",
   "engines": {
