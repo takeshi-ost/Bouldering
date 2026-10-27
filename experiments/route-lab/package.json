@@ -1,0 +1,11 @@
+{
+  "name": "ascent-route-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Isolated environment only; no route generator implemented",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "node server.cjs",
+    "test": "node --test test.cjs"
+  }
+}

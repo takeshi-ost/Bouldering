@@ -1,0 +1,13 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #24392f; background: #f2f3ed; }
+body { margin: 0; padding: 48px 22px; }
+main { max-width: 640px; margin: 0 auto; }
+.eyebrow { color: #537160; letter-spacing: .14em; font-size: .8rem; font-weight: 700; }
+h1 { font-size: clamp(1.8rem, 5vw, 2.7rem); line-height: 1.35; margin: 28px 0; }
+p { line-height: 1.85; }
+.status { display: inline-block; padding: 5px 12px; background: #dfeade; border-radius: 6px; font-weight: 700; }
+dl { margin: 30px 0; }
+dl div { padding: 16px 0; border-top: 1px solid #cbd5c9; }
+dt { font-size: .8rem; font-weight: 700; color: #537160; margin-bottom: 6px; }
+dd { margin: 0; line-height: 1.6; }
+.note { color: #5a6c61; font-size: .85rem; }
+code { overflow-wrap: anywhere; }
