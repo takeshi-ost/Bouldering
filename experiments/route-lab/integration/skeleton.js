@@ -1,6 +1,6 @@
 'use strict';
 // Route Lab only. Original files are copied byte-for-byte; no movement rule is replaced.
-const LAB_SKELETON_VERSION='0.3.0';
+const LAB_SKELETON_VERSION='0.3.1';
 function labReadConfig(search) {
  const q=new URLSearchParams(search); if(!q.has('lab'))return null;
  if(q.get('lab')!=='1')throw Error('無効な試遊モードです。入口で選び直してください。');
@@ -96,6 +96,16 @@ function labPartialSearch(guide,{start=null,stance=null,limit=18000,maxMoves=45,
   return {path:best?.path||null,transitions:Math.min(transitions,limit),expanded,limit,maxMoves,beamWidth:12,retreatAllowance:forwardOnly?60:null,limitReached:transitions>=limit,found:false};
  }finally{committed=saved.committed;startGrips=saved.startGrips;}
 }
+function labBranchSpread(points,paths,height){
+ const segment=(p,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy,t=den?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/den,0,1):0;return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);};
+ const distanceToRoute=p=>Math.min(...paths.flatMap(path=>path.slice(1).map((q,i)=>segment(p,path[i],q))));
+ const scatter=points.filter(h=>h.row===null),distances=scatter.map(distanceToRoute).sort((a,b)=>a-b);
+ const near=points.filter(h=>distanceToRoute(h)<25).length;
+ return {holds:points.length,scatter:scatter.length,onRoute25:near,onRoute25Per100:near/(height/100),offRoute65:distances.filter(d=>d>=65).length,
+  scatterDistanceP50:distances.length?distances[Math.floor(distances.length*.5)]:null,scatterDistanceP90:distances.length?distances[Math.floor(distances.length*.9)]:null,
+  grid50x100Occupancy:new Set(points.map(h=>Math.floor(h.x/50)+','+Math.floor(h.y/100))).size,
+  sideStats:[-1,1].map(side=>{const xs=scatter.filter(h=>side*(h.x-200)>0).map(h=>h.x),mean=xs.reduce((a,b)=>a+b,0)/(xs.length||1);return {side,count:xs.length,xStd:Math.sqrt(xs.reduce((sum,x)=>sum+(x-mean)**2,0)/(xs.length||1)),xRange:xs.length?Math.max(...xs)-Math.min(...xs):0};})};
+}
 function labGenerateDeadEnd(config){
  const height={short:700,middle:1400,long:2100}[config.length],seed=config.seed;
  if(!height||!Number.isInteger(seed)||seed<0||seed>4294967295)throw Error('無効な分岐設定です。');
@@ -105,16 +115,15 @@ function labGenerateDeadEnd(config){
   level=1;difficulty=0;generatedCourse=null;
   const correct=labGenerateArm(height,seed,correctSide),wrongLayout=labGenerateArm(height,seed,wrongSide);
   HEIGHT=height;initialGrips=correct.initialGrips;densityStats={...correct.densityStats};
-  const cutoff=Math.max(160,height-600),gapTop=height-410;
+  const cutoff=Math.max(160,height-600);
   holds=[...correct.holds];
   for(const h of wrongLayout.holds){
-   if(h.type==='start'||holds.some(p=>distance(p,h)<15))continue;
+   if(h.type==='start'||holds.some(p=>distance(p,h)<52))continue;
    holds.push({...h,type:h.type==='goal'?'normal':h.type});
   }
   const mergedCount=holds.length;
-  // Explicit post-density fork mask: no newly placed lattice/lanes. Original
-  // irregular contacts are removed only to disconnect the two completed arms.
-  holds=holds.filter(h=>h.type==='start'||h.type==='goal'||!(h.y<gapTop&&h.x>68&&h.x<332));
+  // Keep the original 2D scatter; truncate only the wrong-side normal endpoint.
+  // No central strip is removed and no new lattice or hold placer is added.
   holds=holds.filter(h=>h.type==='goal'||!(wrongSide*(h.x-200)>20&&h.y<cutoff));
   holds.forEach((h,i)=>h.id=i);
   const filteredCount=holds.length;
@@ -122,7 +131,7 @@ function labGenerateDeadEnd(config){
    densityInitial:correct.densityStats.initialTotal+wrongLayout.densityStats.initialTotal,
    densityRemoved:correct.densityStats.iterations+wrongLayout.densityStats.iterations,
    sourceHoldCounts:[correct.holds.length,wrongLayout.holds.length],postFilterRemoved:mergedCount-filteredCount,
-   layoutFingerprint:holds.map(h=>[h.id,h.x,h.y,h.type,h.row]),geometryFilter:{gapTop,left:68,right:332,wrongCutoff:cutoff}};
+   layoutFingerprint:holds.map(h=>[h.id,h.x,h.y,h.type,h.row]),mergeMinSpacing:52,geometryFilter:{centralGapApplied:false,wrongSide,wrongCutoff:cutoff}};
   route=correct.route;assignWideHolds(route);
   const primary=solveRoute(correct.route,60);
   if(!primary)throw Error('このseedでは左右分岐の正解経路を検証できませんでした。別seedを試してください。');
@@ -130,33 +139,30 @@ function labGenerateDeadEnd(config){
   wrongGuide.push({x:200+wrongSide*140,y:cutoff+60});
   const wrong=labPartialSearch(wrongGuide,{stop:(p,contacts,path)=>wrongSide*(p.x-200)>90&&p.y<=cutoff+75&&path.length>=4});
   if(!wrong.found||wrong.limitReached)throw Error('このseedでは通常ホールドの行き止まりへ到達する経路を検証できませんでした。');
-  route=primary;const originalSame=samePairRoute;
-  try{samePairRoute=(a,b)=>originalSame(a,b)&&originalSame(wrong.path,labReplayPartial(wrong.path));pruneUnusedHolds();}
+  route=primary;const labPointSegment=(p,a,b)=>{const dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy,t=den?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/den,0,1):0;return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);};
+  const labRouteDistance=h=>Math.min(...[primary,wrong.path].flatMap(path=>path.slice(1).map((q,i)=>labPointSegment(h,path[i],q))));
+  const buckets=new Set(),protectedScatter=new Set();
+  const candidates=holds.filter(h=>h.row===null&&labRouteDistance(h)>=45).map(h=>({h,key:mulberry32(seed^0x77F0^h.id)()})).sort((a,b)=>a.key-b.key||a.h.id-b.h.id);
+  for(const {h} of candidates){const key=(h.x<200?'L':'R')+Math.floor(h.y/160);if(buckets.has(key))continue;buckets.add(key);protectedScatter.add(h.id);}
+  placement.protectedScatterIds=[...protectedScatter].sort((a,b)=>a-b);
+  placement.protectedScatterCount=protectedScatter.size;
+  placement.scatterRetention={source:'original-row-null',minimumBodyRouteDistance:45,bandHeight:160,maxPerSidePerBand:1};
+  placement.spreadBefore=labBranchSpread(holds,[primary,wrong.path],HEIGHT);
+  const originalSame=samePairRoute;
+  try{samePairRoute=(a,b)=>originalSame(a,b)&&[...protectedScatter].every(id=>holds.some(h=>h.id===id))&&originalSame(wrong.path,labReplayPartial(wrong.path));pruneUnusedHolds();}
   finally{samePairRoute=originalSame;}
   const before=route.length-1;route=optimizeRoute(route);densityStats.fixedSupports=2;updateStageDensity();
   if(!validateRouteBudget(route)||!samePairRoute(wrong.path,labReplayPartial(wrong.path)))throw Error('分岐の最終接触検証に失敗しました。');
   const endpoint=wrong.path.at(-1),stance=endpoint.grips.map(id=>holds.find(h=>h.id===id));
   if(stance.some(h=>h.type==='goal'))throw Error('行き止まりにゴールが混入しました。');
-  const escape=labPartialSearch([...route,{x:200+correctSide*140,y:Math.max(100,endpoint.y-160)}],
-   {start:endpoint,stance,limit:12000,maxMoves:12,forwardOnly:true,
-    stop:(p,contacts)=>correctSide*(p.x-200)>40||p.y<endpoint.y-60||bothHandsOnGoal(contacts)});
-  if(escape.found||escape.limitReached)throw Error(escape.found?'行き止まりから先へ抜けられる経路が見つかりました。別seedを試してください。':'行き止まりの限定探索が上限に達しました。別seedを試してください。');
-  let retreat=null;const saved={committed,startGrips};committed=endpoint;startGrips=stance;
-  try{
-   for(const p of [wrong.path.at(-2),{x:endpoint.x,y:endpoint.y+30},{x:endpoint.x,y:endpoint.y+60},{x:endpoint.x-30,y:endpoint.y+60},{x:endpoint.x+30,y:endpoint.y+60}]){
-    if(p.y<=endpoint.y)continue;const anchor=selectAnchor(p.x-endpoint.x,p.y-endpoint.y);
-    if(!supportsReachable(p,anchor)||supportMotionFraction(endpoint,p,anchor)<1-1e-9)continue;
-    const contacts=attachMoving(p,anchor);
-    if(contacts?.every(Boolean)&&!sameContacts(contacts,stance)){retreat={x:p.x,y:p.y,anchor,grips:contacts.map(h=>h.id)};break;}
-   }
-  }finally{committed=saved.committed;startGrips=saved.startGrips;}
-  if(!retreat)throw Error('行き止まりから戻る1手を検証できませんでした。');
+  // Endpoint reachability is validated. Returning or crossing is not an admission rule.
   const separation=correctSide<0?endpoint.x-Math.min(...route.map(p=>p.x)):Math.max(...route.map(p=>p.x))-endpoint.x;
   if(separation<200)throw Error('左右の経路の間隔が不足しています。');
   placement.pruneRemoved=filteredCount-holds.length;
-  return {primary:route,wrong:wrong.path,before,placement,details:{kind:'dead-end',correctSide,wrongSide,cutoff,gapTop,bodySeparation:separation,endpoint,retreat,
+  placement.spreadFinal=labBranchSpread(holds,[route,wrong.path],HEIGHT);
+  return {primary:route,wrong:wrong.path,before,placement,details:{kind:'dead-end',correctSide,wrongSide,cutoff,bodySeparation:separation,endpoint,
    search:{transitions:wrong.transitions,expanded:wrong.expanded,limit:wrong.limit,maxMoves:wrong.maxMoves,beamWidth:wrong.beamWidth},
-   deadEnd:{scope:'bounded-candidate-search',found:escape.found,limitReached:escape.limitReached,transitions:escape.transitions,expanded:escape.expanded,limit:escape.limit,maxMoves:escape.maxMoves,beamWidth:escape.beamWidth,retreatAllowance:60,forwardThreshold:60,crossCenterOffset:40}}};
+   deadEnd:{scope:'endpoint-only',returnRequired:false,crossoverExcluded:false}}};
  }finally{courseSeed=savedSeed;}
 }
 
@@ -164,7 +170,7 @@ function labGenerateBranchSkeleton(config) {
  const branch=labGenerateDeadEnd(config);
  finalizeCourseGeneration('basic');
  if(!validateRouteBudget(route)||!samePairRoute(branch.wrong,labReplayPartial(branch.wrong)))throw Error('分岐の最終配置検証に失敗しました。別seedを試してください。');
- if(routeStamina(route)<=branch.wrong.length)throw Error('行き止まりから戻るスタミナが不足する配置です。別seedを試してください。');
+ if(routeStamina(route)<branch.wrong.length)throw Error('誤側の先端まで進むスタミナが不足する配置です。別seedを試してください。');
  labSkeletonReport={type:config.type,length:config.length,seed:config.seed,version:LAB_SKELETON_VERSION,height:HEIGHT,movesBefore:branch.before,movesAfter:routeConsumption(route),budget:routeStamina(route),holds:holds.length,validated:true,search:'bounded',optimizationLimit:ROUTE_OPTIMIZATION_CONFIG.maxTransitions,
   orientation:null,routeSpan:Math.max(...route.map(p=>p.x))-Math.min(...route.map(p=>p.x)),travelX:route.slice(1).reduce((sum,p,i)=>sum+Math.abs(p.x-route[i].x),0),branchMoves:branch.wrong.length-1,branchRoute:branch.wrong,branchDetails:branch.details,optimizationAccepted:true,placement:branch.placement};
  return labSkeletonReport;
@@ -213,7 +219,7 @@ function labBootSkeleton() {
  const originalDrawPath=drawPath;
  drawPath=function(){
   const previous=debugMode;if(labSkeletonConfig?.guide)debugMode=true;
-  try {originalDrawPath();if(labSkeletonConfig?.guide&&labSkeletonReport?.branchRoute){ctx.save();ctx.setLineDash([4,7]);const path=labSkeletonReport.branchRoute;for(let i=1;i<path.length;i++)line(path[i-1],path[i],'#b47326bd',2.5);const end=path.at(-1);ctx.setLineDash([]);line({x:end.x-7,y:end.y},{x:end.x+7,y:end.y},'#a26925',2);ctx.font='bold 11px system-ui';ctx.textAlign=end.x>W/2?'right':'left';ctx.fillStyle='#87581e';ctx.fillText('行止まり',end.x+(end.x>W/2?-12:12),end.y-8);ctx.restore();}}
+  try {originalDrawPath();if(labSkeletonConfig?.guide&&labSkeletonReport?.branchRoute){ctx.save();ctx.setLineDash([4,7]);const path=labSkeletonReport.branchRoute;for(let i=1;i<path.length;i++)line(path[i-1],path[i],'#b47326bd',2.5);const end=path.at(-1);ctx.setLineDash([]);line({x:end.x-7,y:end.y},{x:end.x+7,y:end.y},'#a26925',2);ctx.font='bold 11px system-ui';ctx.textAlign=end.x>W/2?'right':'left';ctx.fillStyle='#87581e';ctx.fillText('枝の先端',end.x+(end.x>W/2?-12:12),end.y-8);ctx.restore();}}
   finally{debugMode=previous;}
  };
  const originalUpdate=updateUI;
@@ -230,7 +236,7 @@ function labBootSkeleton() {
 }
 function labReportReady(){
  const r=labSkeletonReport;if(!r)return;
- labPostStatus(`従来配置 ${r.placement.placedHolds}→${r.holds}個 · 経路検証済み · ${r.movesBefore}→${r.movesAfter}手（限定探索） · スタミナ${r.budget}${r.orientation?' · '+({left:'左斜め',vertical:'垂直',right:'右斜め'})[r.orientation]:''}${r.branchMoves?` · 行止まり側${r.branchMoves}手（横断なし：限定検査）`:''}`);
+ labPostStatus(`従来配置 ${r.placement.placedHolds}→${r.holds}個 · 経路検証済み · ${r.movesBefore}→${r.movesAfter}手（限定探索） · スタミナ${r.budget}${r.orientation?' · '+({left:'左斜め',vertical:'垂直',right:'右斜め'})[r.orientation]:''}${r.branchMoves?` · 誤側先端${r.branchMoves}手（帰還判定なし）`:''}`);
 }
 function labFailSkeleton(error){
  titlePreparation++;titleReady=false;cameraIntro=null;state='choosing';

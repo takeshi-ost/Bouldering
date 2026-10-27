@@ -1,5 +1,5 @@
 'use strict';
-const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {test,after}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),{createHash}=require('node:crypto');
 const root=path.join(__dirname,'../public/game');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const files=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>m[1]);
@@ -55,23 +55,21 @@ function labTestValidate(){
   assert(details.wrongSide*(endpoint.x-W/2)>90,'wrong endpoint is on the opposite lateral arm');
   assert(Math.abs(goal.x-endpoint.x)>200,'branch is a broad left/right split, not two nearby parallel routes');
   assert(details.bodySeparation>=200);
-  const filter=labSkeletonReport.placement.geometryFilter;
-  assert.equal(filter.left,68);assert.equal(filter.right,332);
-  assert.equal(filter.gapTop,details.gapTop);assert.equal(filter.wrongCutoff,details.cutoff);
-  assert.equal(details.cutoff,Math.max(160,HEIGHT-600));
-  assert.equal(details.gapTop,HEIGHT-410);
-  assert(holds.every(h=>h.type==='start'||h.type==='goal'||!(h.y<details.gapTop&&h.x>filter.left&&h.x<filter.right)),'no center bridge remains above the visible fork');
-  assert(holds.every(h=>h.type==='goal'||!(details.wrongSide*(h.x-W/2)>20&&h.y<details.cutoff)),'wrong arm really ends below the real goal');
-  assert(labSkeletonReport.placement.postFilterRemoved>0,'branch geometry filter is explicit and exercised');
+  const placement=labSkeletonReport.placement,filter=placement.geometryFilter;
+  assert.equal(filter.centralGapApplied,false,'the old full-height narrow two-arm mask stays removed');
+  assert.equal(filter.wrongSide,details.wrongSide);assert.equal(placement.mergeMinSpacing,52);
+  assert.deepEqual(placement.scatterRetention,{source:'original-row-null',minimumBodyRouteDistance:45,bandHeight:160,maxPerSidePerBand:1});
+  assert.equal(filter.wrongCutoff,details.cutoff);assert.equal(details.cutoff,Math.max(160,HEIGHT-600));
+  assert(holds.every(h=>h.type==='goal'||!(details.wrongSide*(h.x-W/2)>20&&h.y<details.cutoff)),'wrong arm ends below the real goal');
+  assert(placement.postFilterRemoved>0,'wrong-arm cutoff is explicit and exercised');
   assert.equal(details.search.limit,18000);assert.equal(details.search.maxMoves,45);assert.equal(details.search.beamWidth,12);
-  assert(details.search.transitions>0&&details.search.transitions<=details.search.limit);
-  const proof=details.deadEnd;
-  assert.equal(proof.scope,'bounded-candidate-search');assert.equal(proof.found,false);assert.equal(proof.limitReached,false);
-  assert.equal(proof.limit,12000);assert.equal(proof.maxMoves,12);assert.equal(proof.beamWidth,12);
-  assert.equal(proof.retreatAllowance,60);assert.equal(proof.forwardThreshold,60);assert.equal(proof.crossCenterOffset,40);
-  assert(proof.transitions>0&&proof.transitions<proof.limit,'bounded candidate search finished without silently hitting its transition cap');
-  assert(proof.expanded>0,'dead-end check inspects successor candidates, not just endpoint decoration');
-  assert(details.retreat&&details.retreat.y>endpoint.y,'one physical downward retreat step is supplied');
+  assert(details.search.transitions>0&&details.search.transitions<=details.search.limit,'wrong endpoint reachability search is bounded');
+  assert.deepEqual(details.deadEnd,{scope:'endpoint-only',returnRequired:false,crossoverExcluded:false},'endpoint arrival is tested, not impossibility of crossover or a return route');
+  assert(placement.protectedScatterIds.length>0,'retain a sparse subset of original off-route scatter');
+  assert.equal(placement.protectedScatterCount,placement.protectedScatterIds.length);
+  assert(placement.protectedScatterIds.every(id=>holds.some(h=>h.id===id&&h.row===null)),'all protected scatter remains ordinary original scatter after pruning');
+  assert(holds.filter(h=>h.row===null).length<placement.scatteredHolds,'keep original pruning active instead of retaining all original scatter');
+
  }
 
  return JSON.parse(JSON.stringify(labSkeletonReport));
@@ -114,7 +112,6 @@ function labTestPlay(alternative=false){return labTestTouchReplay(alternative?la
 return {
  fingerprint:labTestFingerprint,validate:labTestValidate,play:labTestPlay,
  playPartial(undoLast=true){return labTestTouchReplay(labSkeletonReport.branchRoute,{expectClear:false,undoLast});},
- retreat(){const details=labSkeletonReport.branchDetails;assert(details?.retreat);return labTestTouchReplay([details.endpoint,details.retreat],{expectClear:false});},
  straightDirection:labStraightDirection,
  reset(){reset(1);},retry(){ui.retry.onclick();},next(){ui.next.onclick();},back(){returnFromStage();},
  snapshot(){return {state,config:labSkeletonConfig,report:labSkeletonReport,error:elements.labGenerationError?.textContent||'',titleHidden:ui.titleScreen.hidden,mapHidden:ui.levelMap.hidden};},
@@ -137,6 +134,45 @@ function create(search=''){
 }
 const query=(type,length,seed,guide=false)=>'?lab=1&type='+type+'&length='+length+'&seed='+seed+(guide?'&guide=1':'');
 
+function geometryMetrics(layout,report){
+ const paths=[layout.route,report.branchRoute].filter(Boolean),scatter=layout.holds.filter(h=>h.row===null);
+ const segmentDistance=(p,a,b)=>{
+  const dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy,t=den?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/den)):0;
+  return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);
+ };
+ const distanceToRoute=h=>Math.min(...paths.flatMap(route=>route.slice(1).map((p,i)=>segmentDistance(h,route[i],p))));
+ const distances=scatter.map(distanceToRoute).sort((a,b)=>a-b),near=layout.holds.filter(h=>distanceToRoute(h)<25).length;
+ const sideStats=[-1,1].map(side=>{
+  const xs=scatter.filter(h=>side*(h.x-200)>0).map(h=>h.x),mean=xs.reduce((sum,x)=>sum+x,0)/(xs.length||1);
+  return {side,count:xs.length,xStd:Math.sqrt(xs.reduce((sum,x)=>sum+(x-mean)**2,0)/(xs.length||1)),xRange:xs.length?Math.max(...xs)-Math.min(...xs):0};
+ });
+ return {holds:layout.holds.length,scatter:scatter.length,onRoute25:near,onRoute25Per100:near/(layout.HEIGHT/100),offRoute65:distances.filter(d=>d>=65).length,
+  scatterDistanceP50:distances[Math.floor(distances.length*.5)],scatterDistanceP90:distances[Math.floor(distances.length*.9)],sideStats,
+  grid50x100Occupancy:new Set(layout.holds.map(h=>Math.floor(h.x/50)+','+Math.floor(h.y/100))).size,
+  centralScatterAboveOldGap:scatter.filter(h=>h.y<layout.HEIGHT-410&&h.x>68&&h.x<332).length};
+}
+
+const branchExtraSamples=[['short',1],['middle',1],... [1,7,17,99,2027].map(seed=>['long',seed])];
+const observedMetrics=[];
+function recordMetrics(type,length,seed,api,report){
+ const metrics=geometryMetrics(api.finalLayout(),report);
+ if(type==='branch'){
+  const {centralScatterAboveOldGap,...spread}=metrics;
+  assert.deepEqual(report.placement.spreadFinal,spread,'reported final spread matches independent measurements');
+  assert(metrics.sideStats.every(side=>side.count>0&&side.xRange>45),'retained original scatter spans both sides in two dimensions');
+  assert(metrics.offRoute65>0,'retained original scatter extends outside the path neighborhood');
+  assert(centralScatterAboveOldGap>0,'full-height central scatter is not silently removed again');
+  if(seed===42){
+   const prior={short:{near:10,off:4},middle:{near:29,off:4},long:{near:45,off:1}}[length];
+   assert(metrics.onRoute25<prior.near,'seed42 has fewer tightly route-adjacent holds than v0.3.0');
+   assert(metrics.offRoute65>prior.off,'seed42 retains more off-route scatter than v0.3.0');
+  }
+ }
+ const entry={type,length,seed,accepted:true,moves:report.movesAfter,wrongMoves:report.branchMoves,...metrics,placedHolds:report.placement.placedHolds,pruneRemoved:report.placement.pruneRemoved};
+ observedMetrics.push(entry);return entry;
+}
+after(()=>{if(process.env.LAB_METRICS_PATH)fs.writeFileSync(process.env.LAB_METRICS_PATH,JSON.stringify(observedMetrics,null,2)+'\n');});
+
 const testTypes=process.env.LAB_TEST_TYPES?process.env.LAB_TEST_TYPES.split(','):['straight','meander','branch'];
 assert(testTypes.every(type=>['straight','meander','branch'].includes(type)));
 
@@ -155,12 +191,28 @@ test('straight short seed 1 final result exactly matches pristine original pipel
  assert.deepEqual(trial,baseline,'original prepareStage → optimizeRoute → finalizeCourseGeneration basic equivalence');
 });
 
+// Captured from the released v0.3.0/v5 final pipeline before the v0.3.1 branch changes.
+// Hash all holds, contact route, height, initial grips, density stats and generated course,
+// not the report/UI metadata: straight geometry must stay byte-for-byte unchanged.
+const straightV5FinalHashes={
+ "short:0": "0735e07a0d023625ae0c5efd6d6caf91996a6b1ba30e86674bee3490bbe32e63",
+ "short:1": "acd018e06233909a9e168b3539a61434877e99e80a07581c270b8b045f117094",
+ "short:42": "2b641195596387d5257eec9f982d5467bc93631f05238598928e53d0a0be1f76",
+ "middle:0": "6a149a4931133254de3ec5cbef5b8eb6549992812375840ec87f77f923207517",
+ "middle:1": "dc38c222317055c846d3365db8898808383cedc9611d178844411e3fcfa537e1",
+ "middle:42": "6a25711071387ef702c8d885556c7850b294aee381531064826a2c4ce1dae067",
+ "long:0": "b03537f48c55901efd1cc278f9fe63ccd629e35e6c38a9c54b0000aef4e96964",
+ "long:1": "5202ebadebaab435ba31b2b2227335a7e3a03d725a3b41b07cce03c1103aa069",
+ "long:42": "cf8b55ed8e71743613cfe7192df959b30f05d378c8adb9aa2b96d546135de807"
+};
+
 test('straight seed selects vertical or genuinely diagonal guides and moves the real goal laterally',()=>{
  const directions=new Map([[0,{sign:1,name:'right'}],[1,{sign:0,name:'vertical'}],[42,{sign:-1,name:'left'}]]);
  for(const length of ['short','middle','long']){
   const goals=new Map();
   for(const [seed,expected] of directions){
    const {api}=create(query('straight',length,seed)),report=api.validate();
+   assert.equal(createHash('sha256').update(JSON.stringify(api.finalLayout())).digest('hex'),straightV5FinalHashes[length+':'+seed],'straight final geometry must retain v0.3.0 hash for '+length+' seed '+seed);
    assert.equal(api.straightDirection(seed),expected.sign);assert.equal(report.orientation,expected.name);
    const raw=api.rawLayout({type:'straight',length,seed}),first=raw.route[0],last=raw.route.at(-1);
    const dx=last.x-first.x,dy=last.y-first.y,goal=raw.holds.find(h=>h.type==='goal');
@@ -200,16 +252,10 @@ test('seed materially varies scattered geometry rather than translating a regula
 });
 
 test('seeded skeletons are deterministic, contact-valid and clear through actual touch handlers',t=>{
- const comparisons=new Map();let clears=0,rejected=0;
+ const comparisons=new Map();let clears=0;
  for(const type of testTypes)for(const length of ['short','middle','long'])for(const seed of (type==='straight'?[0,1,42]:[0,42,2026])){
   const {api,messages}=create(query(type,length,seed));
-  if(type==='branch'&&((length==='middle'&&seed===0)||(length==='long'&&seed===2026))){
-   const snapshot=api.snapshot();assert.equal(snapshot.state,'choosing');assert.equal(snapshot.report,null);
-   assert(snapshot.error.includes('生成できませんでした'),'unsupported seed fails visibly');assert(snapshot.titleHidden&&snapshot.mapHidden);
-   assert.equal(snapshot.config.type,'branch');assert.equal(snapshot.config.length,length);assert.equal(snapshot.config.seed,seed);
-   assert(!messages.some(m=>m.value.text.includes('経路検証済み')),'failed seed does not silently become a baseline or different branch');rejected++;continue;
-  }
-  const report=api.validate(),fingerprint=api.fingerprint();
+  const report=api.validate(),fingerprint=api.fingerprint();recordMetrics(type,length,seed,api,report);
   api.reset();assert.equal(api.fingerprint(),fingerprint,'same configuration must reproduce holds, route and report');
   api.play();clears++;
   comparisons.set(length+':'+seed+':'+type,report);
@@ -220,26 +266,37 @@ test('seeded skeletons are deterministic, contact-valid and clear through actual
   const straight=comparisons.get(length+':'+seed+':straight'),meander=comparisons.get(length+':'+seed+':meander');
   if(straight&&meander)assert(meander.travelX>straight.travelX+50,'meander must produce genuinely greater lateral travel');
  }
- assert.equal(rejected,testTypes.includes('branch')?2:0);assert.equal(clears,testTypes.length*9-rejected);
+ assert.equal(clears,testTypes.length*9);
  assert([...comparisons.values()].some(r=>r.placement.densityRemoved>0),'representative samples exercise original density convergence removals');
  assert([...comparisons.values()].some(r=>r.placement.pruneRemoved>0),'representative samples exercise original contact-preserving pruning');
- t.diagnostic(clears+' configurations cleared through real touch handlers after deterministic reset; '+rejected+' unsupported branch seeds visibly rejected');
+ t.diagnostic(clears+' primary configurations cleared through real touch handlers after deterministic reset; 0 rejected (includes previously rejected branch middle/0 and long/2026)');
 });
 
-test('wrong branch stops without clearing; one-step Undo and physical retreat work through touch handlers',{skip:!testTypes.includes('branch')},()=>{
+test('wrong branch stops without clearing and original one-step Undo works without requiring escape or retreat',{skip:!testTypes.includes('branch')},()=>{
  let checked=0;
  for(const length of ['short','middle','long'])for(const seed of [0,42,2026]){
-  if((length==='middle'&&seed===0)||(length==='long'&&seed===2026))continue;
   const {api}=create(query('branch',length,seed));api.validate();const fingerprint=api.fingerprint();
-  const stopped=api.playPartial(true);assert.equal(stopped.state,'playing');
-  for(const restart of ['retry','next','back']){api[restart]();api.validate();assert.equal(api.fingerprint(),fingerprint,restart+' preserves seed, type, length and geometry');}
-  api.cancelTouch();api.validate();
-  api.playPartial(false);const retreated=api.retreat();assert.equal(retreated.state,'playing');
-  assert(retreated.body.y>stopped.body.y,'physical retreat moves back downward from the wrong endpoint');
-  assert.equal(retreated.moves,stopped.moves+1,'physical retreat is an ordinary paid move, not an extra Undo');
-  assert.equal(retreated.stamina,stopped.stamina-1);checked++;
+  const stopped=api.playPartial(true);assert.equal(stopped.state,'playing');assert(stopped.stamina>=1,'wrong endpoint remains playable');
+  if(seed===42){
+   for(const restart of ['retry','next','back']){api[restart]();api.validate();assert.equal(api.fingerprint(),fingerprint,restart+' preserves seed, type, length and geometry');}
+   api.cancelTouch();api.validate();
+  }
+  checked++;
  }
- assert.equal(checked,7,'all accepted branch matrix samples exercised wrong-path input, Undo and retreat');
+ assert.equal(checked,9,'all primary branch samples exercised wrong-path touch and single-step Undo');
+});
+
+test('bounded extra branch samples retain determinism, 2D scatter, goal clear and wrong-path Undo',{skip:!testTypes.includes('branch')},t=>{
+ let accepted=0;
+ for(const [length,seed] of branchExtraSamples){
+  const {api}=create(query('branch',length,seed)),report=api.validate(),fingerprint=api.fingerprint();
+  const metrics=recordMetrics('branch',length,seed,api,report);
+  assert(metrics.sideStats.every(side=>side.count>0&&side.xRange>45),'retained scatter spans each side in two dimensions');
+  assert(metrics.offRoute65>0,'some original scatter remains outside the path neighborhood');
+  api.play();api.retry();api.validate();assert.equal(api.fingerprint(),fingerprint,'extra seed retry is deterministic');
+  const stopped=api.playPartial(true);assert.equal(stopped.state,'playing');assert(stopped.stamina>=1);accepted++;
+ }
+ assert.equal(accepted,7);t.diagnostic('7/7 additional branch configurations accepted: short/middle seed1; long seeds1,7,17,99,2027. All clear the real goal and replay wrong-path touch + single Undo; no return/crossover assertion.');
 });
 
 test('invalid settings fail visibly without silently substituting a baseline or different skeleton',()=>{

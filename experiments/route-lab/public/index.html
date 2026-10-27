@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="./styles.css"><script src="./shell.js" defer></script>
 </head><body>
 <main id="home">
-<p class="eyebrow">ASCENT / ROUTE LAB 0.3.0</p>
+<p class="eyebrow">ASCENT / ROUTE LAB 0.3.1</p>
 <h1>ひとつの骨格を、<br>登って比べる。</h1>
 <p class="status">従来式ベースの骨格比較 · 本人限定</p>
 <p>従来式のホールド配置・乱数追加・密度調整・剪定を使い、ストレート・蛇行・分岐を比較します。まずは<strong>ハート・尖ホールドなし</strong>で形の違いを比較。複数区間の組み合わせはまだ入れていません。</p>
@@ -21,13 +21,13 @@
 <div class="seed-row"><input id="seed" name="seed" type="text" inputmode="numeric" pattern="[0-9]+" value="42" maxlength="10" autocomplete="off" spellcheck="false" aria-describedby="seedHelp configError"><button id="newSeed" type="button">別の seed</button></div>
 <p id="seedHelp" class="note">0〜4294967295。骨格を切り替えても seed と長さは維持します。同じ seed でも難しさが等しくなるわけではありません。</p>
 <label class="check"><input id="routeGuide" type="checkbox"> 検証ルートの線を表示して開始</label>
-<p class="note">線を出す場合：青はゴールへの経路、分岐の橙は行き止まり側の参考経路です。線をなぞる必要はありません。</p>
+<p class="note">線を出す場合：青はゴールへの経路、分岐の橙は誤側の枝の先端までの参考経路です。線をなぞる必要はありません。</p>
 <p id="typeHelp" class="note">ストレート：seed によって垂直・左斜め・右斜めを選び、ほぼ一方向に進む骨格です。</p>
 <p id="configError" class="error" role="alert" hidden></p>
 <button id="launchLab" class="primary" type="submit">この骨格で試遊する</button>
 </fieldset>
 </form>
-<p class="note">生成後に経路の検証結果を表示します。見つからない場合は別タイプへ置き換えず、エラーを表示します。ゴール経路・行き止まり側とも確認範囲は限定探索です。最短・最適や、あらゆる移動の可能／不可能を保証するものではありません。</p>
+<p class="note">生成後にゴールへの経路と、分岐では誤側の枝の先端までの到達確認を表示します。帰還できることや横移りできないことは生成条件にしません。見つからない場合は別タイプへ置き換えずエラーにします。最短・最適や、あらゆる移動の可能／不可能を保証するものではありません。</p>
 <section class="baseline" aria-labelledby="baselineHeading"><h2 id="baselineHeading">旧方式とも比較</h2><p>GitHub版 0.4.6 / 3728558 の通常コース。Mac上の未反映の変更は含みません。</p><button id="launch" type="button">既存方式で試遊する</button><p class="note">タイトルの「TAP」→ STAGE 1 → スタート。胴体をスワイプして登ります。</p></section>
 <ul class="privacy"><li>本番Firebase・UID・ランキングには接続しません。</li><li>記録・進行はメモリ内だけ。入口へ戻る／最初から／ページ再読み込みで消えます。</li><li>音はタップ後に再生します。既存方式の広告は通信しないダミー表示です。</li></ul>
 </main>
