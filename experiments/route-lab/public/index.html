@@ -7,10 +7,10 @@
 <link rel="stylesheet" href="./styles.css"><script src="./shell.js" defer></script>
 </head><body>
 <main id="home">
-<p class="eyebrow">ASCENT / ROUTE LAB 0.2.0</p>
+<p class="eyebrow">ASCENT / ROUTE LAB 0.2.1</p>
 <h1>ひとつの骨格を、<br>登って比べる。</h1>
-<p class="status">単独骨格の生成実験 · 本人限定</p>
-<p>ストレート・蛇行・分岐を、既存ゲームと同じ操作で試遊します。まずは<strong>ハート・尖ホールドなし</strong>で形の違いを比較。複数区間の組み合わせはまだ入れていません。</p>
+<p class="status">従来式ベースの骨格比較 · 本人限定</p>
+<p>従来式のホールド配置・乱数追加・密度調整・剪定を使い、ストレート・蛇行・分岐を比較します。まずは<strong>ハート・尖ホールドなし</strong>で形の違いを比較。複数区間の組み合わせはまだ入れていません。</p>
 <form id="labForm" novalidate>
 <fieldset><legend>今回のコース</legend>
 <div class="config-grid">
@@ -22,7 +22,7 @@
 <p id="seedHelp" class="note">0〜4294967295。骨格を切り替えても seed と長さは維持します。同じ seed でも難しさが等しくなるわけではありません。</p>
 <label class="check"><input id="routeGuide" type="checkbox"> 検証ルートの線を表示して開始</label>
 <p class="note">線を出す場合：青は本線、分岐の橙は寄り道です。線をなぞる必要はありません。</p>
-<p id="typeHelp" class="note">ストレート：方向転換を抑えた、上へ進む骨格です。</p>
+<p id="typeHelp" class="note">ストレート：従来式の直線ガイドと散在ホールド。ショート・seed 1は従来STAGE 1と同じ配置です。</p>
 <p id="configError" class="error" role="alert" hidden></p>
 <button id="launchLab" class="primary" type="submit">この骨格で試遊する</button>
 </fieldset>

@@ -1,8 +1,8 @@
 {
   "name": "ascent-route-lab",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
-  "description": "Isolated playable single-skeleton comparison trial",
+  "description": "Original-generator based isolated skeleton comparison",
   "engines": {
     "node": ">=22"
   },

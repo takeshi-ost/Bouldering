@@ -7,3 +7,5 @@
 - 本番通信・本番UID・保存・引き継ぎ・広告SDK・購入を追加しない。メモリのみの保存とCSP通信拒否を維持する。
 - iframeのallow-same-originを強い分離と説明しない。別Site origin、配信コード除外、CSP、メモリ保存が根拠。
 - 変更後npm run buildとnpm test。自動入力再生と実ブラウザ/実機の検証範囲を区別する。
+
+- 配置は従来のcreateStageGenerator/fillWall/convergeDensity/pruneUnusedHoldsを実際に使う。独自の規則的2列配置へ戻さない。分岐は元の散在配置から局所経路を残し、両経路を剪定・予算検証する。

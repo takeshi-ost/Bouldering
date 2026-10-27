@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id);
 const home=$('home'),play=$('play'),host=$('frameHost'),dialog=$('confirmReset');
 const types={straight:'ストレート',meander:'蛇行',branch:'分岐'},lengths={short:'ショート',middle:'ミドル',long:'ロング'};
-const descriptions={straight:'ストレート：方向転換を抑えた、上へ進む骨格です。',meander:'蛇行：左右への方向転換を含む骨格です。',branch:'分岐：今回は近い区間で分かれ、合流する寄り道を試します。遠く離れた本線同士をつなぐ設計ではありません。'};
+const descriptions={straight:'ストレート：従来式の直線ガイドと散在ホールド。ショート・seed 1は従来STAGE 1と同じ配置です。',meander:'蛇行：従来の通常コースの折り返す骨格と配置処理を使います。',branch:'分岐：従来の散在ホールドから局所的な別経路を残します。ショートでは開始付近から分かれ、共通ゴールで合流する場合もあります。'};
 let currentFrame=null,currentConfig=null,lastStatus='',returnFocus='launchLab';
 function error(message){$('configError').textContent=message;$('configError').hidden=!message;}
 function validateConfig(config){

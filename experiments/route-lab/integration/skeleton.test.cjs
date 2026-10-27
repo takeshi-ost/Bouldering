@@ -21,7 +21,9 @@ function labTestValidate(){
  assert.equal(state,'playing','configuration must enter a playable stage');
  assert.equal(difficulty,0);assert.equal(hearts.length,0);assert(holds.every(h=>h.type!=='hazard'));
  assert.equal(holds.filter(h=>h.type==='goal').length,1,'exactly one real goal');
- assert.equal(holds.find(h=>h.type==='goal').y,100,'goal visible at top of selected wall');
+ const goal=holds.find(h=>h.type==='goal');
+ assert(goal.y>=0&&goal.y<=STAGE_CONFIG.goalTopMargin+STAGE_CONFIG.holdOffset+1e-6,'original goal remains near wall top: '+JSON.stringify({config:labSkeletonConfig,goal}));
+ assert(goal.y>=cameraTop()&&goal.y<=cameraTop()+H,'camera top includes the real goal');
  assert.equal(HEIGHT,{short:700,middle:1400,long:2100}[labSkeletonConfig.length]);
  assert.equal(new Set(holds.map(h=>h.id)).size,holds.length);
  assert(holds.every(h=>Number.isFinite(h.x)&&Number.isFinite(h.y)&&h.x>=STAGE_SAFE_WIDTH&&h.x<=W-STAGE_SAFE_WIDTH));
@@ -32,17 +34,23 @@ function labTestValidate(){
  assert(labSkeletonReport.movesAfter<=labSkeletonReport.movesBefore);
  assert.equal(online.uid,null);assert.equal(online.ready,false);assert.equal(onlineScores.pending.size,0);
  assert.equal(debugMode,false);assert(ui.prototypeCourse.hidden);assert(ui.titleTransfer.hidden);
+ assert.equal(labSkeletonReport.placement.engine,'original-createStageGenerator');
+ assert(labSkeletonReport.placement.placedHolds>0);
+ assert(labSkeletonReport.placement.scatteredHolds>0,'original wall scatter remains active');
+ assert(labSkeletonReport.placement.densityInitial>=labSkeletonReport.placement.placedHolds,'original density convergence cannot increase count');
+ assert(labSkeletonReport.placement.pruneRemoved>=0);
  if(labSkeletonConfig.type==='branch'){
-  const alt=labSkeletonReport.branchRoute,b=labSkeletonReport.branchBand;
-  assert(alt);assert(samePairRoute(alt,replayRoute(alt)),'alternate contacts replay on final shared holds');
+  const alt=labSkeletonReport.branchRoute;
+  assert(alt,'branch must expose a verified alternative witness');
+  assert(samePairRoute(alt,replayRoute(alt)),'alternate contacts replay on final shared holds');
   assert(routeResources(alt,{pickups:[],budget:routeStamina(route)}).valid,'alternate fits final primary stamina');
-  assert(Math.max(...alt.map(p=>b.mirror*(p.x-b.base)))>=65,'alternate actually uses side lane');
   assert.equal(alt[0].x,route[0].x);assert.equal(alt[0].y,route[0].y);
-  const goal=holds.find(h=>h.type==='goal');assert(alt.at(-1).grips.slice(0,2).every(id=>id===goal.id),'alternative rejoins shared goal');
-  assert(b.lower-b.upper<=400,'branch is one local band');
-  for(const h of holds.filter(h=>h.type==='normal')){
-   const onPrimary=Math.abs(Math.abs(h.x-b.base)-45)<1e-8;
-   if(!onPrimary)assert(h.y+68>b.upper&&h.y+68<b.lower,'side contacts cannot connect remote primary segments');
+  assert(alt.at(-1).grips.slice(0,2).every(id=>id===goal.id),'alternative reaches the single real goal');
+  assert.notEqual(JSON.stringify(alt),JSON.stringify(route),'branch route is not merely the primary witness');
+  const band=labSkeletonReport.branchBand;assert(band.lower-band.upper<=500);assert(band.separation>=45);assert(band.newContacts>=2);
+  for(let i=0;i<=band.departureIndex;i++)assert.deepEqual(alt[i],route[i],'unchanged common prefix');
+  if(HEIGHT>700)for(let i=band.rejoinIndex,j=band.alternateRejoinIndex;i<route.length;i++,j++){
+   assert.equal(alt[j].x,route[i].x);assert.equal(alt[j].y,route[i].y);assert.deepEqual(alt[j].grips,route[i].grips);assert.deepEqual(alt[j].anchor,route[i].anchor);
   }
  }
  return JSON.parse(JSON.stringify(labSkeletonReport));
@@ -71,6 +79,11 @@ return {
  reset(){reset(1);},retry(){ui.retry.onclick();},next(){ui.next.onclick();},back(){returnFromStage();},
  snapshot(){return {state,config:labSkeletonConfig,report:labSkeletonReport,error:elements.labGenerationError?.textContent||'',titleHidden:ui.titleScreen.hidden,mapHidden:ui.levelMap.hidden};},
  readConfig:labReadConfig,
+ rawLayout(config){return JSON.parse(JSON.stringify(labCreateOriginalLayout(config)));},
+ rawOriginal(n,seed){const g=createStageGenerator();g.generate(1);return JSON.parse(JSON.stringify(g.generate(n,false,seed,seed)));},
+ nativeLength(seed){const rule=stageLengthRule(2,seed);return rule.category==='medium'?'middle':rule.category;},
+ finalLayout(){return JSON.parse(JSON.stringify({holds,route,HEIGHT,initialGrips,densityStats,generatedCourse}));},
+ pristineFinal(){assert.equal(labSkeletonConfig,null);level=1;difficulty=0;dailyRun=null;courseMode='existing';generatedCourse=null;stageGenerator=createStageGenerator();prepareStage();route=optimizeRoute(route);finalizeCourseGeneration('basic');assert(validateRouteBudget(route));return JSON.parse(JSON.stringify({holds,route,HEIGHT,initialGrips,densityStats,generatedCourse}));},
  cancelTouch(){cameraIntro=null;hideStageHelp();characterAnimation=null;const before={x:body.x,y:body.y,stamina,moveCount};const p={identifier:8,clientX:body.x,clientY:body.y-camera};canvas.events.touchstart({touches:[p],changedTouches:[p],preventDefault(){}});const q={...p,clientY:p.clientY-25};canvas.events.touchmove({touches:[q],changedTouches:[q],preventDefault(){}});canvas.events.touchcancel({touches:[],changedTouches:[q],preventDefault(){}});assert.equal(stamina,before.stamina);assert.equal(moveCount,before.moveCount);assert.equal(body.x,before.x);assert.equal(body.y,before.y);assert.equal(touchId,null);},
  generateInvalid(){assert.throws(()=>labGenerateSkeleton({type:'unknown',length:'short',seed:1}),/無効/);}
 };
@@ -84,9 +97,41 @@ function create(search=''){
 }
 const query=(type,length,seed,guide=false)=>'?lab=1&type='+type+'&length='+length+'&seed='+seed+(guide?'&guide=1':'');
 
-test('27 seeded skeletons are deterministic, contact-valid and clear through actual touch handlers',()=>{
+const testTypes=process.env.LAB_TEST_TYPES?process.env.LAB_TEST_TYPES.split(','):['straight','meander','branch'];
+assert(testTypes.every(type=>['straight','meander','branch'].includes(type)));
+
+test('trial raw geometry is exactly the original placer, including scatter and density convergence',()=>{
+ const {api}=create();
+ assert.deepEqual(api.rawLayout({type:'straight',length:'short',seed:1}),api.rawOriginal(1,1),'straight short seed 1 must reproduce original STAGE 1 raw layout exactly');
+ for(const seed of [0,1,42,2026]){
+  const length=api.nativeLength(seed);
+  assert.deepEqual(api.rawLayout({type:'meander',length,seed}),api.rawOriginal(2,seed),'native meander length seed '+seed+' must retain full original placement, scatter and density result');
+ }
+});
+
+test('straight short seed 1 final result exactly matches pristine original pipeline',()=>{
+ const baseline=create().api.pristineFinal();
+ const trial=create(query('straight','short',1)).api.finalLayout();
+ assert.deepEqual(trial,baseline,'original prepareStage → optimizeRoute → finalizeCourseGeneration basic equivalence');
+});
+
+test('seed materially varies scattered geometry rather than translating a regular lane',()=>{
+ const {api}=create();
+ const normalized=layout=>{
+  const x=Math.min(...layout.holds.map(h=>h.x)),y=Math.min(...layout.holds.map(h=>h.y));
+  return layout.holds.filter(h=>h.row===null).map(h=>[(h.x-x).toFixed(6),(h.y-y).toFixed(6)]).sort().map(p=>p.join(',')).join(';');
+ };
+ for(const type of ['straight','meander'])for(const length of ['short','middle','long']){
+  const layouts=[0,42,2026].map(seed=>api.rawLayout({type,length,seed}));
+  assert.equal(new Set(layouts.map(normalized)).size,3,type+' '+length+' scatter must vary relative coordinates');
+  assert(layouts.every(layout=>layout.holds.some(h=>h.row===null)));
+  assert(layouts.every(layout=>new Set(layout.holds.map(h=>h.x.toFixed(5))).size>10),'original scatter is not a two-column lane');
+ }
+});
+
+test('seeded skeletons are deterministic, contact-valid and clear through actual touch handlers',t=>{
  const comparisons=new Map();let clears=0;
- for(const type of ['straight','meander','branch'])for(const length of ['short','middle','long'])for(const seed of [0,42,2026]){
+ for(const type of testTypes)for(const length of ['short','middle','long'])for(const seed of [0,42,2026]){
   const {api,messages}=create(query(type,length,seed));
   const report=api.validate(),fingerprint=api.fingerprint();
   api.reset();assert.equal(api.fingerprint(),fingerprint,'same configuration must reproduce holds, route and report');
@@ -97,12 +142,15 @@ test('27 seeded skeletons are deterministic, contact-valid and clear through act
  }
  for(const length of ['short','middle','long'])for(const seed of [0,42,2026]){
   const straight=comparisons.get(length+':'+seed+':straight'),meander=comparisons.get(length+':'+seed+':meander');
-  assert(meander.travelX>straight.travelX+50,'meander must produce genuinely greater lateral travel');
+  if(straight&&meander)assert(meander.travelX>straight.travelX+50,'meander must produce genuinely greater lateral travel');
  }
- assert.equal(clears,27);
+ assert.equal(clears,testTypes.length*9);
+ assert([...comparisons.values()].some(r=>r.placement.densityRemoved>0),'representative samples exercise original density convergence removals');
+ assert([...comparisons.values()].some(r=>r.placement.pruneRemoved>0),'representative samples exercise original contact-preserving pruning');
+ t.diagnostic(clears+' configurations cleared through real touch handlers after deterministic reset');
 });
 
-test('local branch alternatives clear through touch handlers; repeated retry/back/next preserve configuration',()=>{
+test('local branch alternatives clear through touch handlers; repeated retry/back/next preserve configuration',{skip:!testTypes.includes('branch')},()=>{
  for(const length of ['short','middle','long']){
   const {api}=create(query('branch',length,42));api.validate();const fingerprint=api.fingerprint();
   api.play(true);
