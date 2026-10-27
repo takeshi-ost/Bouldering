@@ -1,26 +1,23 @@
 <!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; worker-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <meta name="referrer" content="no-referrer">
-  <meta name="robots" content="noindex, nofollow">
-  <title>ASCENT Route Lab — 環境準備</title>
-  <link rel="stylesheet" href="./styles.css">
-</head>
-<body>
-  <main>
-    <p class="eyebrow">ASCENT / ROUTE LAB 0.1.0</p>
-    <h1>新しい生成方式の<br>独立した試作環境</h1>
-    <p class="status">環境のみ準備済み</p>
-    <p>ここは通常版とは切り離した実験用の入口です。新しいコース生成方式と試遊機能は、まだ実装していません。</p>
-    <dl>
-      <div><dt>基準</dt><dd>GitHub版 0.4.6 / <code>3728558</code></dd></div>
-      <div><dt>本番接続</dt><dd>なし（Firebase・UID・ランキング未接続）</dd></div>
-      <div><dt>端末データ</dt><dd>読み書きなし</dd></div>
-    </dl>
-    <p class="note">Mac上の未反映の変更は含まれません。旧検証用モードも使用していません。</p>
-  </main>
-</body>
-</html>
+<html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://ascent-route-lab.activeboar15.chatgpt.site; style-src 'self' https://ascent-route-lab.activeboar15.chatgpt.site 'unsafe-inline'; img-src 'self' https://ascent-route-lab.activeboar15.chatgpt.site data:; font-src 'none'; connect-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'self'; media-src 'none'">
+<meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow">
+<title>ASCENT Route Lab — 既存方式の試遊</title>
+<link rel="stylesheet" href="./styles.css"><script src="./shell.js" defer></script>
+</head><body>
+<main id="home">
+<p class="eyebrow">ASCENT / ROUTE LAB 0.1.1</p>
+<h1>既存方式を、<br>独立した環境で試遊。</h1>
+<p class="status">GitHub版 0.4.6 / 3728558</p>
+<p>通常版のコース生成・操作をそのまま試せます。<strong>新しい生成方式はまだ入っていません。</strong>Mac上の未反映の変更も含みません。</p>
+<button id="launch" class="primary" type="button">既存方式で試遊する</button>
+<ul><li>本番Firebase・UID・ランキングには接続しません。</li><li>記録・進行はこの試遊のメモリ内だけ。入口へ戻る／最初から／ページ再読み込みで消えます。</li><li>音はタップ後に再生します。ゲーム内の広告は通信しないダミー表示です。</li></ul>
+<p class="note">タイトルの「TAP」→ STAGE 1 → スタート。胴体をスワイプして登ります。</p>
+</main>
+<section id="play" hidden aria-label="既存方式の試遊">
+<header><button id="back" type="button">入口へ</button><span id="frameStatus">読み込み中…</span><button id="reset" type="button">最初から</button></header>
+<div id="frameHost"></div>
+</section>
+<dialog id="confirmReset"><h2>試遊をリセットしますか？</h2><p>この試遊の進行と記録が消えます。本番データには影響しません。</p><button id="cancelReset" type="button">キャンセル</button><button id="applyReset" type="button">リセット</button></dialog>
+</body></html>

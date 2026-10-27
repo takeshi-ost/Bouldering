@@ -1,9 +1,9 @@
-# Route Lab の作業範囲
+# Route Lab 作業範囲
 
-- このディレクトリは通常版と別の、環境準備段階の試作です。現時点で新生成方式を実装しないでください。
-- この独立環境のバージョンは `package.json` と入口画面で管理します。環境だけの更新で通常版の `js/config.js` / `index.html` / iOS関連ファイルを変更しないでください。
-- `main`、既存Pagesの設定・デプロイ、Firebase設定には変更を加えないでください。公開先はREADME記載の本人限定Siteです。同じSite IDを継続利用し、共有範囲を広げないでください。
-- 公開可能な範囲は `public/` のみです。リポジトリ全体を配信しないでください。
-- 本番Firebase・UID・ランキング・保存キー・引き継ぎデータを使わないでください。旧 `js/prototype.js` を新方式として再利用しないでください。
-- 将来ゲームを載せる前に、本番と異なるorigin、通信拒否、独立したメモリ内状態、再読み込み・履歴移動時の分離を検証してください。CSPを広げる場合は分離テストも追加してください。
-- 検証はこのディレクトリで `npm test`。通常版の全テストが実行済みとは扱わないでください。
+- この独立試作のバージョンは package.json と入口画面で管理する。通常版 js/config.js / index.html / iOSファイルを変更しない。
+- 現段階はGitHub main3728558の既存方式をオフライン試遊する。新生成方式の実装は別途承認が必要。旧prototype.jsを配信しない。
+- main、既存Pages、Firebaseを変更しない。同じ本人限定Site ID/URLを継続利用する。
+- 公開はpublic/のみ。public/game/はbuild.cjsと固定baseline-manifest.jsonから再生成する。基準を無断で新しい版へ変更しない。
+- 本番通信・本番UID・保存・引き継ぎ・広告SDK・購入を追加しない。メモリのみの保存とCSP通信拒否を維持する。
+- iframeのallow-same-originを強い分離と説明しない。別Site origin、配信コード除外、CSP、メモリ保存が根拠。
+- 変更後npm run buildとnpm test。自動入力再生と実ブラウザ/実機の検証範囲を区別する。
