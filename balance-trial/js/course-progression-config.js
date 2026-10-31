@@ -5,7 +5,7 @@
 // date score, recipe or gameplay changes. Never relabel saved historical scores.
 const CourseProgressionConfig = globalThis.CourseProgressionConfig = {
     version: '4',
-    normalSeedOffset: 200, // Uint32 offset; Daily remains date-seeded.
+    normalSeedOffset: ASCENT_TRIAL_SEEDS.offset, // Uint32 offset; Daily remains date-seeded.
     rounding: 'nearest', // Math.round: positive half-integers round upward.
     stageSegments: [
         {fromStage: 1, toStage: 20, fromScore: 1, toScore: 20},

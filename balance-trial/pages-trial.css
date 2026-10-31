@@ -1,1 +1,18 @@
-#pagesTrialLabel{position:fixed;bottom:0;left:0;right:0;z-index:100000;pointer-events:none;background:#18232de8;color:#fff;font:10px/1.4 monospace;padding:2px 6px;text-align:center}#titleTransfer,#debugDeleteUser,#transferDialog,#deleteUserDialog{display:none!important}
+#pagesTrialLabel{position:fixed;bottom:0;left:0;right:0;z-index:100000;pointer-events:none;background:#18232de8;color:#fff;font:10px/1.4 monospace;padding:2px 6px;text-align:center}#titleTransfer,#debugDeleteUser,#transferDialog,#deleteUserDialog{display:none!important}#pagesTrialSeedOpenTitle{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;z-index:4;padding:10px 14px;border:1px solid #bcc9d8;border-radius:8px;background:#18232d;color:#fff;font:600 14px system-ui;min-height:44px}
+#pagesTrialSeedOpenSettings{display:block;margin:16px 0 0;width:100%;min-height:44px}
+#pagesTrialSeedOpenSettings[hidden],#pagesTrialSeedControls[hidden]{display:none!important}
+.pages-trial-seed-dialog{box-sizing:border-box;width:min(440px,calc(100vw - 28px));max-height:calc(100dvh - 32px);overflow:auto;border:1px solid #65768a;border-radius:14px;background:#16202c;color:#fff;padding:20px;font:15px/1.5 system-ui}
+.pages-trial-seed-dialog::backdrop{background:#000b}
+.pages-trial-seed-heading,.pages-trial-seed-toggle,.pages-trial-seed-actions{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pages-trial-seed-heading h2{font-size:19px;margin:0}
+.pages-trial-seed-toggle{margin:20px 0;min-height:44px}
+.pages-trial-seed-dialog button{min-height:44px;padding:8px 12px;border:1px solid #b7c6d9;border-radius:8px;background:#eef5ff;color:#152132;font:600 14px system-ui;cursor:pointer}
+.pages-trial-seed-dialog input[type=checkbox]{width:24px;height:24px;accent-color:#9dceff}
+#pagesTrialSeedInput{box-sizing:border-box;display:block;width:100%;min-height:48px;margin-top:8px;padding:10px;border:1px solid #a9bbce;border-radius:6px;font:18px monospace;background:#fff;color:#111}
+.pages-trial-seed-dialog :focus-visible,#pagesTrialSeedOpenTitle:focus-visible{outline:3px solid #82c9ff;outline-offset:3px}
+.pages-trial-seed-dialog :disabled{opacity:.55;cursor:not-allowed}
+#pagesTrialSeedRange,#pagesTrialSeedHelp{font-size:13px;color:#d4deea}
+#pagesTrialSeedError{color:#ffb8b0;min-height:1.5em}
+#pagesTrialSeedWarning{color:#ffe5a0}
+#pagesTrialSeedStatus{color:#bce9cb;min-height:1.5em}
+@media(max-width:360px){.pages-trial-seed-dialog{padding:14px}.pages-trial-seed-actions{align-items:stretch;flex-direction:column}}

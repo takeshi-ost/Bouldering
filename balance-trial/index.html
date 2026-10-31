@@ -6,16 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
     <link rel="stylesheet" href="styles.css?v=99df190b8274">
-    <link rel="stylesheet" href="pages-trial.css?v=63973fb6585a">
-    <script src="js/pages-trial-bootstrap.js?v=b4307e81018e" defer></script>
+    <link rel="stylesheet" href="pages-trial.css?v=c7480538c274">
+    <script src="js/pages-trial-bootstrap.js?v=d7a71a81f6c4" defer></script>
+    <script src="js/pages-trial-seed-state.js?v=6eb4fe2f1a75" defer></script>
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/text-ja.js?v=52cfcc322e71" defer></script>
     <script src="js/text-en.js?v=458fd1d84474" defer></script>
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
     <script src="js/text.js?v=cc1d9f4cd73e" defer></script>
-    <script src="js/score-metadata.js?v=0d5306ab65b7" defer></script>
-    <script src="js/config.js?v=a4958dae435b" defer></script>
-    <script src="js/course-progression-config.js?v=dbed2bb529f7" defer></script>
+    <script src="js/score-metadata.js?v=00c4b2028f9d" defer></script>
+    <script src="js/config.js?v=3093ed495998" defer></script>
+    <script src="js/course-progression-config.js?v=d1c31eddf308" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
     <script src="js/course-distribution.js?v=b8ee0f3a1f11" defer></script>
     <script src="js/course-progression.js?v=03d7bbaa775d" defer></script>
@@ -51,6 +52,8 @@
     <script src="js/transfer.js?v=8901b759c2e9" defer></script>
     <script src="js/language.js?v=95886a149f00" defer></script>
     <script src="js/main.js?v=23f5efdce980" defer></script>
+    <script src="js/pages-trial-seed-core.js?v=3a2df88e53da" defer></script>
+    <script src="js/pages-trial-seed-ui.js?v=c546ba47c10e" defer></script>
     <script src="js/pages-trial-presentation.js?v=0919ac27e527" defer></script>
 </head>
 <body>
@@ -344,6 +347,29 @@
             </div>
         </dialog>
     </main>
+<button id="pagesTrialSeedOpenTitle" type="button" aria-haspopup="dialog" aria-controls="pagesTrialSeedDialog" hidden>試遊設定</button>
+<button id="pagesTrialSeedOpenSettings" type="button" aria-haspopup="dialog" aria-controls="pagesTrialSeedDialog" hidden>通常 SEED の試遊設定</button>
+<dialog id="pagesTrialSeedDialog" class="pages-trial-seed-dialog" aria-labelledby="pagesTrialSeedTitle" aria-describedby="pagesTrialSeedHelp">
+  <form id="pagesTrialSeedForm" novalidate>
+    <div class="pages-trial-seed-heading">
+      <h2 id="pagesTrialSeedTitle">試遊 DEBUG 設定</h2>
+      <button id="pagesTrialSeedClose" type="button" aria-label="試遊設定を閉じる">閉じる</button>
+    </div>
+    <label class="pages-trial-seed-toggle" for="pagesTrialSeedDebug"><span>DEBUG モード</span><input id="pagesTrialSeedDebug" type="checkbox"></label>
+    <p id="pagesTrialSeedHelp">通常ステージの SEED に加える値です。進行・アイテム・デイリーは変わりません。変更後、次に開始する通常コースに反映します。補正値はこのブラウザに保存されます。通常ベストは補正値ごとに別保存され、同じ値へ戻すとその値の記録に切り替わります。</p>
+    <p id="pagesTrialSeedCurrent"></p>
+    <p id="pagesTrialSeedWarning" role="status"></p>
+    <div id="pagesTrialSeedControls" hidden>
+      <label for="pagesTrialSeedInput">通常 SEED 補正値</label>
+      <input id="pagesTrialSeedInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="pagesTrialSeedRange pagesTrialSeedError" value="200">
+      <p id="pagesTrialSeedRange">0〜4294967295 の整数（初期値 200）。小数・負数・指数表記は使えません。</p>
+      <div class="pages-trial-seed-actions"><button id="pagesTrialSeedDefault" type="button">入力を 200 に戻す</button><button id="pagesTrialSeedApply" type="submit">適用</button></div>
+    </div>
+    <p id="pagesTrialSeedError" role="alert"></p>
+    <p id="pagesTrialSeedStatus" role="status" aria-live="polite"></p>
+  </form>
+</dialog>
+
     <aside id="pagesTrialLabel" aria-label="Balance trial, isolated local saves"></aside>
 </body>
 </html>

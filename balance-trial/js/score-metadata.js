@@ -1,6 +1,6 @@
 "use strict";
 // Explicit generations: retired prototype scores remain valid historical data only.
-function supportedCourseVersion(version) {return ["trial-d7-offset200","trial-d6-0.4.12","trial-d7-offset100"].includes(version);}
+function supportedCourseVersion(version) {return ASCENT_TRIAL_SEEDS.supported(version);}
 function supportedScoreBoard(board) {
     return false; // This artifact has no online board.
     return typeof board==='string' && /^(?:v1_(?:existing|prototype)|v[23]_existing)_[1-9][0-9]{0,5}$/.test(board);
