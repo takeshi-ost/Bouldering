@@ -1,13 +1,13 @@
 {
-  "release": "0.4.14",
+  "release": "0.4.15",
   "distribution": "7",
-  "identity": "trial-d7-offset100",
-  "normalIdentity": "trial-d7-offset100",
+  "identity": "trial-d7-offset200",
+  "normalIdentity": "trial-d7-offset200",
   "dailyIdentity": "trial-d6-0.4.12",
   "namespace": "ascent.pages-trial.0.4.12.d6.",
-  "normalSeedOffset": 100,
-  "progressionVersion": "3",
-  "commit": "18f628d4ff9793d934f2a9fc842784b3f0d4be91",
+  "normalSeedOffset": 200,
+  "progressionVersion": "4",
+  "commit": "e5c3cd121bf23f7304b41349895ade7eb22e6a95",
   "dirty": false,
   "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
   "sourceFiles": [
@@ -33,11 +33,11 @@
     },
     {
       "path": "js/config.js",
-      "sha256": "dd556bc36f3ef82a526eb6c32ad9a266ff32461cc3687c866781d62d10d95636"
+      "sha256": "558349445ae0baa59f89d4d49f8b85c77e221947b4a9161f2de56942fd46359c"
     },
     {
       "path": "js/course-progression-config.js",
-      "sha256": "40ce844447c02b83b44fa7365d20d8a2d4cfaacfb2dd908579c3d6150dbebf37"
+      "sha256": "dbed2bb529f771b04b0ccaeb1f0108c8ce851fb17fb16307a422a38d6b507310"
     },
     {
       "path": "js/course-distribution-config.js",
@@ -121,7 +121,7 @@
     },
     {
       "path": "js/ads.js",
-      "sha256": "51eeb263a3751b24ed3f6430ac49b245f947f913f6be33ce5bc76868a0af6906"
+      "sha256": "1b17b5f74e4f1a50c54b80ef2e9fcab8f354d577feb099bf0d2df9c9dd5cc829"
     },
     {
       "path": "js/lives.js",
@@ -129,7 +129,7 @@
     },
     {
       "path": "js/rewards.js",
-      "sha256": "a8e05040a97a83edb5da8badfda7cbf35fa15efabc8f05c500cc66ee03a07b13"
+      "sha256": "81108bfe88b60041d17e825a154c6b0aeacf3a2368e542bd75c9487162d51ff6"
     },
     {
       "path": "js/debug-course.js",
@@ -165,7 +165,7 @@
     },
     {
       "path": "js/account-deletion.js",
-      "sha256": "5c0ed306a5efb838f2814b3d89ddc8d473bce9994d8a20edc5d46eb96e764517"
+      "sha256": "cd4e1ed8695b3ea7c50a96d95f0b831bc95afa589a95b2b58b00b68f5d82df84"
     },
     {
       "path": "js/transfer.js",
@@ -203,18 +203,18 @@
     },
     {
       "path": "js/score-metadata.js",
-      "bytes": 2032,
-      "sha256": "f8dc0a77160c90c4aab891bb92c26bc5f2046c00a81575cbc5375f36993e2a5f"
+      "bytes": 2053,
+      "sha256": "0d5306ab65b7c2b2adf252ef272c01376f65c5b53e64136ccb4564fa3d7b221b"
     },
     {
       "path": "js/config.js",
       "bytes": 6031,
-      "sha256": "48f8dc7d50ce26318431394e140f3550c17daefbf8e8cbc717996ab8693150c5"
+      "sha256": "a4958dae435b42a0be74b42bc692493d6b31a9e17f1f451aa61769eb304f3795"
     },
     {
       "path": "js/course-progression-config.js",
       "bytes": 1377,
-      "sha256": "40ce844447c02b83b44fa7365d20d8a2d4cfaacfb2dd908579c3d6150dbebf37"
+      "sha256": "dbed2bb529f771b04b0ccaeb1f0108c8ce851fb17fb16307a422a38d6b507310"
     },
     {
       "path": "js/course-distribution-config.js",
@@ -318,8 +318,8 @@
     },
     {
       "path": "js/ads.js",
-      "bytes": 3717,
-      "sha256": "182d0b9e2cd4a024bda340b34ebd513a5ba6412db248ad00e5b1562ce0022b04"
+      "bytes": 3969,
+      "sha256": "eb6ca74319c8924fb877f495cbdd93a3b280e390d649155275aa830b76f1b2a7"
     },
     {
       "path": "js/lives.js",
@@ -328,8 +328,8 @@
     },
     {
       "path": "js/rewards.js",
-      "bytes": 12576,
-      "sha256": "614282b10c92bbbe64f4726a8b109301f657a0681f13c66cf9bb4911ecddf9fa"
+      "bytes": 12680,
+      "sha256": "631a0f18b38074196c18406b39d5c074ad7e041c9c584cb9e6657be78453abb2"
     },
     {
       "path": "js/debug-course.js",
@@ -373,8 +373,8 @@
     },
     {
       "path": "js/account-deletion.js",
-      "bytes": 7346,
-      "sha256": "fb27adc45516257b891df1e37f10f1005c4a1939d8404ee5567ee42a0fd5c925"
+      "bytes": 7367,
+      "sha256": "b1680ff6ccf63b8f5a9ca55d795c452223a09c2af9ace77ed5a72332a47f4ebf"
     },
     {
       "path": "js/transfer.js",
@@ -579,7 +579,7 @@
     {
       "path": "js/pages-trial-bootstrap.js",
       "bytes": 2202,
-      "sha256": "51113ad866c573c4b5e140aae5ec67b1b2d189f10958e97e963aad2874250095"
+      "sha256": "b4307e81018eff20c75d1070fcb13d4277a5bde8973d939fddfa428ee9bbbed7"
     },
     {
       "path": "js/pages-trial-presentation.js",
@@ -594,7 +594,7 @@
     {
       "path": "index.html",
       "bytes": 32416,
-      "sha256": "30f7a7c704ec2ee2bf22c95ad0732b0dd36dc0af3901b7e266c3d99cbd74cf68"
+      "sha256": "4b2ec061cfc9d068b2f2aa8fb83c2e70390f80cfea54de9d9cd996555f8dfcc5"
     },
     {
       "path": ".nojekyll",
@@ -602,7 +602,7 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "totalBytes": 7227021,
+  "totalBytes": 7227419,
   "omitted": [
     "firebase-client.js",
     "native SDK",

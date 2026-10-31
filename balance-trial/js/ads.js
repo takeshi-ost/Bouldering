@@ -1,6 +1,9 @@
 "use strict";
 const NORMAL_AD_PLAY_INTERVAL=3;
-const AD_PLAYS_KEY='ascent.ad-plays.v1';
+const NORMAL_AD_FIRST_STAGE=11;
+// v2 starts the eligible-stage cadence once from zero. The old v1 counter
+// mixed early and later plays without provenance, so it is retained, not reused.
+const AD_PLAYS_KEY='ascent.ad-plays.v2';
 const DUMMY_AD_DURATION=10000;
 function readAdPlayCount() {
     try {
@@ -22,7 +25,7 @@ function saveAdPlayCount() {
     catch(_) { /* Keep the interval within this session if storage is unavailable. */ }
 }
 function recordAdPlay() {
-    if(adPlayRecorded || dailyRun || debugAttempt || courseMode!=='existing')return;
+    if(adPlayRecorded || dailyRun || debugAttempt || courseMode!=='existing' || level<NORMAL_AD_FIRST_STAGE)return;
     adPlayRecorded=true;
     playsSinceAd=Math.min(Number.MAX_SAFE_INTEGER,playsSinceAd+1);saveAdPlayCount();
 }
@@ -80,7 +83,7 @@ function continueAfterNormalAd(onReturn) {
         settleLifeAttempt(state==='won');
         recoverLives();
         // A skipped regular ad stays due; recovery ads do not reset this counter.
-        if(lives.count>0 && playsSinceAd>=NORMAL_AD_PLAY_INTERVAL)
+        if(level>=NORMAL_AD_FIRST_STAGE && lives.count>0 && playsSinceAd>=NORMAL_AD_PLAY_INTERVAL)
             return startDummyAd({onComplete:resetAdPlayCount,onReturn});
     }
     return onReturn();
