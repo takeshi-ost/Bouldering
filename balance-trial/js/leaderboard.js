@@ -51,7 +51,7 @@ function renderStageLeaderboard(expectedMoves) {
     document.getElementById('resultScoreStatus').textContent=debugAttempt?gameText("leaderboard.renderStageLeaderboard"):stageScoreStatus(level,courseMode);
 }
 function renderStageStartRecord(context) {
-    const record=context.n<=stageProgress[context.mode].cleared?stageRecords[context.mode][context.n]:null;
+    const record=context.n<=stageProgress[context.mode].cleared && stageRecords[context.mode][context.n]?.version===COURSE_VERSION?stageRecords[context.mode][context.n]:null;
     ui.stageStartStars.hidden=!record?.stars;
     ui.stageStartStars.textContent=record?.stars?'⭐️'.repeat(record.stars):'';
     ui.stageStartStars.setAttribute('aria-label',record?.stars?gameText("score.stars", {value0: record.stars}):'');

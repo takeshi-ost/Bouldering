@@ -70,7 +70,13 @@ function dismissStageHelp() {
     canvas.focus();
 }
 let dailyRun=null;
-function courseSeed(n=level) {return activeDebugCourse()?debugCourseTrial.seed:dailyRun ? dailyRun.seed : n;}
+function courseSeed(n=level) {
+    if(activeDebugCourse())return debugCourseTrial.seed;
+    if(dailyRun)return dailyRun.seed;
+    // After generation restores the normal identity, cached pickups/previews
+    // must still recognize the resolved base seed, not the stage number.
+    return typeof CourseProgression!=='undefined'?CourseProgression.resolveStage(n).seed:n;
+}
 function leaveDailyRun() {
     if(dailyRun) {courseMode='existing';dailyRun=null;}
 }

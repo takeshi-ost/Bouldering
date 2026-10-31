@@ -9,6 +9,7 @@ const CourseProgression = (() => {
     function validate(config) {
         if (!config || typeof config.version !== 'string' || !config.version || config.rounding !== 'nearest')
             throw new RangeError('Invalid course progression version or rounding');
+        integer(config.normalSeedOffset === undefined ? 0 : config.normalSeedOffset, 0, 4294967295, 'normal seed offset');
         if (!Array.isArray(config.stageSegments) || !config.stageSegments.length)
             throw new RangeError('Stage segments must cover stage 1 onward');
         let next = 1;
@@ -79,7 +80,9 @@ const CourseProgression = (() => {
     }
     function resolveStage(stage, config = CourseProgressionConfig) {
         const score = stageScore(stage, config);
-        return {kind: 'stage', stage, score, seed: stage >>> 0,
+        // Reduce the safe-integer stage before addition to avoid precision loss.
+        // Missing offset preserves old editable configurations; Daily never uses it.
+        return {kind: 'stage', stage, score, seed: ((stage >>> 0) + (config.normalSeedOffset ?? 0)) >>> 0,
             difficultyLabel: labelForScore(score, config), progressionVersion: config.version};
     }
     function resolveDaily(date, config = CourseProgressionConfig) {

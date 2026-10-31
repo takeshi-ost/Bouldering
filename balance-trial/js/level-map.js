@@ -115,7 +115,7 @@ function recordStageClear() {
     if(dailyRun) {recordDailyClear();return;}
     if (debugAttempt) return;
     if(moveCount>0) {
-        const stars=Math.max(stageRecords[courseMode][level]?.stars||0,clearStars(moveCount,routeExpectedMoves()));
+        const stars=Math.max((stageRecords[courseMode][level]?.version===COURSE_VERSION?stageRecords[courseMode][level]?.stars:0)||0,clearStars(moveCount,routeExpectedMoves()));
         const candidate={moves:moveCount,timeMs:Math.floor(runElapsedMs),version:COURSE_VERSION,...currentScoreMetadata()};
         const previous=stageRecords[courseMode][level];
         const best=previous?.version===COURSE_VERSION && compareStageScores(previous,candidate)<=0?previous:candidate;
@@ -237,7 +237,7 @@ function renderLevelMap() {
     // The route is painted into the approved wallpaper; never draw a replacement road.
     for (let n=first;n<=last;n++) {
         const p=mapPoint(n),locked=!debugMode && n>unlocked,done=n<=cleared;
-        const record=done && stageRecords[courseMode][n];
+        const record=done && stageRecords[courseMode][n]?.version===COURSE_VERSION && stageRecords[courseMode][n];
         const stars=record?.stars || 0;
         const rating=stars ? `<span class="map-node-stars" aria-hidden="true">${'⭐️'.repeat(stars)}</span>` : '';
         const hasReward=hasMapReward(n);
