@@ -3,7 +3,7 @@
 // Rows: score and weights in the order of values. Endpoint weights are normalized
 // before interpolation. Change version whenever these tables change.
 const CourseDistributionConfig = globalThis.CourseDistributionConfig = {
- version: '6',
+ version: '7',
  // Keep all existing streams; the joint trial uses additional named streams.
  randomVersion: '3',
  // v6 preserves legacy length/profile draws; only feature presence is balanced.
@@ -31,7 +31,8 @@ const CourseDistributionConfig = globalThis.CourseDistributionConfig = {
    {score:10,weights:[1,10,0,0]}, {score:30,weights:[2,2,3,0]}, {score:40,weights:[1,1,1,1]}, {score:100,weights:[1,1,1,1]}
   ]},
   spikes: {values:[0,10,20,30], rows:[
-   {score:0,weights:[100,0,0,0]}, {score:5,weights:[100,0,0,0]},
+   // Match hearts: zero through score 3, first positive integer score 4.
+   {score:0,weights:[100,0,0,0]}, {score:3,weights:[100,0,0,0]},
    {score:20,weights:[70,30,0,0]},
    {score:50,weights:[70,30,0,0]}, {score:75,weights:[15,25,40,20]}, {score:100,weights:[5,15,40,40]}
   ]}

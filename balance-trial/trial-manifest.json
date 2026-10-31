@@ -1,9 +1,9 @@
 {
-  "release": "0.4.12",
-  "distribution": "6",
+  "release": "0.4.13",
+  "distribution": "7",
   "identity": "trial-d6-0.4.12",
   "namespace": "ascent.pages-trial.0.4.12.d6.",
-  "commit": "7662dd5c6f778582b4728ee4735362f6c7863256",
+  "commit": "e36c374a1ce16e8d2180f4f82e8dcef437b33c97",
   "dirty": false,
   "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
   "sourceFiles": [
@@ -29,7 +29,7 @@
     },
     {
       "path": "js/config.js",
-      "sha256": "f9e908e18742c57f18cf460e470c75512e2eb723c4aff9a1c91d7124769a84f2"
+      "sha256": "3709a6fa04acace522bb8ca1144dc0e747c92b50d9ef36c118b8bf888a7fc528"
     },
     {
       "path": "js/course-progression-config.js",
@@ -37,7 +37,7 @@
     },
     {
       "path": "js/course-distribution-config.js",
-      "sha256": "d8ccb06e7d151d70ec30bc197e9d220e0da958a3511ef172e92c7063946830d2"
+      "sha256": "a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"
     },
     {
       "path": "js/course-distribution.js",
@@ -205,7 +205,7 @@
     {
       "path": "js/config.js",
       "bytes": 6028,
-      "sha256": "274cfc52afa85d4b637b9d597e8fa813dae5f1cf8ab9fe312a80767739f253ec"
+      "sha256": "b851d34f9a0639f40cf6fdea37b53e30e9a8d44b96b13bca96f4ebe3181ac6aa"
     },
     {
       "path": "js/course-progression-config.js",
@@ -214,8 +214,8 @@
     },
     {
       "path": "js/course-distribution-config.js",
-      "bytes": 1981,
-      "sha256": "d8ccb06e7d151d70ec30bc197e9d220e0da958a3511ef172e92c7063946830d2"
+      "bytes": 2055,
+      "sha256": "a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"
     },
     {
       "path": "js/course-distribution.js",
@@ -575,7 +575,7 @@
     {
       "path": "js/pages-trial-bootstrap.js",
       "bytes": 2079,
-      "sha256": "04f558453dede7df7def061513dd56dd91c27bf0b0c705abfb4f8939939288ac"
+      "sha256": "ee1777bfa087ffd8bae8760cf10116e1b78e55cf702e8b7fd2c81cdad3ad3c0a"
     },
     {
       "path": "js/pages-trial-presentation.js",
@@ -590,7 +590,7 @@
     {
       "path": "index.html",
       "bytes": 32416,
-      "sha256": "5e8b84fa4cd6b3d233b7b8415512021d31b42e7fb80018d4593c9fc161f9458e"
+      "sha256": "5f3c24d44a6dd557cc98b34dd6ada6b98fd05cbc26c5f4b1c890b99557d90f28"
     },
     {
       "path": ".nojekyll",
@@ -598,7 +598,7 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "totalBytes": 7225936,
+  "totalBytes": 7226010,
   "omitted": [
     "firebase-client.js",
     "native SDK",
