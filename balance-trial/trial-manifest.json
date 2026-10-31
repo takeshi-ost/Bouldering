@@ -1,0 +1,611 @@
+{
+  "release": "0.4.12",
+  "distribution": "6",
+  "identity": "trial-d6-0.4.12",
+  "namespace": "ascent.pages-trial.0.4.12.d6.",
+  "commit": "7662dd5c6f778582b4728ee4735362f6c7863256",
+  "dirty": false,
+  "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
+  "sourceFiles": [
+    {
+      "path": "js/text-ja.js",
+      "sha256": "52cfcc322e7171ce559a3476ca5c042c496565c55e1b2cee22e21e9d9e33e29e"
+    },
+    {
+      "path": "js/text-en.js",
+      "sha256": "458fd1d8447487b6c0504d836b203a0a3931bfdeaefdf1760b4667dcfcc02cf7"
+    },
+    {
+      "path": "js/text-dev-ja.js",
+      "sha256": "07cdedf03e69deda72fd31edb31e2ba8b4221514099e038fd595097af340dee7"
+    },
+    {
+      "path": "js/text.js",
+      "sha256": "dd38409b5d98b9d61d5cb331361976b804de6a32b71b8a6f2bb4ac3c06d99afe"
+    },
+    {
+      "path": "js/score-metadata.js",
+      "sha256": "cfb150159dead58a8eea6c8a41cf53af920c3fad28cf19cf60be8596e8bbe95a"
+    },
+    {
+      "path": "js/config.js",
+      "sha256": "f9e908e18742c57f18cf460e470c75512e2eb723c4aff9a1c91d7124769a84f2"
+    },
+    {
+      "path": "js/course-progression-config.js",
+      "sha256": "8e01ff0c48eff47cfee651781d9309de5593dc8b6aaf88c8e0b06c223d3699ce"
+    },
+    {
+      "path": "js/course-distribution-config.js",
+      "sha256": "d8ccb06e7d151d70ec30bc197e9d220e0da958a3511ef172e92c7063946830d2"
+    },
+    {
+      "path": "js/course-distribution.js",
+      "sha256": "b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"
+    },
+    {
+      "path": "js/course-progression.js",
+      "sha256": "0ffdf7b634cb6d434fcca517a962004e7412cd2536f7c053360790440f1e6f5a"
+    },
+    {
+      "path": "js/difficulty-config.js",
+      "sha256": "7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"
+    },
+    {
+      "path": "js/viewport.js",
+      "sha256": "b5ffb9620615e96df8fec7bdb138c532be0c93230a92223ed654413062d7a4f2"
+    },
+    {
+      "path": "js/audio.js",
+      "sha256": "41bbba9ffab4aa7c798788edf6279f9697facb52df7d85f83c83a84e06aa2ce1"
+    },
+    {
+      "path": "js/bgm.js",
+      "sha256": "c96d77ab4e584196a8422549f3f702cc002960e14b9812b7f9a0ccbc73f00d3d"
+    },
+    {
+      "path": "js/utils.js",
+      "sha256": "d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"
+    },
+    {
+      "path": "js/difficulty.js",
+      "sha256": "c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"
+    },
+    {
+      "path": "js/stage.js",
+      "sha256": "1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"
+    },
+    {
+      "path": "js/game.js",
+      "sha256": "841c0d05c0dc0ad5a73af02abf58d22069becee6da9758a200dc07b835f4f4bd"
+    },
+    {
+      "path": "js/route.js",
+      "sha256": "850c0b3b7c69d76b404f35ccdee0da6a6bb0b21c98eba279ee7dfd699b426592"
+    },
+    {
+      "path": "js/course.js",
+      "sha256": "15b72884cb1eb2d44f0246a39f8edbc59b63ae7546945dc293adc2699db73a47"
+    },
+    {
+      "path": "js/hazards.js",
+      "sha256": "94e27f98abbb457b1bac5c10ead942f4441a45c57bf9d5492738ebe1455594e8"
+    },
+    {
+      "path": "js/course-stamina-settings.js",
+      "sha256": "e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"
+    },
+    {
+      "path": "js/course-generator-core.js",
+      "sha256": "c329b53ac97088d483b4cee0d0235b186e9517ad485531ee89267a903a780e2a"
+    },
+    {
+      "path": "js/course-adoption.js",
+      "sha256": "dbf1215360188cdef986cff9745b87514e58b2b0c473ab969c1c271a67c40910"
+    },
+    {
+      "path": "js/map-art.js",
+      "sha256": "ba5492a063daf96e5f546f54bbb5bea8e86a48bb542217fa41b89ec302c2b577"
+    },
+    {
+      "path": "js/level-map.js",
+      "sha256": "246cba7396df18acae4e6b45051797ceed11814d9086e02b3cc9e7a280b1c312"
+    },
+    {
+      "path": "js/daily.js",
+      "sha256": "42e74e188fdc1d861116164180b42f22deca18a94ee68d4d7086f611f0e5a6bf"
+    },
+    {
+      "path": "js/ads.js",
+      "sha256": "51eeb263a3751b24ed3f6430ac49b245f947f913f6be33ce5bc76868a0af6906"
+    },
+    {
+      "path": "js/lives.js",
+      "sha256": "8dc87232cc79080178c001ea86071cb40fc83e50b5a6e744c692eecd23ce9816"
+    },
+    {
+      "path": "js/rewards.js",
+      "sha256": "a8e05040a97a83edb5da8badfda7cbf35fa15efabc8f05c500cc66ee03a07b13"
+    },
+    {
+      "path": "js/debug-course.js",
+      "sha256": "e05bdae6db0e11da45d2bcd621d0da065fbfcaa851b1a67815ce6cf73d96d0ee"
+    },
+    {
+      "path": "js/input.js",
+      "sha256": "8387cbda6ef853a878e84d1b5a5cba05bd85c67c3a0cd24caf160f28f1bc9939"
+    },
+    {
+      "path": "js/renderer.js",
+      "sha256": "87555e9763c1ab5c4f3e6c7234ea36ddc2221de222f1de8daa8758283bfd000b"
+    },
+    {
+      "path": "js/player-icon.js",
+      "sha256": "13022791fa504f9ff8ccbb4438bf4a62c7c4b0283dca7742d90f9a206856806c"
+    },
+    {
+      "path": "js/appearance.js",
+      "sha256": "d2a169c18333c16d10da23814ef247ef240aec29b2580087e8c6d02c38ea4054"
+    },
+    {
+      "path": "js/leaderboard.js",
+      "sha256": "6f7a5a3383ff7bd9f8e6990a65b1abfb648fe8751fc8a020f67ec1ac711a5040"
+    },
+    {
+      "path": "js/online.js",
+      "sha256": "c014ec4d979b580c0218a93296a5865355d85cb92680be81131f21eb60753ce2"
+    },
+    {
+      "path": "js/online-scores.js",
+      "sha256": "edf515102325751d8b7cec12ff7b7f766567b636bc1e442a09484f9eb87480a1"
+    },
+    {
+      "path": "js/account-deletion.js",
+      "sha256": "5c0ed306a5efb838f2814b3d89ddc8d473bce9994d8a20edc5d46eb96e764517"
+    },
+    {
+      "path": "js/transfer.js",
+      "sha256": "5145d8f206b11df66448b7a89b8c79c22e8c1135a3b4a6fb81acfa70cf94af29"
+    },
+    {
+      "path": "js/language.js",
+      "sha256": "95886a149f0026cbf7f0a7d209977ffbddff21ff5cc2d17aace2810c056e9d7c"
+    },
+    {
+      "path": "js/main.js",
+      "sha256": "d9410e0bb452abcf77a9a65430f5d702de85441ea9554d20ab63588eddd5988e"
+    }
+  ],
+  "files": [
+    {
+      "path": "js/text-ja.js",
+      "bytes": 16571,
+      "sha256": "52cfcc322e7171ce559a3476ca5c042c496565c55e1b2cee22e21e9d9e33e29e"
+    },
+    {
+      "path": "js/text-en.js",
+      "bytes": 14922,
+      "sha256": "458fd1d8447487b6c0504d836b203a0a3931bfdeaefdf1760b4667dcfcc02cf7"
+    },
+    {
+      "path": "js/text-dev-ja.js",
+      "bytes": 2666,
+      "sha256": "07cdedf03e69deda72fd31edb31e2ba8b4221514099e038fd595097af340dee7"
+    },
+    {
+      "path": "js/text.js",
+      "bytes": 2692,
+      "sha256": "cc1d9f4cd73e77d4ba3f75b3cb0bf18bcd98cb405a1910191b648153edfd3b4a"
+    },
+    {
+      "path": "js/score-metadata.js",
+      "bytes": 2001,
+      "sha256": "4721a8fbc83dcd340beb7c0b77511ed50307637af540e037f8b903706daa2b7c"
+    },
+    {
+      "path": "js/config.js",
+      "bytes": 6028,
+      "sha256": "274cfc52afa85d4b637b9d597e8fa813dae5f1cf8ab9fe312a80767739f253ec"
+    },
+    {
+      "path": "js/course-progression-config.js",
+      "bytes": 1305,
+      "sha256": "8e01ff0c48eff47cfee651781d9309de5593dc8b6aaf88c8e0b06c223d3699ce"
+    },
+    {
+      "path": "js/course-distribution-config.js",
+      "bytes": 1981,
+      "sha256": "d8ccb06e7d151d70ec30bc197e9d220e0da958a3511ef172e92c7063946830d2"
+    },
+    {
+      "path": "js/course-distribution.js",
+      "bytes": 7647,
+      "sha256": "b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"
+    },
+    {
+      "path": "js/course-progression.js",
+      "bytes": 5787,
+      "sha256": "0ffdf7b634cb6d434fcca517a962004e7412cd2536f7c053360790440f1e6f5a"
+    },
+    {
+      "path": "js/difficulty-config.js",
+      "bytes": 377,
+      "sha256": "7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"
+    },
+    {
+      "path": "js/viewport.js",
+      "bytes": 4736,
+      "sha256": "b5ffb9620615e96df8fec7bdb138c532be0c93230a92223ed654413062d7a4f2"
+    },
+    {
+      "path": "js/audio.js",
+      "bytes": 13154,
+      "sha256": "f5f746f5a45bbf5ffdd5925e89c57b5fab926f825fe5405601413977ae15555a"
+    },
+    {
+      "path": "js/bgm.js",
+      "bytes": 6095,
+      "sha256": "a319a9cfe68f940637e14076aff4840535e0a9e8fc0f191d37c9a05328aaa137"
+    },
+    {
+      "path": "js/utils.js",
+      "bytes": 1262,
+      "sha256": "d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"
+    },
+    {
+      "path": "js/difficulty.js",
+      "bytes": 3885,
+      "sha256": "c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"
+    },
+    {
+      "path": "js/stage.js",
+      "bytes": 13622,
+      "sha256": "1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"
+    },
+    {
+      "path": "js/game.js",
+      "bytes": 39083,
+      "sha256": "8e8a229ef74bfa781aa3c753c0f675bd96e21c3624d309114fed42e08fe466f5"
+    },
+    {
+      "path": "js/route.js",
+      "bytes": 19724,
+      "sha256": "850c0b3b7c69d76b404f35ccdee0da6a6bb0b21c98eba279ee7dfd699b426592"
+    },
+    {
+      "path": "js/course.js",
+      "bytes": 13448,
+      "sha256": "15b72884cb1eb2d44f0246a39f8edbc59b63ae7546945dc293adc2699db73a47"
+    },
+    {
+      "path": "js/hazards.js",
+      "bytes": 4666,
+      "sha256": "94e27f98abbb457b1bac5c10ead942f4441a45c57bf9d5492738ebe1455594e8"
+    },
+    {
+      "path": "js/course-stamina-settings.js",
+      "bytes": 2073,
+      "sha256": "e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"
+    },
+    {
+      "path": "js/course-generator-core.js",
+      "bytes": 81403,
+      "sha256": "c329b53ac97088d483b4cee0d0235b186e9517ad485531ee89267a903a780e2a"
+    },
+    {
+      "path": "js/course-adoption.js",
+      "bytes": 4109,
+      "sha256": "dbf1215360188cdef986cff9745b87514e58b2b0c473ab969c1c271a67c40910"
+    },
+    {
+      "path": "js/map-art.js",
+      "bytes": 6076,
+      "sha256": "ba5492a063daf96e5f546f54bbb5bea8e86a48bb542217fa41b89ec302c2b577"
+    },
+    {
+      "path": "js/level-map.js",
+      "bytes": 23672,
+      "sha256": "270d85bd05daaaaba2856629e4dd7295e730a77b3385d2b5584608b828effe4b"
+    },
+    {
+      "path": "js/daily.js",
+      "bytes": 18310,
+      "sha256": "85e97c19b7d34a1e30a8b21798572f4eaed731f000eb7ee663ef51aca337c363"
+    },
+    {
+      "path": "js/ads.js",
+      "bytes": 3717,
+      "sha256": "182d0b9e2cd4a024bda340b34ebd513a5ba6412db248ad00e5b1562ce0022b04"
+    },
+    {
+      "path": "js/lives.js",
+      "bytes": 6705,
+      "sha256": "c94a7a7df18e6714ffd6b82f6ea63a9334289ef1c1d57ced3302fc02361700f7"
+    },
+    {
+      "path": "js/rewards.js",
+      "bytes": 12576,
+      "sha256": "614282b10c92bbbe64f4726a8b109301f657a0681f13c66cf9bb4911ecddf9fa"
+    },
+    {
+      "path": "js/debug-course.js",
+      "bytes": 4461,
+      "sha256": "e05bdae6db0e11da45d2bcd621d0da065fbfcaa851b1a67815ce6cf73d96d0ee"
+    },
+    {
+      "path": "js/input.js",
+      "bytes": 12845,
+      "sha256": "8387cbda6ef853a878e84d1b5a5cba05bd85c67c3a0cd24caf160f28f1bc9939"
+    },
+    {
+      "path": "js/renderer.js",
+      "bytes": 42745,
+      "sha256": "87555e9763c1ab5c4f3e6c7234ea36ddc2221de222f1de8daa8758283bfd000b"
+    },
+    {
+      "path": "js/player-icon.js",
+      "bytes": 2790,
+      "sha256": "13022791fa504f9ff8ccbb4438bf4a62c7c4b0283dca7742d90f9a206856806c"
+    },
+    {
+      "path": "js/appearance.js",
+      "bytes": 14324,
+      "sha256": "1557949c0558771129faade3c0ea5ad93763086e6c6887da136dba92c56ddce1"
+    },
+    {
+      "path": "js/leaderboard.js",
+      "bytes": 4650,
+      "sha256": "6f7a5a3383ff7bd9f8e6990a65b1abfb648fe8751fc8a020f67ec1ac711a5040"
+    },
+    {
+      "path": "js/online.js",
+      "bytes": 8981,
+      "sha256": "a9a1a6dba4c6bf237e1d16dc514c80c6f5aaa52bf28c53cf6351e437a207028a"
+    },
+    {
+      "path": "js/online-scores.js",
+      "bytes": 7688,
+      "sha256": "bf67a82d60e4e8a0065fb7c50f905ed1e17bdeb25c9a4720feb69d8a03f4a8cf"
+    },
+    {
+      "path": "js/account-deletion.js",
+      "bytes": 7346,
+      "sha256": "fb27adc45516257b891df1e37f10f1005c4a1939d8404ee5567ee42a0fd5c925"
+    },
+    {
+      "path": "js/transfer.js",
+      "bytes": 14715,
+      "sha256": "8901b759c2e9da869e83aadb003efc5b13ce4d55a361e462aff093acb6174ac0"
+    },
+    {
+      "path": "js/language.js",
+      "bytes": 2655,
+      "sha256": "95886a149f0026cbf7f0a7d209977ffbddff21ff5cc2d17aace2810c056e9d7c"
+    },
+    {
+      "path": "js/main.js",
+      "bytes": 3894,
+      "sha256": "23f5efdce98007a8a353cf77c2984cb4ee7001dfa3248b35d63fc349064b9c81"
+    },
+    {
+      "path": "styles.css",
+      "bytes": 49242,
+      "sha256": "99df190b8274719f42259178f7014eccd29d033ebb11cc3a3e2af0a4719bf2ea"
+    },
+    {
+      "path": "assets/audio/bgm-loop.mp3",
+      "bytes": 1321318,
+      "sha256": "30c3fda2ce8a0aea0affc7c483f435a35cf9368880978684f52ffa79240b37f9"
+    },
+    {
+      "path": "assets/audio/bgm-stage-loop.mp3",
+      "bytes": 1721514,
+      "sha256": "21690a06044426162deab4f89ef6cb6c8400ba983a1e683d2ebafaf63330c002"
+    },
+    {
+      "path": "assets/audio/hazard-fix.wav",
+      "bytes": 30032,
+      "sha256": "23fd4fafe352a7a625f9bbddf191ee25f0f6f40af5349242843d69408e08c283"
+    },
+    {
+      "path": "assets/audio/heart-recovery.wav",
+      "bytes": 88244,
+      "sha256": "226640b13e93140bb87e981c08a16a821f81684438da83f0f4764d085b84e6ad"
+    },
+    {
+      "path": "assets/audio/launch.wav",
+      "bytes": 110294,
+      "sha256": "b249caf6daf66435db766cd840c2ade2a2e6d5dd68cf36a85acdfbedd6c81f6a"
+    },
+    {
+      "path": "assets/audio/map-steps.wav",
+      "bytes": 57374,
+      "sha256": "8ef9a7775664aecaed6de28bc2a8b1272b51533778a0a7074587ac5fead531d2"
+    },
+    {
+      "path": "assets/audio/move.wav",
+      "bytes": 29150,
+      "sha256": "7ce4a0435ed9a905b9172d501409579177e056708394cb0516f848d7fb4a099a"
+    },
+    {
+      "path": "assets/audio/stage-clear.wav",
+      "bytes": 90890,
+      "sha256": "1ff713c6772bd2740a74e6feeead9f8e69fdca5febb655cfe9d31c02fa7c46ab"
+    },
+    {
+      "path": "assets/audio/stage-fail.wav",
+      "bytes": 45026,
+      "sha256": "ebca63cdb2cb6405e93a1237a82570d06dbe3c2b077495341dcf40e5ba70712f"
+    },
+    {
+      "path": "assets/audio/stage-start.wav",
+      "bytes": 23858,
+      "sha256": "a118bc59616da760d485b1995c7d512e045f8c2564bcd1d30049b5574c3ed7be"
+    },
+    {
+      "path": "assets/course-heart-2.svg",
+      "bytes": 1114,
+      "sha256": "08590a80e37dcf8c4fdd15cc1787a96aa2a3e91ad505e442575a5c40da425f85"
+    },
+    {
+      "path": "assets/daily-airship.webp",
+      "bytes": 44086,
+      "sha256": "fdf834f83df455d4a9819beb495b9eee442297249e9591af5473b5230a0d8aee"
+    },
+    {
+      "path": "assets/daily-medal-gold-v2.webp",
+      "bytes": 8250,
+      "sha256": "11a33e35e9ca3f4ec4fa248be50f43831ffb916627191f9ffff3e9966bcc2e88"
+    },
+    {
+      "path": "assets/daily-medal-silver-v2.webp",
+      "bytes": 7050,
+      "sha256": "eaf4c96a8e46c081c52f68c597a0a38949ff2faa9bf55c07d2f793022515237a"
+    },
+    {
+      "path": "assets/game-wall.webp",
+      "bytes": 45354,
+      "sha256": "4b381272eecb7d41a65c3d8779997e9220bc22e1d87f241e0e1c21a32ebbb99a"
+    },
+    {
+      "path": "assets/gym-floor-extended.png",
+      "bytes": 1417102,
+      "sha256": "2d33c2cc0dc8ba27f482fe1256368ae2dc862d225320388b13bcb47d17e0843f"
+    },
+    {
+      "path": "assets/gym-floor.webp",
+      "bytes": 2108,
+      "sha256": "dfb0bd2c8c2bfd3f761e349d69118d24a7cf1f211257c28314861e29eb4506e6"
+    },
+    {
+      "path": "assets/heart-item-chalk-bag.png",
+      "bytes": 22530,
+      "sha256": "c7b6177ed8175aba7fd323122dfc975208948d1b8a6fa3f231748cdca81c93cb"
+    },
+    {
+      "path": "assets/hold-hazard-source.webp",
+      "bytes": 9720,
+      "sha256": "6db7f68bec38cc1592e3213cbab05a8f1161f289c7979b821e34dbd4e0113a26"
+    },
+    {
+      "path": "assets/hold-shapes-gray-contrast.webp",
+      "bytes": 39500,
+      "sha256": "07486995319d6b8c86aed320513a73a364ab953d0f31c76f3ff7fbf16e8ac1a3"
+    },
+    {
+      "path": "assets/hold-wide-flat.webp",
+      "bytes": 15520,
+      "sha256": "92a8054c99ad6feaa040f6fc87210e1f332107495bf26ac36160388b56d6b836"
+    },
+    {
+      "path": "assets/map-sky.webp",
+      "bytes": 7428,
+      "sha256": "c58fe6c4666eff3d4fa17aaef6e6dc48313422a193dfa63c91e68475e3741301"
+    },
+    {
+      "path": "assets/reward-gift.png",
+      "bytes": 19714,
+      "sha256": "5c348368b1e18e212dbf42f5bccf9adcd762ebe870afd72b7fcefe389e3d72cd"
+    },
+    {
+      "path": "assets/stage-icons/active-100.webp",
+      "bytes": 84744,
+      "sha256": "2d41966aabda2b81d7b2924e27bd06cf78242f8cbc07d28064d4cbc7f8d54071"
+    },
+    {
+      "path": "assets/stage-icons/active-125.webp",
+      "bytes": 97410,
+      "sha256": "cc07e534a9392fa88e1e075f8924ab787aaca5cb1965224375ccf95c166f8e19"
+    },
+    {
+      "path": "assets/stage-icons/active-150.webp",
+      "bytes": 43664,
+      "sha256": "9d85252376dc3755d280cf46266cd980cdb6db952722dad4a0de3e57ea35d2fb"
+    },
+    {
+      "path": "assets/stage-icons/cleared-100.webp",
+      "bytes": 79584,
+      "sha256": "7a4c8ade87e1bc6529e715bf0d44402a8594d6ccad3837e3cd5a059d3130e89f"
+    },
+    {
+      "path": "assets/stage-icons/cleared-125.webp",
+      "bytes": 88152,
+      "sha256": "c7b19277ed03c7a13d3570181dd2421eb2dc366bd032966af6d3d32af8254e38"
+    },
+    {
+      "path": "assets/stage-icons/cleared-150.webp",
+      "bytes": 39296,
+      "sha256": "7c91dbb2a8c46a42c78cc350d66b07527d2657a924674c6f13c906f99cbff88e"
+    },
+    {
+      "path": "assets/stage-icons/unplayed-100.webp",
+      "bytes": 80894,
+      "sha256": "2bf5394a21badd41dfb81212b2195ce13198db553ebe6791aa780cbcfeeac68a"
+    },
+    {
+      "path": "assets/stage-icons/unplayed-125.webp",
+      "bytes": 87358,
+      "sha256": "1727e9e88435947d094aa5b93cd7041ec136a2c8d96bd2075b4d2178a81488c7"
+    },
+    {
+      "path": "assets/stage-icons/unplayed-150.webp",
+      "bytes": 37584,
+      "sha256": "2d3478c52573f0afb1ae4ad0712da54eb41212488cebf1cd8776ef6d16223dfa"
+    },
+    {
+      "path": "assets/stage-map-autumn.webp",
+      "bytes": 365872,
+      "sha256": "ea738428d2aec1613b4f280704ffc1ef79d884b73a9e392b0530a1781b2fc9b4"
+    },
+    {
+      "path": "assets/stage-map-summer.webp",
+      "bytes": 152540,
+      "sha256": "ecc878b85c049e9c0f670d319508894c03d8b0114abcad67d976c9abb3b5a604"
+    },
+    {
+      "path": "assets/stage-map-winter.webp",
+      "bytes": 200610,
+      "sha256": "073ed60f86161d0c71fa3c836114ba0f0a6e34fc316cf78025a610c049a38817"
+    },
+    {
+      "path": "assets/stage-map.webp",
+      "bytes": 158892,
+      "sha256": "a07824fe94996ce705ac75ca262b45be464f69929597ce73e6eecd7f29d55761"
+    },
+    {
+      "path": "js/pages-trial-bootstrap.js",
+      "bytes": 2079,
+      "sha256": "04f558453dede7df7def061513dd56dd91c27bf0b0c705abfb4f8939939288ac"
+    },
+    {
+      "path": "js/pages-trial-presentation.js",
+      "bytes": 766,
+      "sha256": "0919ac27e5274c9aee686dafc8ebef4ef6946c45de5ff489ce90144396f3feb6"
+    },
+    {
+      "path": "pages-trial.css",
+      "bytes": 270,
+      "sha256": "63973fb6585a3fd7036119fe2c8e218013f562e535f84b2fb5e6944dc1fa09f3"
+    },
+    {
+      "path": "index.html",
+      "bytes": 32416,
+      "sha256": "5e8b84fa4cd6b3d233b7b8415512021d31b42e7fb80018d4593c9fc161f9458e"
+    },
+    {
+      "path": ".nojekyll",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "totalBytes": 7225936,
+  "omitted": [
+    "firebase-client.js",
+    "native SDK",
+    "ios",
+    "docs",
+    "tests",
+    "Git history",
+    "unreferenced source scripts"
+  ]
+}

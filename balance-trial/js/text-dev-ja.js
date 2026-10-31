@@ -1,0 +1,30 @@
+"use strict";
+// Active debug tools and account-maintenance copy; excluded from player translation review.
+const GAME_DEV_TEXT_JA = Object.freeze({
+    "account-deletion": "ユーザーデータの削除を待っています",
+    "account-deletion.2": "端末の保存データを初期化できませんでした。",
+    "account-deletion.deleteCurrentAccount": "削除が完了していません。接続とFirestoreのルールを確認して再試行してください。",
+    "account-deletion.deleteCurrentAccount.2": "認証の再確認が必要です。表示中のUIDを控え、Firebase管理画面で認証アカウントを削除してください。",
+    "account-deletion.deleteCurrentAccount.3": "ユーザーデータ削除済み",
+    "account-deletion.deleteCurrentAccount.4": "ユーザーデータを削除しました",
+    "account-deletion.deleteCurrentAccount.5": "スコアを削除中… {value0}件",
+    "account-deletion.deleteCurrentAccount.6": "削除中…このウィンドウを閉じずにお待ちください。",
+    "account-deletion.restoreDeletionSession": "削除の認証を確認できません。接続を確認して再読み込みしてください",
+    "account-deletion.showDeleteUserDialog": "前回の削除は完了していません。「削除する」で再試行してください。",
+    "account-deletion.showDeleteUserDialog.2": "このウィンドウを閉じてください。新しいユーザーは自動作成しません。",
+    "account-deletion.showDeleteUserDialog.3": "ユーザーデータを削除しました。",
+    "game.updateUI": "{value0} ムーブ / 想定 {value1} ムーブ / {value2}",
+    "leaderboard.renderStageLeaderboard": "デバッグの記録は送信しません",
+    "level-map": "ステージ番号は1以上の整数を入力してください。",
+    "ui.debugControls.label": "ステージ番号",
+    "ui.debugControls.small": "未解放も選択可能・クリア進捗は保存しません",
+    "ui.debugDeleteUser": "自分のユーザーデータを削除",
+    "ui.stageDebugDisplay.label.span": "想定ルート",
+    "ui.stageDebugDisplay.label.span.2": "ホールドNo",
+    "ui.stageDebugDisplay.label.span.3": "コース情報",
+    "ui.deleteUserWarning": "名前・配色・進行状況・全ステージのスコア・認証アカウントと、この端末のゲームデータを削除します。この操作は取り消せません。",
+    "ui.deleteUserConfirm": "削除する",
+    "ui.deleteUserNew": "新しいユーザーで開始",
+    "account-deletion.identitySummary": "{value0}\nUID: {value1}",
+    "ui.debugPlay": "プレイ"
+});
