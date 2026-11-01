@@ -50,8 +50,8 @@ function showStageHelp() {
 }
 function renderStageHelp() {
     const heart=pendingFeatureHelp[0]==='heart';
-    const icon=heart ? `<img class="course-heart-icon" src="${COURSE_HEART_IMAGE_SRC}" width="36" height="36" alt="">` : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
-    ui.featureHelpContent.innerHTML=`<div class="feature-help-icon" aria-hidden="true">${icon}</div><h1 id="featureHelpTitle">${heart?gameText("item.heart"):gameText("hold.hazard")}</h1><p>${heart?gameText("feature.heart"):gameText("feature.hazard")}</p><div class="modal-tap">${gameText("action.tap")}</div>`;
+    const icon=heart ? `<img class="course-heart-icon" src="${COURSE_HEART_IMAGE_SRC}" width="96" height="96" alt="">` : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
+    ui.featureHelpContent.innerHTML=`<h1 id="featureHelpTitle">${heart?gameText("item.heart"):gameText("hold.hazard")}</h1><div class="feature-help-icon" aria-hidden="true">${icon}</div><p>${heart?gameText("feature.heart"):gameText("feature.hazard")}</p><div class="modal-tap">${gameText("action.tap")}</div>`;
     if(!heart)paintHazardHelpIcon(ui.featureHelpContent.querySelector?.('.feature-hold-image'));
 }
 function dismissStageHelp() {
