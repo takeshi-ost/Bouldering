@@ -230,7 +230,7 @@ document.addEventListener?.('keydown',unlockSound,{capture:true});
 document.addEventListener?.('click',e=>{
     unlockSound();
     const button=e.target.closest?.('button');
-    if(!button || button.disabled || button.closest('#dummyAd') || ['dailyPrev','dailyNext','editorConfirm','stageStartButton','dailyStartButton'].includes(button.id))return;
+    if(!button || button.disabled || button.closest('#dummyAd') || button.closest('#tutorialDialog,#featureHelpDialog') || ['dailyPrev','dailyNext','editorConfirm','stageStartButton','dailyStartButton'].includes(button.id))return;
     playSound('tap');
 },{capture:true});
 document.addEventListener?.('visibilitychange',()=>{if(document.hidden)stopSounds();});

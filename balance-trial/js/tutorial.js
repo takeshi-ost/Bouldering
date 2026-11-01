@@ -165,6 +165,7 @@ function transitionTutorialExplanation() {
 }
 function dismissTutorialExplanation() {
     if(!tutorialInstructionsOpen() || tutorialRun.transition || tutorialRun.imageLoading)return;
+    playSound('move'); // Same confirmation cue as committing limb placement.
     if(tutorialRun.queue.length){transitionTutorialExplanation();return;}
     const timing=tutorialRun.timing;
     hideTutorialExplanation();

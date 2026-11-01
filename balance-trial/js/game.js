@@ -66,7 +66,8 @@ function renderStageHelp() {
     });
 }
 function dismissStageHelp() {
-    if(!featureHelpOpen || featureHelpImageLoading)return;
+    if(!featureHelpOpen || featureHelpImageLoading || !pendingFeatureHelp.length)return;
+    playSound('move');
     featureHelpSeen[pendingFeatureHelp.shift()]=true;
     try {if(!debugAttempt)ASCENT_TRIAL_STORAGE?.setItem(FEATURE_HELP_KEY,JSON.stringify(featureHelpSeen));}
     catch(_) { /* Remember for this session if storage is unavailable. */ }

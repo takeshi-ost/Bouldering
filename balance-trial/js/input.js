@@ -310,5 +310,5 @@ ui.featureHelpDialog.onclick=dismissStageHelp;
 ui.featureHelpDialog.addEventListener('cancel',e=>{e.preventDefault();dismissStageHelp();});
 
 ui.featureHelpDialog.addEventListener('keydown',e=>{
-    if(e.key==='Enter' || e.key===' ') {e.preventDefault();dismissStageHelp();}
+    if(e.key==='Enter' || e.key===' ') {e.preventDefault();if(!e.repeat)dismissStageHelp();}
 });
