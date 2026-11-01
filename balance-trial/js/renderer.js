@@ -102,9 +102,9 @@ function drawWideHoldSprite(h) {
     return true;
 }
 
-function drawHazardSpriteTo(paint,x,y,size) {
-    if(!hazardHoldImage?.complete || !hazardHoldImage.naturalWidth)return false;
-    hazardHoldTintAtlas ??= createHoldTintAtlases(hazardHoldImage,[HAZARD_HOLD_TINT_RGB])[0];
+function drawHazardSpriteTo(paint,x,y,size,image=hazardHoldImage) {
+    if(!image?.complete || !image.naturalWidth)return false;
+    hazardHoldTintAtlas ??= createHoldTintAtlases(image,[HAZARD_HOLD_TINT_RGB])[0];
     paint.save();
     paint.translate(x,y);
     // Shape five points right in the source; rotate its sharp corner upward.
@@ -116,16 +116,12 @@ function drawHazardSpriteTo(paint,x,y,size) {
 function drawHazardHoldSprite(h) {
     return drawHazardSpriteTo(ctx,h.x,h.y,21.6);
 }
-function paintHazardHelpIcon(canvas) {
-    if(!canvas || !hazardHoldImage)return;
-    const render=()=>{
-        if(!canvas.isConnected)return;
-        const paint=canvas.getContext('2d');
-        paint.clearRect(0,0,canvas.width,canvas.height);
-        drawHazardSpriteTo(paint,canvas.width/2,canvas.height/2,canvas.width);
-    };
-    if(hazardHoldImage.complete && hazardHoldImage.naturalWidth)render();
-    else hazardHoldImage.addEventListener('load',render,{once:true});
+function paintHazardHelpIcon(canvas,image=hazardHoldImage) {
+    // Help waits for a decoded source; never attach a late paint listener.
+    if(!canvas || !image?.complete || !image.naturalWidth)return false;
+    const paint=canvas.getContext('2d');
+    paint.clearRect(0,0,canvas.width,canvas.height);
+    return drawHazardSpriteTo(paint,canvas.width/2,canvas.height/2,canvas.width,image);
 }
 
 function createMetallicGoalAtlas() {

@@ -34,7 +34,10 @@ function readFeatureHelpSeen() {
 let featureHelpSeen=readFeatureHelpSeen();
 let featureHelpOpen=false;
 let pendingFeatureHelp=[];
+let featureHelpImageTicket=0,featureHelpImageLoading=false;
 function hideStageHelp() {
+    featureHelpImageTicket++;featureHelpImageLoading=false;
+    ui.featureHelpDialog.classList.remove?.('explanation-image-loading');
     featureHelpOpen=false;pendingFeatureHelp=[];
     if(ui.featureHelpDialog.open)ui.featureHelpDialog.close?.();
 }
@@ -46,16 +49,24 @@ function showStageHelp() {
     if(!features.length)return;
     pendingFeatureHelp=features;featureHelpOpen=true;
     renderStageHelp();
-    ui.featureHelpDialog.showModal?.();
 }
 function renderStageHelp() {
     const heart=pendingFeatureHelp[0]==='heart';
     const icon=heart ? `<img class="course-heart-icon" src="${COURSE_HEART_IMAGE_SRC}" width="96" height="96" alt="">` : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
     ui.featureHelpContent.innerHTML=`<h1 id="featureHelpTitle">${heart?gameText("item.heart"):gameText("hold.hazard")}</h1><div class="feature-help-icon" aria-hidden="true">${icon}</div><p>${heart?gameText("feature.heart"):gameText("feature.hazard")}</p><div class="modal-tap">${gameText("action.tap")}</div>`;
-    if(!heart)paintHazardHelpIcon(ui.featureHelpContent.querySelector?.('.feature-hold-image'));
+    const ticket=++featureHelpImageTicket;
+    featureHelpImageLoading=true;ui.featureHelpDialog.classList.add?.('explanation-image-loading');
+    requestExplanationImage(heart?COURSE_HEART_IMAGE_SRC:'assets/hold-hazard-source.webp',image=>{
+        if(ticket!==featureHelpImageTicket || !featureHelpOpen || state!=='playing')return;
+        if(heart)mountExplanationImage(ui.featureHelpContent.querySelector?.('.course-heart-icon'),image,{className:'course-heart-icon',width:96,height:96});
+        else if(image)paintHazardHelpIcon(ui.featureHelpContent.querySelector?.('.feature-hold-image'),image);
+        featureHelpImageLoading=false;ui.featureHelpDialog.classList.remove?.('explanation-image-loading');
+        if(!ui.featureHelpDialog.open)ui.featureHelpDialog.showModal?.();
+        ui.featureHelpContent.focus?.();requestGameRender();
+    });
 }
 function dismissStageHelp() {
-    if(!featureHelpOpen)return;
+    if(!featureHelpOpen || featureHelpImageLoading)return;
     featureHelpSeen[pendingFeatureHelp.shift()]=true;
     try {if(!debugAttempt)ASCENT_TRIAL_STORAGE?.setItem(FEATURE_HELP_KEY,JSON.stringify(featureHelpSeen));}
     catch(_) { /* Remember for this session if storage is unavailable. */ }

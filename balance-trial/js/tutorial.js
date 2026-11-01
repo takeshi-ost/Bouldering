@@ -14,7 +14,7 @@ function tutorialPending(){return globalThis.AscentTutorialState?.pending()===tr
 function tutorialInstructionsOpen(){return !!tutorialRun?.explanation;}
 function startTutorialRun() {
     if(state!=='choosing' || isTutorialRun() || !tutorialPending())return false;
-    tutorialRun={seen:new Set(),queue:[],explanation:null,centerHoldId:null,introReady:false,timing:false,paused:false,pendingOutcome:null,transition:null,transitionTimer:null};
+    tutorialRun={seen:new Set(),queue:[],explanation:null,centerHoldId:null,introReady:false,timing:false,paused:false,pendingOutcome:null,transition:null,transitionTimer:null,imageLoading:false,imageTicket:0};
     try {
         endDebugCourseTrial();leaveDailyRun();debugAttempt=false;
         hideStageStart();cancelMapReveal();
@@ -45,8 +45,10 @@ function tutorialReadyToPlay() {
 function hideTutorialExplanation() {
     if(!tutorialRun)return;
     clearTimeout(tutorialRun.transitionTimer);
+    tutorialRun.imageTicket++;tutorialRun.imageLoading=false;
     tutorialRun.transitionTimer=null;tutorialRun.transition=null;
     document.getElementById('tutorialDialog').classList.remove('tutorial-page-closing');
+    document.getElementById('tutorialDialog').classList.remove('explanation-image-loading');
     document.getElementById('tutorialContent').setAttribute('aria-busy','false');
     document.getElementById('tutorialContinue').disabled=false;
     tutorialRun.explanation=null;tutorialRun.paused=false;featureHelpOpen=false;
@@ -103,7 +105,7 @@ function tutorialTrigger(event) {
     }
     showNextTutorialExplanation();
 }
-function showNextTutorialExplanation() {
+function showNextTutorialExplanation(whenReady=null) {
     if(!isTutorialRun() || tutorialRun.explanation || !tutorialRun.queue.length || state!=='playing')return;
     const step=tutorialRun.queue.shift();tutorialRun.explanation=step;
     if(!tutorialRun.paused) {
@@ -117,14 +119,26 @@ function showNextTutorialExplanation() {
     text.textContent=step.text||'';text.hidden=!step.text;
     const language=step.language||GAME_TEXT_LANGUAGE;
     title.setAttribute('lang',language);text.setAttribute('lang',language);
-    // Keep the empty image slot in the same grid as the existing heart help.
-    picture.hidden=!step.image;
-    if(step.image){picture.src=step.image;picture.alt=step.alt||'';}else picture.removeAttribute?.('src');
+    const run=tutorialRun,ticket=++run.imageTicket;
+    run.imageLoading=true;
     const dialog=document.getElementById('tutorialDialog');
-    if(!dialog.open)dialog.showModal?.();
-    // Read the new page first; keep TAP in the normal Tab order without
-    // automatically highlighting its full-width hit target on every page.
-    document.getElementById('tutorialContent').focus();requestGameRender();
+    dialog.classList.add('explanation-image-loading');
+    document.getElementById('tutorialContinue').disabled=true;
+    document.getElementById('tutorialContent').setAttribute('aria-busy','true');
+    requestExplanationImage(step.image,image=>{
+        if(tutorialRun!==run || run.imageTicket!==ticket || state!=='playing')return;
+        mountExplanationImage(picture,image,{id:'tutorialImage',alt:step.alt||''});
+        run.imageLoading=false;
+        dialog.classList.remove('explanation-image-loading');
+        if(!dialog.open)dialog.showModal?.();
+        if(!run.transition) {
+            document.getElementById('tutorialContinue').disabled=false;
+            document.getElementById('tutorialContent').setAttribute('aria-busy','false');
+        }
+        // Mount the already-decoded node before revealing/focusing the card.
+        document.getElementById('tutorialContent').focus();requestGameRender();
+        whenReady?.();
+    });
 }
 // Keep the native modal's input shield open while the card visibly closes,
 // stays absent for 80ms, and reopens. No input/timer gap or native close race.
@@ -137,19 +151,20 @@ function transitionTutorialExplanation() {
     dialog.classList.add('tutorial-page-closing');
     run.transitionTimer=setTimeout(()=>{
         if(tutorialRun!==run || state!=='playing')return;
-        run.transition='opening';run.explanation=null;
-        showNextTutorialExplanation();
-        dialog.classList.remove('tutorial-page-closing');
-        run.transitionTimer=setTimeout(()=>{
-            if(tutorialRun!==run || state!=='playing')return;
-            run.transition=null;run.transitionTimer=null;
-            document.getElementById('tutorialContinue').disabled=false;
-            document.getElementById('tutorialContent').setAttribute('aria-busy','false');
-        },TUTORIAL_PAGE_TRANSITION.openMs);
+        run.transition='loading';run.explanation=null;
+        showNextTutorialExplanation(()=>{
+            run.transition='opening';dialog.classList.remove('tutorial-page-closing');
+            run.transitionTimer=setTimeout(()=>{
+                if(tutorialRun!==run || state!=='playing')return;
+                run.transition=null;run.transitionTimer=null;
+                document.getElementById('tutorialContinue').disabled=false;
+                document.getElementById('tutorialContent').setAttribute('aria-busy','false');
+            },TUTORIAL_PAGE_TRANSITION.openMs);
+        });
     },TUTORIAL_PAGE_TRANSITION.closeMs+TUTORIAL_PAGE_TRANSITION.gapMs);
 }
 function dismissTutorialExplanation() {
-    if(!tutorialInstructionsOpen() || tutorialRun.transition)return;
+    if(!tutorialInstructionsOpen() || tutorialRun.transition || tutorialRun.imageLoading)return;
     if(tutorialRun.queue.length){transitionTutorialExplanation();return;}
     const timing=tutorialRun.timing;
     hideTutorialExplanation();
@@ -176,3 +191,6 @@ document.getElementById('tutorialDialog').addEventListener('close',()=>{
     if(document.getElementById('tutorialDialog').open || !tutorialInstructionsOpen())return;
     showTitleScreen();
 });
+
+// Start requests during title preparation, but retain the playable-boundary trigger.
+preloadExplanationImages([...TUTORIAL_CONFIG.steps.map(step=>step.image),COURSE_HEART_IMAGE_SRC,'assets/hold-hazard-source.webp']);
