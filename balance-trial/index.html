@@ -7,16 +7,16 @@
     <title data-i18n="title.document"></title>
     <link rel="stylesheet" href="styles.css?v=99df190b8274">
     <link rel="stylesheet" href="pages-trial.css?v=c7480538c274">
-    <script src="js/pages-trial-bootstrap.js?v=d7a71a81f6c4" defer></script>
-    <script src="js/pages-trial-seed-state.js?v=6eb4fe2f1a75" defer></script>
+    <script src="js/pages-trial-bootstrap.js?v=7b82c1c6175a" defer></script>
+    <script src="js/pages-trial-seed-state.js?v=81b9c063eaaf" defer></script>
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/text-ja.js?v=52cfcc322e71" defer></script>
     <script src="js/text-en.js?v=458fd1d84474" defer></script>
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
     <script src="js/text.js?v=cc1d9f4cd73e" defer></script>
     <script src="js/score-metadata.js?v=00c4b2028f9d" defer></script>
-    <script src="js/config.js?v=3093ed495998" defer></script>
-    <script src="js/course-progression-config.js?v=d1c31eddf308" defer></script>
+    <script src="js/config.js?v=e6d2f6d6ae99" defer></script>
+    <script src="js/course-progression-config.js?v=5f7bedbad5c1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
     <script src="js/course-distribution.js?v=b8ee0f3a1f11" defer></script>
     <script src="js/course-progression.js?v=03d7bbaa775d" defer></script>
@@ -53,7 +53,7 @@
     <script src="js/language.js?v=95886a149f00" defer></script>
     <script src="js/main.js?v=23f5efdce980" defer></script>
     <script src="js/pages-trial-seed-core.js?v=3a2df88e53da" defer></script>
-    <script src="js/pages-trial-seed-ui.js?v=c546ba47c10e" defer></script>
+    <script src="js/pages-trial-seed-ui.js?v=e46ba3482153" defer></script>
     <script src="js/pages-trial-presentation.js?v=0919ac27e527" defer></script>
 </head>
 <body>
@@ -361,9 +361,9 @@
     <p id="pagesTrialSeedWarning" role="status"></p>
     <div id="pagesTrialSeedControls" hidden>
       <label for="pagesTrialSeedInput">通常 SEED 補正値</label>
-      <input id="pagesTrialSeedInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="pagesTrialSeedRange pagesTrialSeedError" value="200">
-      <p id="pagesTrialSeedRange">0〜4294967295 の整数（初期値 200）。小数・負数・指数表記は使えません。</p>
-      <div class="pages-trial-seed-actions"><button id="pagesTrialSeedDefault" type="button">入力を 200 に戻す</button><button id="pagesTrialSeedApply" type="submit">適用</button></div>
+      <input id="pagesTrialSeedInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="pagesTrialSeedRange pagesTrialSeedError" value="10">
+      <p id="pagesTrialSeedRange">0〜4294967295 の整数（初期値 10）。小数・負数・指数表記は使えません。</p>
+      <div class="pages-trial-seed-actions"><button id="pagesTrialSeedDefault" type="button">入力を 10 に戻す</button><button id="pagesTrialSeedApply" type="submit">適用</button></div>
     </div>
     <p id="pagesTrialSeedError" role="alert"></p>
     <p id="pagesTrialSeedStatus" role="status" aria-live="polite"></p>

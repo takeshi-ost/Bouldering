@@ -6,6 +6,9 @@
  const apply=get('Apply'),defaults=get('Default'),error=get('Error'),status=get('Status');
  const titleButton=get('OpenTitle'),settingsButton=get('OpenSettings');
  ui.titleScreen.appendChild(titleButton);ui.settingsDialog.appendChild(settingsButton);titleButton.hidden=false;
+ const defaultOffset=ASCENT_TRIAL.normalSeedOffset;
+ defaults.textContent='入力を '+defaultOffset+' に戻す';
+ get('Range').textContent='0〜4294967295 の整数（初期値 '+defaultOffset+'）。小数・負数・指数表記は使えません。';
  let returnFocus=null;
  const stop=e=>{e?.preventDefault?.();e?.stopPropagation?.();};
  function sync(){
@@ -45,8 +48,8 @@
  };
  defaults.onclick=()=>{
   if(defaults.disabled)return;
-  input.value='200';error.textContent='';input.removeAttribute('aria-invalid');
-  status.textContent='入力を 200 に戻しました。反映するには「適用」を押してください。';input.focus();
+  input.value=String(defaultOffset);error.textContent='';input.removeAttribute('aria-invalid');
+  status.textContent='入力を '+defaultOffset+' に戻しました。反映するには「適用」を押してください。';input.focus();
  };
  form.onsubmit=e=>{
   stop(e);error.textContent=status.textContent='';

@@ -1,7 +1,9 @@
 'use strict';
 // Artifact-only preference state. Loaded before any application source.
 (() => {
-    const key='ascent.trial-seed-offset.v1';
+    // A new preference generation adopts the finalized default once. Never
+    // read, migrate, remove or overwrite the old preference (rollback data).
+    const key=ASCENT_TRIAL.seedPreferenceKey;
     const valid=n=>Number.isInteger(n)&&n>=0&&n<=4294967295;
     function parse(raw) {
         if(typeof raw!=='string' || !/^[0-9]+$/.test(raw.trim()))return null;

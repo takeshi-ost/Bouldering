@@ -4,7 +4,7 @@
 // score version; change daily.version AND DAILY_COURSE_VERSION only when its
 // date score, recipe or gameplay changes. Never relabel saved historical scores.
 const CourseProgressionConfig = globalThis.CourseProgressionConfig = {
-    version: '4',
+    version: '5',
     normalSeedOffset: ASCENT_TRIAL_SEEDS.offset, // Uint32 offset; Daily remains date-seeded.
     rounding: 'nearest', // Math.round: positive half-integers round upward.
     stageSegments: [
