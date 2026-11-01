@@ -5,18 +5,18 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=4567a5a8d12c">
+    <link rel="stylesheet" href="styles.css?v=77257c4df90f">
     <link rel="stylesheet" href="pages-trial.css?v=c7480538c274">
-    <script src="js/pages-trial-bootstrap.js?v=7ec423ec7fa8" defer></script>
+    <script src="js/pages-trial-bootstrap.js?v=fb11ccffd5cf" defer></script>
     <script src="js/pages-trial-seed-state.js?v=81b9c063eaaf" defer></script>
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=26e4029dfbb5" defer></script>
-    <script src="js/text-ja.js?v=52cfcc322e71" defer></script>
-    <script src="js/text-en.js?v=458fd1d84474" defer></script>
+    <script src="js/text-ja.js?v=4bb0d1a08d69" defer></script>
+    <script src="js/text-en.js?v=e4dc4232f6c5" defer></script>
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
     <script src="js/text.js?v=cc1d9f4cd73e" defer></script>
     <script src="js/score-metadata.js?v=00c4b2028f9d" defer></script>
-    <script src="js/config.js?v=e44a45556daa" defer></script>
+    <script src="js/config.js?v=cdaa278e7f44" defer></script>
     <script src="js/course-progression-config.js?v=5f7bedbad5c1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
     <script src="js/course-distribution.js?v=b8ee0f3a1f11" defer></script>
@@ -53,7 +53,7 @@
     <script src="js/account-deletion.js?v=083071301ce6" defer></script>
     <script src="js/transfer.js?v=563bc885ce41" defer></script>
     <script src="js/language.js?v=95886a149f00" defer></script>
-    <script src="js/tutorial.js?v=520a61c0270f" defer></script>
+    <script src="js/tutorial.js?v=b21bd30f94c6" defer></script>
     <script src="js/main.js?v=31bc14f06d88" defer></script>
     <script src="js/pages-trial-seed-core.js?v=3a2df88e53da" defer></script>
     <script src="js/pages-trial-seed-ui.js?v=e46ba3482153" defer></script>
@@ -273,11 +273,13 @@
                 <div id="rewardResult" class="reward-result" role="dialog" aria-modal="true" aria-labelledby="rewardResultTitle" tabindex="-1" hidden></div>
             </section>
         </dialog>
-        <dialog id="tutorialDialog" class="tutorial-dialog" aria-labelledby="tutorialTitle" aria-describedby="tutorialText">
-            <h2 id="tutorialTitle"></h2>
-            <p id="tutorialText"></p>
-            <img id="tutorialImage" alt="" hidden>
-            <button id="tutorialContinue" type="button" data-i18n="action.tap"></button>
+        <dialog id="tutorialDialog" class="overlay feature-help tutorial-dialog" aria-labelledby="tutorialTitle" aria-describedby="tutorialText">
+            <div class="card" id="tutorialContent" aria-live="polite">
+                <div class="feature-help-icon" id="tutorialImageSlot" aria-hidden="true"><img id="tutorialImage" alt="" hidden></div>
+                <h1 id="tutorialTitle"></h1>
+                <p id="tutorialText"></p>
+                <button id="tutorialContinue" class="modal-tap" type="button" data-i18n="action.tap"></button>
+            </div>
         </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
             <div class="help-heading"><h2 id="settingsTitle" data-i18n="ui.settingsTitle"></h2><button id="closeSettings" class="modal-close" aria-label="" autofocus data-i18n-aria-label="ui.closeSettings.aria-label">✕</button></div>

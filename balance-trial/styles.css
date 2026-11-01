@@ -645,12 +645,10 @@ dialog.help-dialog { max-height:min(560px,calc(var(--viewport-height,700px) - 32
 .debug-course-status pre { margin:0 0 4px; white-space:pre-wrap; overflow-wrap:anywhere; }
 .debug-course-status button { min-height:32px; font-size:12px; padding:4px 8px; }
 
-/* Empty until tutorial content is supplied; use the existing safe-area dialog portal. */
-.tutorial-dialog { width:min(360px,calc(100% - 32px)); max-height:calc(var(--viewport-height,700px) - 40px); overflow:auto; border:0; border-radius:18px; padding:24px; color:#25372f; background:#f8f6ee; }
-.tutorial-dialog::backdrop { background:#23372dbd; }
-.tutorial-dialog h2 { margin:0 0 16px; }
-.tutorial-dialog p { white-space:pre-wrap; line-height:1.8; }
-.tutorial-dialog img { display:block; max-width:100%; height:auto; margin:16px auto; }
-.tutorial-dialog button { width:100%; min-height:44px; margin-top:16px; }
-.tutorial-dialog [hidden] { display:none; }
+/* Tutorial pages reuse the exact heart-help card and safe viewport portal. */
+.tutorial-dialog .card p { white-space:pre-wrap; }
+.tutorial-dialog .feature-help-icon img { display:block; width:36px; height:36px; object-fit:contain; }
+.tutorial-dialog .feature-help-icon img[hidden] { display:none; }
+.tutorial-dialog button.modal-tap { border:0; border-radius:0; min-height:44px; cursor:pointer; }
+.tutorial-dialog button.modal-tap:focus-visible { outline:2px solid #39785b; outline-offset:2px; }
 .title-tutorial-error { position:absolute; left:22px; right:22px; bottom:108px; text-align:center; color:#9b3f32; font-size:13px; }

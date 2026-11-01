@@ -1,6 +1,16 @@
 "use strict";
 // Approved English player copy. Placeholder names match the Japanese source.
 const GAME_TEXT_EN = Object.freeze({
+    // Owner-supplied tutorial copy, verbatim; English intentionally falls back to Japanese until a translation is approved.
+    "tutorial.title.play": "あそびかた",
+    "tutorial.title.wide": "大きなホールド",
+    "tutorial.intro.welcome": "ASCENTにようこそ！ これはクライマーを動かして、スタミナがなくなる前にゴールする、ボルダリングゲームです。",
+    "tutorial.intro.movement": "クライマーは画面のどこをスワイプしても動き、指をはなすと決定です。手足のうち2本が動きますが、足を手より高い場所に置くことはできません。",
+    "tutorial.intro.goal": "左上のスタミナがなくなる前にゴールを両手でつかむとゴールです。\nさっそくあそんでみましょう！",
+    "tutorial.wide": "これは大きなホールドです。大きなホールドは両手または両足をおくことができます。",
+    "tutorial.goal.fixed": "ゴール！ゴールの時には両足も固定している必要があります。",
+    "tutorial.goal.finish": "説明は以上です。詳しい説明は右上の歯車アイコンから見ることができます。それではゲームスタートです！",
+
     "debug.typeMatched": "Requested intent matches (bounded search)",
     "debug.typeMismatch": "Intent mismatch / unclassified",
 

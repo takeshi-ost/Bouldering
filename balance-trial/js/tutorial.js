@@ -1,13 +1,20 @@
 'use strict';
-// Explanations are deliberately empty until the owner supplies their content
-// and timing. This is a local onboarding mode, never a ranked normal stage 0.
-const TUTORIAL_CONFIG={version:'1',steps:[]};
+// Owner-approved pages. English intentionally uses the same Japanese copy;
+// mark its language explicitly rather than inventing an unapproved translation.
+const TUTORIAL_CONFIG={version:'2',steps:[
+    {id:'intro-welcome',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.welcome")},
+    {id:'intro-movement',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.movement")},
+    {id:'intro-goal',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.goal")},
+    {id:'center-wide',when:{event:'hold',hold:'center'},language:'ja',title:gameText("tutorial.title.wide"),text:gameText("tutorial.wide")},
+    {id:'goal-fixed',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.goal.fixed")},
+    {id:'goal-finish',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.goal.finish")}
+]};
 function isTutorialRun(){return tutorialRun!==null;}
 function tutorialPending(){return globalThis.AscentTutorialState?.pending()===true;}
 function tutorialInstructionsOpen(){return !!tutorialRun?.explanation;}
 function startTutorialRun() {
     if(state!=='choosing' || isTutorialRun() || !tutorialPending())return false;
-    tutorialRun={seen:new Set(),queue:[],explanation:null,centerHoldId:null,timing:false,pendingOutcome:null};
+    tutorialRun={seen:new Set(),queue:[],explanation:null,centerHoldId:null,timing:false,paused:false,pendingOutcome:null};
     try {
         endDebugCourseTrial();leaveDailyRun();debugAttempt=false;
         hideStageStart();cancelMapReveal();
@@ -29,8 +36,8 @@ function startTutorialRun() {
     }
 }
 function hideTutorialExplanation() {
-    if(!tutorialRun?.explanation)return;
-    tutorialRun.explanation=null;featureHelpOpen=false;
+    if(!tutorialRun)return;
+    tutorialRun.explanation=null;tutorialRun.paused=false;featureHelpOpen=false;
     const dialog=document.getElementById('tutorialDialog');
     if(dialog.open)dialog.close?.();
 }
@@ -44,8 +51,11 @@ function interruptTutorialRun() {
 }
 function finishTutorialRun(won) {
     if(!isTutorialRun() || state!=='playing')return false;
+    // Keep the first terminal outcome while queued pages are being read.
+    won=tutorialRun.pendingOutcome??!!won;
+    if(won)tutorialTrigger('goal');
     if(tutorialInstructionsOpen() || tutorialRun.queue.length) {
-        tutorialRun.pendingOutcome??=!!won;return true;
+        tutorialRun.pendingOutcome??=won;return true;
     }
     playSound(won?'clear':'fail');
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
@@ -56,7 +66,7 @@ function finishTutorialRun(won) {
     showLevelMap({target:1,onReady:()=>openStageStart(1)});
     return true;
 }
-// Steps are data: {id,when:{event:'start'|'move'|'hold',count?,hold?},
+// Steps are data: {id,when:{event:'start'|'move'|'hold'|'goal',count?,hold?},
 // title?,text?,image?,alt?}. hold:'center' selects the protected central hold.
 // No content means no modal. Text uses textContent, never HTML injection.
 function tutorialTrigger(event) {
@@ -71,7 +81,8 @@ function tutorialTrigger(event) {
             // "Grabbed" is a hand contact, not a foot merely standing on it.
             if(!grips.slice(0,2).some(h=>h?.id===id))continue;
         }
-        if(!['start','move','hold'].includes(event))continue;
+        if(event==='goal' && (!bothHandsOnGoal(grips) || grips.length!==4 || !grips.every((h,i)=>h && limbReachable(body,h,i))))continue;
+        if(!['start','move','hold','goal'].includes(event))continue;
         const hasText=[step.title,step.text].some(value=>typeof value==='string' && value.trim());
         const validImage=typeof step.image==='string' && /^assets\/[a-zA-Z0-9/_-]+\.(png|webp|svg|jpg|jpeg)$/.test(step.image);
         if(!hasText && !validImage)continue;
@@ -82,26 +93,53 @@ function tutorialTrigger(event) {
 function showNextTutorialExplanation() {
     if(!isTutorialRun() || tutorialRun.explanation || !tutorialRun.queue.length || state!=='playing')return;
     const step=tutorialRun.queue.shift();tutorialRun.explanation=step;
-    tutorialRun.timing=runStartedAt!==null;
-    if(tutorialRun.timing){runElapsedMs=runTimeMs();runStartedAt=null;}
+    if(!tutorialRun.paused) {
+        tutorialRun.timing=runStartedAt!==null;
+        if(tutorialRun.timing){runElapsedMs=runTimeMs();runStartedAt=null;}
+        tutorialRun.paused=true;
+    }
     featureHelpOpen=true;
     const title=document.getElementById('tutorialTitle'),text=document.getElementById('tutorialText'),picture=document.getElementById('tutorialImage');
     title.textContent=step.title||'';title.hidden=!step.title;
     text.textContent=step.text||'';text.hidden=!step.text;
+    const language=step.language||GAME_TEXT_LANGUAGE;
+    title.setAttribute('lang',language);text.setAttribute('lang',language);
+    // Keep the empty image slot in the same grid as the existing heart help.
     picture.hidden=!step.image;
     if(step.image){picture.src=step.image;picture.alt=step.alt||'';}else picture.removeAttribute?.('src');
-    document.getElementById('tutorialDialog').showModal?.();
+    const dialog=document.getElementById('tutorialDialog');
+    if(!dialog.open)dialog.showModal?.();
     document.getElementById('tutorialContinue').focus();requestGameRender();
 }
 function dismissTutorialExplanation() {
     if(!tutorialInstructionsOpen())return;
+    tutorialRun.explanation=null;
+    // Consecutive pages replace content inside the SAME open modal. Do not
+    // resume timing/input, release focus, or close/reopen the top layer between.
+    if(tutorialRun.queue.length){showNextTutorialExplanation();return;}
     const timing=tutorialRun.timing;
     hideTutorialExplanation();
     if(cameraIntro)cameraIntro.start=null;
+    if(tutorialRun.pendingOutcome!==null) {finishTutorialRun(tutorialRun.pendingOutcome);return;}
     if(timing)runStartedAt=performance.now()-runElapsedMs;
-    showNextTutorialExplanation();
-    if(!tutorialInstructionsOpen() && tutorialRun.pendingOutcome!==null) {finishTutorialRun(tutorialRun.pendingOutcome);return;}
-    if(!tutorialInstructionsOpen())canvas.focus();requestGameRender();
+    canvas.focus();requestGameRender();
 }
-document.getElementById('tutorialContinue').onclick=dismissTutorialExplanation;
-document.getElementById('tutorialDialog').addEventListener('cancel',event=>{event.preventDefault();dismissTutorialExplanation();});
+function advanceTutorialExplanation(event) {
+    event?.preventDefault?.();event?.stopPropagation?.();
+    dismissTutorialExplanation();
+}
+document.getElementById('tutorialContinue').onclick=advanceTutorialExplanation;
+document.getElementById('tutorialDialog').onclick=advanceTutorialExplanation;
+document.getElementById('tutorialDialog').addEventListener('cancel',advanceTutorialExplanation);
+document.getElementById('tutorialDialog').addEventListener('keydown',event=>{
+    if(event.key==='Enter' || event.key===' ') {
+        event.preventDefault();event.stopPropagation?.();
+        if(!event.repeat)dismissTutorialExplanation();
+    }
+});
+document.getElementById('tutorialDialog').addEventListener('close',()=>{
+    // Ignore delayed close events after a newer modal has opened. An unexpected
+    // external close must not leave hidden instructions locking gameplay.
+    if(document.getElementById('tutorialDialog').open || !tutorialInstructionsOpen())return;
+    showTitleScreen();
+});
