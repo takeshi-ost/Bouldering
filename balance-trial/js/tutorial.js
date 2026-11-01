@@ -1,13 +1,13 @@
 'use strict';
 // Owner-approved pages. English intentionally uses the same Japanese copy;
 // mark its language explicitly rather than inventing an unapproved translation.
-const TUTORIAL_CONFIG={version:'2',steps:[
-    {id:'intro-welcome',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.welcome")},
-    {id:'intro-movement',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.movement")},
-    {id:'intro-goal',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.goal")},
-    {id:'center-wide',when:{event:'hold',hold:'center'},language:'ja',title:gameText("tutorial.title.wide"),text:gameText("tutorial.wide")},
-    {id:'goal-fixed',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.goal.fixed")},
-    {id:'goal-finish',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.goal.finish")}
+const TUTORIAL_CONFIG={version:'7',steps:[
+    {id:'intro-welcome',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.welcome"),image:'assets/tutorial-swipe-78-v1.png'},
+    {id:'intro-movement',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.movement"),image:'assets/tutorial-feet-limit-78-v1.png'},
+    {id:'intro-goal',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.goal"),image:'assets/tutorial-goal-hands-78-v1.png'},
+    {id:'center-wide',when:{event:'hold',hold:'center'},language:'ja',title:gameText("tutorial.title.wide"),text:gameText("tutorial.wide"),image:'assets/hold-wide-flat.webp'},
+    {id:'goal-fixed',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.goal.fixed"),image:'assets/tutorial-goal-feet-78-v1.png'},
+    {id:'goal-finish',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.goal.finish"),image:'assets/settings-gear.svg'}
 ]};
 function isTutorialRun(){return tutorialRun!==null;}
 function tutorialPending(){return globalThis.AscentTutorialState?.pending()===true;}
