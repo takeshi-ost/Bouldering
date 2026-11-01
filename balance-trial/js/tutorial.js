@@ -109,7 +109,9 @@ function showNextTutorialExplanation() {
     if(step.image){picture.src=step.image;picture.alt=step.alt||'';}else picture.removeAttribute?.('src');
     const dialog=document.getElementById('tutorialDialog');
     if(!dialog.open)dialog.showModal?.();
-    document.getElementById('tutorialContinue').focus();requestGameRender();
+    // Read the new page first; keep TAP in the normal Tab order without
+    // automatically highlighting its full-width hit target on every page.
+    document.getElementById('tutorialContent').focus();requestGameRender();
 }
 function dismissTutorialExplanation() {
     if(!tutorialInstructionsOpen())return;
