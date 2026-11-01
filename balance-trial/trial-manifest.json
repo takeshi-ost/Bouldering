@@ -1,5 +1,5 @@
 {
-  "release": "0.4.29",
+  "release": "0.4.30",
   "distribution": "7",
   "identity": "trial-d7-offset10",
   "normalIdentity": "trial-d7-offset10",
@@ -9,7 +9,7 @@
   "progressionVersion": "5",
   "seedControl": true,
   "seedPreferenceKey": "ascent.trial-seed-offset.v2",
-  "commit": "d4c0f2126aad9fa062c091541c4191447109fa37",
+  "commit": "fa454c153095e9b86a03943b81901c0fc15aee7b",
   "dirty": false,
   "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
   "sourceFiles": [
@@ -39,7 +39,7 @@
     },
     {
       "path": "js/config.js",
-      "sha256": "1f3ce822ffc1c4ad7af7b50d943309cf37c481a5a5aa83f50587a27f8305c937"
+      "sha256": "35c81a77b8bfb72d7eb851c90fd08bb22d65b5bb768297f4f6d962021496f4bc"
     },
     {
       "path": "js/course-progression-config.js",
@@ -187,7 +187,7 @@
     },
     {
       "path": "js/tutorial.js",
-      "sha256": "926f868a45e3fbb42e1b995320b47e28f41a33795250e94771e2669851a39335"
+      "sha256": "3f3bdd07029e6d184c026d15e62b870c893643a2eb1faeb9f8d6f538639794ca"
     },
     {
       "path": "js/main.js",
@@ -240,7 +240,7 @@
     {
       "path": "js/config.js",
       "bytes": 6063,
-      "sha256": "35df2d3b76daf339b19b2acac8452bed7dd69a8285ae32355644c1c8de89a07d"
+      "sha256": "ce03a6b2ab653832df93d0a281e40192b362908d6bd3f8932817434beab927b2"
     },
     {
       "path": "js/course-progression-config.js",
@@ -425,7 +425,7 @@
     {
       "path": "js/tutorial.js",
       "bytes": 10284,
-      "sha256": "926f868a45e3fbb42e1b995320b47e28f41a33795250e94771e2669851a39335"
+      "sha256": "3f3bdd07029e6d184c026d15e62b870c893643a2eb1faeb9f8d6f538639794ca"
     },
     {
       "path": "js/main.js",
@@ -638,19 +638,19 @@
       "sha256": "a07824fe94996ce705ac75ca262b45be464f69929597ce73e6eecd7f29d55761"
     },
     {
-      "path": "assets/tutorial-feet-limit-78-v1.png",
-      "bytes": 9969,
-      "sha256": "91184c12cea024ecdb9687d17cd748d401043f17a40e2152f8d916c8938be30b"
+      "path": "assets/tutorial-feet-limit-78-v2.png",
+      "bytes": 10156,
+      "sha256": "9a560637230823a0007d0410d899d9a6e11f616277810eeb49ce4a5e90caa996"
     },
     {
-      "path": "assets/tutorial-goal-feet-78-v1.png",
-      "bytes": 9411,
-      "sha256": "dfb53f2707c5b5c098300f0719ab89341cbc7e348c779930723ffb3b3a57b1a2"
+      "path": "assets/tutorial-goal-feet-78-v2.png",
+      "bytes": 9549,
+      "sha256": "a5a29865fca4456037dd3be6d81edfcd15dceb3241ff70fb3c99b2bf6c2bed63"
     },
     {
-      "path": "assets/tutorial-goal-hands-78-v1.png",
-      "bytes": 8898,
-      "sha256": "e3c46bc61d9e4f3b0e43aee794a7434835e9515f8b8c0f6ac476bf9e80c9dccb"
+      "path": "assets/tutorial-goal-hands-78-v2.png",
+      "bytes": 8347,
+      "sha256": "b01ebf14e189fb3cab872558e6224570dc311c029b7f9b6ff14c681d9fadef60"
     },
     {
       "path": "assets/tutorial-swipe-78-v1.png",
@@ -660,7 +660,7 @@
     {
       "path": "js/pages-trial-bootstrap.js",
       "bytes": 2268,
-      "sha256": "d8a7f9e2b57c1d019d1f36cb0872cd74df4920df67da819d1192f3f957ca6589"
+      "sha256": "a305f0de2e1be3697a2b72871e6831ac3700dd3a0a6e730ade1ab73dbc912e6e"
     },
     {
       "path": "js/pages-trial-presentation.js",
@@ -675,7 +675,7 @@
     {
       "path": "index.html",
       "bytes": 35464,
-      "sha256": "d72b0c5722f34103386c1fe012f8710d9c0248da74b286997cc7a35bcff74cc2"
+      "sha256": "5d700210524053f1171e03005813fbf4f5ecb6d13049af44e2f627f9ebecb5c6"
     },
     {
       "path": ".nojekyll",
@@ -683,7 +683,7 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "totalBytes": 7307455,
+  "totalBytes": 7307229,
   "omitted": [
     "firebase-client.js",
     "native SDK",
