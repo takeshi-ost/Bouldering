@@ -36,6 +36,7 @@ function connectOnlineScores(uid) {
 }
 function queueOnlineScore(stage,mode,score) {
     return false; // Artifact-only safety gate.
+    if(stage<1 || (typeof isTutorialRun==='function' && isTutorialRun()))return false;
     if(accountDeletion.marker)return false;
     if(mode!=='existing')return false;
     const board=scoreBoardKey(stage,mode);

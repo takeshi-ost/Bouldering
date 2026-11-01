@@ -25,6 +25,7 @@ function saveAdPlayCount() {
     catch(_) { /* Keep the interval within this session if storage is unavailable. */ }
 }
 function recordAdPlay() {
+    if(typeof isTutorialRun==='function' && isTutorialRun())return;
     if(adPlayRecorded || dailyRun || debugAttempt || courseMode!=='existing' || level<NORMAL_AD_FIRST_STAGE)return;
     adPlayRecorded=true;
     playsSinceAd=Math.min(Number.MAX_SAFE_INTEGER,playsSinceAd+1);saveAdPlayCount();

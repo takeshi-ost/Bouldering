@@ -210,8 +210,8 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .settings-button:active { transform:scale(.94); }
 .map-settings-button { position:absolute; z-index:3; top:calc(0px + 12px); right:max(12px,0px); }
 .progress { grid-column:1/-1; justify-self:end; color:#68786e; font-size:11px; background:#fffdf4d9; padding:8px; border-radius:8px; }
-.title-screen { position:absolute; inset:0; z-index:5; background:#f6f3eb; overflow-y:auto; touch-action:pan-y; padding:24px 22px 108px; display:grid; align-items:center; }
-.title-content { width:min(100%,420px); margin:auto; text-align:center; }
+.title-screen { position:absolute; inset:0; z-index:5; background:#f6f3eb; overflow-y:auto; touch-action:pan-y; padding:108px 22px; display:grid; align-items:center; }
+.title-content { width:min(100%,420px); margin:auto; display:flex; flex-direction:column; text-align:center; }
 .brand { font-size:36px; font-weight:850; letter-spacing:6px; margin:0 0 4px; }
 .tag { font-size:10px; letter-spacing:2px; color:#68786e; }
 .title-content p { font-size:13px; line-height:1.8; color:#637267; margin:24px 0 12px; }
@@ -393,13 +393,14 @@ button.modal-close:focus-visible { outline:none; }
 .title-screen { outline:none; cursor:default; -webkit-tap-highlight-color:transparent; }
 .title-screen[aria-disabled="false"] { cursor:pointer; }
 .title-content .title-tagline { margin:6px 0 0; font-size:13px; letter-spacing:.4px; }
-.title-content .title-publisher { margin:48px 0 0; }
-.title-content .release-version { margin:28px 0 6px; font-size:12px; }
-.title-version-space, .title-publisher-space { visibility:hidden; }
+/* The wall already uses the safe logical viewport. Equal top/bottom padding
+   reserves footer/control clearance without shifting the visible title group. */
+.title-content .brand { margin:0; line-height:1.2; }
 .title-identity { min-width:0; text-align:left; }
 .title-identity p { margin:0; font-size:10px; line-height:1.5; color:#637267; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
-.title-tap { margin-top:44px; }
-.title-tap[hidden] { display:none; }
+.title-tap { margin-top:44px; min-height:34px; }
+/* Readiness hides the prompt, not its box: the brand must not jump on load. */
+.title-content .title-tap[hidden] { display:block; visibility:hidden; }
 .wall.title-open .level-map { visibility:hidden; pointer-events:none; }
 
 /* Press feedback follows the artwork, while the hit area stays fixed. */
@@ -643,3 +644,13 @@ dialog.help-dialog { max-height:min(560px,calc(var(--viewport-height,700px) - 32
 .debug-course-status[hidden] { display:none; }
 .debug-course-status pre { margin:0 0 4px; white-space:pre-wrap; overflow-wrap:anywhere; }
 .debug-course-status button { min-height:32px; font-size:12px; padding:4px 8px; }
+
+/* Empty until tutorial content is supplied; use the existing safe-area dialog portal. */
+.tutorial-dialog { width:min(360px,calc(100% - 32px)); max-height:calc(var(--viewport-height,700px) - 40px); overflow:auto; border:0; border-radius:18px; padding:24px; color:#25372f; background:#f8f6ee; }
+.tutorial-dialog::backdrop { background:#23372dbd; }
+.tutorial-dialog h2 { margin:0 0 16px; }
+.tutorial-dialog p { white-space:pre-wrap; line-height:1.8; }
+.tutorial-dialog img { display:block; max-width:100%; height:auto; margin:16px auto; }
+.tutorial-dialog button { width:100%; min-height:44px; margin-top:16px; }
+.tutorial-dialog [hidden] { display:none; }
+.title-tutorial-error { position:absolute; left:22px; right:22px; bottom:108px; text-align:center; color:#9b3f32; font-size:13px; }

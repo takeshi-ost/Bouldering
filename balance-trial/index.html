@@ -5,17 +5,18 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=99df190b8274">
+    <link rel="stylesheet" href="styles.css?v=4567a5a8d12c">
     <link rel="stylesheet" href="pages-trial.css?v=c7480538c274">
-    <script src="js/pages-trial-bootstrap.js?v=7b82c1c6175a" defer></script>
+    <script src="js/pages-trial-bootstrap.js?v=7ec423ec7fa8" defer></script>
     <script src="js/pages-trial-seed-state.js?v=81b9c063eaaf" defer></script>
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
+    <script src="js/tutorial-state.js?v=26e4029dfbb5" defer></script>
     <script src="js/text-ja.js?v=52cfcc322e71" defer></script>
     <script src="js/text-en.js?v=458fd1d84474" defer></script>
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
     <script src="js/text.js?v=cc1d9f4cd73e" defer></script>
     <script src="js/score-metadata.js?v=00c4b2028f9d" defer></script>
-    <script src="js/config.js?v=e6d2f6d6ae99" defer></script>
+    <script src="js/config.js?v=e44a45556daa" defer></script>
     <script src="js/course-progression-config.js?v=5f7bedbad5c1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
     <script src="js/course-distribution.js?v=b8ee0f3a1f11" defer></script>
@@ -27,31 +28,33 @@
     <script src="js/utils.js?v=d73670fd1f8d" defer></script>
     <script src="js/difficulty.js?v=c750680f755f" defer></script>
     <script src="js/stage.js?v=1c768a6ef803" defer></script>
-    <script src="js/game.js?v=1be36b3dace7" defer></script>
+    <script src="js/game.js?v=581a97dc1e8d" defer></script>
     <script src="js/route.js?v=850c0b3b7c69" defer></script>
     <script src="js/course.js?v=15b72884cb1e" defer></script>
     <script src="js/hazards.js?v=94e27f98abbb" defer></script>
     <script src="js/course-stamina-settings.js?v=e5a64ef8dafb" defer></script>
     <script src="js/course-generator-core.js?v=c329b53ac970" defer></script>
     <script src="js/course-adoption.js?v=dbf121536018" defer></script>
+    <script src="js/tutorial-course.js?v=b56228d85597" defer></script>
     <script src="js/map-art.js?v=ba5492a063da" defer></script>
-    <script src="js/level-map.js?v=3837080a75e4" defer></script>
+    <script src="js/level-map.js?v=1ee723c2427f" defer></script>
     <script src="js/daily.js?v=85e97c19b7d3" defer></script>
-    <script src="js/ads.js?v=eb6ca74319c8" defer></script>
-    <script src="js/lives.js?v=c94a7a7df18e" defer></script>
-    <script src="js/rewards.js?v=631a0f18b380" defer></script>
+    <script src="js/ads.js?v=66114ad0eec4" defer></script>
+    <script src="js/lives.js?v=9501eda39307" defer></script>
+    <script src="js/rewards.js?v=9a8a6545bb5b" defer></script>
     <script src="js/debug-course.js?v=e05bdae6db0e" defer></script>
-    <script src="js/input.js?v=8387cbda6ef8" defer></script>
+    <script src="js/input.js?v=cfcf50126af2" defer></script>
     <script src="js/renderer.js?v=87555e9763c1" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
     <script src="js/appearance.js?v=1557949c0558" defer></script>
     <script src="js/leaderboard.js?v=412d1528a5f3" defer></script>
     <script src="js/online.js?v=a9a1a6dba4c6" defer></script>
-    <script src="js/online-scores.js?v=bf67a82d60e4" defer></script>
-    <script src="js/account-deletion.js?v=b1680ff6ccf6" defer></script>
-    <script src="js/transfer.js?v=8901b759c2e9" defer></script>
+    <script src="js/online-scores.js?v=3c6f92253ac0" defer></script>
+    <script src="js/account-deletion.js?v=083071301ce6" defer></script>
+    <script src="js/transfer.js?v=563bc885ce41" defer></script>
     <script src="js/language.js?v=95886a149f00" defer></script>
-    <script src="js/main.js?v=23f5efdce980" defer></script>
+    <script src="js/tutorial.js?v=520a61c0270f" defer></script>
+    <script src="js/main.js?v=31bc14f06d88" defer></script>
     <script src="js/pages-trial-seed-core.js?v=3a2df88e53da" defer></script>
     <script src="js/pages-trial-seed-ui.js?v=e46ba3482153" defer></script>
     <script src="js/pages-trial-presentation.js?v=0919ac27e527" defer></script>
@@ -88,10 +91,9 @@
                 <div class="title-content">
                     <h1 class="brand"><span data-i18n="title.brand"></span><span class="brand-dot">.</span></h1>
                     <p class="title-tagline" data-i18n="title.tagline"></p>
-                    <p class="release-version title-version-space" aria-hidden="true">&nbsp;</p>
                     <div id="titleTap" class="title-tap modal-tap" aria-live="polite" hidden data-i18n="action.tap"></div>
-                    <div class="title-publisher modal-tap title-publisher-space" aria-hidden="true">&nbsp;</div>
                 </div>
+                <p id="titleTutorialError" class="title-tutorial-error" role="alert" hidden></p>
                 <div class="title-footer">
                     <button id="titleTransfer" class="title-transfer secondary" type="button" data-i18n="ui.titleTransfer"></button>
                     <div class="title-identity">
@@ -270,6 +272,12 @@
                 <p id="rewardStop" class="modal-tap" aria-hidden="true" data-i18n="action.tap"></p>
                 <div id="rewardResult" class="reward-result" role="dialog" aria-modal="true" aria-labelledby="rewardResultTitle" tabindex="-1" hidden></div>
             </section>
+        </dialog>
+        <dialog id="tutorialDialog" class="tutorial-dialog" aria-labelledby="tutorialTitle" aria-describedby="tutorialText">
+            <h2 id="tutorialTitle"></h2>
+            <p id="tutorialText"></p>
+            <img id="tutorialImage" alt="" hidden>
+            <button id="tutorialContinue" type="button" data-i18n="action.tap"></button>
         </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
             <div class="help-heading"><h2 id="settingsTitle" data-i18n="ui.settingsTitle"></h2><button id="closeSettings" class="modal-close" aria-label="" autofocus data-i18n-aria-label="ui.closeSettings.aria-label">✕</button></div>

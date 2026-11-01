@@ -158,6 +158,7 @@ ui.restart.onclick=()=>{
     finish(false);
 };
 function returnFromStage() {
+    if(typeof isTutorialRun==='function' && isTutorialRun()) {finishTutorialRun(false);return;}
     if(!['playing','won','lost'].includes(state))return;
     if(dailyRun) {
         if(state==='won')continueDailyResult();else returnDailyWithoutClear();
@@ -166,6 +167,7 @@ function returnFromStage() {
 }
 
 function showTitleScreen() {
+    if(typeof interruptTutorialRun==='function')interruptTutorialRun();
     endDebugCourseTrial();
     finishDummyAdCover();finishRewardCover();
     hideStageStart();
@@ -194,11 +196,13 @@ function showTitleScreen() {
     courseMode='existing';
     syncDebugCourseControls();
     canvas.setAttribute('tabindex', '-1');
+    document.getElementById('titleTutorialError').hidden=true;
     beginTitlePreparation();
 }
 function startCourse() {
     // Legacy callers may still pass a retired mode; only normal play exists.
     courseMode = 'existing';
+    if(state==='choosing' && typeof tutorialPending==='function' && tutorialPending()) {startTutorialRun();return;}
     showLevelMap();
 }
 function syncDebugCourseControls() {

@@ -78,7 +78,7 @@ function cancelMapReveal() {
     ui.levelMap.classList.toggle('map-preparing',false);
     ui.levelMap.inert=false;
 }
-function prepareMapReveal() {
+function prepareMapReveal(onReady=null) {
     const ticket=++mapRevealTicket;
     const reveal=()=>{
         if(ticket!==mapRevealTicket || state!=='map')return;
@@ -93,7 +93,7 @@ function prepareMapReveal() {
         ui.levelMap.removeAttribute?.('aria-hidden');
         finishDummyAdCover();finishRewardCover();
         requestGameRender();
-        if(!mapTransition){focusMapLevel();resumePendingMapReward();}
+        if(!mapTransition){focusMapLevel();if(onReady)onReady();else resumePendingMapReward();}
     };
     const images=Array.from(ui.mapNodes.querySelectorAll?.('img')||[]);
     if(!images.length){reveal();return;}
@@ -112,6 +112,7 @@ function prepareMapReveal() {
 }
 let debugAttempt = false;
 function recordStageClear() {
+    if(level<1 || (typeof isTutorialRun==='function' && isTutorialRun()))return;
     if(dailyRun) {recordDailyClear();return;}
     if (debugAttempt) return;
     if(moveCount>0) {
@@ -268,7 +269,8 @@ function focusMapLevel() {
     const button=ui.mapNodes.querySelector?.(`[data-level="${mapSelected}"]`);
     button?.focus({preventScroll:true});
 }
-function showLevelMap({target=null,advanceFrom=null}={}) {
+function showLevelMap({target=null,advanceFrom=null,onReady=null}={}) {
+    if(typeof interruptTutorialRun==='function')interruptTutorialRun();
     endDebugCourseTrial();
     courseMode='existing';
     if(target===null)target=unlockedLevel();
@@ -297,7 +299,7 @@ function showLevelMap({target=null,advanceFrom=null}={}) {
     renderLevelMap();
     const viewportHeight=ui.mapScroll.clientHeight||H;
     ui.mapScroll.scrollTop=Math.max(0,viewportHeight*.2+mapPoint(destination).y-viewportHeight/2);
-    prepareMapReveal();
+    prepareMapReveal(onReady);
 }
 function advanceLevelMap(now) {
     if (state!=='map' || mapPreparing || !mapTransition) return;

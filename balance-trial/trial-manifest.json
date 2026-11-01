@@ -1,5 +1,5 @@
 {
-  "release": "0.4.17",
+  "release": "0.4.18",
   "distribution": "7",
   "identity": "trial-d7-offset10",
   "normalIdentity": "trial-d7-offset10",
@@ -9,10 +9,14 @@
   "progressionVersion": "5",
   "seedControl": true,
   "seedPreferenceKey": "ascent.trial-seed-offset.v2",
-  "commit": "6ee87ebadf4d5b978f0f5c6d9a63b055fc24dbc7",
+  "commit": "d4236a298be40d0281aa5982ecb00d9c2f24360a",
   "dirty": false,
   "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
   "sourceFiles": [
+    {
+      "path": "js/tutorial-state.js",
+      "sha256": "7403d9191a849d92726a7b55a242a2d5eaf34f26f683b06a73d8beef5090d62c"
+    },
     {
       "path": "js/text-ja.js",
       "sha256": "52cfcc322e7171ce559a3476ca5c042c496565c55e1b2cee22e21e9d9e33e29e"
@@ -35,7 +39,7 @@
     },
     {
       "path": "js/config.js",
-      "sha256": "b516a01378b227c1caef022e53b54e7c2f1a34ab6dfb8eee84d8cfa6f01124d7"
+      "sha256": "800d9247f3b59c5e19856942f8876907dbc8139332cf88766bba27655f59ccb7"
     },
     {
       "path": "js/course-progression-config.js",
@@ -83,7 +87,7 @@
     },
     {
       "path": "js/game.js",
-      "sha256": "bbe72bf68e055751f6fbab7b752056e85446882834799463dfcdbd45fe8f77bb"
+      "sha256": "a2df42c344d8a45cb2f81c097d41317484006d91480e82ecb79f4fa0a66b647e"
     },
     {
       "path": "js/route.js",
@@ -110,12 +114,16 @@
       "sha256": "dbf1215360188cdef986cff9745b87514e58b2b0c473ab969c1c271a67c40910"
     },
     {
+      "path": "js/tutorial-course.js",
+      "sha256": "b56228d855975df12d90bc508eef4b0ad7185467cefbf4297a16a1df70abdfe7"
+    },
+    {
       "path": "js/map-art.js",
       "sha256": "ba5492a063daf96e5f546f54bbb5bea8e86a48bb542217fa41b89ec302c2b577"
     },
     {
       "path": "js/level-map.js",
-      "sha256": "246cba7396df18acae4e6b45051797ceed11814d9086e02b3cc9e7a280b1c312"
+      "sha256": "c281620bc2977cf49e13ebda4624cd999067149452c76dfc950cfea20e8a0cd7"
     },
     {
       "path": "js/daily.js",
@@ -123,15 +131,15 @@
     },
     {
       "path": "js/ads.js",
-      "sha256": "1b17b5f74e4f1a50c54b80ef2e9fcab8f354d577feb099bf0d2df9c9dd5cc829"
+      "sha256": "53cc433c7c0bf725a7c9e5b0768bc81e7471d8671dd2ce622baeb59c927b20e2"
     },
     {
       "path": "js/lives.js",
-      "sha256": "8dc87232cc79080178c001ea86071cb40fc83e50b5a6e744c692eecd23ce9816"
+      "sha256": "8b08e5de3a1af4867c1ab9711858aa72e7ca994269206094db83d0e08cafe4ba"
     },
     {
       "path": "js/rewards.js",
-      "sha256": "81108bfe88b60041d17e825a154c6b0aeacf3a2368e542bd75c9487162d51ff6"
+      "sha256": "ad9ce055911227429c32d01bec9c04b764b61ca390bc12026d3e37de3c52ba9b"
     },
     {
       "path": "js/debug-course.js",
@@ -139,7 +147,7 @@
     },
     {
       "path": "js/input.js",
-      "sha256": "8387cbda6ef853a878e84d1b5a5cba05bd85c67c3a0cd24caf160f28f1bc9939"
+      "sha256": "cfcf50126af295368a1daf54e65d2c2c8c7182e0d7bbc8d4ab0c9acca80a71d4"
     },
     {
       "path": "js/renderer.js",
@@ -163,23 +171,27 @@
     },
     {
       "path": "js/online-scores.js",
-      "sha256": "edf515102325751d8b7cec12ff7b7f766567b636bc1e442a09484f9eb87480a1"
+      "sha256": "dec7d31050b3ead95a3b59b9f81c6a6585e1d57a27577c5f966dab905d8ff2d0"
     },
     {
       "path": "js/account-deletion.js",
-      "sha256": "cd4e1ed8695b3ea7c50a96d95f0b831bc95afa589a95b2b58b00b68f5d82df84"
+      "sha256": "6ebe55d37a5d86906d2b4e7cbb588c8522d143bcc4be293855b031acafa28e0d"
     },
     {
       "path": "js/transfer.js",
-      "sha256": "5145d8f206b11df66448b7a89b8c79c22e8c1135a3b4a6fb81acfa70cf94af29"
+      "sha256": "d74df2580773c015dc14aea8adb4467eccb86d8a693fb0a82f33cc168c8ae24e"
     },
     {
       "path": "js/language.js",
       "sha256": "95886a149f0026cbf7f0a7d209977ffbddff21ff5cc2d17aace2810c056e9d7c"
     },
     {
+      "path": "js/tutorial.js",
+      "sha256": "520a61c0270fbf92d37d79150bc1680d622f0217920810e90e7339da58d89111"
+    },
+    {
       "path": "js/main.js",
-      "sha256": "d9410e0bb452abcf77a9a65430f5d702de85441ea9554d20ab63588eddd5988e"
+      "sha256": "774e00dbb2ef7dc15b74eb335394ecc2fcb48d75f3e4052cadf9d49a235e2e3e"
     },
     {
       "path": "scripts/pages-trial-seed-state.js",
@@ -195,6 +207,11 @@
     }
   ],
   "files": [
+    {
+      "path": "js/tutorial-state.js",
+      "bytes": 2896,
+      "sha256": "26e4029dfbb5148cbe7c1b0a37c5143d49071c7637004333aa03be44a57bfb5e"
+    },
     {
       "path": "js/text-ja.js",
       "bytes": 16571,
@@ -223,7 +240,7 @@
     {
       "path": "js/config.js",
       "bytes": 6063,
-      "sha256": "e6d2f6d6ae99a8ab029109b0faa80cb107be2cab8245d77b3f41537c5f5ef52c"
+      "sha256": "e44a45556daa993e526c0193d993fa3385f193f2aec15ee1c37706c9a2e9016c"
     },
     {
       "path": "js/course-progression-config.js",
@@ -282,8 +299,8 @@
     },
     {
       "path": "js/game.js",
-      "bytes": 39345,
-      "sha256": "1be36b3dace73b9ccd8c868c0991aece17886a23529d57534b9a8e9388b190db"
+      "bytes": 40450,
+      "sha256": "581a97dc1e8ddbe3cd4d47a580b8c698d017db91e2a239ad55b3fb3281117183"
     },
     {
       "path": "js/route.js",
@@ -316,14 +333,19 @@
       "sha256": "dbf1215360188cdef986cff9745b87514e58b2b0c473ab969c1c271a67c40910"
     },
     {
+      "path": "js/tutorial-course.js",
+      "bytes": 7025,
+      "sha256": "b56228d855975df12d90bc508eef4b0ad7185467cefbf4297a16a1df70abdfe7"
+    },
+    {
       "path": "js/map-art.js",
       "bytes": 6076,
       "sha256": "ba5492a063daf96e5f546f54bbb5bea8e86a48bb542217fa41b89ec302c2b577"
     },
     {
       "path": "js/level-map.js",
-      "bytes": 23791,
-      "sha256": "3837080a75e4ac7f3e11ae25e629c9ca78261d01e267978dcd1954d279751613"
+      "bytes": 24002,
+      "sha256": "1ee723c2427fc12df87ddec82a12ce13d6e7d5678f0ceaf329b7b8be46bb5fd5"
     },
     {
       "path": "js/daily.js",
@@ -332,18 +354,18 @@
     },
     {
       "path": "js/ads.js",
-      "bytes": 3969,
-      "sha256": "eb6ca74319c8924fb877f495cbdd93a3b280e390d649155275aa830b76f1b2a7"
+      "bytes": 4037,
+      "sha256": "66114ad0eec431c123787aee9d90eb1e39fd295a42c8154583f4bfc6556e953b"
     },
     {
       "path": "js/lives.js",
-      "bytes": 6705,
-      "sha256": "c94a7a7df18e6714ffd6b82f6ea63a9334289ef1c1d57ced3302fc02361700f7"
+      "bytes": 6831,
+      "sha256": "9501eda39307993b5b0f16fadcf7c1e2b00142857c7ea08caf8c07f2b1973225"
     },
     {
       "path": "js/rewards.js",
-      "bytes": 12680,
-      "sha256": "631a0f18b38074196c18406b39d5c074ad7e041c9c584cb9e6657be78453abb2"
+      "bytes": 12774,
+      "sha256": "9a8a6545bb5b3c07b53b6b36dacf432c4802397690726ae5006e86082879b119"
     },
     {
       "path": "js/debug-course.js",
@@ -352,8 +374,8 @@
     },
     {
       "path": "js/input.js",
-      "bytes": 12845,
-      "sha256": "8387cbda6ef853a878e84d1b5a5cba05bd85c67c3a0cd24caf160f28f1bc9939"
+      "bytes": 13192,
+      "sha256": "cfcf50126af295368a1daf54e65d2c2c8c7182e0d7bbc8d4ab0c9acca80a71d4"
     },
     {
       "path": "js/renderer.js",
@@ -382,18 +404,18 @@
     },
     {
       "path": "js/online-scores.js",
-      "bytes": 7688,
-      "sha256": "bf67a82d60e4e8a0065fb7c50f905ed1e17bdeb25c9a4720feb69d8a03f4a8cf"
+      "bytes": 7775,
+      "sha256": "3c6f92253ac08fcc892ac556b7fb885cae7d31d7b049fccfd1793ab74dfa57e9"
     },
     {
       "path": "js/account-deletion.js",
-      "bytes": 7367,
-      "sha256": "b1680ff6ccf63b8f5a9ca55d795c452223a09c2af9ace77ed5a72332a47f4ebf"
+      "bytes": 7395,
+      "sha256": "083071301ce6b5df5402d053295e8c86eec228ed734129a6e43ecbc4ff57baf8"
     },
     {
       "path": "js/transfer.js",
-      "bytes": 14715,
-      "sha256": "8901b759c2e9da869e83aadb003efc5b13ce4d55a361e462aff093acb6174ac0"
+      "bytes": 14859,
+      "sha256": "563bc885ce415280d48853fa7d1aa01c39fe966ffad3b150108f97b26406d0f0"
     },
     {
       "path": "js/language.js",
@@ -401,9 +423,14 @@
       "sha256": "95886a149f0026cbf7f0a7d209977ffbddff21ff5cc2d17aace2810c056e9d7c"
     },
     {
+      "path": "js/tutorial.js",
+      "bytes": 5566,
+      "sha256": "520a61c0270fbf92d37d79150bc1680d622f0217920810e90e7339da58d89111"
+    },
+    {
       "path": "js/main.js",
-      "bytes": 3894,
-      "sha256": "23f5efdce98007a8a353cf77c2984cb4ee7001dfa3248b35d63fc349064b9c81"
+      "bytes": 3988,
+      "sha256": "31bc14f06d88c295d97e7a3d3e22b9f2dc062c9b53e55f8cb8a02df38bd452e2"
     },
     {
       "path": "js/pages-trial-seed-state.js",
@@ -422,8 +449,8 @@
     },
     {
       "path": "styles.css",
-      "bytes": 49242,
-      "sha256": "99df190b8274719f42259178f7014eccd29d033ebb11cc3a3e2af0a4719bf2ea"
+      "bytes": 50215,
+      "sha256": "4567a5a8d12c77fa8d01758e44b62cb416155b310a78ac8cc33806dcbdeb98db"
     },
     {
       "path": "assets/audio/bgm-loop.mp3",
@@ -608,7 +635,7 @@
     {
       "path": "js/pages-trial-bootstrap.js",
       "bytes": 2268,
-      "sha256": "7b82c1c6175ac3a94994d5f2cead892acd61ccaf8660959340f391f328e353bd"
+      "sha256": "7ec423ec7fa85f29f7f383a3a14bd5b7d8c1dc46cf1ee378e3db92af88803e3e"
     },
     {
       "path": "js/pages-trial-presentation.js",
@@ -622,8 +649,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 34762,
-      "sha256": "879697fcdea5e094c5e1022999a2fcf218703f20440e8d91c004de3da1d9c8f4"
+      "bytes": 35216,
+      "sha256": "92143bceb241792002f692f96931fa778ea5d59506ef05c3a803d781e3d823d6"
     },
     {
       "path": ".nojekyll",
@@ -631,7 +658,7 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "totalBytes": 7241222,
+  "totalBytes": 7260440,
   "omitted": [
     "firebase-client.js",
     "native SDK",

@@ -69,8 +69,11 @@ function dismissStageHelp() {
     if(cameraIntro)cameraIntro.start=null;
     canvas.focus();
 }
+// Initialize before lives/profile startup callbacks (also safe in concatenated builds).
+let tutorialRun=null;
 let dailyRun=null;
 function courseSeed(n=level) {
+    if(typeof isTutorialRun==='function' && isTutorialRun())return TUTORIAL_COURSE_CONFIG.seed;
     if(activeDebugCourse())return debugCourseTrial.seed;
     if(dailyRun)return dailyRun.seed;
     // After generation restores the normal identity, cached pickups/previews
@@ -509,6 +512,7 @@ function routeStamina(path) {
 
 // Use an independent stream: retries preserve both holds and items.
 function createHearts(n,path,selectedDifficulty=dailyRun?.difficulty ?? difficultyForStage(n)) {
+    if(typeof isTutorialRun==='function' && isTutorialRun())return [];
     if(typeof generatedCourse!=='undefined' && generatedCourse?.holds===holds &&
         generatedCourse.level===n && generatedCourse.seed===courseSeed(n) && generatedCourse.difficulty===selectedDifficulty)
         return generatedCourse.hearts.map(h=>({...h,collected:false}));
@@ -575,6 +579,7 @@ function restoreMoveStamina(saved) {
 // A date keeps its difficulty even if a layout needs a deterministic retry.
 function prepareCurrentStage() {
     courseMode='existing'; // Old experimental modes cannot enter generation.
+    if(typeof isTutorialRun==='function' && isTutorialRun())return prepareTutorialCourse();
     if(!activeDebugCourse())return prepareAdoptedCourse();
     activeCourseGeneration=null;
     generatedCourse=null;
@@ -600,7 +605,9 @@ function stagePreview(n,mode=courseMode,profile=null) {
     const key=JSON.stringify([n,mode,profile?.date,selectedTypeId,COURSE_VERSION,CourseProgressionConfig,CourseDistributionConfig,COURSE_STAMINA_CONFIG,COURSE_RETRY_CONFIG,STAGE_CONFIG,COURSE_TYPES,DIFFICULTY_CONFIG,DIFFICULTY_RULES,HOLD_CONFIG,HAZARD_CONFIG,ROUTE_OPTIMIZATION_CONFIG,ROUTE_COST_SEARCH_CONFIG,COURSE_GENERATION_CONFIG]);
     if(stagePreviewCache.has(key))return stagePreviewCache.get(key);
     const saved={level,difficulty,courseTypeId,courseMode,dailyRun,debugCourseTrial,holds,route,hearts,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount,generatedCourse,activeCourseGeneration,labSkeletonReport,labHeartsCache,labStaminaCache};
+    const savedTutorial=typeof tutorialRun==='undefined'?null:tutorialRun;
     try {
+        if(typeof tutorialRun!=='undefined')tutorialRun=null;
         debugCourseTrial=null; // A normal/Daily preview must never inherit a trial seed or forced type.
         level=n;difficulty=selectedDifficulty;courseTypeId=selectedTypeId;courseMode=mode;dailyRun=profile?{...profile}:null;
         stageGenerator=createStageGenerator();
@@ -609,6 +616,7 @@ function stagePreview(n,mode=courseMode,profile=null) {
         if(stagePreviewCache.size>=64)stagePreviewCache.delete(stagePreviewCache.keys().next().value);
         stagePreviewCache.set(key,preview);return preview;
     } finally {
+        if(typeof tutorialRun!=='undefined')tutorialRun=savedTutorial;
         ({level,difficulty,courseTypeId,courseMode,dailyRun,debugCourseTrial,holds,route,hearts,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount,generatedCourse,activeCourseGeneration,labSkeletonReport,labHeartsCache,labStaminaCache}=saved);
     }
 }
@@ -617,6 +625,9 @@ function previewStaminaText(n,mode=courseMode,profile=null,bonus=0) {
     catch(_) {return '❤️—';}
 }
 function reset(n,staminaBonus=0) {
+    const tutorial=typeof isTutorialRun==='function' && isTutorialRun();
+    if(n===0 && !tutorial)throw new RangeError('Stage 0 is tutorial-only');
+    if(tutorial && (n!==0 || staminaBonus!==0))throw new RangeError('Tutorial does not accept normal stages or consumable bonuses');
     courseMode='existing';
     lifeAttemptId++;
     adPlayRecorded=false;
@@ -627,7 +638,7 @@ function reset(n,staminaBonus=0) {
     resetCharacterAnimation();
     jointHistory.fill(null);
     level = n;
-    courseTypeId=activeDebugCourse()?debugCourseTrial.typeId:dailyRun?.typeId??courseTypeForStage(n);
+    courseTypeId=typeof isTutorialRun==='function' && isTutorialRun()?0:activeDebugCourse()?debugCourseTrial.typeId:dailyRun?.typeId??courseTypeForStage(n);
     difficulty=courseTypeRule(courseTypeId).generationDifficulty;
     prepareCurrentStage();
     if(currentCourseInitialStamina()+staminaBonus<=0)throw new Error('Course initial stamina is not positive');
@@ -902,6 +913,7 @@ function release(cancel = false) {
 
         committed = { ...body };
         startPoseSettle();
+        if(typeof tutorialTrigger==='function') {tutorialTrigger('move');tutorialTrigger('hold');}
 
         if (bothHandsOnGoal())
             finish(true);
@@ -943,6 +955,7 @@ function undoMove() {
 }
 
 function finish(won) {
+    if(typeof isTutorialRun==='function' && isTutorialRun())return finishTutorialRun(won);
     if(state==='playing')playSound(won?'clear':'fail');
     settleLifeAttempt(won);
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;

@@ -23,7 +23,7 @@ function saveMapRewards() {
     try {ASCENT_TRIAL_STORAGE?.setItem(MAP_REWARDS_KEY,JSON.stringify(mapRewards));}catch(_) {}
 }
 function hasMapReward(n) {
-    return courseMode==='existing' && n%MAP_REWARD_INTERVAL===0 && mapRewards[n]?.status!=='claimed';
+    return Number.isSafeInteger(n) && n>=1 && !(typeof isTutorialRun==='function' && isTutorialRun()) && courseMode==='existing' && n%MAP_REWARD_INTERVAL===0 && mapRewards[n]?.status!=='claimed';
 }
 function recordMapRewardClear() {
     if(dailyRun || debugAttempt || !hasMapReward(level) || mapRewards[level])return;
