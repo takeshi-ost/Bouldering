@@ -14,7 +14,7 @@ function tutorialPending(){return globalThis.AscentTutorialState?.pending()===tr
 function tutorialInstructionsOpen(){return !!tutorialRun?.explanation;}
 function startTutorialRun() {
     if(state!=='choosing' || isTutorialRun() || !tutorialPending())return false;
-    tutorialRun={seen:new Set(),queue:[],explanation:null,centerHoldId:null,introReady:false,timing:false,paused:false,pendingOutcome:null,transition:null,transitionTimer:null,imageLoading:false,imageTicket:0};
+    tutorialRun={seen:new Set(),queue:[],explanation:null,centerHoldId:null,introReady:false,timing:false,paused:false,pendingOutcome:null,clearSoundPlayed:false,transition:null,transitionTimer:null,imageLoading:false,imageTicket:0};
     try {
         endDebugCourseTrial();leaveDailyRun();debugAttempt=false;
         hideStageStart();cancelMapReveal();
@@ -67,11 +67,17 @@ function finishTutorialRun(won) {
     if(!isTutorialRun() || state!=='playing')return false;
     // Keep the first terminal outcome while queued pages are being read.
     won=tutorialRun.pendingOutcome??!!won;
+    // Announce success before goal pages can open, even on a synchronous image
+    // cache hit. Latch per attempt (also when muted); completion must not replay.
+    if(won && !tutorialRun.clearSoundPlayed) {
+        tutorialRun.clearSoundPlayed=true;
+        playSound('clear');
+    }
     if(won)tutorialTrigger('goal');
     if(tutorialInstructionsOpen() || tutorialRun.queue.length) {
         tutorialRun.pendingOutcome??=won;return true;
     }
-    playSound(won?'clear':'fail');
+    if(!won)playSound('fail');
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
     globalThis.AscentTutorialState?.complete(won);
     hideTutorialExplanation();tutorialRun=null;
