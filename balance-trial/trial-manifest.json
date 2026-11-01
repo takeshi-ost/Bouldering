@@ -1,5 +1,5 @@
 {
-  "release": "0.4.28",
+  "release": "0.4.29",
   "distribution": "7",
   "identity": "trial-d7-offset10",
   "normalIdentity": "trial-d7-offset10",
@@ -9,7 +9,7 @@
   "progressionVersion": "5",
   "seedControl": true,
   "seedPreferenceKey": "ascent.trial-seed-offset.v2",
-  "commit": "bf1ae574c69851038e0f37ae069e236644f867fd",
+  "commit": "d4c0f2126aad9fa062c091541c4191447109fa37",
   "dirty": false,
   "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
   "sourceFiles": [
@@ -19,11 +19,11 @@
     },
     {
       "path": "js/text-ja.js",
-      "sha256": "02c25d2275a5a9d14b3fe53b7ed78a6e39f6da2169f4f460522637c1d3cfae72"
+      "sha256": "84e751b3c26ab70111fb724bbec7f5c5ceff46cabcd5c47349abeefed58567d8"
     },
     {
       "path": "js/text-en.js",
-      "sha256": "5afd8e3b2ef6c3db3aec63f2748101d98ea8328ad9cc5b135bfea222e7fccd01"
+      "sha256": "5463e3554551e8a1360e0bb7da1d490bde90975d6455e08c86ed27f0a5cc75df"
     },
     {
       "path": "js/text-dev-ja.js",
@@ -39,7 +39,7 @@
     },
     {
       "path": "js/config.js",
-      "sha256": "f0ed9b3c0798bf6c6d7d334f2d0562033e909915153e7d0ae5de64f847460412"
+      "sha256": "1f3ce822ffc1c4ad7af7b50d943309cf37c481a5a5aa83f50587a27f8305c937"
     },
     {
       "path": "js/course-progression-config.js",
@@ -87,7 +87,7 @@
     },
     {
       "path": "js/game.js",
-      "sha256": "e3623bfc7b3bcdee6b720342ca061096b2daa138d47852b8ff69f2410f60f509"
+      "sha256": "b7a95b6ae7fec2a6f4d082d12e64880edca9b4e3a830cd6b21deef175d662825"
     },
     {
       "path": "js/route.js",
@@ -187,7 +187,7 @@
     },
     {
       "path": "js/tutorial.js",
-      "sha256": "4b56d70ee87b86f5a2129462baea29d077e1e88390736886a50784f5c8e862cd"
+      "sha256": "926f868a45e3fbb42e1b995320b47e28f41a33795250e94771e2669851a39335"
     },
     {
       "path": "js/main.js",
@@ -214,13 +214,13 @@
     },
     {
       "path": "js/text-ja.js",
-      "bytes": 17313,
-      "sha256": "02c25d2275a5a9d14b3fe53b7ed78a6e39f6da2169f4f460522637c1d3cfae72"
+      "bytes": 17589,
+      "sha256": "84e751b3c26ab70111fb724bbec7f5c5ceff46cabcd5c47349abeefed58567d8"
     },
     {
       "path": "js/text-en.js",
-      "bytes": 15664,
-      "sha256": "5afd8e3b2ef6c3db3aec63f2748101d98ea8328ad9cc5b135bfea222e7fccd01"
+      "bytes": 15940,
+      "sha256": "5463e3554551e8a1360e0bb7da1d490bde90975d6455e08c86ed27f0a5cc75df"
     },
     {
       "path": "js/text-dev-ja.js",
@@ -240,7 +240,7 @@
     {
       "path": "js/config.js",
       "bytes": 6063,
-      "sha256": "188c6aadce4267c4e7e50642eaab4eaf0275a46e15796cc15e6e5645b2d98b55"
+      "sha256": "35df2d3b76daf339b19b2acac8452bed7dd69a8285ae32355644c1c8de89a07d"
     },
     {
       "path": "js/course-progression-config.js",
@@ -299,8 +299,8 @@
     },
     {
       "path": "js/game.js",
-      "bytes": 40450,
-      "sha256": "374cce5ae0757d67c5ec57267b28ccf32c894c3c1d57d6de3a3c62fbc9a130e6"
+      "bytes": 40524,
+      "sha256": "7bc038e4af96ddf686c77ee905c012a5bc1cd2dc9f84a877c22b581e5ed23ca9"
     },
     {
       "path": "js/route.js",
@@ -424,8 +424,8 @@
     },
     {
       "path": "js/tutorial.js",
-      "bytes": 8377,
-      "sha256": "4b56d70ee87b86f5a2129462baea29d077e1e88390736886a50784f5c8e862cd"
+      "bytes": 10284,
+      "sha256": "926f868a45e3fbb42e1b995320b47e28f41a33795250e94771e2669851a39335"
     },
     {
       "path": "js/main.js",
@@ -449,8 +449,8 @@
     },
     {
       "path": "styles.css",
-      "bytes": 50779,
-      "sha256": "8bd2483fdd9932fabd36ce8043e47f1da85740a8e2b40e950b3bfdee6e610d52"
+      "bytes": 51232,
+      "sha256": "f7e9a2bdc6a1042cc94bc6a3afa3f6b20437594737965d921c6a0bbbde5ab3cd"
     },
     {
       "path": "assets/audio/bgm-loop.mp3",
@@ -660,7 +660,7 @@
     {
       "path": "js/pages-trial-bootstrap.js",
       "bytes": 2268,
-      "sha256": "97200e8abc5a43ecd8438160fde6f1bbffb26a512defc118a59cf43fef6c2028"
+      "sha256": "d8a7f9e2b57c1d019d1f36cb0872cd74df4920df67da819d1192f3f957ca6589"
     },
     {
       "path": "js/pages-trial-presentation.js",
@@ -675,7 +675,7 @@
     {
       "path": "index.html",
       "bytes": 35464,
-      "sha256": "a150597b4f8b45ab34c8e819d55028490f42f81c5e1b681cca455e3334736f5c"
+      "sha256": "d72b0c5722f34103386c1fe012f8710d9c0248da74b286997cc7a35bcff74cc2"
     },
     {
       "path": ".nojekyll",
@@ -683,7 +683,7 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "totalBytes": 7304469,
+  "totalBytes": 7307455,
   "omitted": [
     "firebase-client.js",
     "native SDK",

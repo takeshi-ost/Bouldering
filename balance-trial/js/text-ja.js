@@ -3,13 +3,14 @@
 const GAME_TEXT_JA = Object.freeze({
     // Owner-supplied tutorial copy, verbatim; English intentionally falls back to Japanese until a translation is approved.
     "tutorial.title.play": "ASCENTにようこそ！",
+    "tutorial.title.complete": "チュートリアル完了",
     "tutorial.title.wide": "大きなホールド",
-    "tutorial.intro.welcome": "画面スワイプで移動、指をはなして決定",
-    "tutorial.intro.movement": "足は手より高い場所には置けません",
-    "tutorial.intro.goal": "スタミナがなくなる前にゴールを両手でつかもう",
-    "tutorial.wide": "大きなホールドには両手か両足がおける",
-    "tutorial.goal.fixed": "ゴールには両足の固定も必要です",
-    "tutorial.goal.finish": "くわしい説明は歯車アイコンから見てね",
+    "tutorial.intro.welcome": "画面スワイプで移動、指をはなしてホールドを決定します",
+    "tutorial.intro.movement": "手足2つが自由に動きます。足は手より高い場所には置けません",
+    "tutorial.intro.goal": "スタミナがなくなる前に、ゴールを両手でつかむと登頂成功です",
+    "tutorial.wide": "大きなホールドには、両手または両足を置くことができます。",
+    "tutorial.goal.fixed": "ゴールするには両足もホールドに固定されていないといけません",
+    "tutorial.goal.finish": "くわしい操作やルールの説明は歯車アイコンで開くメニューから見ることができます",
 
     "debug.typeMatched": "要求方針と分類一致（有限探索内）",
     "debug.typeMismatch": "要求方針と分類が不一致／未確定",

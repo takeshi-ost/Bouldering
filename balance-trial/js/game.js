@@ -1012,6 +1012,7 @@ function advanceCameraIntro(now) {
     if (camera >= cameraIntro.to && now-cameraIntro.start >= CAMERA_CONFIG.introMinDuration) {
         cameraIntro = null;
         runStartedAt=now;runElapsedMs=0;
+        if(typeof tutorialReadyToPlay==='function')tutorialReadyToPlay();
         updateUI();
     }
 }

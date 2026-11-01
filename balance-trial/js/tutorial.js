@@ -1,20 +1,20 @@
 'use strict';
 // Owner-approved pages. English intentionally uses the same Japanese copy;
 // mark its language explicitly rather than inventing an unapproved translation.
-const TUTORIAL_CONFIG={version:'7',steps:[
+const TUTORIAL_CONFIG={version:'8',steps:[
     {id:'intro-welcome',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.welcome"),image:'assets/tutorial-swipe-78-v1.png'},
     {id:'intro-movement',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.movement"),image:'assets/tutorial-feet-limit-78-v1.png'},
     {id:'intro-goal',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.goal"),image:'assets/tutorial-goal-hands-78-v1.png'},
     {id:'center-wide',when:{event:'hold',hold:'center'},language:'ja',title:gameText("tutorial.title.wide"),text:gameText("tutorial.wide"),image:'assets/hold-wide-flat.webp'},
-    {id:'goal-fixed',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.goal.fixed"),image:'assets/tutorial-goal-feet-78-v1.png'},
-    {id:'goal-finish',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.goal.finish"),image:'assets/settings-gear.svg'}
+    {id:'goal-fixed',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.complete"),text:gameText("tutorial.goal.fixed"),image:'assets/tutorial-goal-feet-78-v1.png'},
+    {id:'goal-finish',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.complete"),text:gameText("tutorial.goal.finish"),image:'assets/settings-gear.svg'}
 ]};
 function isTutorialRun(){return tutorialRun!==null;}
 function tutorialPending(){return globalThis.AscentTutorialState?.pending()===true;}
 function tutorialInstructionsOpen(){return !!tutorialRun?.explanation;}
 function startTutorialRun() {
     if(state!=='choosing' || isTutorialRun() || !tutorialPending())return false;
-    tutorialRun={seen:new Set(),queue:[],explanation:null,centerHoldId:null,timing:false,paused:false,pendingOutcome:null};
+    tutorialRun={seen:new Set(),queue:[],explanation:null,centerHoldId:null,introReady:false,timing:false,paused:false,pendingOutcome:null,transition:null,transitionTimer:null};
     try {
         endDebugCourseTrial();leaveDailyRun();debugAttempt=false;
         hideStageStart();cancelMapReveal();
@@ -23,8 +23,8 @@ function startTutorialRun() {
         tutorialRun.centerHoldId=activeCourseGeneration.report.centerHoldId;
         canvas.setAttribute('tabindex','0');
         refreshLives();
-        tutorialTrigger('start');
-        if(!tutorialInstructionsOpen())canvas.focus();
+        // The camera intro owns the start trigger, at the playable boundary.
+        canvas.focus();
         return true;
     } catch(error) {
         interruptTutorialRun();
@@ -35,8 +35,20 @@ function startTutorialRun() {
         return false;
     }
 }
+// Invoked synchronously by advanceCameraIntro before the next input event.
+function tutorialReadyToPlay() {
+    if(!isTutorialRun() || state!=='playing' || cameraIntro || tutorialRun.introReady)return;
+    tutorialRun.introReady=true;
+    tutorialTrigger('start');
+    if(tutorialInstructionsOpen())runElapsedMs=0; // No opening/reading time charged.
+}
 function hideTutorialExplanation() {
     if(!tutorialRun)return;
+    clearTimeout(tutorialRun.transitionTimer);
+    tutorialRun.transitionTimer=null;tutorialRun.transition=null;
+    document.getElementById('tutorialDialog').classList.remove('tutorial-page-closing');
+    document.getElementById('tutorialContent').setAttribute('aria-busy','false');
+    document.getElementById('tutorialContinue').disabled=false;
     tutorialRun.explanation=null;tutorialRun.paused=false;featureHelpOpen=false;
     const dialog=document.getElementById('tutorialDialog');
     if(dialog.open)dialog.close?.();
@@ -71,6 +83,7 @@ function finishTutorialRun(won) {
 // No content means no modal. Text uses textContent, never HTML injection.
 function tutorialTrigger(event) {
     if(!isTutorialRun() || state!=='playing')return;
+    if(event==='start' && (!tutorialRun.introReady || cameraIntro))return;
     for(const step of TUTORIAL_CONFIG.steps) {
         if(!step || typeof step.id!=='string' || tutorialRun.seen.has(step.id))continue;
         const when=step.when;
@@ -113,15 +126,33 @@ function showNextTutorialExplanation() {
     // automatically highlighting its full-width hit target on every page.
     document.getElementById('tutorialContent').focus();requestGameRender();
 }
+// Keep the native modal's input shield open while the card visibly closes,
+// stays absent for 80ms, and reopens. No input/timer gap or native close race.
+const TUTORIAL_PAGE_TRANSITION={closeMs:120,gapMs:80,openMs:160};
+function transitionTutorialExplanation() {
+    const run=tutorialRun,dialog=document.getElementById('tutorialDialog');
+    run.transition='closing';
+    document.getElementById('tutorialContinue').disabled=true;
+    document.getElementById('tutorialContent').setAttribute('aria-busy','true');
+    dialog.classList.add('tutorial-page-closing');
+    run.transitionTimer=setTimeout(()=>{
+        if(tutorialRun!==run || state!=='playing')return;
+        run.transition='opening';run.explanation=null;
+        showNextTutorialExplanation();
+        dialog.classList.remove('tutorial-page-closing');
+        run.transitionTimer=setTimeout(()=>{
+            if(tutorialRun!==run || state!=='playing')return;
+            run.transition=null;run.transitionTimer=null;
+            document.getElementById('tutorialContinue').disabled=false;
+            document.getElementById('tutorialContent').setAttribute('aria-busy','false');
+        },TUTORIAL_PAGE_TRANSITION.openMs);
+    },TUTORIAL_PAGE_TRANSITION.closeMs+TUTORIAL_PAGE_TRANSITION.gapMs);
+}
 function dismissTutorialExplanation() {
-    if(!tutorialInstructionsOpen())return;
-    tutorialRun.explanation=null;
-    // Consecutive pages replace content inside the SAME open modal. Do not
-    // resume timing/input, release focus, or close/reopen the top layer between.
-    if(tutorialRun.queue.length){showNextTutorialExplanation();return;}
+    if(!tutorialInstructionsOpen() || tutorialRun.transition)return;
+    if(tutorialRun.queue.length){transitionTutorialExplanation();return;}
     const timing=tutorialRun.timing;
     hideTutorialExplanation();
-    if(cameraIntro)cameraIntro.start=null;
     if(tutorialRun.pendingOutcome!==null) {finishTutorialRun(tutorialRun.pendingOutcome);return;}
     if(timing)runStartedAt=performance.now()-runElapsedMs;
     canvas.focus();requestGameRender();
