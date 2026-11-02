@@ -1,0 +1,32 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const config=JSON.parse(fs.readFileSync('tests/firestore/firebase.emulator.json','utf8'));
+assert.deepEqual(config.emulators.firestore,{host:'127.0.0.1',port:8089});
+assert.equal(config.emulators.ui.enabled,false);
+assert.equal(config.emulators.singleProjectMode,false); // Two independent demo projects in the suite.
+assert.equal(config.firestore.rules,'../../firestore.rules');
+const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
+assert.equal(pkg.dependencies.firebase,'12.11.0');
+assert.equal(pkg.devDependencies['@firebase/rules-unit-testing'],'5.0.0');
+assert.equal(pkg.devDependencies['firebase-tools'],'15.34.2');
+assert.equal(pkg.scripts['test:rules'],'firebase emulators:exec --config tests/firestore/firebase.emulator.json --project demo-ascent-rules --only firestore --non-interactive "node tests/firestore/score-metadata.mjs"');
+const lock=JSON.parse(fs.readFileSync('package-lock.json','utf8'));
+for(const name of ['firebase','firebase-tools','@firebase/rules-unit-testing'])
+  assert.equal(lock.packages['node_modules/'+name].version,pkg.dependencies[name]||pkg.devDependencies[name]);
+const workflow=fs.readFileSync('.github/workflows/firestore-rules.yml','utf8');
+assert.match(workflow,/branches: \[feature\/formal-integration\]/);
+assert.match(workflow,/permissions:\n  contents: read\n/);
+assert.match(workflow,/runs-on: ubuntu-24\.04/);
+assert.match(workflow,/timeout-minutes: 15/);
+assert.match(workflow,/fetch-depth: 0/);
+assert.match(workflow,/persist-credentials: false/);
+assert.match(workflow,/package-manager-cache: false/);
+assert.match(workflow,/FIRESTORE_EMULATOR_HOST: 127\.0\.0\.1:8089/);
+assert.match(workflow,/GCLOUD_PROJECT: demo-ascent-rules/);
+assert.equal([...workflow.matchAll(/uses: actions\/[\w-]+@[a-f0-9]{40}/g)].length,3);
+assert(!/secrets\.|id-token:|contents: write|pages: write|pull_request_target:|workflow_dispatch:|firebase deploy|firebase login|upload-artifact|actions\/cache@/.test(workflow));
+const suite=fs.readFileSync('tests/firestore/score-metadata.mjs','utf8');
+assert.match(suite,/if\(host!=='127\.0\.0\.1:8089'\)throw Error/);
+assert.match(suite,/projectId:`demo-score-\$\{label\}`/);
+assert(!/bouldering-7482d|js\/firebase-client|firebase-admin/.test(suite));
+console.log('PASS Firestore CI: fixed compatible dependencies, branch/read-only token, loopback/demo-only target; no production access');

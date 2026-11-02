@@ -1,0 +1,57 @@
+name: Firestore Rules (demo emulator)
+
+on:
+  push:
+    branches: [feature/formal-integration]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firestore-rules-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rules:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+      FIRESTORE_EMULATOR_HOST: 127.0.0.1:8089
+      GCLOUD_PROJECT: demo-ascent-rules
+    steps:
+      - name: Check out this commit and legacy Rules history
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '24.22.1'
+          package-manager-cache: false
+      - name: Set up Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install locked test dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate demo-only configuration
+        run: node tests/firestore-config.cjs
+      - name: Run score Rules against local demo databases
+        run: npm run test:rules
+      - name: Record verification scope
+        if: always()
+        env:
+          TEST_RESULT: ${{ job.status }}
+        run: |
+          {
+            echo '## Firestore Rules — local demo emulator only'
+            echo "Commit: $GITHUB_SHA"
+            echo "Result: $TEST_RESULT"
+            echo "Rules SHA-256: $(sha256sum firestore.rules | cut -d ' ' -f 1)"
+            echo 'Checks: legacy/current score permissions, v1–v4 board metadata, ownership, validation, improvements and deletion locks.'
+            echo 'Not checked: deployed production Rules, production connectivity, real anonymous-auth lifecycle, browser or native app.'
+            echo 'No Firebase login, deploy, production credentials, Pages deploy, or repository writes.'
+          } >> "$GITHUB_STEP_SUMMARY"
