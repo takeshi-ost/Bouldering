@@ -8,7 +8,8 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){}
 `;
-const data={},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
+// Editor cases model an existing player; fresh players now enter STAGE 0 first.
+const data={'ascent.player-uuid.v1':'00000000-0000-4000-8000-000000000001'},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
 const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
 Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {
@@ -140,7 +141,7 @@ assert.equal(data[APPEARANCE_KEY],saved);
 new Function('assert','Math',env+source+`
 assert.deepEqual(playerColors,['#ffffff']);assert.equal(playerHeadColor,'#556677');startCourse('existing');showCharacterEditor();assert.equal(draftStripeCount,1);
 assert(ui.editorPreview.innerHTML.includes('fill="#ffffff"'));
-ui.editorCancel.onclick();startCourse('prototype');assert(ui.mapMarker.style['--body-stripes'].includes('#ffffff'));assert.equal(ui.mapMarker.style['--head-color'],'#556677');
+ui.editorCancel.onclick();startCourse('existing');assert(ui.mapMarker.style['--body-stripes'].includes('#ffffff'));assert.equal(ui.mapMarker.style['--head-color'],'#556677');
 `)(assert,Object.assign(Object.create(Math),{random(){throw Error('Saved appearance must not rerandomize');}}));
 const savedAppearance=data['ascent.appearance.v1'];data['ascent.appearance.v1']=JSON.stringify({colors:['#cc1122','#334455']});
 new Function('assert','Math',env+source+`assert.deepEqual(playerColors,['#cc1122','#334455']);assert.equal(playerHeadColor,'#e0b99b');`)(assert,Object.assign(Object.create(Math),{random(){throw Error('Legacy appearance must not rerandomize');}}));

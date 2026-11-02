@@ -6,7 +6,7 @@ assert(/id="mapNext"[^>]*><svg/.test(html));assert(/id="mapPrev"[^>]*><svg/.test
 const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
 assert(/\.map-page \{[^}]*width:100px; height:44px;[^}]*background:transparent;[^}]*-webkit-tap-highlight-color:transparent;/.test(css));
 assert(css.includes('.map-page:active:not(:disabled) > svg { transform:scale(1.1); }'));
-assert(css.includes('.map-page:focus-visible { outline:3px solid #d5aa47; outline-offset:3px; }'));
+assert(css.includes('.map-page:focus-visible { outline:none; box-shadow:none; }'));
 assert(css.includes('.map-page-prev { bottom:40px; transform:translateX(-50%) rotate(180deg); }'));
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
@@ -17,7 +17,8 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};
 const console={error(){}};
 `;
-const data={};const storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
+// Normal-flow fixture: recognised existing save, not a first-launch tutorial.
+const data={'ascent.progress.v1':JSON.stringify({existing:{cleared:0},prototype:{cleared:0}})};const storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
 const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
 Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {
@@ -25,13 +26,14 @@ new Function('assert','storage','data',env+source+`
 // Wall height follows generated length; road facing never mirrors live labels.
 assert.equal(new Set(Array.from({length:60},(_,i)=>mapStageVariant(i+1).height)).size,3);
 for(let n=1;n<=100;n++) {
- const actual=createStageGenerator().generate(n,true);
+ const sampled=CourseDistribution.sample(CourseProgression.stageScore(n),CourseProgression.resolveStage(n).seed);
+ const actual={HEIGHT:({short:H,middle:H*2,long:H*3})[sampled.length]};
  assert.equal(stageLengthInfo(n).height,actual.HEIGHT);
  assert.equal(mapStageVariant(n).height,actual.HEIGHT<=H?'100':actual.HEIGHT<=H*2?'125':'150');
 }
 assert.equal(mapStageVariant(1).height,'100');
-assert.equal(mapStageVariant(2).height,{short:'100',medium:'125',long:'150'}[stageLengthRule(2).category]);
-assert.equal(mapStageVariant(5).height,{short:'100',medium:'125',long:'150'}[stageLengthRule(5).category]);
+assert.equal(mapStageVariant(2).height,{short:'100',medium:'125',long:'150'}[stageLengthInfo(2).category]);
+assert.equal(mapStageVariant(5).height,{short:'100',medium:'125',long:'150'}[stageLengthInfo(5).category]);
 for(const status of ['active','cleared','unplayed'])for(let n=1;n<=6;n++) {
  const markup=mapWallMarkup(n,status);
  assert(markup.includes('assets/stage-icons/'+status+'-'+mapStageVariant(n).height+'.webp'));
@@ -100,7 +102,7 @@ ui.next.onclick();advanceLevelMap(1000);advanceLevelMap(1650);closeStageStart();
 assert(selectStage(2));assert.equal(level,2);assert.equal(stamina,stageStamina(route.length-1));
 returnFromStage();assert.equal(state,'map');assert.equal(mapSelected,2);assert.equal(drag,null);
 ui.mapCourses.onclick();assert.equal(state,'choosing');
-startCourse('prototype');assert.equal(unlockedLevel(),1);assert.equal(selectStage(2),false);
+startCourse('prototype');assert.equal(courseMode,'existing');assert.equal(unlockedLevel(),2);showLevelMap();
 startCourse('existing');assert.equal(unlockedLevel(),2);
 // A new browser session will load the same course-specific completion data.
 assert.deepEqual(readStageProgress(),stageProgress);
@@ -142,9 +144,11 @@ assert(ui.mapNodes.innerHTML.includes('is-locked'));assert.equal(selectStage(81)
 setDebugMode(true);
 for(const n of [0,-1,1.5,NaN,Infinity,Number.MAX_SAFE_INTEGER])assert.equal(selectStage(n,true),false);
 assert.equal(selectStage(22),false);
-ui.debugStage.value='22';ui.debugControls.onsubmit({preventDefault(){}});
+// Heart-free debug fixture: follow the reference path without pickup detours.
+const debugRecipe=CourseProgression.recipe(CourseProgression.resolveStage(38));assert.equal(debugRecipe.heartsFirst+debugRecipe.heartsSecond,0);assert.equal(debugRecipe.spikePercent,0);
+ui.debugStage.value='38';ui.debugControls.onsubmit({preventDefault(){}});
 assert.equal(state,'map');assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();
-assert.equal(state,'playing');assert.equal(level,22);assert(debugAttempt);
+assert.equal(state,'playing');assert.equal(level,38);assert(debugAttempt);
 ui.retry.onclick();assert(debugAttempt);complete();
 assert.equal(JSON.stringify(stageProgress),progressBefore);assert.equal(data[PROGRESS_KEY],savedBefore);
 state='won';ui.next.onclick();assert.equal(state,'map');assert.equal(mapSelected,21);assert.equal(mapTransition,null);
@@ -152,12 +156,12 @@ ui.debugStage.value='1.2';ui.debugControls.onsubmit({preventDefault(){}});assert
 showTitleScreen();setDebugMode(false);startCourse('existing');assert(ui.debugControls.hidden);
 assert.equal(selectStage(22,true),false);assert.equal(selectStage(22),false);
 // Generation errors stay on the map so a player can retry selection.
-const originalReset=reset;reset=()=>{throw Error('generation failed');};
-assert.equal(selectStage(1),false);assert.equal(state,'map');assert(!ui.mapError.hidden);reset=originalReset;
+const originalReset=reset,previousHeartItems=heartItems;reset=()=>{throw Error('generation failed');};heartItems=5;
+assert.equal(selectStage(1,false,2),false);assert.equal(state,'map');assert(!ui.mapError.hidden);assert.equal(heartItems,5,'failed generation must not spend selected heart items');heartItems=previousHeartItems;reset=originalReset;
 `)(assert,storage,data);
 new Function('assert',env+source+`
 startCourse('existing');assert.equal(state,'map');assert.equal(unlockedLevel(),21);assert.equal(mapSelected,21);
-startCourse('prototype');assert.equal(unlockedLevel(),1);
+startCourse('prototype');assert.equal(courseMode,'existing');assert.equal(unlockedLevel(),21);
 `)(assert);
 console.log('PASS stage map: real clear/replay, course-specific saved progress, locked levels, input guards, one-step animation, page boundary, no carryover, storage and generation failures');
 } finally {

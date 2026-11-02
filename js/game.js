@@ -4,10 +4,10 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const ui = Object.fromEntries([
     "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
-    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
-    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapCourse", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay",
+    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapSettingsDebug", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
+    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugCourseType", "debugCourseLength", "debugGenerate", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "paletteSwatches", "editorRandom", "editorConfirm", "editorCancel",
-    "mapSettingsLanguage", "languageChoice", "titleWallpaper", "titleTransfer", "titleScreen", "releaseVersion", "playerUuid", "titleTap", "prototypeCourse", "prototypeDescription", "showHelp", "helpDialog", "helpScroll", "closeHelp"
+    "mapSettingsLanguage", "languageChoice", "titleWallpaper", "titleTransfer", "titleScreen", "releaseVersion", "playerUuid", "titleTap", "showHelp", "helpDialog", "helpScroll", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
 
 // Native build policy arrives before page scripts. Missing native policy fails closed.
@@ -17,6 +17,10 @@ const DEBUG_FEATURES_ALLOWED = globalThis.location?.protocol === 'capacitor:'
     : true;
 let debugMode = false;
 const debugDisplay={route:true,holdNumbers:true,courseInfo:true};
+// Latched per attempt: turning a displayed route off (or undoing a move) never
+// makes an assisted attempt eligible for the formal leaderboard again.
+let rankingAssistanceUsed=false;
+function rankingAttemptEligible(){return !rankingAssistanceUsed && !debugAttempt && !activeDebugCourse();}
 let settingsOpen = false;
 function hideSettings() {
     settingsOpen=false;
@@ -34,7 +38,10 @@ function readFeatureHelpSeen() {
 let featureHelpSeen=readFeatureHelpSeen();
 let featureHelpOpen=false;
 let pendingFeatureHelp=[];
+let featureHelpImageTicket=0,featureHelpImageLoading=false;
 function hideStageHelp() {
+    featureHelpImageTicket++;featureHelpImageLoading=false;
+    ui.featureHelpDialog.classList.remove?.('explanation-image-loading');
     featureHelpOpen=false;pendingFeatureHelp=[];
     if(ui.featureHelpDialog.open)ui.featureHelpDialog.close?.();
 }
@@ -46,18 +53,27 @@ function showStageHelp() {
     if(!features.length)return;
     pendingFeatureHelp=features;featureHelpOpen=true;
     renderStageHelp();
-    ui.featureHelpDialog.showModal?.();
 }
 function renderStageHelp() {
     const heart=pendingFeatureHelp[0]==='heart';
-    const icon=heart ? `<img class="course-heart-icon" src="${COURSE_HEART_IMAGE_SRC}" width="36" height="36" alt="">` : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
-    ui.featureHelpContent.innerHTML=`<div class="feature-help-icon" aria-hidden="true">${icon}</div><h1 id="featureHelpTitle">${heart?gameText("item.heart"):gameText("hold.hazard")}</h1><p>${heart?gameText("feature.heart"):gameText("feature.hazard")}</p><div class="modal-tap">${gameText("action.tap")}</div>`;
-    if(!heart)paintHazardHelpIcon(ui.featureHelpContent.querySelector?.('.feature-hold-image'));
+    const icon=heart ? `<img class="course-heart-icon" src="${COURSE_HEART_IMAGE_SRC}" width="96" height="96" alt="">` : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
+    ui.featureHelpContent.innerHTML=`<h1 id="featureHelpTitle">${heart?gameText("item.heart"):gameText("hold.hazard")}</h1><div class="feature-help-icon" aria-hidden="true">${icon}</div><p>${heart?gameText("feature.heart"):gameText("feature.hazard")}</p><div class="modal-tap">${gameText("action.tap")}</div>`;
+    const ticket=++featureHelpImageTicket;
+    featureHelpImageLoading=true;ui.featureHelpDialog.classList.add?.('explanation-image-loading');
+    requestExplanationImage(heart?COURSE_HEART_IMAGE_SRC:'assets/hold-hazard-source.webp',image=>{
+        if(ticket!==featureHelpImageTicket || !featureHelpOpen || state!=='playing')return;
+        if(heart)mountExplanationImage(ui.featureHelpContent.querySelector?.('.course-heart-icon'),image,{className:'course-heart-icon',width:96,height:96});
+        else if(image)paintHazardHelpIcon(ui.featureHelpContent.querySelector?.('.feature-hold-image'),image);
+        featureHelpImageLoading=false;ui.featureHelpDialog.classList.remove?.('explanation-image-loading');
+        if(!ui.featureHelpDialog.open)ui.featureHelpDialog.showModal?.();
+        ui.featureHelpContent.focus?.();requestGameRender();
+    });
 }
 function dismissStageHelp() {
-    if(!featureHelpOpen)return;
+    if(!featureHelpOpen || featureHelpImageLoading || !pendingFeatureHelp.length)return;
+    playSound('move');
     featureHelpSeen[pendingFeatureHelp.shift()]=true;
-    try {globalThis.localStorage?.setItem(FEATURE_HELP_KEY,JSON.stringify(featureHelpSeen));}
+    try {if(!debugAttempt)globalThis.localStorage?.setItem(FEATURE_HELP_KEY,JSON.stringify(featureHelpSeen));}
     catch(_) { /* Remember for this session if storage is unavailable. */ }
     if(pendingFeatureHelp.length) {
         renderStageHelp();
@@ -69,14 +85,27 @@ function dismissStageHelp() {
     if(cameraIntro)cameraIntro.start=null;
     canvas.focus();
 }
+// Initialize before lives/profile startup callbacks (also safe in concatenated builds).
+let tutorialRun=null;
 let dailyRun=null;
-function courseSeed(n=level) {return dailyRun ? dailyRun.seed : n;}
+function courseSeed(n=level) {
+    if(typeof isTutorialRun==='function' && isTutorialRun())return TUTORIAL_COURSE_CONFIG.seed;
+    if(activeDebugCourse())return debugCourseTrial.seed;
+    if(dailyRun)return dailyRun.seed;
+    // After generation restores the normal identity, cached pickups/previews
+    // must still recognize the resolved base seed, not the stage number.
+    return typeof CourseProgression!=='undefined'?CourseProgression.resolveStage(n).seed:n;
+}
 function leaveDailyRun() {
-    if(dailyRun) {courseMode=dailyRun.returnCourse;dailyRun=null;}
+    if(dailyRun) {courseMode='existing';dailyRun=null;}
 }
 let courseMode = 'existing';
 let level = 1;
-let difficulty = 0;
+let difficulty = 0; // Internal legacy generation family, not a course-type ID.
+let courseTypeId = 0;
+let debugCourseTrial = null;
+let debugHelpBefore = null;
+function activeDebugCourse(){return DEBUG_FEATURES_ALLOWED && debugMode && typeof debugAttempt!=='undefined' && debugAttempt && debugCourseTrial;}
 let holds = [];
 let route = [];
 let hearts = [];
@@ -132,7 +161,7 @@ function showResultModal() {
 
 
 function generate(n) {
-    ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n,false,courseSeed(n),dailyRun?.baseSeed??courseSeed(n)));
+    ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n,false,courseSeed(n),dailyRun?.baseSeed??courseSeed(n),activeDebugCourse()?debugCourseDistribution():dailyRun?dailyDistribution():stageDistribution(n)));
 }
 
 // Anatomical reach is measured from the shoulder/hip, not the torso center.
@@ -241,8 +270,72 @@ function movingLimbHasForwardHold(i, pair, ux, uy, pairReach) {
     return false;
 }
 
+function goalSupportDistance(pair, ux, uy, reach) {
+    const goal = holds.find(h => h.type === 'goal');
+    if (!goal || !(reach > 1e-7) || bothHandsOnGoal(startGrips)) return Infinity;
+    // A diagonal alignment may approach one shoulder while moving away from
+    // the midpoint. Accept an approach by either hand still needing the goal.
+    if (![0, 1].some(i => {
+        if (startGrips[i] === goal) return false;
+        const root = limbRoot(committed, i);
+        return (goal.x-root.x)*ux+(goal.y-root.y)*uy > 1e-7;
+    })) return Infinity;
+    if (pair.some(i => i < 2 && startGrips[i] !== goal)) return Infinity;
+
+    let lo = 0, hi = reach;
+    const clipAxis = (origin, direction, min, max) => {
+        if (Math.abs(direction) < 1e-12) return origin >= min && origin <= max;
+        const a = (min - origin) / direction, b = (max - origin) / direction;
+        lo = Math.max(lo, Math.min(a, b)); hi = Math.min(hi, Math.max(a, b));
+        return lo <= hi;
+    };
+    if (!clipAxis(committed.x, ux, 25, W - 25) ||
+        !clipAxis(committed.y, uy, 80, HEIGHT - 40)) return Infinity;
+    // Intersect the ray with both hands' actual shoulder-centered reach circles.
+    for (const i of [0, 1]) {
+        const root = limbRoot(committed, i), x = root.x - goal.x, y = root.y - goal.y;
+        const b = x * ux + y * uy;
+        const disc = b * b - (x * x + y * y - LIMB_LENGTHS[i] ** 2);
+        if (disc < -1e-7) return Infinity;
+        const q = Math.sqrt(Math.max(0, disc));
+        lo = Math.max(lo, -b - q); hi = Math.min(hi, -b + q);
+    }
+    if (lo > hi + 1e-7) return Infinity;
+    lo = Math.max(0, lo); hi = Math.max(lo, hi);
+    const cuts = [lo, hi];
+    const add = t => { if (t > lo && t < hi) cuts.push(t); };
+    // With one hand already held on goal, the other moving limb may be a foot.
+    // Include every reach boundary so even a narrow legal foot interval is tested.
+    for (const i of [2, 3].filter(i => !pair.includes(i))) {
+        const root = limbRoot(committed, i);
+        for (const h of holds) {
+            if (h.y < goal.y || pair.some(j => startGrips[j] === h && !canShareHold(h, i, j))) continue;
+            const x = root.x - h.x, y = root.y - h.y, b = x * ux + y * uy;
+            for (const radius of [LIMB_LENGTHS[i], LIMB_LENGTHS[i] * HIGH_FOOT_REACH_RATIO]) {
+                const d = b * b - (x * x + y * y - radius * radius);
+                if (d >= 0) { const q = Math.sqrt(d); add(-b - q); add(-b + q); }
+            }
+            if (Math.abs(uy) > 1e-12) {
+                add((h.y - committed.y) / uy);
+                add((h.y - TORSO.height / 2 - committed.y) / uy);
+            }
+        }
+    }
+    cuts.sort((a,b) => a-b);
+    const probes = [];
+    cuts.forEach((t,i) => { probes.push(t); if(i+1<cuts.length)probes.push((t+cuts[i+1])/2); });
+    for (const t of probes) {
+        const p = {x:committed.x+ux*t,y:committed.y+uy*t};
+        if (supportMotionFraction(committed,p,pair)<1-1e-9) continue;
+        const stance = attachMoving(p,pair);
+        if (stance?.every(Boolean) && bothHandsOnGoal(stance) && !sameContacts(stance,startGrips)) return t;
+    }
+    return Infinity;
+}
+
 function selectAnchor(dx, dy) {
     const length = Math.hypot(dx, dy);
+    if (!(length > 0)) return [0, 1];
     const ux = dx / length;
     const uy = dy / length;
 
@@ -254,6 +347,13 @@ function selectAnchor(dx, dy) {
         [1, 3],
         [2, 3]
     ];
+
+    let goalPair = null, goalDistance = Infinity;
+    for (const pair of supportPairs) {
+        const t = goalSupportDistance(pair, ux, uy, supportPairReach(pair, ux, uy));
+        if (t < goalDistance) { goalPair = pair; goalDistance = t; }
+    }
+    if (goalPair) return [...goalPair];
 
     let bestPair = supportPairs[0];
     let bestMovingCount = -1;
@@ -333,6 +433,7 @@ function attachMoving(p, anchor) {
     let best = [...result];
     let bestCount = -1;
     let bestCost = Infinity;
+    let bestGoal = false;
 
     function assign(slot, count, cost) {
         if (slot === moving.length) {
@@ -342,13 +443,18 @@ function attachMoving(p, anchor) {
             if (feet.some(foot => hands.some(hand => foot.y < hand.y)))
                 return;
 
+            // A complete, legal goal stance outranks heuristic attraction cost.
+            // Partial contacts cannot win; fixed contacts and reach remain unchanged.
+            const goal = result.every(Boolean) && bothHandsOnGoal(result);
             if (
-                count > bestCount ||
-                (count === bestCount && cost < bestCost)
+                (goal && !bestGoal) ||
+                (goal === bestGoal && (count > bestCount ||
+                (count === bestCount && cost < bestCost)))
             ) {
                 best = [...result];
                 bestCount = count;
                 bestCost = cost;
+                bestGoal = goal;
             }
 
             return;
@@ -422,6 +528,7 @@ function routeStamina(path) {
 
 // Use an independent stream: retries preserve both holds and items.
 function createHearts(n,path,selectedDifficulty=dailyRun?.difficulty ?? difficultyForStage(n)) {
+    if(typeof isTutorialRun==='function' && isTutorialRun())return [];
     if(typeof generatedCourse!=='undefined' && generatedCourse?.holds===holds &&
         generatedCourse.level===n && generatedCourse.seed===courseSeed(n) && generatedCourse.difficulty===selectedDifficulty)
         return generatedCourse.hearts.map(h=>({...h,collected:false}));
@@ -429,7 +536,7 @@ function createHearts(n,path,selectedDifficulty=dailyRun?.difficulty ?? difficul
 }
 function makeRouteHearts(n, path, selectedDifficulty=dailyRun?.difficulty ?? difficultyForStage(n)) {
     const moves = path.length - 1;
-    if (!DIFFICULTY_RULES[selectedDifficulty].hearts || moves < HEART_CONFIG.minMoves) return [];
+    if (!difficultyRule(selectedDifficulty).hearts || moves < HEART_CONFIG.minMoves) return [];
     const random = mulberry32(courseSeed(n) ^ 0x48EA27B1);
     const count = Math.floor(random() * (HEART_CONFIG.maxCount + 1));
     const costs = routeHazardCosts(path);
@@ -487,11 +594,15 @@ function restoreMoveStamina(saved) {
 
 // A date keeps its difficulty even if a layout needs a deterministic retry.
 function prepareCurrentStage() {
+    courseMode='existing'; // Old experimental modes cannot enter generation.
+    if(typeof isTutorialRun==='function' && isTutorialRun())return prepareTutorialCourse();
+    if(!activeDebugCourse())return prepareAdoptedCourse();
+    activeCourseGeneration=null;
     generatedCourse=null;
     if(dailyRun)dailyRun.seed=dailyRun.baseSeed;
     const intent=chooseCourseIntent();
     if(!dailyRun) {
-        if(courseMode==='prototype')preparePrototypeStage();else prepareStage();
+        prepareStage();
         route=optimizeRoute(route);updateStageDensity();
         finalizeCourseGeneration(intent);return;
     }
@@ -504,19 +615,25 @@ function prepareCurrentStage() {
 }
 const stagePreviewCache=new Map();
 function stagePreview(n,mode=courseMode,profile=null) {
-    const selectedDifficulty=profile?.difficulty ?? difficultyForStage(n);
-    const key=JSON.stringify([n,mode,profile?.date,selectedDifficulty,STAGE_CONFIG,HOLD_CONFIG,HAZARD_CONFIG,ROUTE_OPTIMIZATION_CONFIG,ROUTE_COST_SEARCH_CONFIG,COURSE_GENERATION_CONFIG]);
+    mode='existing';
+    const selectedTypeId=profile?.typeId ?? courseTypeForStage(n);
+    const selectedDifficulty=courseTypeRule(selectedTypeId).generationDifficulty;
+    const key=JSON.stringify([n,mode,profile?.date,selectedTypeId,COURSE_VERSION,CourseProgressionConfig,CourseDistributionConfig,COURSE_STAMINA_CONFIG,COURSE_RETRY_CONFIG,STAGE_CONFIG,COURSE_TYPES,DIFFICULTY_CONFIG,DIFFICULTY_RULES,HOLD_CONFIG,HAZARD_CONFIG,ROUTE_OPTIMIZATION_CONFIG,ROUTE_COST_SEARCH_CONFIG,COURSE_GENERATION_CONFIG]);
     if(stagePreviewCache.has(key))return stagePreviewCache.get(key);
-    const saved={level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount,generatedCourse};
+    const saved={level,difficulty,courseTypeId,courseMode,dailyRun,debugCourseTrial,holds,route,hearts,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount,generatedCourse,activeCourseGeneration,labSkeletonReport,labHeartsCache,labStaminaCache};
+    const savedTutorial=typeof tutorialRun==='undefined'?null:tutorialRun;
     try {
-        level=n;difficulty=selectedDifficulty;courseMode=mode;dailyRun=profile?{...profile}:null;
+        if(typeof tutorialRun!=='undefined')tutorialRun=null;
+        debugCourseTrial=null; // A normal/Daily preview must never inherit a trial seed or forced type.
+        level=n;difficulty=selectedDifficulty;courseTypeId=selectedTypeId;courseMode=mode;dailyRun=profile?{...profile}:null;
         stageGenerator=createStageGenerator();
         prepareCurrentStage();
-        const preview={stamina:routeStamina(route),expectedMoves:routeExpectedMoves(),height:HEIGHT,difficulty,seed:courseSeed()};
+        const preview={stamina:currentCourseInitialStamina(),expectedMoves:routeExpectedMoves(),height:HEIGHT,typeId:selectedTypeId,difficulty,seed:courseSeed()};
         if(stagePreviewCache.size>=64)stagePreviewCache.delete(stagePreviewCache.keys().next().value);
         stagePreviewCache.set(key,preview);return preview;
     } finally {
-        ({level,difficulty,courseMode,dailyRun,holds,route,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount,generatedCourse}=saved);
+        if(typeof tutorialRun!=='undefined')tutorialRun=savedTutorial;
+        ({level,difficulty,courseTypeId,courseMode,dailyRun,debugCourseTrial,holds,route,hearts,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount,generatedCourse,activeCourseGeneration,labSkeletonReport,labHeartsCache,labStaminaCache}=saved);
     }
 }
 function previewStaminaText(n,mode=courseMode,profile=null,bonus=0) {
@@ -524,6 +641,10 @@ function previewStaminaText(n,mode=courseMode,profile=null,bonus=0) {
     catch(_) {return '❤️—';}
 }
 function reset(n,staminaBonus=0) {
+    const tutorial=typeof isTutorialRun==='function' && isTutorialRun();
+    if(n===0 && !tutorial)throw new RangeError('Stage 0 is tutorial-only');
+    if(tutorial && (n!==0 || staminaBonus!==0))throw new RangeError('Tutorial does not accept normal stages or consumable bonuses');
+    courseMode='existing';
     lifeAttemptId++;
     adPlayRecorded=false;
     hideStageHelp();
@@ -533,8 +654,11 @@ function reset(n,staminaBonus=0) {
     resetCharacterAnimation();
     jointHistory.fill(null);
     level = n;
-    difficulty=dailyRun ? dailyRun.difficulty : difficultyForStage(n);
+    courseTypeId=typeof isTutorialRun==='function' && isTutorialRun()?0:activeDebugCourse()?debugCourseTrial.typeId:dailyRun?.typeId??courseTypeForStage(n);
+    difficulty=courseTypeRule(courseTypeId).generationDifficulty;
     prepareCurrentStage();
+    if(currentCourseInitialStamina()+staminaBonus<=0)throw new Error('Course initial stamina is not positive');
+    rankingAssistanceUsed=false;
 
     body = { ...route[0] };
     committed = { ...body };
@@ -555,7 +679,7 @@ function reset(n,staminaBonus=0) {
     heartPopups = [];
     anchorRings = [];
     hazardShakeStart = null;
-    stamina = routeStamina(route)+staminaBonus;
+    stamina = currentCourseInitialStamina()+staminaBonus;
 
     moveCount = 0;
 
@@ -580,7 +704,8 @@ function reset(n,staminaBonus=0) {
     ui.characterEditor.hidden=true;
     ui.restart.disabled = false;
 
-    ui.level.textContent = dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
+    ui.level.textContent = activeDebugCourse() ? gameText("debug.trialTitle",{value0:courseTypeId}) : dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
+    ui.next.hidden=true;
     ui.retry.hidden=false;
     ui.dailyCalendar.hidden=true;
     ui.levelMap.hidden = true;
@@ -591,6 +716,7 @@ function reset(n,staminaBonus=0) {
 }
 
 function updateUI() {
+    if(typeof updateDebugCourseReport==='function')updateDebugCourseReport();
     if(typeof requestGameRender==='function')requestGameRender();
     ui.settingsButton.disabled = !!cameraIntro || state!=='playing';
     ui.stamina.textContent = String(stamina);
@@ -600,7 +726,7 @@ function updateUI() {
 
     ui.progress.hidden=!(debugMode && debugDisplay.courseInfo);
     ui.progress.textContent =
-        gameText("game.updateUI", {value0: moveCount, value1: routeExpectedMoves(), value2: difficultyLabel(difficulty)});
+        gameText("game.updateUI", {value0: moveCount, value1: routeExpectedMoves(), value2: courseTypeLabel(courseTypeId)});
 }
 
 function point(e) {
@@ -805,6 +931,7 @@ function release(cancel = false) {
 
         committed = { ...body };
         startPoseSettle();
+        if(typeof tutorialTrigger==='function') {tutorialTrigger('move');tutorialTrigger('hold');}
 
         if (bothHandsOnGoal())
             finish(true);
@@ -846,6 +973,7 @@ function undoMove() {
 }
 
 function finish(won) {
+    if(typeof isTutorialRun==='function' && isTutorialRun())return finishTutorialRun(won);
     if(state==='playing')playSound(won?'clear':'fail');
     settleLifeAttempt(won);
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
@@ -853,15 +981,16 @@ function finish(won) {
     recordAdPlay();
     if(won) { recordStageClear(); recordMapRewardClear(); startGoalHang(); }
     else startFall();
-    const showRanking=won && !dailyRun;
+    const showRanking=won && !dailyRun && !activeDebugCourse();
     ui.resultRanking.hidden=!showRanking;
     ui.overlay.classList.toggle('has-ranking',showRanking);
     ui.resultDifficulty.hidden=!won || showRanking;
-    ui.resultDifficulty.textContent=won ? (dailyRun ? dailyResultDateLabel(dailyRun.date) : difficultyLabel(difficulty)) : '';
+    ui.resultDifficulty.textContent=won ? (dailyRun ? dailyResultDateLabel(dailyRun.date) : courseTypeLabel(courseTypeId)) : '';
     ui.overlay.classList.toggle('is-daily-clear',won && !!dailyRun);
     ui.resultStats.hidden=!won || showRanking;
     ui.resultStats.textContent=won ? formatStageRecord({moves:moveCount,timeMs:runElapsedMs}) : '';
-    ui.next.hidden=true;
+    ui.next.hidden=won;
+    ui.next.textContent=dailyRun?gameText("action.returnCalendar"):gameText("action.returnMap");
     ui.retry.hidden=won;
     ui.closeResult.hidden=won;
     ui.resultTap.hidden=!won;
@@ -902,6 +1031,7 @@ function advanceCameraIntro(now) {
     if (camera >= cameraIntro.to && now-cameraIntro.start >= CAMERA_CONFIG.introMinDuration) {
         cameraIntro = null;
         runStartedAt=now;runElapsedMs=0;
+        if(typeof tutorialReadyToPlay==='function')tutorialReadyToPlay();
         updateUI();
     }
 }

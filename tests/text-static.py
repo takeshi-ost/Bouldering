@@ -24,6 +24,6 @@ class Copy(HTMLParser):
  def value(self):return {'text':re.sub(r'\s+',' ',''.join(self.text)).strip(),'attributes':self.attrs}
 current=Copy(True);current.feed((root/'index.html').read_text())
 digest=hashlib.sha256(json.dumps(current.value(),ensure_ascii=False,sort_keys=True).encode()).hexdigest()
-# Reviewed change: exact shared brands in ASCENT / tagline / TAP / publisher order; bottom identity shows UID then VERSION.
-assert digest == '1d08de9e0c93b37b1bc17061b68e50c29f7702df235616ab4a0451479504383c', 'Static game copy changed; review intentional wording changes before updating the snapshot.'
+# Reviewed change: add Debug-only type/length trial controls and collapsible inspector; retain normal title/identity/help.
+assert digest == 'b46877387c068b06d7d459898682c0820dbe65b681b457a591b162ba9bbe9976', 'Static game copy changed; review intentional wording changes before updating the snapshot.'
 print('PASS static text: reviewed labels/help text and accessibility attributes match the cleaned snapshot')

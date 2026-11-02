@@ -50,12 +50,14 @@ async function beginTitlePreparation() {
     ui.titleWallpaper.style.animation='';
     titleReady=true;ui.titleTap.hidden=false;
     ui.titleScreen.setAttribute('aria-disabled','false');
+    window.dispatchEvent?.(new Event('ascent-title-ready'));
     ui.titleScreen.focus({preventScroll:true});
 }
 function enterPreparedMap() {
     if(state!=='choosing' || !titleReady || transferBusy() || transferElement('transferDialog').open)return;
     titleReady=false;titlePreparation++;
     playSound('launch');
+    if(typeof tutorialPending==='function' && tutorialPending()) {startTutorialRun();return;}
     state='map';ui.titleScreen.hidden=true;
     ui.levelMap.inert=false;ui.levelMap.removeAttribute?.('aria-hidden');
     ui.wall.classList.toggle('title-open',false);

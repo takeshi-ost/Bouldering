@@ -14,8 +14,6 @@ const GAME_DEV_TEXT_JA = Object.freeze({
     "account-deletion.showDeleteUserDialog.2": "このウィンドウを閉じてください。新しいユーザーは自動作成しません。",
     "account-deletion.showDeleteUserDialog.3": "ユーザーデータを削除しました。",
     "game.updateUI": "{value0} ムーブ / 想定 {value1} ムーブ / {value2}",
-    "input.syncDebugCourseControls": "ロジハラ（検証用）",
-    "input.syncDebugCourseControls.2": "通常コースへ",
     "leaderboard.renderStageLeaderboard": "デバッグの記録は送信しません",
     "level-map": "ステージ番号は1以上の整数を入力してください。",
     "ui.debugControls.label": "ステージ番号",
@@ -27,8 +25,6 @@ const GAME_DEV_TEXT_JA = Object.freeze({
     "ui.deleteUserWarning": "名前・配色・進行状況・全ステージのスコア・認証アカウントと、この端末のゲームデータを削除します。この操作は取り消せません。",
     "ui.deleteUserConfirm": "削除する",
     "ui.deleteUserNew": "新しいユーザーで開始",
-    "ui.prototypeDescription": "クリアルートを保ちながらホールドを絞った検証用コースです。",
-    "ui.prototypeDescription.strong": "デバッグ用のロジハラ：",
     "account-deletion.identitySummary": "{value0}\nUID: {value1}",
     "ui.debugPlay": "プレイ"
 });

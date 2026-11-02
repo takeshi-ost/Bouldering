@@ -8,41 +8,42 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={events:{},addEventListener(k,f){this.events[k]=f;},devicePixelRatio:1};function requestAnimationFrame(){};`;
-const data={},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
+// Normal-flow fixture: existing player at eligible-ad STAGE 11; stages 1–10 intentionally do not count regular ads.
+const data={'ascent.progress.v1':JSON.stringify({existing:{cleared:10},prototype:{cleared:0}})},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
 const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try{
 new Function('assert','data','storage',env+source+`
 assert.equal(lives.count,3);assert.equal(lives.recoveryAt,null);
 function map(){showLevelMap();mapTransition=null;}
 function ad(){assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());}
-startCourse('existing');assert(selectStage(1));assert.equal(lives.count,3);assert(lives.inProgress);assert.equal((ui.lifeStatus.innerHTML.match(/class="life-player"/g)||[]).length,3);
+startCourse('existing');assert(selectStage(11));assert.equal(lives.count,3);assert(lives.inProgress);assert.equal((ui.lifeStatus.innerHTML.match(/class="life-player"/g)||[]).length,3);
 finish(false);assert.equal(lives.count,2);assert.equal((ui.lifeStatus.innerHTML.match(/class="life-player"/g)||[]).length,2);const anchor=lives.recoveryAt;finish(false);assert.equal(lives.count,2);
 ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert.equal(lives.count,2);finish(false);assert.equal(lives.count,1);assert.equal(lives.recoveryAt,anchor);
-ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert.equal(lives.count,1);ui.restart.onclick();assert.equal(lives.count,0);assert.equal(state,'lost');ui.retry.onclick();assert.equal(state,'ad');ad();assert.equal(lives.count,0);assert.equal(state,'life-prompt');assert(ui.lifeDialog.open);
+ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert.equal(lives.count,1);ui.restart.onclick();assert.equal(lives.count,0);assert.equal(state,'lost');ui.retry.onclick();assert.equal(state,'life-prompt');assert(!dummyAd,'Zero lives skips the regular ad before recovery');assert.equal(playsSinceAd,3,'Skipped regular ad keeps its counter');assert(ui.lifeDialog.open);
 assert(!canScrollStage() && !canUndoMove());ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
-assert(!selectStage(1));assert.equal(state,'life-prompt');assert(!ui.lifeDialog.hidden);ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
+assert(!selectStage(11));assert.equal(state,'life-prompt');assert(!ui.lifeDialog.hidden);ui.lifeCancel.onclick();assert.equal(state,'map');assert.equal(lives.count,0);
 // Canceling the recovery offer after Retry goes to the map, including Escape.
 for(const escape of [false,true]) {
  finish(false);assert(ui.overlay.open);ui.retry.onclick();assert.equal(state,'life-prompt');
  if(escape){let prevented=false;ui.lifeDialog.events.cancel({preventDefault(){prevented=true;}});assert(prevented);}else ui.lifeCancel.onclick();
  assert.equal(state,'map');assert(ui.overlay.hidden && !ui.overlay.open);assert(ui.lifeDialog.hidden && !ui.lifeDialog.open);assert.equal(lives.count,0);assert(!dummyAd);
 }
-assert(!selectStage(1));ui.lifeWatchAd.onclick();assert.equal(state,'ad');assert.equal(lives.count,0);assert(!completeDummyAd());ad();assert.equal(lives.count,1);assert.equal(state,'map');assert(ui.stageStartDialog.open);assert(!lives.inProgress);ui.stageStartButton.onclick();assert.equal(state,'playing');assert(lives.inProgress);
-moveCount=1;finish(true);assert.equal(lives.count,1);ui.next.onclick();assert.equal(state,'map');map();assert.equal(lives.count,1);assert(selectStage(1));returnFromStage();assert.equal(state,'map');assert.equal(lives.count,0);returnFromStage();assert.equal(lives.count,0);
+assert(!selectStage(11));ui.lifeWatchAd.onclick();assert.equal(state,'ad');assert.equal(lives.count,0);assert(!completeDummyAd());ad();assert.equal(lives.count,1);assert.equal(state,'map');assert(ui.stageStartDialog.open);assert(!lives.inProgress);ui.stageStartButton.onclick();assert.equal(state,'playing');assert(lives.inProgress);
+moveCount=1;finish(true);assert.equal(lives.count,1);ui.next.onclick();assert.equal(state,'ad','Retained regular ad is due after recovery and a normal clear');ad();assert.equal(playsSinceAd,0);assert.equal(state,'map');map();assert.equal(lives.count,1);assert(selectStage(11));returnFromStage();assert.equal(state,'map');assert.equal(lives.count,0);returnFromStage();assert.equal(lives.count,0);
 // Recovery keeps its fractional progress across additional failures and stops at 3.
 wallNow=anchor+LIFE_RECOVERY_MS-1;recoverLives();assert.equal(lives.count,0);wallNow++;recoverLives();assert.equal(lives.count,1);
-wallNow+=LIFE_RECOVERY_MS/2;assert(selectStage(1));finish(false);assert.equal(lives.count,0);assert.equal(lives.recoveryAt,anchor+LIFE_RECOVERY_MS);
+wallNow+=LIFE_RECOVERY_MS/2;assert(selectStage(11));finish(false);assert.equal(lives.count,0);assert.equal(lives.recoveryAt,anchor+LIFE_RECOVERY_MS);
 wallNow=anchor+2*LIFE_RECOVERY_MS;recoverLives();assert.equal(lives.count,1);wallNow+=10*LIFE_RECOVERY_MS;recoverLives();assert.equal(lives.count,3);assert.equal(lives.recoveryAt,null);
 lives.count=5;saveLives();wallNow+=10*LIFE_RECOVERY_MS;recoverLives();assert.equal(lives.count,5);grantLife();assert.equal(lives.count,5);
 lives.count=4;consumeLife();assert.equal(lives.count,3);assert.equal(lives.recoveryAt,null);consumeLife();assert.equal(lives.count,2);assert.equal(lives.recoveryAt,wallNow);
 // Natural recovery during a prompt starts without an ad when the button is tapped.
-lives.count=0;lives.recoveryAt=wallNow;map();selectStage(1);assert.equal(state,'life-prompt');wallNow+=LIFE_RECOVERY_MS;refreshLives();assert.equal(ui.lifeWatchAd.textContent,'ステージを開始');ui.lifeWatchAd.onclick();assert.equal(state,'map');assert(ui.stageStartDialog.open);assert.equal(lives.count,1);assert(!dummyAd);ui.stageStartButton.onclick();finish(true);map();
+lives.count=0;lives.recoveryAt=wallNow;map();selectStage(11);assert.equal(state,'life-prompt');wallNow+=LIFE_RECOVERY_MS;refreshLives();assert.equal(ui.lifeWatchAd.textContent,'ステージを開始');ui.lifeWatchAd.onclick();assert.equal(state,'map');assert(ui.stageStartDialog.open);assert.equal(lives.count,1);assert(!dummyAd);ui.stageStartButton.onclick();finish(true);map();
 // Daily and verification/debug runs ignore zero lives, and cannot spend them.
-lives.count=0;lives.recoveryAt=wallNow;saveLives();DIFFICULTY_CONFIG.dailyWeights=[100,0,0,0];ui.openDaily.onclick();assert(selectDailyDate('2026-01-01'));assert.equal(state,'playing');finish(false);assert.equal(lives.count,0);assert(!lives.inProgress);showDailyCalendar();ui.dailyBack.onclick();
-debugMode=true;assert(selectStage(99,true));finish(false);assert.equal(lives.count,0);map();startCourse('prototype');assert(selectStage(1));finish(false);assert.equal(lives.count,0);map();startCourse('existing');
+lives.count=0;lives.recoveryAt=wallNow;saveLives();CourseProgressionConfig.daily.minScore=CourseProgressionConfig.daily.maxScore=1; /* Flow-only fixture: deterministic early course, not the production Daily range. */ui.openDaily.onclick();assert(selectDailyDate('2026-01-01'));assert.equal(state,'playing');finish(false);assert.equal(lives.count,0);assert(!lives.inProgress);showDailyCalendar();ui.dailyBack.onclick();
+debugMode=true;assert(selectStage(99,true));finish(false);assert.equal(lives.count,0);map();setDebugMode(false);startCourse('prototype');assert.equal(courseMode,'existing');assert(!selectStage(11));assert.equal(state,'life-prompt');cancelLifePrompt();
 // A failed generation never spends a life; a completed reward remains available.
-lives.count=1;saveLives();const original=reset,log=console.error;console.error=()=>{};reset=()=>{throw Error('no course');};assert(!selectStage(1));assert.equal(state,'map');assert.equal(lives.count,1);assert(!lives.inProgress);
-lives.count=0;selectStage(1);ui.lifeWatchAd.onclick();ad();assert.equal(state,'map');assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'map');assert.equal(lives.count,1);reset=original;console.error=log;
+lives.count=1;saveLives();const original=reset,log=console.error;console.error=()=>{};reset=()=>{throw Error('no course');};assert(!selectStage(11));assert.equal(state,'map');assert.equal(lives.count,1);assert(!lives.inProgress);
+lives.count=0;selectStage(11);ui.lifeWatchAd.onclick();ad();assert.equal(state,'map');assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'map');assert.equal(lives.count,1);reset=original;console.error=log;
 // Persistence rejects malformed state and continues in memory when writes fail.
 const saved=data[LIVES_KEY];for(const bad of ['null','{bad','{}','{"count":-1}','{"count":6}','{"count":"3"}']){data[LIVES_KEY]=bad;assert.equal(readLives().count,3);}data[LIVES_KEY]=saved;
 const set=storage.setItem;storage.setItem=()=>{throw Error('full');};assert.doesNotThrow(consumeLife);assert.equal(lives.count,0);storage.setItem=set;

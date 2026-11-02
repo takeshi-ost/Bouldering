@@ -31,6 +31,6 @@ function fixture(data={}){
  const legacy=fixture({'ascent.sound-enabled.v1':'false'});legacy.run('assert(!musicEnabled && !soundEnabled);setSoundEnabled(true);');const migrated=fixture(legacy.data);migrated.run('assert(soundEnabled && !musicEnabled);');
  const invalid=fixture({'ascent.music-settings.v1':'{broken','ascent.sound-volume.v1':'0.4'});invalid.run('assert(musicEnabled);assert.equal(musicVolume,1);assert.equal(soundVolume,.4);');
  const html=fs.readFileSync('index.html','utf8');assert(!html.includes('ui.mapSettingsControls.label.span"'));assert.equal((html.slice(html.indexOf('id="settingsDialog"'),html.indexOf('id="deleteUserDialog"')).match(/type="range"/g)||[]).length,2);
- assert(html.indexOf('id="musicEnabled"')>html.indexOf('id="mapEditCharacter"'));assert(html.indexOf('id="musicEnabled"')<html.indexOf('id="mapSettingsLanguage"'));
+ assert(html.indexOf('id="musicEnabled"')<html.indexOf('id="mapEditCharacter"'));assert(html.indexOf('id="musicEnabled"')>html.indexOf('id="mapSettingsLanguage"'));
  console.log('PASS independent audio: checkbox/slider events, separate live gain buses, music/SE-only modes, zero-volume phase retention, migration/reload, invalid settings and shared modal controls');
 })().catch(e=>{console.error(e);process.exitCode=1;});

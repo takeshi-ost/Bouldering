@@ -56,7 +56,7 @@ function clearLocalGameData() {
     const keys=[APPEARANCE_KEY,PLAYER_NAME_KEY,PLAYER_UUID_KEY,ONLINE_PROFILE_KEY,ONLINE_SCORES_KEY,
         PROGRESS_KEY,RECORDS_KEY,HEART_ITEMS_KEY,LIVES_KEY,MAP_REWARDS_KEY,FEATURE_HELP_KEY,SOUND_KEY,MUSIC_KEY,SOUND_VOLUME_KEY,
         LANGUAGE_KEY,AD_PLAYS_KEY,DAILY_RECORDS_KEY,DAILY_ATTEMPTS_KEY,DAILY_PLAY_AD_KEY,
-        'ascent.ad-clears.v1','ascent.daily-entry-ad.v1','ascent.transfer-identity.v1'];
+        'ascent.tutorial-stage0.v1','ascent.ad-clears.v1','ascent.ad-plays.v1','ascent.daily-entry-ad.v1','ascent.transfer-identity.v1','ascent.formal-debug-seed.v1'];
     for(const key of keys)globalThis.localStorage?.removeItem(key);
 }
 async function deleteCurrentAccount() {
@@ -102,7 +102,8 @@ deleteUserElement('deleteUserNew').onclick=()=>{
     accountDeletion.marker=null;globalThis.location?.reload();
 };
 window.addEventListener('storage',event=>{
-    if(event.key!==ACCOUNT_DELETION_KEY || !event.newValue)return;
+    const storageKey=globalThis.ASCENT_FORMAL_STORAGE?.physicalKey(ACCOUNT_DELETION_KEY) || ACCOUNT_DELETION_KEY;
+    if(event.key!==storageKey || !event.newValue)return;
     const marker=readAccountDeletion();
     if(marker && (!online.uid || marker.uid===online.uid)) {
         accountDeletion.marker=marker;online.ready=false;

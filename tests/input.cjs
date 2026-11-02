@@ -38,11 +38,11 @@ function fixture() {
 assert.equal(state,'choosing');assert.equal(debugMode,false);assert(ui.hud.hidden);
 assert(!/id="(?:existingCourse|editCharacter|debugMode)"/.test(html));
 startCourse('existing');ui.mapSettingsButton.onclick();
-ui.mapDebugMode.checked=true;ui.mapDebugMode.onchange();assert(!ui.prototypeCourse.hidden && !ui.prototypeDescription.hidden);
-assert(!ui.debugControls.hidden && ui.hud.hidden);assert(ui.mapCourse.hidden && ui.mapCourse.textContent==='');
+ui.mapDebugMode.checked=true;ui.mapDebugMode.onchange();assert(!html.includes('prototypeCourse') && !html.includes('prototypeDescription'));
+assert(!ui.debugControls.hidden && ui.hud.hidden);assert(!html.includes('id="mapCourse"'));
 ui.closeSettings.onclick();assert(selectStage(1));assert(!ui.hud.hidden && !ui.progress.hidden);
 ui.mapDebugMode.checked=false;ui.mapDebugMode.onchange();assert(debugMode && ui.mapDebugMode.checked);
-showTitleScreen();setDebugMode(false);assert(ui.prototypeCourse.hidden && ui.prototypeDescription.hidden);
+showTitleScreen();setDebugMode(false);assert(!html.includes('prototypeCourse') && !html.includes('prototypeDescription'));
 startCourse('existing');assert(ui.debugControls.hidden);assert(selectStage(1));assert(ui.progress.hidden);
 // Settings cancel an in-flight gesture, block movement/scroll/Undo, and close on navigation.
 ui.settingsButton.onclick();assert(!settingsOpen,'Cannot open settings during intro');

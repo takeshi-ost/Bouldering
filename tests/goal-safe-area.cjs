@@ -25,7 +25,7 @@ function check(n){
  assert.equal(JSON.stringify({holds,route,initialGrips,HEIGHT}),geometry,'Safe area changed course geometry');
 }
 check(1);assert.equal(HEIGHT,H);assert(cameraTop()<0);
-check(2);check(5);courseMode='prototype';check(1);
+check(2);check(5);courseMode='existing';check(1);
 courseMode='existing';dailyRun={...dailyProfile('2026-01-01'),returnCourse:'existing'};check(dailyRun.referenceStage);
-console.log('PASS goal safe area: intro/automatic follow, Home/End/wheel/two-finger pan, scrollable STAGE1, normal/prototype/daily, unchanged route geometry');
+console.log('PASS goal safe area: intro/automatic follow, Home/End/wheel/two-finger pan, scrollable STAGE1, normal/daily, unchanged route geometry');
 `)(assert);

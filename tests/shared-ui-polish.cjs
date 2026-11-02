@@ -37,7 +37,7 @@ assert(!/playerPath/.test(fs.readFileSync('js/game.js','utf8')),'No display-only
 const css=fs.readFileSync('styles.css','utf8');
 assert(css.includes('-webkit-tap-highlight-color:transparent; appearance:none;'));
 assert(css.includes('.daily-airship:active > .daily-airship-body { transform:scale(1.04); }'));
-assert(css.includes('.daily-airship:focus-visible { outline:3px solid'));
+assert(css.includes('.daily-airship:focus-visible { outline:none; box-shadow:none; }'));
 assert(!/#(?:openDaily|dailyBack):active\s*\{[^}]*transform/.test(css),'Hit target/scene animation must not scale');
 assert.equal((html.match(/class="daily-airship-body"/g)||[]).length,2);
 console.log('PASS shared UI: real per-limb wide circles/shared grip rules/gold semantics; no post-clear path or move history; debug planned route retained; bilingual retry; airship artwork-only press and keyboard focus');

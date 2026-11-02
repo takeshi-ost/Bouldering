@@ -8,11 +8,12 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};`;
-const data={},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
+// Daily-flow fixture: recognised existing save, not a first-launch tutorial.
+const data={'ascent.progress.v1':JSON.stringify({existing:{cleared:0},prototype:{cleared:0}})},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
 const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {
 new Function('assert','data','storage',env+source+`
-const key='2026-01-01',repeat='2026-01-10',other='2026-01-02';DIFFICULTY_CONFIG.dailyWeights=[100,0,0,0];
+const key='2026-01-01',repeat='2026-01-10',other='2026-01-02';CourseProgressionConfig.daily.minScore=CourseProgressionConfig.daily.maxScore=1; /* Flow-only fixture: deterministic early course, not the production Daily range. */
 function done(){assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());}
 function fail(){finish(false);assert.equal(state,'lost');}
 startCourse('existing');showDailyCalendar({openFromMap:true});

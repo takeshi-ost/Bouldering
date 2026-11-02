@@ -29,7 +29,7 @@ assert(openStageStart(1));
 ui.stageStartDialog.events.click({target:ui.stageStartDialog,clientX:-1,clientY:-1});assert(!stageStartContext);
 assert(openStageStart(1));let canceled=false;ui.stageStartDialog.events.cancel({preventDefault(){canceled=true;}});assert(canceled && !stageStartContext);
 stageProgress.existing.cleared=40;
-for(const [n,label] of [[2,'EASY'],[5,'NORMAL'],[20,'NORMAL'],[40,'HARD']]) {
+for(const [n,label] of [[2,'EASY'],[5,'EASY'],[20,'NORMAL'],[40,'NORMAL']]) {
  assert(openStageStart(n));assert.equal(ui.stageStartLength.textContent,{short:'ショート',medium:'ミドル',long:'ロング'}[stageLengthInfo(n).category]);assert.equal(ui.stageStartDifficulty.textContent,label);assert.match(ui.stageStartStamina.textContent,/^[0-9]{2,}$/);closeStageStart();
 }
 let pulsing=false;const button={classList:{toggle(_,on){pulsing=on;}}};

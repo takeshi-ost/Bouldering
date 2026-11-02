@@ -1,9 +1,15 @@
 "use strict";
+// New profiles validate their own shape during generation. A real stage number
+// must not reimpose the retired table's non-tutorial traverse requirement after
+// the generator restores production identity. Legacy debug trials keep it.
+function requiresLegacyTraverse() {
+    return !(typeof activeCourseGeneration!=='undefined' && activeCourseGeneration) && level!==1;
+}
 // Search, replay and pruning share live reach checks, including mid-body foot height and straight raised legs.
 function solveRoute(guide, maxMoves = 40) {
     if(holds.some(h=>h.type==='hazard'))return solveCostRoute(guide,maxMoves);
     const saved = { committed, startGrips };
-    const needsTraverse = level !== 1;
+    const needsTraverse = requiresLegacyTraverse();
     const start = { ...guide[0] };
     const first = [...initialGrips];
     for (const pair of [[0, 1], [2, 3]]) {
@@ -84,7 +90,7 @@ function replayRoute(path) {
             const won = bothHandsOnGoal(stance) && stance.every(Boolean);
             if (!won && (!stance.every(Boolean) || (sameContacts(stance, startGrips) && !newHazardContacts(stance,startGrips).size))) return null;
             result.push({ ...p, anchor, grips: stance.map(h => h?.id ?? null) });
-            if (won) return level===1 ||
+            if (won) return !requiresLegacyTraverse() ||
                 result.slice(1).some((q,j)=>isTraverse(result[j],q)) ? result : null;
         }
         return null;
@@ -105,7 +111,7 @@ function optimizeRoute(path, config = ROUTE_OPTIMIZATION_CONFIG) {
     let best = path, bestCost=routeConsumption(path), transitions = 0;
     const began = performance.now();
     const maxSpan = Math.max(...LIMB_LENGTHS)*2;
-    const hasTraverse = candidate => level === 1 || candidate.slice(1).some((p,i) => isTraverse(candidate[i],p));
+    const hasTraverse = candidate => !requiresLegacyTraverse() || candidate.slice(1).some((p,i) => isTraverse(candidate[i],p));
     const attempt = (from, to) => {
         if (transitions >= config.maxTransitions) return null;
         transitions++;
@@ -232,7 +238,7 @@ function assignWideHolds(guide) {
 
 // Keep enough existing alternatives for a valid minimum-ratio fallback.
 function hasHazardFallbackCandidates(path) {
-    if(DIFFICULTY_RULES[difficulty].hazards!=='dense')return true;
+    if(difficultyRule(difficulty).hazards!=='dense')return true;
     const used=new Set([...initialGrips.map(h=>h.id),...path.flatMap(p=>p.grips||[])]);
     return holds.filter(h=>h.type==='normal' && !h.wide && !used.has(h.id)).length>=Math.ceil(holds.length*HAZARD_CONFIG.minRatio);
 }
@@ -240,7 +246,7 @@ function hasHazardFallbackCandidates(path) {
 // Retain off-route geometry for varied recipes and a verified safe fallback.
 // RNG and the retained count are deterministic.
 function reserveDenseCandidates(path) {
-    if(DIFFICULTY_RULES[difficulty].hazards!=='dense')return new Set();
+    if(difficultyRule(difficulty).hazards!=='dense')return new Set();
     const used=new Set([...initialGrips.map(h=>h.id),...path.flatMap(p=>p.grips||[])]);
     const random=mulberry32(courseSeed() ^ 0x2E8CA17B);
     const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !used.has(h.id))
@@ -276,7 +282,7 @@ function solveCostRoute(guide,maxMoves=40,config=ROUTE_COST_SEARCH_CONFIG,option
     let bestCost=best?routeConsumption(best):maxMoves+3+pickups.length*HEART_CONFIG.recovery;
     let transitions=0,limitReached=false;
     const buckets=Array.from({length:bestCost+1},()=>[]),visited=new Map();
-    buckets[0].push({p:start,stance:first,path:[start],traversed:level===1,score:progress(start),mask:0,net:0,required:1});
+    buckets[0].push({p:start,stance:first,path:[start],traversed:!requiresLegacyTraverse(),score:progress(start),mask:0,net:0,required:1});
     try {
         for(let cost=0;cost<=bestCost && transitions<config.maxTransitions;cost++) {
             // Preserve different pickup states rather than discarding a heart detour.

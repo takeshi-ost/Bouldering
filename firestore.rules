@@ -76,14 +76,19 @@ service cloud.firestore {
     match /stageScores/{board}/entries/{uid} {
       function validScore() {
         let data = request.resource.data;
-        return board.matches('^v1_(existing|prototype)_[1-9][0-9]{0,5}$')
+        return board.matches('^(v1_(existing|prototype)|v[234]_existing)_[1-9][0-9]{0,5}$')
           && data.keys().hasAll(['moves', 'timeMs', 'updatedAt'])
           && data.keys().hasOnly(['moves', 'timeMs', 'updatedAt',
             'appVersion', 'buildNumber', 'platform', 'scoreSpecVersion'])
           && optionalScoreText(data, 'appVersion', 64, '^[0-9]+[.][0-9]+[.][0-9]+$')
           && optionalScoreText(data, 'buildNumber', 32, '^[0-9]+([.][0-9]+){0,2}$')
           && optionalScoreText(data, 'platform', 32, '^(iOS|Web)$')
-          && optionalScoreText(data, 'scoreSpecVersion', 32, '^v1$')
+          && optionalScoreText(data, 'scoreSpecVersion', 32, '^v[1234]$')
+          && (!('scoreSpecVersion' in data) || data.scoreSpecVersion == null
+            || (data.scoreSpecVersion == 'v1' && board.matches('^v1_.*$'))
+            || (data.scoreSpecVersion == 'v2' && board.matches('^v2_.*$'))
+            || (data.scoreSpecVersion == 'v3' && board.matches('^v3_.*$'))
+            || (data.scoreSpecVersion == 'v4' && board.matches('^v4_.*$')))
           && data.moves is int && data.moves >= 1 && data.moves <= 1000000
           && data.timeMs is int && data.timeMs >= 0 && data.timeMs <= 604800000
           && data.updatedAt == request.time;

@@ -26,12 +26,7 @@ function routeResources(path,{pickups=createHearts(level,path,difficulty),budget
         budget:allowance,remaining:allowance-net};
 }
 function chooseCourseIntent() {
-    const rating=dailyRun?.difficulty??difficultyForStage(level);
-    const weights=COURSE_GENERATION_CONFIG.intentWeights[rating];
-    const random=mulberry32(courseSeed() ^ 0x6A48E903);
-    let target=random()*weights.reduce((a,b)=>a+b,0);
-    for(let i=0;i<weights.length;i++) {target-=weights[i];if(target<0)return COURSE_INTENTS[i];}
-    return 'basic';
+    return courseTypeRule(courseTypeId).intent;
 }
 // A pickup may occur while dragging even if the player cancels the release.
 // Check a reachable drag segment, using the same support/snapping rules as play.
@@ -58,7 +53,7 @@ function findCourseHeartMove(heart,path) {
     } finally {committed=saved.committed;startGrips=saved.startGrips;}
 }
 function recipeHearts(path,intent,salt=0) {
-    if(!DIFFICULTY_RULES[difficulty].hearts || intent==='basic' || intent==='consumption')return [];
+    if(!difficultyRule(difficulty).hearts || intent==='basic' || intent==='consumption')return [];
     if(intent==='choice')return makeRouteHearts(level,path,difficulty).map(heart=>{
         const index=path.findIndex(p=>p.x===heart.x && p.y===heart.y);
         const p=path[Math.max(1,index)],from=path[Math.max(0,index-1)];
@@ -79,7 +74,7 @@ function recipeHearts(path,intent,salt=0) {
     });
 }
 function bindCourseRecipe(intent,path,salt=0) {
-    generatedCourse={level,seed:courseSeed(),difficulty,mode:courseMode,holds,intent,
+    generatedCourse={level,seed:courseSeed(),difficulty,typeId:courseTypeId,mode:courseMode,holds,intent,
         hearts:recipeHearts(path,intent,salt),hazardPlacement:{routeIds:[],optionalIds:[]}};
 }
 function snapshotCourse(path) {
@@ -93,7 +88,7 @@ function restoreCourse(snapshot) {
     generatedCourse={...snapshot.recipe,holds,hearts:snapshot.recipe.hearts.map(h=>({...h}))};
 }
 function applyRouteHazards(path,intent,salt) {
-    const rules=DIFFICULTY_RULES[difficulty];
+    const rules=difficultyRule(difficulty);
     if(rules.hazards==='none')return false;
     const random=mulberry32(courseSeed() ^ 0x34F62B91 ^ Math.imul(salt+1,0x9E3779B9));
     const protectedIds=new Set(initialGrips.map(h=>h.id));
@@ -150,7 +145,7 @@ function classifyCourse(path) {
         necessityScope:'bounded-search',heartResourceRequired:!routeResources(path,{pickups:[],budget}).valid};
 }
 function finalizeCourseGeneration(intent=chooseCourseIntent()) {
-    if(DIFFICULTY_RULES[difficulty].hazards==='dense')return finalizeConvertedCourse(intent);
+    if(difficultyRule(difficulty).hazards==='dense')return finalizeConvertedCourse(intent);
     const began=performance.now(),base=route,baseHolds=[...holds],baseTypes=holds.map(h=>h.type);
     densityStats.initialRouteOptimization=densityStats.routeOptimization;
     const failures=[];let searchFallback=false,safeFeatureFallback=false;
@@ -159,7 +154,7 @@ function finalizeCourseGeneration(intent=chooseCourseIntent()) {
     if(!validateRouteBudget(base))throw new Error('Initial route cannot clear its base budget');
     const plain=snapshotCourse(base);
     try {
-        if(DIFFICULTY_RULES[difficulty].hazards==='dense' || ['basic','choice'].includes(intent))addHazardHolds();
+        if(difficultyRule(difficulty).hazards==='dense' || ['basic','choice'].includes(intent))addHazardHolds();
         if(!validateRouteBudget(base))throw new Error('Initial recipe cannot clear its base budget');
     } catch(error) {failures.push(String(error.message||error));safeFeatureFallback=true;restoreCourse(plain);}
     const safe=snapshotCourse(base);

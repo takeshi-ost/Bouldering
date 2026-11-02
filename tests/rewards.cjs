@@ -8,10 +8,11 @@ const documentEvents={};const elements={};const document={hidden:false,addEventL
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const timers=new Map();let serial=0;const window={addEventListener(){},devicePixelRatio:1,setTimeout(fn,delay){const id=++serial;timers.set(id,{fn,delay});return id;},clearTimeout(id){timers.delete(id);},cancelAnimationFrame(){}};function requestAnimationFrame(){return ++serial;};`;
-const data={},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
+// Normal-flow fixture: recognised existing save, not a first-launch tutorial.
+const data={'ascent.progress.v1':JSON.stringify({existing:{cleared:0},prototype:{cleared:0}})},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
 const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {new Function('assert','data',env+source+`
-const today=localToday();DIFFICULTY_CONFIG.dailyWeights=[100,0,0,0];
+const today=localToday();CourseProgressionConfig.daily.minScore=CourseProgressionConfig.daily.maxScore=1; /* Flow-only fixture: deterministic early course, not the production Daily range. */
 function ad(){clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());}
 function land(index){
  rewardSequence.angle=-ROULETTE_SEGMENTS[index].center-ROULETTE_SPEED*ROULETTE_BRAKE_MS/3;rewardSequence.lastTime=clock;
@@ -74,8 +75,8 @@ assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,5);
 assert(hasMapReward(4));assert(hasMapReward(8));assert(hasMapReward(12));assert(hasMapReward(20));assert(!hasMapReward(9));assert(!hasMapReward(10));
 stageProgress.existing.cleared=3;showLevelMap({target:4});assert(selectStage(4));
 playsSinceAd=2;moveCount=1;finish(true);
-assert.equal(mapRewards[4].status,'pending');assert(mapRewards[4].adRequired);
-ui.overlay.events.click({target:ui.overlay});assert.equal(state,'ad');ad();assert.equal(state,'reward');assert(mapRewards[4].adCompleted);
+assert.equal(mapRewards[4].status,'pending');assert(!mapRewards[4].adRequired);assert.equal(playsSinceAd,2);
+ui.overlay.events.click({target:ui.overlay});assert.equal(state,'reward');assert(!dummyAd);assert(!mapRewards[4].adCompleted);assert.equal(playsSinceAd,2);
 const mapBefore=heartItems;land(1);assert.equal(heartItems,mapBefore+5);assert.equal(mapRewards[4].status,'claimed');
 assert(!hasMapReward(4));assert(hasMapReward(20));assert.deepEqual(readMapRewards(),mapRewards);
 resultReturn();assert.equal(state,'map');assert.deepEqual([mapTransition.from,mapTransition.to],[4,5]);
@@ -91,6 +92,11 @@ showLevelMap();assert.equal(state,'ad');ad();assert.equal(state,'reward');
 // Simulate reloading before an unclaimed roulette (completed ad must not repeat).
 rewardSequence=null;ui.rewardDialog.close();ui.rewardDialog.hidden=true;mapRewards=readMapRewards();showLevelMap();assert.equal(state,'reward');assert(!dummyAd);
 land(0);resultReturn();assert.equal(mapRewards[12].status,'claimed');
+// An old early milestone may still say adRequired; honor its reward without
+// displaying a periodic ad or wiping later-stage cadence.
+playsSinceAd=3;mapRewards[8]={status:'pending',adRequired:true,adCompleted:false};saveMapRewards();
+showLevelMap();assert.equal(state,'reward');assert(!dummyAd);assert.equal(playsSinceAd,3);
+land(0);resultReturn();assert.equal(mapRewards[8].status,'claimed');assert.equal(playsSinceAd,3);
 // Debug and daily wins never earn map milestones.
 showLevelMap();debugAttempt=true;level=40;recordMapRewardClear();assert(!mapRewards[40]);debugAttempt=false;
 const savedMap=data[MAP_REWARDS_KEY];data[MAP_REWARDS_KEY]=JSON.stringify({'0':{status:'pending'},'11':{status:'pending'},'10':{status:'bad'},'20':{status:'claimed'}});

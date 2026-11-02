@@ -19,7 +19,7 @@ for(const appearance of appearances) {
 const physics=JSON.stringify({holds,route,body,grips,stageProgress,stageRecords});
 assert.deepEqual(currentMapPlayers(1,20,'existing'),[],'Offline map must not invent opponents');
 online.ready=true;online.uid='self';
-for(const mode of ['existing','prototype'])for(const page of [0,1,49]) {
+for(const mode of ['existing'])for(const page of [0,1,49]) {
  courseMode=mode;mapPage=page;const {first,last}=mapBounds();
  const testPlayers=Array.from({length:21},(_,i)=>({id:mode+'-'+page+'-'+i,name:'Player '+i,
   appearance:appearances[i%appearances.length],reachedLevel:first+Math.floor(i/3)*2,isPlayer:false}));

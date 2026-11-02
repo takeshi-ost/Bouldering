@@ -40,6 +40,7 @@ function setOnlineStatus(message) {
     if(typeof renderTransferAvailability==='function')renderTransferAvailability();
 }
 function onlineError(error) {
+    globalThis.ASCENT_SETTINGS_CONNECTION?.failure();
     setOnlineStatus(gameText("online.onlineError"));
     console.warn('Online profile:',error?.code || error?.message || 'connection unavailable');
 }
@@ -79,7 +80,9 @@ async function flushOnlineProfile(preferLocal=true) {
         while(online.dirty && !accountDeletion.marker && !(typeof transferBusy==='function' && transferBusy())) {
             const revision=online.revision,profile=onlineProfile();online.dirty=false;
             setOnlineStatus(gameText("online.flushOnlineProfile.2"));
+            const connectionTicket=globalThis.ASCENT_SETTINGS_CONNECTION?.ticket();
             const saved=await online.adapter.sync(online.uid,profile,preferLocal);
+            globalThis.ASCENT_SETTINGS_CONNECTION?.success(connectionTicket);
             if(accountDeletion.marker){online.dirty=false;return;}
             // A delayed first download must not replace an edit/clear made while loading.
             const changed=revision!==online.revision || onlineProfileKey(profile)!==onlineProfileKey(onlineProfile());
@@ -115,6 +118,7 @@ async function startOnline(adapter) {
     finally {online.connecting=false;}
 }
 function onlineMapPlayers(first,last,mode) {
+    if(mode!=='existing')return [];
     if(!online.ready)return [];
     const key=`${mode}:${first}:${last}`,now=Date.now();
     let page=online.pages.get(key);
@@ -128,7 +132,7 @@ function onlineMapPlayers(first,last,mode) {
         void online.adapter.players(first,last,mode).then(rows=>{
             const counts=new Map();
             page.players=rows.flatMap(row=>{
-                const profile=onlineProfileFrom(row),n=mode==='prototype'?profile?.reachedPrototypeLevel:profile?.reachedLevel;
+                const profile=onlineProfileFrom(row),n=profile?.reachedLevel;
                 if(!profile || typeof row.id!=='string' || row.id===online.uid || n<first || n>last || (counts.get(n)||0)>=5)return [];
                 counts.set(n,(counts.get(n)||0)+1);
                 return [{id:row.id,name:profile.name,appearance:{colors:profile.colors,headColor:profile.headColor},reachedLevel:n,isPlayer:false}];
@@ -137,7 +141,7 @@ function onlineMapPlayers(first,last,mode) {
                 const bounds=mapBounds();
                 if(courseMode===mode && bounds.first===first && bounds.last===last)renderMapPlayers();
             }
-        }).catch(error=>console.warn('Online map:',error?.code || 'connection unavailable'))
+        }).catch(error=>{globalThis.ASCENT_SETTINGS_CONNECTION?.failure();console.warn('Online map:',error?.code || 'connection unavailable');})
             .finally(()=>{page.pending=false;});
     }
     return page.players.filter(row=>row.id!==online.uid);

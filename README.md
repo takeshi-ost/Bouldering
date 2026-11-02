@@ -1,3 +1,7 @@
+> **Web 0.4.47 — current formal development integration (not published).**
+> Use `npm run test:web` and `npm run build:web -- /absolute/new-output-directory`.
+> See [current integration](docs/FORMAL_INTEGRATION.md) for the single build, existing save/Firebase behavior and verification limits. Older design notes below are historical, not the current generator specification.
+
 # ASCENT
 
 胴体をスワイプし、四肢のうち2点を固定して残り2肢を動かすクライミングパズルです。

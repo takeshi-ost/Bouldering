@@ -1,0 +1,519 @@
+{
+  "release": "0.4.47",
+  "passed": 31,
+  "total": 31,
+  "results": [
+    {
+      "suite": "pages-formal-runtime",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.3
+    },
+    {
+      "suite": "pages-storage-deletion",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.17
+    },
+    {
+      "suite": "formal-debug-ranking",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 2.51
+    },
+    {
+      "suite": "formal-v4-preservation",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.07
+    },
+    {
+      "suite": "course-version-compat",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.07
+    },
+    {
+      "suite": "score-metadata",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.08
+    },
+    {
+      "suite": "online",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.11
+    },
+    {
+      "suite": "online-scores",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.43
+    },
+    {
+      "suite": "firebase-client",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.09
+    },
+    {
+      "suite": "account-deletion",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.16
+    },
+    {
+      "suite": "transfer",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.17
+    },
+    {
+      "suite": "settings-connection",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.09,
+      "note": "Rerun after scoping copied native-upgrade fixture to this Web-only integration"
+    },
+    {
+      "suite": "settings-layout",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 2.27
+    },
+    {
+      "suite": "language",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.3
+    },
+    {
+      "suite": "text",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.09
+    },
+    {
+      "suite": "button-theme",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 9.47
+    },
+    {
+      "suite": "title-centering",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.08
+    },
+    {
+      "suite": "tutorial-lifecycle",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 6.88
+    },
+    {
+      "suite": "tutorial-modals",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.86
+    },
+    {
+      "suite": "tutorial-clear-sound",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 5.48
+    },
+    {
+      "suite": "explanation-image-readiness",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.79
+    },
+    {
+      "suite": "help-dialog",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.07
+    },
+    {
+      "suite": "stage-start",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 4.05
+    },
+    {
+      "suite": "failure-return",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 13.09
+    },
+    {
+      "suite": "level-map",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.76
+    },
+    {
+      "suite": "daily",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 5.04
+    },
+    {
+      "suite": "rewards",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.89
+    },
+    {
+      "suite": "ads",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 9.3
+    },
+    {
+      "suite": "ads-early-stages",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.09
+    },
+    {
+      "suite": "course-progression",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.6
+    },
+    {
+      "suite": "formal-course-seed-offset",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 53.23
+    }
+  ],
+  "limitations": [
+    "No browser/device/audio verification",
+    "No live Firebase calls, Rules retrieval/deployment, or real emulator",
+    "Native project/scripts unchanged from public baseline; no native build",
+    "No full401-stage sweep"
+  ],
+  "initialResults": [
+    {
+      "suite": "pages-formal-runtime",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.3
+    },
+    {
+      "suite": "pages-storage-deletion",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.17
+    },
+    {
+      "suite": "formal-debug-ranking",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 2.51
+    },
+    {
+      "suite": "formal-v4-preservation",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.07
+    },
+    {
+      "suite": "course-version-compat",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.07
+    },
+    {
+      "suite": "score-metadata",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.08
+    },
+    {
+      "suite": "online",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.11
+    },
+    {
+      "suite": "online-scores",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.43
+    },
+    {
+      "suite": "firebase-client",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.09
+    },
+    {
+      "suite": "account-deletion",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.16
+    },
+    {
+      "suite": "transfer",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.17
+    },
+    {
+      "suite": "settings-connection",
+      "passed": false,
+      "exitCode": 1,
+      "error": null,
+      "signal": null,
+      "seconds": 0.08
+    },
+    {
+      "suite": "settings-layout",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 2.27
+    },
+    {
+      "suite": "language",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.3
+    },
+    {
+      "suite": "text",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.09
+    },
+    {
+      "suite": "button-theme",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 9.47
+    },
+    {
+      "suite": "title-centering",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.08
+    },
+    {
+      "suite": "tutorial-lifecycle",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 6.88
+    },
+    {
+      "suite": "tutorial-modals",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.86
+    },
+    {
+      "suite": "tutorial-clear-sound",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 5.48
+    },
+    {
+      "suite": "explanation-image-readiness",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.79
+    },
+    {
+      "suite": "help-dialog",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.07
+    },
+    {
+      "suite": "stage-start",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 4.05
+    },
+    {
+      "suite": "failure-return",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 13.09
+    },
+    {
+      "suite": "level-map",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.76
+    },
+    {
+      "suite": "daily",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 5.04
+    },
+    {
+      "suite": "rewards",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.89
+    },
+    {
+      "suite": "ads",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 9.3
+    },
+    {
+      "suite": "ads-early-stages",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 0.09
+    },
+    {
+      "suite": "course-progression",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 1.6
+    },
+    {
+      "suite": "formal-course-seed-offset",
+      "passed": true,
+      "exitCode": 0,
+      "error": null,
+      "signal": null,
+      "seconds": 53.23
+    }
+  ],
+  "additionalFocusedReruns": [
+    "pages-formal-runtime",
+    "pages-storage-deletion",
+    "formal-debug-ranking",
+    "score-metadata",
+    "course-version-compat"
+  ]
+}

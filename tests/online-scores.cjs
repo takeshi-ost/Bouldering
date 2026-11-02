@@ -24,7 +24,7 @@ online.uid='self';online.ready=true;onlineScores.owner='self';
 online.adapter={async saveScore(uid,key,score){assert.equal(uid,'self');if(fail)throw {code:'unavailable'};
  const old=stored.get(key);if(!old || compareStageScores(score,old)<0){stored.set(key,{...score});writes++;}return stored.get(key);
 }};
-await flushOnlineScores();assert.equal(onlineScores.pending.size,0);assert.equal(stored.get(board).timeMs,4000);assert.equal(stageRecords.existing[1].version,COURSE_VERSION);assert.equal(stageRecords.existing[1].stars,3);
+await flushOnlineScores();assert.equal(onlineScores.pending.size,0);assert.equal(stored.get(board).timeMs,4000);assert.equal(stageRecords.existing[1].version,COURSE_VERSION);assert.equal(stageRecords.existing[1].stars,undefined,'Unversioned historical stars must not become current stars');
 queueOnlineScore(1,'existing',{moves:15,timeMs:100});await tick();assert.equal(writes,1);assert.equal(stageRecords.existing[1].moves,12,'A worse replay must not replace server best');
 fail=true;queueOnlineScore(1,'existing',{moves:10,timeMs:9000});await tick();assert(onlineScores.pending.has(board));assert.equal(JSON.parse(data[ONLINE_SCORES_KEY]).items.length,1);
 fail=false;await flushOnlineScores();assert(!onlineScores.pending.size);assert.equal(stored.get(board).moves,10);
@@ -35,7 +35,7 @@ queueOnlineScore(1,'existing',{moves:9,timeMs:9000});queueOnlineScore(1,'existin
 release();await tick();assert(onlineScores.saving);release();await tick();assert.equal(stored.get(board).moves,8);assert(!onlineScores.pending.size);
 online.adapter.saveScore=normalSave;
 // An old guest's pending scores never get attributed to a different auth UID.
-online.ready=false;queueOnlineScore(2,'existing',{moves:5,timeMs:100});connectOnlineScores('different');assert.equal(onlineScores.pending.size,0);onlineScores.owner='self';online.ready=true;
+online.ready=false;queueOnlineScore(2,'existing',{moves:5,timeMs:100});connectOnlineScores('different');assert.equal(onlineScores.pending.size,1);assert.equal(onlineScores.blocked,'pending-owner-mismatch');assert.equal(onlineScores.owner,'self');connectOnlineScores('self');assert.equal(onlineScores.blocked,null);online.ready=true;
 // Real profiles, personal best ordering and one self row, including cloud-only scores.
 const profile={name:'<Other>',colors:['#123456','#abcdef'],headColor:'#445566',reachedLevel:3,reachedPrototypeLevel:1};
 const records=Array.from({length:8},(_,i)=>({id:'p'+i,moves:10+i,timeMs:1000,profile}));
@@ -85,5 +85,19 @@ stageRecords.existing[22]={moves:3,timeMs:30,version:COURSE_VERSION,stars:3,...s
 level=22;moveCount=4;runElapsedMs=40;recordStageClear();assert.deepEqual(scoreMetadata(stageRecords.existing[22]),scoreMetadata(null),'Worse run does not stamp an old best');
 online.adapter.saveScore=async()=>({moves:3,timeMs:30,...meta});online.ready=true;onlineScores.owner=online.uid;
 await flushOnlineScores();assert.deepEqual(scoreMetadata(stageRecords.existing[22]),scoreMetadata(null),'Equal remote result keeps local best provenance');
+// A new-generation clear archives both earlier histories without relabeling them.
+online.ready=false;dailyRun=null;debugAttempt=false;level=23;courseMode='existing';
+const priorV1={moves:2,timeMs:200,version:'v1',stars:2,...scoreMetadata({scoreSpecVersion:'v1'})};
+const priorV2={moves:3,timeMs:300,version:'v2',stars:3,...scoreMetadata({appVersion:'0.4.10',buildNumber:'18',platform:'iOS',scoreSpecVersion:'v2'}),previousVersions:{v1:priorV1}};
+stageRecords.existing[23]=priorV2;moveCount=30;runElapsedMs=1000;recordStageClear();
+assert.equal(stageRecords.existing[23].version,COURSE_VERSION);
+assert.equal(COURSE_VERSION,'v4');
+{
+ const {previousVersions:ignored,...historic}=priorV2;
+ assert.deepEqual(stageRecords.existing[23].previousVersions.v2,historic);
+ assert.deepEqual(stageRecords.existing[23].previousVersions.v1,priorV1);
+ assert.equal(stageRecords.existing[23].scoreSpecVersion,COURSE_VERSION);
+ assert.equal(readStageRecords().existing[23].previousVersions.v2.scoreSpecVersion,'v2');
+}
 console.log('PASS online scores: version/bounds, fresh-clear-only submission, offline queue/reload, monotonic personal best, concurrent improvements, guest ownership, real profiles/ranking, self deduplication, 100+ fallback, loading ranks, stale modal isolation and debug exclusion');
 })();`)(assert,data);}finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}})().catch(e=>{console.error(e);process.exitCode=1;});

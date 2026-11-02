@@ -4,14 +4,16 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.4.6';
+const RELEASE_VERSION = '0.4.47';
 const GAMEPLAY_TIP_KEYS = [
     'tips.scroll', 'tips.undo', 'tips.reach', 'tips.wideHold',
     'tips.goal', 'tips.heart', 'tips.sideways', 'tips.appearance'
 ];
 const GAMEPLAY_TIPS = GAMEPLAY_TIP_KEYS.map(key=>gameText(key));
 // Bump whenever generation/gameplay changes make stage scores incomparable.
-const COURSE_VERSION = 'v1';
+const COURSE_VERSION = 'v4';
+// Formal adoption of distribution v7: keep older normal/Daily records historical.
+const DAILY_COURSE_VERSION = 'v3';
 // 表示サイズと可動域。単位はゲーム内の論理pxです。
 const W = 400;
 const H = 700;
@@ -49,34 +51,36 @@ const STAGE_CONFIG = {
     goalTopMargin: 100,
     bottomMargin: 80,
     startFootSpan: 140,
-    // Independent seeded draw: short / medium / long = 2 / 5 / 3.
-    lengthWeights: [2,5,3],
     lengthRules: [
-        {category:'short',height:H,climbHeight:200},
-        {category:'medium',height:H*2,climbHeight:290},
-        {category:'long',height:MAX_HEIGHT,climbHeight:600},
+        {category:'short',labelKey:'course.short',mapHeight:'100',height:H,climbHeight:200},
+        {category:'medium',labelKey:'course.medium',mapHeight:'125',height:H*2,climbHeight:290},
+        {category:'long',labelKey:'course.long',mapHeight:'150',height:MAX_HEIGHT,climbHeight:600},
     ],
     holdOffset: 8,
 };
-// Four independent rule sets. Array position is the difficulty number (0–3).
-// referenceStage supplies a representative course shape for daily challenges only.
+// Legacy generation-rule families retained for isolated developer trials.
+// Formal Stage/Daily settings and labels come from the score resolver.
 const DIFFICULTY_RULES = [
-    {hearts:false,hazards:'none',referenceStage:4},
-    {hearts:true,hazards:'none',referenceStage:5},
-    {hearts:true,hazards:'optional',referenceStage:20},
-    {hearts:true,hazards:'dense',referenceStage:40},
+    {id:0,hearts:false,hazards:'none',referenceStage:4},
+    {id:1,hearts:true,hazards:'none',referenceStage:5},
+    {id:2,hearts:true,hazards:'optional',referenceStage:20},
+    {id:3,hearts:true,hazards:'dense',referenceStage:40},
 ];
-// Weights are [difficulty 0, 1, 2, 3]; they are normalized, so need not sum to 100.
-// Each band starts inclusively and ends at the next fromStage (exclusively).
-const DIFFICULTY_CONFIG = {
-    stageBands:[
-        {fromStage:0,weights:[100,0,0,0]},
-        {fromStage:5,weights:[0,100,0,0]},
-        {fromStage:20,weights:[0,0,100,0]},
-        {fromStage:40,weights:[0,0,0,100]},
-    ],
-    dailyWeights:[25,25,25,25],
-};
+// Stable legacy developer-trial IDs. Formal courses use only the label mapping;
+// these types do not select their geometry/features. generationDifficulty is an
+// internal family (legacy 0..3), never a score metadata field.
+const COURSE_TYPES = [
+    {id:0,name:'basic',generationDifficulty:0,intent:'basic',labelKey:'difficulty.easy'},
+    {id:1,name:'plain-choice',generationDifficulty:1,intent:'choice',labelKey:'difficulty.easy'},
+    {id:2,name:'optional-choice',generationDifficulty:2,intent:'choice',labelKey:'difficulty.normal'},
+    {id:3,name:'optional-consumption',generationDifficulty:2,intent:'consumption',labelKey:'difficulty.normal'},
+    {id:4,name:'optional-recovery',generationDifficulty:2,intent:'recovery',labelKey:'difficulty.normal'},
+    {id:5,name:'optional-mixed',generationDifficulty:2,intent:'mixed',labelKey:'difficulty.normal'},
+    {id:6,name:'dense-choice',generationDifficulty:3,intent:'choice',labelKey:'difficulty.hard'},
+    {id:7,name:'dense-consumption',generationDifficulty:3,intent:'consumption',labelKey:'difficulty.hard'},
+    {id:8,name:'dense-recovery',generationDifficulty:3,intent:'recovery',labelKey:'difficulty.hard'},
+    {id:9,name:'dense-mixed',generationDifficulty:3,intent:'mixed',labelKey:'difficulty.hard'},
+];
 // 追加ホールドの候補配置。
 const HOLD_SPACING = 52;
 const HOLD_CONFIG = {
@@ -96,16 +100,17 @@ const DENSITY_CONFIG = {
     crowdRadius: 110,
     crowdWeight: 8,
 };
-// コース固定の回復アイテム。取得時に回復し、開始予算からは差し引きません。
+// Reference-route heart settings. Formal live stamina applies the adopted
+// post-placement reduction separately; reference validation is unchanged.
 const HEART_CONFIG = { minMoves: 5, maxCount: 2, recovery: 2, radius: 10, popupDuration: 1000, popupRise: 30 };
-// Difficulty 2 adds 0–5 hazards; difficulty 3 converts 10–30% after hearts are fixed.
+// Retained developer trials: family 2 adds 0–5 hazards; family 3 converts
+// 10–30%. Formal courses instead use the adopted score-sampled spike setting.
 const HAZARD_CONFIG = { maxCount: 5, minRatio: .1, maxRatio: .3, reserveCount: 6, penalty: 1, shakeDuration: 280, shakeAmplitude: 4, radius: 6, attempts: 140, spacing: 24 };
 // 操作と描画。
 const INPUT_CONFIG = { edgeScrollWidth: STAGE_SAFE_WIDTH, dragThreshold: 5, aimDistance: 100, reachSearchSteps: 24, tapMaxDuration: 400 };
 // Deterministic work limits keep preview/retry budgets identical on slow devices.
 const COURSE_GENERATION_CONFIG = {
     recipeAttempts:2, maxDetourMoves:3, comparisonTransitions:600, heartPlacementChecks:24,
-    intentWeights:[ [100,0,0,0,0], [45,55,0,0,0], [0,45,25,20,10], [0,20,25,25,30] ],
 };
 const ROUTE_COST_SEARCH_CONFIG = {maxTransitions:1800,beamWidth:2};
 const ROUTE_OPTIMIZATION_CONFIG = { maxTransitions: 900, passes: 2 };

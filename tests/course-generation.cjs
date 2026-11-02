@@ -11,14 +11,9 @@ assert(routeResources(path,{pickups:early,budget:6}).valid);
 assert(!routeResources(path,{pickups:late,budget:6}).valid);
 assert.equal(routeResources(path,{pickups:early,budget:6}).pickupMask,1);
 assert.equal(routeResources(path,{pickups:early,budget:6}).pickups,1,'Swept repeated visits never grant twice');
-const natural=new Set();
-for(let n=40;n<=240;n++){level=n;natural.add(chooseCourseIntent());}
-assert.deepEqual([...natural].sort(),['choice','consumption','mixed','recovery']);
-const weights=COURSE_GENERATION_CONFIG.intentWeights;
-COURSE_GENERATION_CONFIG.intentWeights=weights.map(row=>[...row]);
-// Keep this resource-planner regression on a medium wall; course-length.cjs
-// separately exercises every length with the same planners and real input.
-const lengthWeights=STAGE_CONFIG.lengthWeights;STAGE_CONFIG.lengthWeights=[0,1,0];
+// Keep resource-planner regression on the retained isolated debug generator.
+// Normal/Daily generation now uses the separately parity-tested adopted core.
+const forceType=id=>{debugMode=true;debugAttempt=true;debugCourseTrial={typeId:id,lengthCategory:'medium',seed:47};};
 const report=[];
 const convert=convertDenseHazards,search=solveCostRoute;
 let searchedInvalidWitness=0,conversions=0,searches=0;
@@ -41,9 +36,9 @@ solveCostRoute=(path,...args)=>{
  }
  return search(path,...args);
 };
-for(const mode of ['existing','prototype'])for(let kind=0;kind<COURSE_INTENTS.length;kind++) {
+for(const mode of ['existing'])for(let kind=1;kind<COURSE_INTENTS.length;kind++) {
  courseMode=mode;
- COURSE_GENERATION_CONFIG.intentWeights[3]=COURSE_INTENTS.map((_,i)=>i===kind?1:0);
+ forceType(kind+5);
  reset(47);cameraIntro=null;hideStageHelp();hideResultModal();settingsOpen=false;state='playing';
  const generation=densityStats.courseGeneration,resources=routeResources(route);
  assert.equal(generation.requested,COURSE_INTENTS[kind]);assert(resources.valid);assert(validateRouteBudget(route));
@@ -77,7 +72,7 @@ assert(searchedInvalidWitness>0,'Converted layouts must be searched even when th
 assert(conversions>0 && searches>0);
 convertDenseHazards=convert;solveCostRoute=search;
 // Optional hearts are present, reachable, and can be skipped in actual play.
-courseMode='existing';reset(6);cameraIntro=null;hideStageHelp();hideResultModal();settingsOpen=false;state='playing';
+forceType(1);debugCourseTrial.seed=6;courseMode='existing';reset(6);cameraIntro=null;hideStageHelp();hideResultModal();settingsOpen=false;state='playing';
 assert.equal(hearts.length,2);assert.equal(routeResources(route).pickups,0);
 for(const heart of hearts)assert(findCourseHeartMove(heart,route));
 for(let i=1;i<route.length;i++) {
@@ -85,21 +80,13 @@ for(let i=1;i<route.length;i++) {
  down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);
 }
 assert.equal(state,'won');assert(hearts.every(h=>!h.collected));assert.equal(stamina,3);
-// A daily uses the same recovery-dependent recipe and actual fixed-budget replay.
-COURSE_GENERATION_CONFIG.intentWeights[3]=[0,0,0,1,0];
-dailyRun={date:'2026-10-23',baseSeed:20261023,seed:20261023,difficulty:3,referenceStage:40,returnCourse:'existing'};
-reset(40);cameraIntro=null;hideStageHelp();hideResultModal();settingsOpen=false;state='playing';
-assert(validateRouteBudget(route));
-assert(holds.filter(h=>h.type==='hazard').length>=Math.ceil(holds.length*.1));
-const dailyBudget=stamina;assert.equal(dailyBudget,routeExpectedMoves()+3);
-for(let i=1;i<route.length;i++) {
- camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});
- down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);assert.notEqual(state,'lost');
-}
-assert.equal(state,'won');dailyRun=null;
+// Formal Daily keeps its actual date-selected recipe, not a forced old family.
+debugCourseTrial=null;debugAttempt=false;debugMode=false;
+dailyRun={...dailyProfile('2026-10-23'),returnCourse:'existing'};
+reset(dailyRun.referenceStage);assert.equal(activeCourseGeneration.resolved.score,CourseProgression.dailyScore(dailyRun.date));assert.equal(stamina,currentCourseInitialStamina());assert.equal(dailyRun.seed,dailyRun.baseSeed);dailyRun=null;
 // Failed bounded recipes return to a previously verified course, never raise stamina.
 const apply=convertDenseHazards;convertDenseHazards=(path,salt,protect)=>protect?apply(path,salt,protect):false;
-COURSE_GENERATION_CONFIG.intentWeights[3]=[0,0,0,0,1];courseMode='existing';reset(47);
+forceType(9);courseMode='existing';reset(47);
 assert(densityStats.courseGeneration.usedSafeFallback);assert.equal(densityStats.courseGeneration.recipeAttempts,COURSE_GENERATION_CONFIG.recipeAttempts);
 assert(validateRouteBudget(route));assert.equal(stamina,routeExpectedMoves()+3);
 convertDenseHazards=(path,salt,protect)=>{if(protect)return apply(path,salt,protect);throw Error('forced recipe failure');};reset(47);
@@ -114,7 +101,7 @@ const solver=solveCostRoute;solveCostRoute=()=>{throw Error('forced search failu
 assert(validateRouteBudget(route));assert(densityStats.courseGeneration.searchFallback);
 assert.equal(densityStats.courseGeneration.heart,'unknown');assert.equal(densityStats.courseGeneration.actual,'unclassified');
 assert.equal(stamina,routeExpectedMoves()+3);solveCostRoute=solver;
-COURSE_GENERATION_CONFIG.intentWeights=weights;STAGE_CONFIG.lengthWeights=lengthWeights;
-console.log('PASS fixed hearts and 10-30% conversion before search in both generators: frozen hearts, real unassisted input, budget prefix/one-time recovery, comparisons, preview/retry isolation, bounded repairs and valid exhausted fallback');
+debugCourseTrial=null;debugAttempt=false;debugMode=false;
+console.log('PASS fixed hearts and 10-30% conversion before search in retained debug planner, with formal Daily isolation: frozen hearts, real unassisted input, budget prefix/one-time recovery, comparisons, preview/retry isolation, bounded repairs and valid exhausted fallback');
 console.log(JSON.stringify(report));
 `)(assert);

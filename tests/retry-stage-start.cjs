@@ -46,7 +46,7 @@ for(const close of ['button','backdrop','escape']) {
  assert.equal(heartItems,balance);assert.equal(lives.count,livesBefore);assert.equal(lifeAttemptId,id);assert(!lives.inProgress);
 }
 // End-of-play ads return to confirmation with the original wall underneath.
-begin();playsSinceAd=2;finish(false);const adAttempt=lifeAttemptId;
+begin();level=NORMAL_AD_FIRST_STAGE;playsSinceAd=2;finish(false);const adAttempt=lifeAttemptId;
 ui.retry.onclick();assert.equal(state,'ad');assert(!stageStartContext);doneAd();
 assert.equal(state,'lost');assert(ui.stageStartDialog.open && stageStartContext.retry);
 assert.equal(lifeAttemptId,adAttempt);assert(!lives.inProgress);assert.equal(playsSinceAd,0);
@@ -69,11 +69,11 @@ prepareCurrentStage=()=>{throw Error('retry generation failure');};console.error
 ui.stageStartButton.onclick();prepareCurrentStage=generation;console.error=log;
 assert.equal(state,'map');assert.equal(heartItems,itemsBefore);assert.equal(lives.count,lifeBefore);assert(!lives.inProgress);assert(!ui.mapError.hidden);
 // Verification and debug attempts keep their mode and life exemption.
-for(const mode of ['prototype','existing']) {
+for(const mode of ['existing']) {
  if(mode==='existing')debugMode=true;
  begin(mode,mode==='existing');lives.count=0;finish(false);playsSinceAd=0;
  const exemptItems=heartItems;ui.retry.onclick();assert(ui.stageStartDialog.open);setStageHeartItems(1);ui.stageStartButton.onclick();
  assert.equal(state,'playing');assert.equal(courseMode,mode);assert.equal(heartItems,exemptItems-1);assert.equal(lives.count,0);assert(!lives.inProgress);
 }
-console.log('PASS retry confirmation: same stage background, Start-only reset/items/life attempt, all close routes to map, double taps, ad/recovery sequence, generation rollback, prototype/debug exemptions');
+console.log('PASS retry confirmation: same stage background, Start-only reset/items/life attempt, all close routes to map, double taps, ad/recovery sequence, generation rollback, debug exemption');
 `)(assert);

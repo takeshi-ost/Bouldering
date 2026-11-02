@@ -18,7 +18,8 @@ function mapStageVariant(n) {
     // At a corner use the outgoing segment; the final node leads out of the image.
     const to=pointIndex===19?[400,0]:MAP_TRAIL[pointIndex+1];
     const mirrored=to[0]>from[0];
-    const height={short:'100',medium:'125',long:'150'}[stageLengthInfo(n).category];
+    const category=stageLengthInfo(n).category;
+    const height=STAGE_CONFIG.lengthRules.find(rule=>rule.category===category).mapHeight;
     return {height,mirrored};
 }
 function mapWallMarkup(n,status='active') {

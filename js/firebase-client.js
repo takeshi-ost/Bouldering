@@ -104,7 +104,7 @@ async function bootFirebase() {
                 const ref=dbSDK.doc(db,'stageScores',board,'entries',uid);
                 return dbSDK.runTransaction(db,async transaction=>{
                     const snapshot=await transaction.get(ref),previous=snapshot.exists()?snapshot.data():null;
-                    if(previous && !validStageScore(previous))throw new Error('Invalid stored score');
+                    if(previous && (!validStageScore(previous)||!scoreMatchesBoard(board,previous)))throw new Error('Invalid stored score');
                     if(previous && compareStageScores(previous,score)<=0)return {moves:previous.moves,timeMs:previous.timeMs,...scoreMetadata(previous)};
                     transaction.set(ref,{moves:score.moves,timeMs:score.timeMs,...scoreMetadata(score),updatedAt:dbSDK.serverTimestamp()});
                     return score;
@@ -122,7 +122,8 @@ async function bootFirebase() {
                 return rows;
             },
             async players(first,last,mode) {
-                const field=mode==='prototype'?'reachedPrototypeLevel':'reachedLevel',rows=[];
+                if(mode!=='existing')return [];
+                const field='reachedLevel',rows=[];
                 let next=first;
                 // Six includes our own profile, leaving up to five opponents at each level.
                 // Four concurrent queries, once per page/minute, with single-field indexes.

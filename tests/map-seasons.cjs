@@ -40,6 +40,6 @@ for(const [cleared,season] of [[20,'summer'],[40,'autumn'],[60,'winter'],[80,'sp
 stageProgress.existing.cleared=60;showTitleScreen();
 assert.equal(mapPage,3);assert.equal(mapBackground().season,'winter');
 stageProgress.prototype.cleared=40;courseMode='prototype';showLevelMap();
-assert.equal(mapBackground().season,'autumn');
+assert.equal(courseMode,'existing');assert.equal(mapBackground().season,'winter');
 `)(assert,fs,path,root);
-console.log('PASS seasons: page ranges, 20/40/60/80 hops, winter-to-spring wrap, back/forward, restored progress, unchanged icon positions and prototype isolation');
+console.log('PASS seasons: page ranges, 20/40/60/80 hops, winter-to-spring wrap, back/forward, restored progress, unchanged icon positions and retired-mode fallback');

@@ -55,6 +55,7 @@ function snapshot(width,height) {
  return new Function(fixture+scripts+`hideStageStart();reset(10);return JSON.stringify({W,H,version:COURSE_VERSION,HEIGHT,holds,route,initialGrips});`)();
 }
 const reference=snapshot(400,700);
-// Verified against main 9d4c0b4, before this viewport change.
-assert.equal(require('node:crypto').createHash('sha256').update(reference).digest('hex'),'594f457a801f03109c6ea6ed7250ee7aa5d14e3c74632c8559b64b8e4d445d87');assert.equal(snapshot(390,763),reference);assert.equal(snapshot(219,383.25),reference);
-console.log('PASS viewport: safe areas, portrait/landscape/keyboard/resize, input inverse, gesture scale, fixed course v1 geometry');
+// Geometry can change across course versions, never across viewport sizes.
+const configuredCourseVersion=fs.readFileSync('js/config.js','utf8').match(/const COURSE_VERSION = '([^']+)'/)[1];
+assert.equal(JSON.parse(reference).version,configuredCourseVersion);assert.equal(snapshot(390,763),reference);assert.equal(snapshot(219,383.25),reference);
+console.log('PASS viewport: safe areas, portrait/landscape/keyboard/resize, input inverse, gesture scale, fixed current-course geometry');

@@ -70,10 +70,14 @@ function validateTransferFile(value) {
     if(d.localId!==undefined && (typeof d.localId!=='string' || !/^[0-9a-f-]{36}$/i.test(d.localId)))fail();
     return value;
 }
-function validTransferRecord(value) {
+function validTransferRecord(value,allowHistory=true) {
     return transferObject(value) && transferInteger(value.moves,1) && transferInteger(value.timeMs) &&
         (value.stars===undefined || transferInteger(value.stars,1,3)) &&
-        (value.version===undefined || (typeof value.version==='string' && value.version.length<=40));
+        (value.rankingEligible===undefined || typeof value.rankingEligible==='boolean') &&
+        (value.version===undefined || (typeof value.version==='string' && value.version.length<=40)) &&
+        (value.previousVersions===undefined || (allowHistory && transferObject(value.previousVersions) &&
+            Object.entries(value.previousVersions).every(([version,record])=>historicalCourseVersion(version) &&
+                record?.version===version && validTransferRecord(record,false))));
 }
 function transferStorageEntries(file) {
     const d=file.data;
@@ -85,7 +89,8 @@ function transferStorageEntries(file) {
         [SOUND_KEY,d.soundEnabled],[MUSIC_KEY,{enabled:d.audioSettings?.musicEnabled ?? d.soundEnabled,volume:d.audioSettings?.musicVolume ?? 1}],
         [SOUND_VOLUME_KEY,d.audioSettings?.soundVolume ?? 1],[AD_PLAYS_KEY,d.playsSinceAd],
         [ONLINE_SCORES_KEY,{uid:file.identity.uid,items:d.pendingScores}],[TRANSFER_IDENTITY_KEY,file.identity],
-        [ONLINE_PROFILE_KEY,undefined],...(d.localId?[[PLAYER_UUID_KEY,d.localId]]:[])
+        [ONLINE_PROFILE_KEY,undefined],
+        ...(globalThis.AscentTutorialState?[[globalThis.AscentTutorialState.KEY,{version:1,status:'skipped',reason:'transferred-player'}]]:[]),...(d.localId?[[PLAYER_UUID_KEY,d.localId]]:[])
     ]);
 }
 function commitTransferFile(file) {

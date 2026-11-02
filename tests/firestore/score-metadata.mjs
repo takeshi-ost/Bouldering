@@ -1,11 +1,14 @@
 // Explicit local-only emulator suite. Not part of the ordinary no-emulator tests.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
+import {createRequire} from 'node:module';
 import {execFileSync} from 'node:child_process';
 const host=process.env.FIRESTORE_EMULATOR_HOST;
 if(host!=='127.0.0.1:8089')throw Error('Requires local emulator FIRESTORE_EMULATOR_HOST=127.0.0.1:8089; refusing all other targets');
-const {initializeTestEnvironment,assertSucceeds,assertFails}=await import('@firebase/rules-unit-testing');
-const {doc,setDoc,getDoc,serverTimestamp,Timestamp}=await import('firebase/firestore');
+const toolRequire=createRequire(process.env.ASCENT_EMULATOR_TOOLS?path.resolve(process.env.ASCENT_EMULATOR_TOOLS,'package.json'):import.meta.url);
+const {initializeTestEnvironment,assertSucceeds,assertFails}=toolRequire('@firebase/rules-unit-testing');
+const {doc,setDoc,getDoc,serverTimestamp,Timestamp}=toolRequire('firebase/firestore');
 const current=fs.readFileSync('firestore.rules','utf8');
 const legacy=execFileSync('git',['show','795bc08378f029b2e537f70b5c3a00d84219fd9f:firestore.rules'],{encoding:'utf8'});
 // Two isolated demo projects; never a production project or production token.
@@ -55,7 +58,33 @@ try {
   for(const missing of ['moves','timeMs','updatedAt']) {
    const payload=old();delete payload[missing];await deny(setDoc(doc(owner,path()),payload));
   }
-  for(const board of ['v1_daily_1','v2_existing_1','v1_existing_0'])await deny(setDoc(doc(owner,`stageScores/${board}/entries/mock-owner`),old()));
+  for(const board of ['v1_daily_1','v5_existing_1','v4_prototype_1','trial-d7-offset10_existing_1','v2_prototype_1','v3_prototype_1','v1_existing_0'])await deny(setDoc(doc(owner,`stageScores/${board}/entries/mock-owner`),old()));
+  // v2 is isolated from legacy v1 and metadata cannot claim another generation.
+  const v2Path='stageScores/v2_existing_200/entries/mock-owner';
+  await (label==='metadata'?pass:deny)(setDoc(doc(owner,v2Path),{...old(),...metadata,scoreSpecVersion:'v2'}));
+  if(label==='metadata') {
+   await deny(setDoc(doc(owner,v2Path),{...old(),moves:1,...metadata}));
+   await deny(setDoc(doc(owner,path()),{...old(),...metadata,scoreSpecVersion:'v2'}));
+   await pass(setDoc(doc(owner,'stageScores/v2_existing_201/entries/mock-owner'),{...old(),scoreSpecVersion:null}));
+   await pass(setDoc(doc(owner,'stageScores/v1_prototype_201/entries/mock-owner'),{...old(),...metadata}));
+   await deny(setDoc(doc(other,'stageScores/v2_existing_202/entries/mock-owner'),{...old(),...metadata,scoreSpecVersion:'v2'}));
+  }
+  const v3Path='stageScores/v3_existing_200/entries/mock-owner';
+  await (label==='metadata'?pass:deny)(setDoc(doc(owner,v3Path),{...old(),...metadata,scoreSpecVersion:'v3'}));
+  if(label==='metadata') {
+   for(const wrong of ['v1','v2'])await deny(setDoc(doc(owner,v3Path),{...old(),moves:1,...metadata,scoreSpecVersion:wrong}));
+   await deny(setDoc(doc(owner,v2Path),{...old(),moves:1,...metadata,scoreSpecVersion:'v3'}));
+   await pass(setDoc(doc(owner,'stageScores/v3_existing_201/entries/mock-owner'),{...old(),scoreSpecVersion:null}));
+   await deny(setDoc(doc(other,'stageScores/v3_existing_202/entries/mock-owner'),{...old(),...metadata,scoreSpecVersion:'v3'}));
+  }
+  const v4Path='stageScores/v4_existing_200/entries/mock-owner';
+  await (label==='metadata'?pass:deny)(setDoc(doc(owner,v4Path),{...old(),...metadata,scoreSpecVersion:'v4'}));
+  if(label==='metadata') {
+   for(const wrong of ['v1','v2','v3','trial-d7-offset10'])await deny(setDoc(doc(owner,v4Path),{...old(),moves:1,...metadata,scoreSpecVersion:wrong}));
+   await deny(setDoc(doc(owner,v3Path),{...old(),moves:1,...metadata,scoreSpecVersion:'v4'}));
+   await pass(setDoc(doc(owner,'stageScores/v4_existing_201/entries/mock-owner'),{...old(),scoreSpecVersion:null}));
+   await deny(setDoc(doc(other,'stageScores/v4_existing_202/entries/mock-owner'),{...old(),...metadata,scoreSpecVersion:'v4'}));
+  }
   const updatePath=path();await pass(setDoc(doc(owner,updatePath),old()));
   await deny(setDoc(doc(other,updatePath),{...old(),moves:1})); // Other owner's update.
   await deny(setDoc(doc(owner,updatePath),old())); // Equal.

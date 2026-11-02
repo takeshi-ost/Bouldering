@@ -8,7 +8,7 @@ const source=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/
 const env=`const elements={};const document={getElementById(id){return elements[id]||={style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},getContext(){return new Proxy({},{get(){return function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};`;
 new Function('repetitions','stages',env+source+`
 const median=values=>{const sorted=[...values].sort((a,b)=>a-b);return +sorted[Math.floor(sorted.length/2)].toFixed(2);};
-for(const mode of ['existing','prototype'])for(const n of stages) {
+for(const mode of ['existing'])for(const n of stages) {
  courseMode=mode;reset(n); // Warm-up excluded.
  const total=[],planner=[];
  for(let i=0;i<repetitions;i++) {

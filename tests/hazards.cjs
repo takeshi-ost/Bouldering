@@ -24,7 +24,9 @@ applyRouteHazards=(path,intent,salt)=>{
  }
  return accepted;
 };
-for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
+for(const mode of ['existing'])for(const n of [19,20,21,22,23]) {
+ // Explicit recipe fixtures: selector probabilities are covered by course-types.cjs.
+ debugMode=true;debugAttempt=true;debugCourseTrial={typeId:n<20?1:n===20?2:3,lengthCategory:stageLengthRule(n).category,seed:n};
  courseMode=mode;reset(n);cameraIntro=null;
  const hazards=holds.filter(h=>h.type==='hazard');
  assert(hazards.length<=5);if(n<20)assert.equal(hazards.length,0);
@@ -58,7 +60,23 @@ for(const mode of ['existing','prototype'])for(const n of [19,20,21,22,23]) {
  reset(n);assert.equal(JSON.stringify({holds,route,hearts}),saved);
  report.push({mode,level:n,count:hazards.length});
 }
-assert(consumptionRecipes>0);applyRouteHazards=applyRecipe;
+assert(consumptionRecipes>0);applyRouteHazards=applyRecipe;debugMode=false;debugAttempt=false;debugCourseTrial=null;
+// Actual v5 sampled features are post-process caps, not legacy dense quotas.
+for(const stage of [1,18,55]){
+ reset(stage);const resolved=CourseProgression.resolveStage(stage),recipe=CourseProgression.recipe(resolved),report=activeCourseGeneration.report;
+ assert.equal(activeCourseGeneration.recipe.spikePercent,recipe.spikePercent);
+ assert.equal(report.spikes.count,Math.floor(report.spikes.candidateCount*recipe.spikePercent/100));
+ assert.deepEqual(holds.filter(h=>h.type==='hazard').map(h=>h.id).sort((a,b)=>a-b),[...report.spikes.selectedIds].sort((a,b)=>a-b));
+ assert.equal(report.spikes.referenceHazardCost,0);assert(report.spikes.referenceContactsUnchanged);
+ assert(samePairRoute(route,replayRoute(route)));assert.equal(routeHazardCosts(route).at(-1)||0,0);
+ assert(holds.filter(h=>h.type==='hazard').every(h=>!h.wide&&!initialGrips.includes(h)));
+ assert(report.hearts.actual.first<=recipe.heartsFirst);assert(report.hearts.actual.second<=recipe.heartsSecond);
+ assert.equal(hearts.length,report.hearts.actual.total,'Visible hearts must match adopted caps at stage '+stage+': '+JSON.stringify({hearts,recipe,identityMatches:generatedCourse?.holds===holds,recipeHearts:generatedCourse?.hearts,actual:report.hearts.actual}));if(recipe.length==='short')assert(hearts.length<=1,'Approved short-course rule permits at most one heart');
+ assert.deepEqual(hearts,report.hearts.placements.map(({id,x,y})=>({id,x,y,collected:false})));
+ assert.equal(generatedCourse.holds,holds,'Post-pruning recipe cache must bind final hold array');
+ const adjustment=report.stamina.adjustment;assert.equal(stamina,routeExpectedMoves()+3-adjustment.appliedReduction);assert.equal(adjustment.cap,hearts.length*2+1);
+ const fixed=JSON.stringify({holds,route,hearts,stamina});reset(stage);assert.equal(JSON.stringify({holds,route,hearts,stamina}),fixed);
+}
 // Focused new-contact costs: ordinary move +1 per hazard, not per support selection.
 function fixture(two=false) {
  reset(1);cameraIntro=null;resetCharacterAnimation();
@@ -134,6 +152,6 @@ assert(HAZARD_CONFIG.radius<8);
 points.forEach((p,i)=>assert(Math.abs(distance(p,{x:100,y:200})-HAZARD_CONFIG.radius*(i%2?.66:1))<1e-8));
 const originalPlaySound=playSound,emitted=[];playSound=name=>emitted.push(name);
 fixture();reach([0,1],{x:200,y:310});assert.deepEqual(emitted,[],'No normal preview before hazard confirmation');release();assert.deepEqual(emitted,['hazard'],'Hazard replaces the normal move/contact cue');playSound=originalPlaySound;
-console.log('PASS hazards: Lv19 boundary, 0-5 seeded placement, optional real moves, free-route clears in both courses, retry, contact transitions, cancel, stacked costs, zero clamp, Undo and heart recovery; purple penalty and vector loading fallback');
+console.log('PASS hazards: isolated legacy0–5 fixtures, optional real moves, free-route clears; actual v5 spikes preserve reference and heart caps; retry, contact transitions, cancel, stacked costs, zero clamp, Undo and heart recovery; purple penalty and vector loading fallback');
 console.log(JSON.stringify(report));
 `)(assert);

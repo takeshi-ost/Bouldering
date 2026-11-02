@@ -5,7 +5,7 @@ const environment=`let timerId=0;const timers=new Map();function setTimeout(fn){
 const source=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)]
     .map(match=>fs.readFileSync(path.join(root,match[1]),'utf8')).join('\n');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-if(!html.includes('id="titleTap"') || !/id="prototypeCourse"[^>]*hidden/.test(html))throw Error('Current title/debug course controls missing');
+if(!html.includes('id="titleTap"') || html.includes('id="prototypeCourse"'))throw Error('Current title/debug course controls missing');
 // Same native-function fixture as the other geometry tests; no VM proxy overhead.
 console.log(new Function(environment+source+`
 function check(v,m){if(!v)throw Error(m);}
@@ -35,16 +35,31 @@ for(let n=1;n<=20;n++){
     check(samePairRoute(route,replayRoute(route)),'Support selection changed after pruning '+n);
     const finalHolds=holds;
     // Optional paid shortcuts may replace contacts; check pruning on the free base graph.
+    // At zero spikes the adopted trial deliberately retains contrast/branch shape
+    // scatter. Only those explicitly reported protected IDs escape minimality;
+    // straight/meander/native selector holds and all other IDs remain checked.
+    const profileReport=activeCourseGeneration.report;
+    const shapeProtected=new Set(profileReport.spikes.percent===0?[
+        ...(profileReport.branchDetails?.protectedIds||[]),
+        ...(profileReport.contrast?.retention.protectedDiffusionIds||[]),
+        ...(profileReport.contrast?.retention.protectedConcentrationIds||[]),
+        ...(profileReport.composition?.sections.flatMap(s=>s.protectedIds)||[])
+    ]:[]);
+    for(const id of shapeProtected)check(finalHolds.some(h=>h.id===id),'Protected profile hold missing '+n+'/'+id);
     const ordinary=finalHolds.filter(h=>h.type!=='hazard');
     for(const id of densityStats.selectionHoldIds) {
+        if(shapeProtected.has(id))continue;
         holds=ordinary.filter(h=>h.id!==id);
         check(!samePairRoute(route,replayRoute(route)),'Unnecessary selection hold retained '+n+'/'+id);
     }
     holds=finalHolds;
     check(replayRoute(route),'Two-support route replay failed '+n);
     check(HEIGHT<=MAX_HEIGHT,'Wall too tall');
+    const reduction=activeCourseGeneration.report.hearts?.staminaAdjustment.appliedReduction||0;
+    check(stamina===stageStamina(route.length-1)-reduction,'Adopted initial heart budget failed');
+    // Reference-only replay is not a solvability claim after heart reductions.
+    if(reduction){reset(n,reduction);cameraIntro=null;hideStageHelp();}
     const budget=stamina;
-    check(budget===stageStamina(route.length-1),'Initial heart budget failed');
     for(let i=1;i<route.length;i++){
         camera=clamp(body.y-H*.6,0,HEIGHT-H);
         const before=[...grips],origin={...body},target=route[i];
@@ -72,9 +87,19 @@ for(let n=1;n<=20;n++){
     check(state==='won'&&bothHandsOnGoal()&&stamina===budget-(route.length-1)-routeHazardCosts(route).at(-1)+hearts.filter(h=>h.collected).length*HEART_CONFIG.recovery,'Goal or actual pickup/hazard budget failed '+n);
     const swept=hearts.filter(h=>route.slice(1).some((p,i)=>torsoTouchesHeart(route[i],p,h))).map(h=>h.id);
     check(JSON.stringify(hearts.filter(h=>h.collected).map(h=>h.id))===JSON.stringify(swept),'Validated route must collect all and only swept recoveries');
-    check(holds.filter(h=>h.wide).length<=3,'Too many wide holds');
+    check(holds.filter(h=>h.wide).length<=(activeCourseGeneration.recipe.composition==='pair'?6:3),'Too many wide holds');
     report.push({level:n,moves:moveCount,holds:holds.length,wide:holds.filter(h=>h.wide).length,selectionHolds:densityStats.selectionHoldIds.length});
 }
+// Keep native pruning coverage non-vacuous even when formal profile selectors
+// are all intentionally protected: an unreachable unused normal hold is removed.
+debugMode=true;debugAttempt=true;debugCourseTrial={typeId:0,lengthCategory:'short',seed:1};
+reset(1);const nativeRoute=route,redundantId=Math.max(...holds.map(h=>h.id))+1;
+holds.push({id:redundantId,x:-10000,y:HEIGHT+10000,type:'normal',row:null});
+pruneUnusedHolds();
+check(!holds.some(h=>h.id===redundantId),'Native pruning retained a provably redundant hold');
+check(samePairRoute(nativeRoute,replayRoute(route)),'Native pruning changed the route');
+for(const id of densityStats.selectionHoldIds){const saved=holds;holds=saved.filter(h=>h.id!==id);check(!samePairRoute(route,replayRoute(route)),'Native unnecessary selector retained '+id);holds=saved;}
+debugMode=false;debugAttempt=false;debugCourseTrial=null;
 reset(2);advanceCameraIntro(0);advanceCameraIntro(1650);
 const origin={...body},before=[...grips],budget=stamina;
 camera=clamp(body.y-H*.6,0,HEIGHT-H);

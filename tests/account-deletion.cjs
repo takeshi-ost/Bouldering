@@ -5,7 +5,7 @@ const env=`const elements={};const events={};const document={getElementById(id){
  style:{setProperty(){}},classList:{toggle(){}},focus(){},setAttribute(){},removeAttribute(){},events:{},addEventListener(k,f){this.events[k]=f;},showModal(){this.open=true;},close(){this.open=false;},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(k,f){events[k]=f;},devicePixelRatio:1};function requestAnimationFrame(){}`;
-const data={otherApplication:'keep'},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v,removeItem:k=>delete data[k]};
+const data={otherApplication:'keep','ascent.ad-plays.v1':'2','ascent.ad-plays.v2':'1'},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v,removeItem:k=>delete data[k]};
 let reloads=0;
 (async()=>{
 await new Function('assert','data','globalThis',env+source+`;return (async()=>{
@@ -34,7 +34,7 @@ assert.equal(accountDeletion.marker.phase,'pending');assert.equal(online.uid,'ow
 const count=calls.length;resumeOnline();await startOnline(online.adapter);assert.equal(calls[count],'authenticate:false','Resume must not create an anonymous user');assert.equal(calls.filter(x=>x==='delete').length,1,'No destructive retry without another click');
 // Successful retry cleans only this game's keys and leaves a persistent done marker.
 fail=false;await deleteCurrentAccount();assert.equal(accountDeletion.marker.phase,'done');assert.equal(online.uid,null);
-assert.equal(data[PLAYER_NAME_KEY],undefined);assert.equal(data[PROGRESS_KEY],undefined);assert.equal(data[ONLINE_SCORES_KEY],undefined);assert.equal(data.otherApplication,'keep');
+assert.equal(data[PLAYER_NAME_KEY],undefined);assert.equal(data[PROGRESS_KEY],undefined);assert.equal(data[ONLINE_SCORES_KEY],undefined);assert.equal(data.otherApplication,'keep');assert.equal(data['ascent.ad-plays.v1'],undefined);assert.equal(data['ascent.ad-plays.v2'],undefined);
 assert.equal(JSON.parse(data[ACCOUNT_DELETION_KEY]).phase,'done');assert(deleteUserElement('deleteUserConfirm').hidden);assert(!deleteUserElement('deleteUserNew').hidden);assert(deleteUserElement('deleteUserCancel').hidden);
 const doneCalls=calls.length;resumeOnline();await startOnline(online.adapter);await tick();assert.equal(calls.length,doneCalls,'Done identity must never authenticate/create/save automatically');
 blocked=false;deleteUserElement('deleteUserDialog').events.cancel({preventDefault(){blocked=true;}});assert(blocked);

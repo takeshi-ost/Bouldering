@@ -1,5 +1,5 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const source=['text-ja','text-en','text-dev-ja','text','config','utils','difficulty','stage','game','renderer'].map(f=>fs.readFileSync(path.join(__dirname,'..','js',f+'.js'),'utf8')).join('\n');
+const source=['text-ja','text-en','text-dev-ja','text','config','difficulty-config','utils','difficulty','stage','game','renderer'].map(f=>fs.readFileSync(path.join(__dirname,'..','js',f+'.js'),'utf8')).join('\n');
 new Function('assert',`function playSound(){};const document={getElementById(){return {style:{},setAttribute(){},getContext(){return {}}};}};\n`+source+`
 const triangle=[{x:0,y:0},{x:0,y:0},{x:-70,y:100},{x:70,y:100}];
 assert(insideStartTriangle({x:0,y:60},triangle));
@@ -26,7 +26,7 @@ for(let n=1;n<=100;n++) {
  assert(feetWidth>0 && feetWidth<=140,'Opening feet too wide');
  const bound=TORSO.width+(LIMB_LENGTHS[2]+LIMB_LENGTHS[3])/2;
  assert(feetWidth<=bound,'Feet exceed maximum possible knee spread');
- const info=stageLengthInfo(n);assert.equal(HEIGHT,info.height);assert(HEIGHT<=H*3);
+ const {height,category}=stageLayout(n);const info={height,category};assert.equal(HEIGHT,info.height);assert(HEIGHT<=H*3);
  if(info.category==='short')assert.equal(HEIGHT,H);
  if(info.category==='medium')assert(HEIGHT===H*2);
  if(info.category==='long')assert(HEIGHT===H*3);
@@ -41,7 +41,7 @@ assert(heights.slice(1).some(h=>h===H),'No short stages after intro');
 assert(heights.some((h,i)=>((i+1)%5!==0) && h>=2*H),'Long stages still restricted to multiples of 5');
 assert(heights.some(h=>h>2*H),'No extended stages generated');
 // Intro lasts at least 1s, and longer scrolls must still reach the bottom first.
-state='playing';densityStats={prototype:true,total:0};
+state='playing';densityStats={total:0};
 for(const [from,to] of [[0,0],[0,80],[0,700],[0,1400],[100,700]]) {
  cameraIntro={from,to,start:null};camera=from;
  advanceCameraIntro(100);

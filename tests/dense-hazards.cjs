@@ -28,7 +28,8 @@ assert(generatedCourse.hazardPlacement.optionalIds.length>3);
 assert.equal(JSON.stringify(holds.map(({type,...h})=>h)),geometry);
 
 const report=[];
-for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
+for(const mode of ['existing'])for(const n of [40,41,42,45,47,80]) {
+ debugMode=true;debugAttempt=true;debugCourseTrial={typeId:6,lengthCategory:stageLengthRule(n).category,seed:n};
  courseMode=mode;reset(n);cameraIntro=null;
  const blue=holds.filter(h=>h.type==='hazard');
  const placement=generatedCourse.hazardPlacement;
@@ -63,7 +64,7 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
  assert.equal(routeExpectedMoves(),moves);assert.equal(starting,moves+3);
  assert.equal(stamina,3+pickups-paid);
  assert.equal(routeHazardCosts(route).at(-1),paid);
- debugMode=true;updateUI();assert(ui.progress.textContent.includes('想定 '+moves+' ムーブ'));debugMode=false;
+ updateUI();assert(ui.progress.textContent.includes('想定 '+moves+' ムーブ'));
  const expected=moves;
  if(mode==='existing' && n===47) {
   // Length-first generation no longer promises a fixed 20-move ceiling.
@@ -71,16 +72,18 @@ for(const mode of ['existing','prototype'])for(const n of [40,41,42,45,47,80]) {
   assert(routeResources(route).valid);assert.equal(starting,moves+3);
   assert.equal(stamina,starting-moves-paid+pickups);
   assert.equal(clearStars(moves,routeExpectedMoves()),3);
-  const preview=stagePreview(n,mode);assert.equal(preview.expectedMoves,moves);assert.equal(preview.stamina,starting);
+  const beforePreview=JSON.stringify({holds,route,hearts,stamina});const preview=stagePreview(n,mode);assert.equal(preview.height,stageLengthInfo(n).height);assert.equal(JSON.stringify({holds,route,hearts,stamina}),beforePreview);
  }
+ const savedRecords=JSON.stringify(stageRecords);
  for(const [extra,stars] of [[0,3],[1,2],[2,2],[3,1]]) {
   moveCount=expected+extra;finish(true);
-  assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert.equal(stageRecords[mode][n].stars,3);
+  assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert.equal(JSON.stringify(stageRecords),savedRecords,'Debug planner must not write normal scores');
  }
 
  reset(n);assert.equal(JSON.stringify({holds,route,hearts}),saved);assert.equal(stamina,starting);
  report.push({mode,level:n,total:holds.length,blue:blue.length,moves,penalties:paid,starting});
 }
+debugMode=false;debugAttempt=false;debugCourseTrial=null;generatedCourse=null;
 // Heart placement must not silently enlarge a fixed move-based budget.
 level=40;initialGrips=[];holds=Array.from({length:20},(_,id)=>({id,type:'hazard',x:id,y:0}));
 const path=Array.from({length:11},(_,i)=>({x:200,y:700-i*40,grips:[i*2%20,(i*2+1)%20]}));
@@ -95,6 +98,6 @@ for(let n=40;n<100;n++) {
  }
  assert(items.length<=HEART_CONFIG.maxCount);
 }
-console.log('PASS dense hazards: both courses Lv40/41/42/45/47/80, 10-30% after fixed geometry/hearts, cost search before acceptance, protected start/wide/goal, unchanged replay, exact live costs, fixed moves+3 budget, unassisted full clears, seeded retries');
+console.log('PASS retained debug dense hazards: seeds40/41/42/45/47/80, 10-30% after fixed geometry/hearts, cost search before acceptance, protected start/wide/goal, unchanged replay, exact live costs, fixed moves+3 budget, unassisted full clears, seeded retries');
 console.log(JSON.stringify(report));
 `)(assert);

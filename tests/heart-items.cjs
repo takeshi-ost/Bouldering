@@ -2,7 +2,8 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
-const storage={};const globalThis={localStorage:{getItem:k=>storage[k]??null,setItem:(k,v)=>storage[k]=v}};
+// Normal-flow fixture: recognised existing save, not a first-launch tutorial.
+const storage={'ascent.progress.v1':JSON.stringify({existing:{cleared:0},prototype:{cleared:0}})};const globalThis={localStorage:{getItem:k=>storage[k]??null,setItem:(k,v)=>storage[k]=v}};
 const elements={},timers=[];
 const document={getElementById(id){return elements[id] ||= {
  style:{},classList:{toggle(){}},events:{},focus(){},setAttribute(k,v){this[k]=v;},removeAttribute(k){delete this[k];},contains(){return true;},
@@ -34,7 +35,7 @@ ui.restart.onclick();assert.equal(state,'lost');ui.retry.onclick();assert(ui.sta
 showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(2);ui.stageStartButton.onclick();assert.equal(stamina,base+2);
 finish(false);ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(stamina,base,'Retry drops the bonus');assert.equal(heartItems,15);
 showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(1);ui.stageStartButton.onclick();finish(true);
-showLevelMap();assert(openStageStart(2));assert.equal(stageStartContext.hearts,0);ui.stageStartButton.onclick();assert.equal(stamina,routeStamina(route),'Clear never carries bonus to the next stage');assert.equal(heartItems,14);
+showLevelMap();assert(openStageStart(2));assert.equal(stageStartContext.hearts,0);ui.stageStartButton.onclick();assert.equal(stamina,currentCourseInitialStamina(),'Clear never carries bonus to the next stage');assert.equal(heartItems,14);
 showLevelMap();lives.count=0;lives.recoveryAt=Date.now();assert(openStageStart(1));
 assert.equal(state,'life-prompt');assert(!stageStartContext);assert.equal(heartItems,14);ui.lifeCancel.onclick();assert.equal(heartItems,14);
 assert(openStageStart(1));grantLife();ui.lifeWatchAd.onclick();assert.equal(state,'map');assert(ui.stageStartDialog.open);
@@ -44,7 +45,7 @@ showLevelMap();lives.count=3;assert(openStageStart(1));setStageHeartItems(2);
 const prepare=prepareCurrentStage,report=console.error;prepareCurrentStage=()=>{throw Error('intentional generation failure');};console.error=()=>{};
 ui.stageStartButton.onclick();prepareCurrentStage=prepare;console.error=report;assert.equal(state,'map');assert.equal(heartItems,10,'Failed generation must not spend hearts');
 assert(openStageStart(1));setStageHeartItems(10);ui.stageStartButton.onclick();assert.equal(heartItems,0);assert.equal(readHeartItems(),0);assert.equal(ui.mapItemCount.textContent,'0');showLevelMap();assert(openStageStart(1));assert(ui.stageHeartCount.disabled);assert(ui.stageHeartReset.disabled);closeStageStart();
-const profile=dailyProfile(localToday());assert(launchDailyAttempt(profile,1));assert.equal(stamina,routeStamina(route),'Daily receives no previous bonus');assert.equal(heartItems,0);
+const profile=dailyProfile(localToday());assert(launchDailyAttempt(profile,1));assert.equal(stamina,currentCourseInitialStamina(),'Daily receives no previous bonus');assert.equal(heartItems,0);
 for(const value of ['-1','1.5','null','"20"','broken']){storage[HEART_ITEMS_KEY]=value;assert.equal(readHeartItems(),5);}
 globalThis.localStorage={getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}};
 assert.equal(readHeartItems(),5);assert.doesNotThrow(saveHeartItems);

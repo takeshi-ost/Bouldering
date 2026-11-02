@@ -2,10 +2,10 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const input=fs.readFileSync('js/input.js','utf8');
 const handlers=input.slice(input.indexOf('ui.showHelp.onclick ='),input.indexOf('// Full-screen dialogs'));
-let focused=0,opened=0;
+let focused=0,opened=0,prepared=0;
 const events={};
 const dialog={open:false,showModal(){this.open=true;opened++;},close(){this.open=false;events.close();},addEventListener(name,fn){events[name]=fn;}};
-const env={mapPreparing:false,settingsOpen:true,state:'map',ui:{
+const env={mapPreparing:false,settingsOpen:true,state:'map',prepareHelpIllustrations(){prepared++;},ui:{
     helpDialog:dialog,helpScroll:{scrollTop:0},closeHelp:{},showHelp:{focus(){focused++;}}}};
 vm.runInNewContext(handlers,env);
 for(const scene of ['map','daily','playing']) {
@@ -23,4 +23,5 @@ for(const overrides of [{settingsOpen:false},{mapPreparing:true},{state:'choosin
     Object.assign(env,{settingsOpen:true,mapPreparing:false,state:'map'},overrides);
     const count=opened;env.ui.showHelp.onclick();assert.equal(opened,count);assert(!dialog.open);
 }
+assert.equal(prepared,opened,'Illustration preparation runs only for valid opens and does not block showing or closing help');
 console.log('PASS help: map/daily/stage opening, inner interaction, close/focus return, repeat-open scroll reset and blocked scenes');

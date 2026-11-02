@@ -46,6 +46,7 @@ function grantLife() {
 if(lives.inProgress){lives.inProgress=false;consumeLife(lives.attemptAt);}
 else {recoverLives();saveLives();}
 function beginLifeAttempt() {
+    if(typeof isTutorialRun==='function' && isTutorialRun())return;
     if(dailyRun || debugAttempt || courseMode!=='existing')return;
     lifeRunId=lifeAttemptId;lives.inProgress=true;lives.attemptAt=Date.now();saveLives();refreshLives();
 }
@@ -64,7 +65,7 @@ function refreshLives() {
     ui.lifeStatus.classList.toggle('game-lives',inGame || inMap);
     ui.lifeStatus.classList.toggle('map-lives',inMap);
     ui.lifeStatus.setAttribute('aria-label',gameText("lives.refreshLives.5", {value0: lives.count, value1: LIFE_MAX}));
-    ui.lifeStatus.hidden=!!dailyRun || !['map','playing','won','lost'].includes(state) || courseMode==='prototype' || debugAttempt;
+    ui.lifeStatus.hidden=(typeof isTutorialRun==='function' && isTutorialRun()) || !!dailyRun || !['map','playing','won','lost'].includes(state) || debugAttempt;
     const seconds=lives.recoveryAt===null ? null : Math.max(0,Math.ceil((LIFE_RECOVERY_MS-(Date.now()-lives.recoveryAt))/1000));
     const recoveryTime=`${String(Math.floor((seconds??0)/60)).padStart(2,'0')}:${String((seconds??0)%60).padStart(2,'0')}`;
     if(inMap && lives.count===0)ui.lifeStatus.setAttribute('aria-label',gameText("lives.refreshLives.6", {value0: recoveryTime}));

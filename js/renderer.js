@@ -102,41 +102,40 @@ function drawWideHoldSprite(h) {
     return true;
 }
 
-function drawHazardSpriteTo(paint,x,y,size) {
-    if(!hazardHoldImage?.complete || !hazardHoldImage.naturalWidth)return false;
-    hazardHoldTintAtlas ??= createHoldTintAtlases(hazardHoldImage,[HAZARD_HOLD_TINT_RGB])[0];
+function drawHazardSpriteTo(paint,x,y,size,image=hazardHoldImage) {
+    if(!image?.complete || !image.naturalWidth)return false;
+    hazardHoldTintAtlas ??= createHoldTintAtlases(image,[HAZARD_HOLD_TINT_RGB])[0];
+    paintHazardAtlasTo(paint,x,y,size,hazardHoldTintAtlas);
+    return true;
+}
+function paintHazardAtlasTo(paint,x,y,size,atlas) {
     paint.save();
     paint.translate(x,y);
     // Shape five points right in the source; rotate its sharp corner upward.
     paint.rotate(-Math.PI/2);
-    paint.drawImage(hazardHoldTintAtlas,-size/2,-size/2,size,size);
+    paint.drawImage(atlas,-size/2,-size/2,size,size);
     paint.restore();
-    return true;
 }
 function drawHazardHoldSprite(h) {
     return drawHazardSpriteTo(ctx,h.x,h.y,21.6);
 }
-function paintHazardHelpIcon(canvas) {
-    if(!canvas || !hazardHoldImage)return;
-    const render=()=>{
-        if(!canvas.isConnected)return;
-        const paint=canvas.getContext('2d');
-        paint.clearRect(0,0,canvas.width,canvas.height);
-        drawHazardSpriteTo(paint,canvas.width/2,canvas.height/2,canvas.width);
-    };
-    if(hazardHoldImage.complete && hazardHoldImage.naturalWidth)render();
-    else hazardHoldImage.addEventListener('load',render,{once:true});
+function paintHazardHelpIcon(canvas,image=hazardHoldImage) {
+    // Help waits for a decoded source; never attach a late paint listener.
+    if(!canvas || !image?.complete || !image.naturalWidth)return false;
+    const paint=canvas.getContext('2d');
+    paint.clearRect(0,0,canvas.width,canvas.height);
+    return drawHazardSpriteTo(paint,canvas.width/2,canvas.height/2,canvas.width,image);
 }
 
-function createMetallicGoalAtlas() {
+function createMetallicGoalAtlas(image=holdShapesImage) {
     const atlas=document.createElement('canvas');
     atlas.width=atlas.height=128;
     const paint=atlas.getContext('2d');
-    paint.drawImage(holdShapesImage,0,0,128,128,0,0,128,128);
+    paint.drawImage(image,0,0,128,128,0,0,128,128);
     let pixels;
     try {pixels=paint.getImageData(0,0,128,128);}
     catch(error) {
-        if(error.name==='SecurityError')return createHoldTintAtlases(holdShapesImage,[GOAL_HOLD_TINT_RGB])[0];
+        if(error.name==='SecurityError')return createHoldTintAtlases(image,[GOAL_HOLD_TINT_RGB])[0];
         throw error;
     }
     const goldTones=[[99,60,9],[221,161,31],[255,235,139]];
@@ -357,6 +356,7 @@ function danglingTip(p, index, time) {
 function drawPath() {
     const showPlanned=debugMode && debugDisplay.route;
     if (!showPlanned)return;
+    if(state==='playing'||state==='lost')rankingAssistanceUsed=true;
 
     ctx.save();
 
@@ -589,7 +589,7 @@ function drawStageIntro() {
     ctx.font='800 40px system-ui';
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    const title=dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
+    const title=activeDebugCourse()?gameText("debug.trialTitle",{value0:courseTypeId}):dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
     const x=W/2;
     ctx.strokeText(title,x,H/2);
     ctx.fillText(title,x,H/2);

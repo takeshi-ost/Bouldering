@@ -1,0 +1,19 @@
+{
+  "siteVersion": 41,
+  "trialVersion": "0.11.8",
+  "sourceCommit": "be2145d9b9fb6865f3fcb398d533e8c29b28f86f",
+  "purpose": "Test-only original native engine and trial core source snapshot. No trial boot, storage or network modules included.",
+  "archiveSha256": "053142623de14427d30bb16266ca717fc3f4fb0508d15b5d0dd47436fca7f77e",
+  "files": {
+    "js/config.js": "1fad1d7ea4da7729ab84ee88950dd9efa813b35b26fef832cfe3527df1eb018d",
+    "js/utils.js": "d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed",
+    "js/difficulty.js": "8d73c2087e46782ac53d318b6a4a474edc4d045898d663bd609fb12a9f3aa23e",
+    "js/stage.js": "85b9524ab10de1a32b1e5e49badd0636aa9ba0eab07c6da771e63ca303adab46",
+    "js/game.js": "c99323b236f4d1950fefe466cd908df4a3ecf2f5dc573c3d9987aa4a099e355f",
+    "js/route.js": "a39b29d1a50e8afb4accba6f5efc0ce1ca6f408fbcc94203ae09ace7e6fbe06d",
+    "js/course.js": "c052c290539fb913b4a625d249a8c8658559dd15bd51ad78e029e8af760f9d11",
+    "js/hazards.js": "c8d0ded4f6a8e6f1d264c39934fc9ea430787d1f3160f891b161a4415cfa6ee3",
+    "skeleton.js": "9f875ff5d0c0cce2a4ee557014c603a33d307e04faae0c4bdc53263f7762f0ec",
+    "stamina-settings.js": "a7e7147278b668d0b591cffdf1665793421081b8c8def365edea3295c5040e8b"
+  }
+}

@@ -66,8 +66,9 @@ assert.equal(state,'won');assert.equal(stageRecords.existing[1].timeMs,100*moveC
 assert.notEqual(JSON.stringify(stageRecords.existing[1]),firstRecord);
 const latest=JSON.stringify(stageRecords.existing);
 // Separate course records, debug isolation, and unavailable storage.
-courseMode='prototype';begin();for(let i=1;i<route.length;i++){clock+=200;play(i);}
-assert(stageRecords.prototype[1]);assert.equal(JSON.stringify(stageRecords.existing),latest);
+// Legacy retired-mode records remain as data, without offering playable content.
+stageRecords.prototype[1]=expectedScore({moves:99,timeMs:99999,version:COURSE_VERSION,stars:1});data[RECORDS_KEY]=JSON.stringify(stageRecords);
+assert.equal(JSON.stringify(stageRecords.existing),latest);
 const before=JSON.stringify(stageRecords);debugAttempt=true;begin();for(let i=1;i<route.length;i++){clock+=10;play(i);}
 assert.equal(JSON.stringify(stageRecords),before);debugAttempt=false;
 const saved=data[RECORDS_KEY];data[RECORDS_KEY]='{broken';assert.deepEqual(readStageRecords(),{existing:{},prototype:{}});
@@ -90,9 +91,9 @@ for(const [difference,stars] of [[-1,3],[0,3],[1,2],[2,2],[3,1],[8,1]]) {
  assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden && !ui.resultRanking.hidden);
 }
 // Display labels use the selected rule profile, including daily runs.
-for(const [value,label] of [[0,'EASY'],[1,'NORMAL'],[2,'NORMAL'],[3,'HARD']]) {
- difficulty=value;finish(true);
- assert.equal(difficultyLabel(value),label);
+for(const [value,label] of [[0,'EASY'],[1,'EASY'],[2,'NORMAL'],[3,'HARD']]) {
+ difficulty=value;courseTypeId=[0,1,2,6][value];finish(true);
+ assert.equal(courseTypeLabel(courseTypeId),label);
  assert.equal(ui.resultDifficulty.textContent,label);assert(ui.resultDifficulty.hidden && !ui.resultRanking.hidden);
  debugMode=true;updateUI();assert(ui.progress.textContent.endsWith('/ '+label));
  dailyRun={...dailyProfile('2026-10-17'),difficulty:value,returnCourse:'existing'};
@@ -144,7 +145,7 @@ try {
   updateUI();assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
  }
  dailyRun={...dailyProfile('2026-10-17'),returnCourse:'existing'};finish(false);assert(!ui.resultTip.hidden);
- assert(ui.next.hidden,'Daily failure must not show a calendar button');assert.equal(document.activeElement,ui.retry);
+ assert(!ui.next.hidden,'Daily failure restores the calendar button');assert.equal(ui.next.textContent,'カレンダーにもどる');assert.equal(document.activeElement,ui.retry);
  assert(!ui.retry.hidden && !ui.closeResult.hidden);
  ui.closeResult.onclick();assert.equal(state,'daily');assert(ui.overlay.hidden);
  for(const daily of [null,{...dailyProfile('2026-10-17'),returnCourse:'existing'}]) {

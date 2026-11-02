@@ -29,21 +29,27 @@ function makeStageCourse(length, mirror, climbHeight) {
 
 // Pick length before geometry, independently of difficulty and layout RNG.
 // A daily keeps this base seed even when its geometry needs an internal retry.
-function stageLengthRule(n,seed=n) {
-    if(n===1)return STAGE_CONFIG.lengthRules[0];
-    const weights=STAGE_CONFIG.lengthWeights;
-    const random=mulberry32(seed ^ 0x4D7C2A19);
-    let target=random()*weights.reduce((sum,weight)=>sum+weight,0);
-    for(let i=0;i<weights.length;i++) {
-        target-=weights[i];
-        if(target<0)return STAGE_CONFIG.lengthRules[i];
-    }
-    return STAGE_CONFIG.lengthRules.at(-1);
+function stageLengthRule(n,seed=n,distribution=stageDistribution(n)) {
+    if(!Number.isSafeInteger(n) || n<0 || !Number.isSafeInteger(seed))throw new RangeError('Invalid stage length seed');
+    const rules=STAGE_CONFIG.lengthRules;
+    if(!Array.isArray(rules) || !rules.length || Array.from(rules).some(r=>!r || typeof r.category!=='string' || typeof r.labelKey!=='string' || !r.labelKey.length || typeof r.mapHeight!=='string' || !/^[0-9]+$/.test(r.mapHeight) || !Number.isFinite(r.height) || r.height<H || !Number.isFinite(r.climbHeight) || r.climbHeight<=0))
+        throw new RangeError('Invalid course length definitions');
+    const id=weightedItemId(rules.map(r=>({id:r.category})),validateCourseDistribution(distribution).length,seed ^ 0x4D7C2A19);
+    // The dedicated STAGE 1 tutorial keeps its original one-screen geometry.
+    const chosen=n===1?DIFFICULTY_CONFIG.introCategory:id;
+    const rule=rules.find(r=>r.category===chosen);
+    if(!rule || (n===1 && rule.height!==H))throw new RangeError('Invalid tutorial length definition');
+    return rule;
+}
+function courseLengthLabel(category) {
+    const rule=STAGE_CONFIG.lengthRules.find(r=>r.category===category);
+    if(!rule || typeof rule.labelKey!=='string')throw new RangeError('Undefined course length label');
+    return gameText(rule.labelKey);
 }
 
 // Pure shared geometry: map previews do not generate holds or solve routes.
-function stageLayout(n,random=mulberry32(n),lengthSeed=n) {
-    const lengthRule=stageLengthRule(n,lengthSeed);
+function stageLayout(n,random=mulberry32(n),lengthSeed=n,distribution=stageDistribution(n)) {
+    const lengthRule=stageLengthRule(n,lengthSeed,distribution);
     const height=lengthRule.height;
     const targetRise=height-STAGE_CONFIG.bottomMargin-STAGE_CONFIG.goalTopMargin;
     // Build enough reference geometry to reach the selected wall's top. Keep
@@ -75,9 +81,15 @@ function stageLayout(n,random=mulberry32(n),lengthSeed=n) {
     };
     return {rows,course,height,category:lengthRule.category};
 }
-function stageLengthInfo(n,seed=n) {
-    const {height,category}=stageLayout(n,mulberry32(seed),seed);
-    return {height,category};
+function resolvedCourseLengthInfo(resolved) {
+    const recipe=CourseProgression.recipe(resolved);
+    const category=recipe.length==='middle'?'medium':recipe.length;
+    const rule=STAGE_CONFIG.lengthRules.find(rule=>rule.category===category);
+    if(!rule)throw new RangeError('Missing resolved course length');
+    return {height:rule.height,category};
+}
+function stageLengthInfo(n) {
+    return resolvedCourseLengthInfo(CourseProgression.resolveStage(n));
 }
 
 // 生成中の状態をゲーム本体から分離します。戻り値だけをゲームへ渡します。
@@ -88,7 +100,7 @@ function createStageGenerator() {
     let initialGrips = [];
     let densityReference = null;
     let densityStats = null;
-    function generate(n, guideOnly = false, seed = n, lengthSeed = seed) {
+    function generate(n, guideOnly = false, seed = n, lengthSeed = seed, distribution = stageDistribution(n)) {
         // Calibrate from STAGE 1 even when a debug tool opens another level first.
         // This uses its unchanged seeded layout, rather than a hard-coded count.
         if (!guideOnly && n !== 1 && !densityReference)
@@ -102,7 +114,7 @@ function createStageGenerator() {
             holds.push(h);
             return h;
         };
-        const {rows,course,height}=stageLayout(n,random,lengthSeed);
+        const {rows,course,height}=stageLayout(n,random,lengthSeed,distribution);
         HEIGHT=height;
         const bottom = HEIGHT - STAGE_CONFIG.bottomMargin;
         rows.forEach((row, i) => {

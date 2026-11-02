@@ -1,20 +1,27 @@
 {
   "name": "ascent-ios-local",
-  "version": "0.4.6",
+  "version": "0.4.47",
   "private": true,
   "description": "Offline iOS simulator wrapper for ASCENT; not a production app identifier",
-  "engines": { "node": ">=22.0.0" },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "build:ios-assets": "node scripts/build-ios-assets.cjs",
     "verify:ios-assets": "node tests/ios-assets.cjs",
     "verify:ios-build": "node tests/ios-assets.cjs --built",
     "sync:ios": "npm run build:ios-assets && cap sync ios && npm run verify:ios-assets",
-    "test": "node scripts/test-all.cjs"
+    "test": "node scripts/test-all.cjs",
+    "test:web": "node scripts/test-web-integration.cjs",
+    "build:web": "node scripts/build-pages-formal.cjs"
   },
   "dependencies": {
     "@capacitor/core": "8.5.3",
     "@capacitor/ios": "8.5.3",
     "firebase": "12.11.0"
   },
-  "devDependencies": { "@capacitor/cli": "8.5.3", "esbuild": "0.28.2" }
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3",
+    "esbuild": "0.28.2"
+  }
 }

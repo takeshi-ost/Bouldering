@@ -50,9 +50,9 @@ function dailyDateLabel(key) {
 }
 function dailyProfile(key) {
     if(!validDailyDate(key))throw new Error('Invalid daily date');
-    const baseSeed=Number(key.replaceAll('-',''));
-    const difficulty=weightedDifficulty(DIFFICULTY_CONFIG.dailyWeights,baseSeed ^ 0x44A17C39);
-    return {date:key,baseSeed,seed:baseSeed,difficulty,referenceStage:DIFFICULTY_RULES[difficulty].referenceStage};
+    const resolved=CourseProgression.resolveDaily(key),baseSeed=resolved.seed;
+    const typeId=generationTypeForScore(resolved.score),difficulty=courseTypeRule(typeId).generationDifficulty;
+    return {date:key,baseSeed,seed:baseSeed,typeId,difficulty,referenceStage:1,generationScore:resolved.score};
 }
 function readDailyRecords() {
     const records={};
@@ -107,7 +107,7 @@ function recordDailyClear() {
     const date=dailyRun.date;
     const stars=clearStars(moveCount,routeExpectedMoves());
     const clearedOn=localToday();
-    dailyRecords[date]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars,clearedOn,...currentScoreMetadata()};
+    dailyRecords[date]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars,clearedOn,...currentDailyScoreMetadata()};
     if(date===clearedOn)dailyRecords[date].rewardStatus='pending';
     saveDailyRecords();
 }
@@ -174,8 +174,8 @@ function renderDailyStart() {
     ui.dailyStartLabel.textContent=profile?gameText("label.daily", {value0: profile.date.slice(0,4)}):gameText("date.select");
     ui.dailyStartTitle.textContent=profile?dailyDateLabel(profile.date):'—';
     ui.dailyStartTitle.setAttribute('aria-label',profile?gameText("date.yearAndLabel", {value0: profile.date.slice(0,4), value1: dailyDateLabel(profile.date)}):gameText("date.select"));
-    ui.dailyStartDifficulty.textContent=profile?difficultyLabel(profile.difficulty):'—';
-    ui.dailyStartLength.textContent=profile?{short:gameText("course.short"),medium:gameText("course.medium"),long:gameText("course.long")}[stageLengthInfo(profile.referenceStage,profile.seed).category]:'—';
+    ui.dailyStartDifficulty.textContent=profile?courseTypeLabel(profile.typeId):'—';
+    ui.dailyStartLength.textContent=profile?courseLengthLabel(resolvedCourseLengthInfo(CourseProgression.resolveDaily(profile.date)).category):'—';
     const record=profile && dailyRecords[profile.date];
     ui.dailyStartGift.hidden=!(profile?.date===localToday() && (!record || record.rewardStatus==='pending'));
     ui.dailyStartButton.hidden=!!record;
@@ -212,7 +212,7 @@ function refreshDailyCalendar() {
 function showDailyCalendar({openFromMap=false}={}) {
     if(openFromMap) {
         if(state!=='map' || mapPreparing || stageStartContext || mapTransition)return;
-        dailyReturnCourse=courseMode;dailyMonth=localToday().slice(0,7);
+        dailyReturnCourse='existing';dailyMonth=localToday().slice(0,7);
         dailySelectedDate=localToday();
     }
     dailySwipe=null;dailySwipeConsumed=false;
@@ -281,7 +281,7 @@ ui.openDaily.onclick=()=>showDailyCalendar({openFromMap:true});
 ui.dailyBack.onclick=()=>{
     if(state!=='daily' || settingsOpen)return;
     finishDailyMonthScroll();
-    courseMode=dailyReturnCourse;showLevelMap();
+    courseMode='existing';showLevelMap();
 };
 function changeDailyMonth(delta) {
     if(state!=='daily' || settingsOpen || (delta!==-1 && delta!==1) ||

@@ -144,10 +144,16 @@ function restartInput(n,staminaBonus=0) {
     bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n,staminaBonus);showStageHelp();
 }
 ui.next.onclick = () => {
+    if(state==='lost') {
+        // Ignore queued/hidden clicks while retry confirmation or an ad owns UI.
+        if(ui.overlay.hidden || stageStartContext || lifePrompt || dummyAd || adCoverPending)return;
+        returnFromStage();return; // Same settled-life and ad gate as the close button.
+    }
     if(dailyRun && ['won','lost'].includes(state))continueDailyResult();
     else if(state==='won')continueNormalClear();
 };
 ui.retry.onclick=()=>{
+    if(activeDebugCourse()){const trial=debugCourseTrial;startDebugCourse(trial.typeId,trial.lengthCategory);return;}
     if(state!=='lost')return;
     if(dailyRun)continueDailyResult(true);
     else continueAfterNormalAd(()=>restartNormalStage());
@@ -157,6 +163,7 @@ ui.restart.onclick=()=>{
     finish(false);
 };
 function returnFromStage() {
+    if(typeof isTutorialRun==='function' && isTutorialRun()) {finishTutorialRun(false);return;}
     if(!['playing','won','lost'].includes(state))return;
     if(dailyRun) {
         if(state==='won')continueDailyResult();else returnDailyWithoutClear();
@@ -165,6 +172,8 @@ function returnFromStage() {
 }
 
 function showTitleScreen() {
+    if(typeof interruptTutorialRun==='function')interruptTutorialRun();
+    endDebugCourseTrial();
     finishDummyAdCover();finishRewardCover();
     hideStageStart();
     cancelMapReveal();
@@ -192,32 +201,29 @@ function showTitleScreen() {
     courseMode='existing';
     syncDebugCourseControls();
     canvas.setAttribute('tabindex', '-1');
+    document.getElementById('titleTutorialError').hidden=true;
     beginTitlePreparation();
 }
-function startCourse(mode) {
-    if (mode !== 'existing' && mode !== 'prototype') return;
-    if (!DEBUG_FEATURES_ALLOWED && mode === 'prototype') return;
-    courseMode = mode;
+function startCourse() {
+    // Legacy callers may still pass a retired mode; only normal play exists.
+    courseMode = 'existing';
+    if(state==='choosing' && typeof tutorialPending==='function' && tutorialPending()) {startTutorialRun();return;}
     showLevelMap();
 }
-ui.prototypeCourse.onclick = () => {
-    if(debugMode && ['map','daily'].includes(state) && settingsOpen)startCourse(courseMode==='prototype'?'existing':'prototype');
-};
 function syncDebugCourseControls() {
     ui.mapDebugModeRow.hidden=!DEBUG_FEATURES_ALLOWED;
     ui.mapDebugMode.disabled=!DEBUG_FEATURES_ALLOWED;
     if(typeof updateDeleteUserButton==='function')updateDeleteUserButton();
-    ui.prototypeCourse.hidden=!debugMode;
-    ui.prototypeCourse.textContent=courseMode==='prototype'?gameText("input.syncDebugCourseControls.2"):gameText("input.syncDebugCourseControls");
-    ui.prototypeDescription.hidden=!debugMode;
 }
 
 ui.showHelp.onclick = () => {
     if (mapPreparing || !settingsOpen || !['map','daily','playing'].includes(state) || ui.helpDialog.open) return;
+    if(typeof prepareHelpIllustrations==='function')prepareHelpIllustrations();
     ui.helpDialog.showModal();
     ui.helpScroll.scrollTop = 0;
 };
 ui.closeHelp.onclick = () => ui.helpDialog.close();
+ui.helpDialog.addEventListener('cancel',e=>{e.preventDefault();ui.closeHelp.onclick();});
 ui.helpDialog.onclick = e => {if(e.target===ui.helpDialog && ui.helpDialog.open)ui.helpDialog.close();};
 ui.helpDialog.addEventListener('close', () => ui.showHelp.focus());
 
@@ -257,6 +263,7 @@ function setDebugMode(enabled) {
         syncDebugCourseControls();
         return;
     }
+    if(!enabled && debugCourseTrial)showLevelMap();
     debugMode=!!enabled;
     ui.mapDebugMode.checked=debugMode;
     syncDebugCourseControls();
@@ -286,7 +293,9 @@ function openSettings() {
     if(settingsOpen || stageStartContext || (onMap ? !!mapTransition || mapPreparing : state!=='playing' || cameraIntro || featureHelpOpen))return;
     if(!onMap) {endPointer(null,true);endPan();touchId=null;ignoreTouches=false;}
     ui.restart.hidden=onMap;
-    ui.mapSettingsControls.hidden=ui.mapSettingsFooter.hidden=ui.mapSettingsLanguage.hidden=!onMap;
+    ui.mapSettingsControls.hidden=ui.mapSettingsFooter.hidden=ui.mapSettingsDebug.hidden=!onMap;
+    ui.mapSettingsLanguage.hidden=false;
+    if(typeof refreshSettingsConnection==='function')refreshSettingsConnection();
     syncAudioControls();
     ui.stageDebugDisplay.hidden=onMap || !debugMode;
     for(const [key,control] of Object.entries(debugDisplayControls))control.checked=debugDisplay[key];
@@ -310,5 +319,5 @@ ui.featureHelpDialog.onclick=dismissStageHelp;
 ui.featureHelpDialog.addEventListener('cancel',e=>{e.preventDefault();dismissStageHelp();});
 
 ui.featureHelpDialog.addEventListener('keydown',e=>{
-    if(e.key==='Enter' || e.key===' ') {e.preventDefault();dismissStageHelp();}
+    if(e.key==='Enter' || e.key===' ') {e.preventDefault();if(!e.repeat)dismissStageHelp();}
 });

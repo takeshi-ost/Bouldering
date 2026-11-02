@@ -16,7 +16,7 @@ new Function('repetitions','stages',env+source+`
 const limit=ROUTE_OPTIMIZATION_CONFIG.maxTransitions;
 const mean=a=>+(a.reduce((x,y)=>x+y,0)/a.length).toFixed(2);
 try {
- for(const mode of ['existing','prototype'])for(const n of stages) {
+ for(const mode of ['existing'])for(const n of stages) {
   courseMode=mode;reset(n); // warm-up excluded
   const runs={baseline:[],optimized:[]},extra=[];let before,after,transitions;
   for(let run=0;run<repetitions;run++) {

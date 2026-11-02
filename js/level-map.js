@@ -19,6 +19,7 @@ function saveHeartItems() {
     renderMapInventory();
 }
 saveHeartItems();
+// Retired-mode buckets are retained only for old saves/imports/deletion.
 const PROGRESS_KEY = 'ascent.progress.v1';
 const MAP_PAGE_SIZE = 20;
 const MAP_HOP_DURATION = 650;
@@ -48,7 +49,18 @@ function readStageRecords() {
                 if(Number.isSafeInteger(value?.moves) && value.moves>0 &&
                     Number.isSafeInteger(value?.timeMs) && value.timeMs>=0) {
                     result[mode][key]={moves:value.moves,timeMs:value.timeMs,...scoreMetadata(value)};
-                    if(value.version===COURSE_VERSION)result[mode][key].version=value.version;
+                    if(value.rankingEligible===false)result[mode][key].rankingEligible=false;
+                    if(historicalCourseVersion(value.version))result[mode][key].version=value.version;
+                    const previousVersions={};
+                    for(const [version,record] of Object.entries(value.previousVersions||{})) {
+                        if(!historicalCourseVersion(version) || !record || record.version!==version ||
+                            !Number.isSafeInteger(record.moves) || record.moves<1 ||
+                            !Number.isSafeInteger(record.timeMs) || record.timeMs<0)continue;
+                        previousVersions[version]={moves:record.moves,timeMs:record.timeMs,version,...scoreMetadata(record)};
+                        if(record.rankingEligible===false)previousVersions[version].rankingEligible=false;
+                        if(Number.isInteger(record.stars)&&record.stars>=1&&record.stars<=3)previousVersions[version].stars=record.stars;
+                    }
+                    if(Object.keys(previousVersions).length)result[mode][key].previousVersions=previousVersions;
                     if(Number.isInteger(value.stars) && value.stars>=1 && value.stars<=3)
                         result[mode][key].stars=value.stars;
                 }
@@ -68,7 +80,7 @@ function cancelMapReveal() {
     ui.levelMap.classList.toggle('map-preparing',false);
     ui.levelMap.inert=false;
 }
-function prepareMapReveal() {
+function prepareMapReveal(onReady=null) {
     const ticket=++mapRevealTicket;
     const reveal=()=>{
         if(ticket!==mapRevealTicket || state!=='map')return;
@@ -83,7 +95,7 @@ function prepareMapReveal() {
         ui.levelMap.removeAttribute?.('aria-hidden');
         finishDummyAdCover();finishRewardCover();
         requestGameRender();
-        if(!mapTransition){focusMapLevel();resumePendingMapReward();}
+        if(!mapTransition){focusMapLevel();if(onReady)onReady();else resumePendingMapReward();}
     };
     const images=Array.from(ui.mapNodes.querySelectorAll?.('img')||[]);
     if(!images.length){reveal();return;}
@@ -102,15 +114,23 @@ function prepareMapReveal() {
 }
 let debugAttempt = false;
 function recordStageClear() {
+    if(level<1 || (typeof isTutorialRun==='function' && isTutorialRun()))return;
     if(dailyRun) {recordDailyClear();return;}
     if (debugAttempt) return;
     if(moveCount>0) {
-        const stars=Math.max(stageRecords[courseMode][level]?.stars||0,clearStars(moveCount,routeExpectedMoves()));
-        const candidate={moves:moveCount,timeMs:Math.floor(runElapsedMs),version:COURSE_VERSION,...currentScoreMetadata()};
+        const stars=Math.max((stageRecords[courseMode][level]?.version===COURSE_VERSION?stageRecords[courseMode][level]?.stars:0)||0,clearStars(moveCount,routeExpectedMoves()));
+        const candidate={moves:moveCount,timeMs:Math.floor(runElapsedMs),version:COURSE_VERSION,...currentScoreMetadata(),...(rankingAttemptEligible()?{}:{rankingEligible:false})};
         const previous=stageRecords[courseMode][level];
         const best=previous?.version===COURSE_VERSION && compareStageScores(previous,candidate)<=0?previous:candidate;
-        stageRecords[courseMode][level]={...best,stars};
+        const previousVersions={...previous?.previousVersions};
+        if(previous && historicalCourseVersion(previous.version) && previous.version!==COURSE_VERSION) {
+            const {previousVersions:ignored,...historic}=previous;
+            previousVersions[previous.version]=historic;
+        }
+        stageRecords[courseMode][level]={...best,stars,...(Object.keys(previousVersions).length?{previousVersions}:{})};
+        if(rankingAttemptEligible()) {
         queueOnlineScore(level,courseMode,candidate);
+        }
     }
     stageProgress[courseMode].cleared = Math.max(stageProgress[courseMode].cleared,level);
     try { globalThis.localStorage?.setItem(PROGRESS_KEY,JSON.stringify(stageProgress)); }
@@ -119,7 +139,7 @@ function recordStageClear() {
     catch(_) { /* Keep records in memory when storage is unavailable. */ }
     queueOnlineProfileSave();
 }
-function unlockedLevel() { return stageProgress[courseMode].cleared + 1; }
+function unlockedLevel() { return stageProgress.existing.cleared + 1; }
 function mapBounds() {
     return {first:mapPage*MAP_PAGE_SIZE+1,last:(mapPage+1)*MAP_PAGE_SIZE};
 }
@@ -222,7 +242,7 @@ function renderLevelMap() {
     // The route is painted into the approved wallpaper; never draw a replacement road.
     for (let n=first;n<=last;n++) {
         const p=mapPoint(n),locked=!debugMode && n>unlocked,done=n<=cleared;
-        const record=done && stageRecords[courseMode][n];
+        const record=done && stageRecords[courseMode][n]?.version===COURSE_VERSION && stageRecords[courseMode][n];
         const stars=record?.stars || 0;
         const rating=stars ? `<span class="map-node-stars" aria-hidden="true">${'⭐️'.repeat(stars)}</span>` : '';
         const hasReward=hasMapReward(n);
@@ -237,8 +257,6 @@ function renderLevelMap() {
     ui.mapMarker.hidden = (mapSelected<first || mapSelected>last) && !mapTransition;
     if (!ui.mapMarker.hidden) positionMapMarker(mapPoint(mapSelected));
     if(typeof updateMapAppearance==='function')updateMapAppearance();
-    ui.mapCourse.hidden=courseMode!=='prototype';
-    ui.mapCourse.textContent=courseMode==='prototype'?gameText("input.syncDebugCourseControls"):'';
     ui.mapPrev.hidden=mapPage===0;
     ui.mapNext.hidden=!canBrowseNextMap();
     ui.mapPrev.disabled = ui.mapPrev.hidden || !!mapTransition;
@@ -249,12 +267,17 @@ function renderLevelMap() {
     refreshDailyEntry();
     ui.debugStage.disabled = ui.debugPlay.disabled = !!mapTransition;
     ui.debugControls.hidden = !debugMode;
+    renderDebugCourseChoices();
 }
 function focusMapLevel() {
     const button=ui.mapNodes.querySelector?.(`[data-level="${mapSelected}"]`);
     button?.focus({preventScroll:true});
 }
-function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
+function showLevelMap({target=null,advanceFrom=null,onReady=null}={}) {
+    if(typeof interruptTutorialRun==='function')interruptTutorialRun();
+    endDebugCourseTrial();
+    courseMode='existing';
+    if(target===null)target=unlockedLevel();
     hideStageStart();
     cancelMapReveal();mapPreparing=true;
     ui.levelMap.classList.toggle('map-preparing',true);
@@ -280,7 +303,7 @@ function showLevelMap({target=unlockedLevel(),advanceFrom=null}={}) {
     renderLevelMap();
     const viewportHeight=ui.mapScroll.clientHeight||H;
     ui.mapScroll.scrollTop=Math.max(0,viewportHeight*.2+mapPoint(destination).y-viewportHeight/2);
-    prepareMapReveal();
+    prepareMapReveal(onReady);
 }
 function advanceLevelMap(now) {
     if (state!=='map' || mapPreparing || !mapTransition) return;
@@ -356,8 +379,8 @@ function openStageStart(n,debug=false,button=null,delay=0,retry=false) {
         renderStageHeartItems();
         renderStageStartRecord(context);
         refreshLives();
-        ui.stageStartDifficulty.textContent=difficultyLabel(difficultyForStage(n));
-        ui.stageStartLength.textContent={short:gameText("course.short"),medium:gameText("course.medium"),long:gameText("course.long")}[stageLengthInfo(n).category];
+        ui.stageStartDifficulty.textContent=courseTypeLabel(courseTypeForStage(n));
+        ui.stageStartLength.textContent=courseLengthLabel(stageLengthInfo(n).category);
         ui.stageStartButton.disabled=false;
         ui.stageStartDialog.showModal?.();
         requestGameRender();

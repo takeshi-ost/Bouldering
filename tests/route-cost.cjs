@@ -47,18 +47,19 @@ assert.equal(solveCostRoute(expensive,40,ROUTE_COST_SEARCH_CONFIG,{budget:2,noHe
 generatedCourse=null;
 selectAnchor=original.selectAnchor;supportsReachable=original.supportsReachable;supportMotionFraction=original.supportMotionFraction;
 attachMoving=original.attachMoving;limbReachable=original.limbReachable;bothHandsOnGoal=original.bothHandsOnGoal;
-courseMode='existing';reset(47);cameraIntro=null;
+courseMode='existing';reset(80);cameraIntro=null;
 assert.equal(stamina,routeExpectedMoves()+3);assert(validateRouteBudget(route));
 assert(routeResources(route).valid);
+assert(solveCostRoute(route,40,ROUTE_COST_SEARCH_CONFIG));
 assert(densityStats.costSearch.transitions<=ROUTE_COST_SEARCH_CONFIG.maxTransitions);
 assert(densityStats.routeOptimization.costAfter<=densityStats.routeOptimization.costBefore);
 const snapshot=JSON.stringify({holds,route,hearts,stamina});
-const preview=stagePreview(47);assert.equal(preview.expectedMoves,routeExpectedMoves());assert.equal(preview.stamina,stamina);
-reset(47);cameraIntro=null;assert.equal(JSON.stringify({holds,route,hearts,stamina}),snapshot);
+const preview=stagePreview(80);assert.equal(preview.expectedMoves,routeExpectedMoves());assert.equal(preview.stamina,stamina);
+reset(80);cameraIntro=null;assert.equal(JSON.stringify({holds,route,hearts,stamina}),snapshot);
 for(let i=1;i<route.length;i++) {
  camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});
  down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);assert.notEqual(state,'lost');
 }
 assert.equal(state,'won');
-console.log('PASS real 1/2/3 costs, cost-first search, reject costly shortcut, equal-cost shortening, exhausted fallback/state restoration, STAGE47 unassisted clear/preview/retry');
+console.log('PASS real 1/2/3 costs, cost-first search, reject costly shortcut, equal-cost shortening, exhausted fallback/state restoration, STAGE80 unassisted clear/preview/retry');
 `)(assert);

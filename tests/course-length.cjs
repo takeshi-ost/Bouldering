@@ -6,20 +6,19 @@ new Function('assert',env+source+`
 const counts={short:0,medium:0,long:0};
 for(let n=2;n<=10001;n++) {
  const info=stageLengthInfo(n);counts[info.category]++;
- assert.equal(info.category,stageLengthRule(n).category);
+ const recipe=CourseProgression.recipe(CourseProgression.resolveStage(n));
+ assert.equal(info.category,recipe.length==='middle'?'medium':recipe.length);
  assert.equal(info.category,info.height<=H?'short':info.height<=H*2?'medium':'long');
  assert.equal(JSON.stringify(info),JSON.stringify(stageLengthInfo(n)));
 }
-for(const [key,expected] of [['short',2000],['medium',5000],['long',3000]])assert(Math.abs(counts[key]-expected)<250);
-const weights=STAGE_CONFIG.lengthWeights,bands=DIFFICULTY_CONFIG.stageBands;
+assert(Object.values(counts).every(n=>n>0),'Normal score sampler retains all lengths');
 const report=[];
 for(let kind=0;kind<3;kind++) {
- STAGE_CONFIG.lengthWeights=[0,1,2].map(i=>Number(i===kind));
- for(let seed=0;seed<10;seed++)assert.equal(stageLengthInfo(1,seed).category,'short');
- for(const mode of ['existing','prototype'])for(const rating of [0,2,3]) {
-  DIFFICULTY_CONFIG.stageBands=[{fromStage:0,weights:[0,1,2,3].map(i=>Number(i===rating))}];
+ assert.equal(stageLengthInfo(1).category,'short','Fixed stage1 seed samples short');
+ for(const mode of ['existing'])for(const rating of [0,2,3]) {
+  debugMode=true;debugAttempt=true;debugCourseTrial={typeId:({0:0,2:2,3:6})[rating],lengthCategory:['short','medium','long'][kind],seed:23};
   courseMode=mode;reset(23);cameraIntro=null;hideStageHelp();settingsOpen=false;state='playing';
-  const info=stageLengthInfo(23),expected=['short','medium','long'][kind];
+  const info=stageLengthRule(23,23,debugCourseDistribution()),expected=['short','medium','long'][kind];
   assert.equal(info.category,expected);assert.equal(HEIGHT,info.height);assert.equal(HEIGHT,(kind+1)*H);
   const goal=holds.find(h=>h.type==='goal');
   assert(Math.abs(goal.y-STAGE_CONFIG.goalTopMargin)<=STAGE_CONFIG.holdOffset+1e-8);
@@ -27,7 +26,7 @@ for(let kind=0;kind<3;kind++) {
   if(kind===0){assert(cameraTop()<0);assert(canScrollStage(),'Short course must remain scrollable');}
   assert(validateRouteBudget(route));assert.equal(stamina,routeExpectedMoves()+3);
   const fixed=JSON.stringify({holds,route,hearts,stamina,HEIGHT});
-  const preview=stagePreview(23,mode);assert.equal(preview.stamina,stamina);assert.equal(preview.expectedMoves,routeExpectedMoves());
+  const preview=stagePreview(23,mode);assert.equal(preview.height,stageLengthInfo(23).height);assert.equal(preview.seed,23);
   assert.equal(JSON.stringify({holds,route,hearts,stamina,HEIGHT}),fixed);
   reset(23);cameraIntro=null;hideStageHelp();settingsOpen=false;state='playing';
   assert.equal(JSON.stringify({holds,route,hearts,stamina,HEIGHT}),fixed);
@@ -41,17 +40,17 @@ for(let kind=0;kind<3;kind++) {
   assert.equal(state,'won');report.push({mode,rating,length:expected,height:HEIGHT,moves});
  }
  // Geometry retries keep the selected length's base seed.
- const seed=20261023,profile=stageLengthInfo(40,seed);
+ const seed=20261023,profile=stageLengthRule(40,seed);
  const actual=createStageGenerator().generate(40,true,seed+123,seed);
  assert.equal(actual.HEIGHT,stageLayout(40,mulberry32(seed+123),seed).height);
  assert.equal(actual.HEIGHT<=H?'short':actual.HEIGHT<=H*2?'medium':'long',profile.category);
 }
-STAGE_CONFIG.lengthWeights=weights;DIFFICULTY_CONFIG.stageBands=bands;
+debugCourseTrial=null;debugAttempt=false;debugMode=false;
 // Both calendar and normal-map draws have all three lengths.
 const days=new Set();for(let day=1;day<=31;day++) {
- const p=dailyProfile('2026-10-'+String(day).padStart(2,'0'));days.add(stageLengthInfo(p.referenceStage,p.baseSeed).category);
+ const p=dailyProfile('2026-10-'+String(day).padStart(2,'0'));days.add(resolvedCourseLengthInfo(CourseProgression.resolveDaily(p.date)).category);
 }
 assert.equal(days.size,3);
-console.log('PASS length-first seeded generation: independent 2:5:3 odds, fixed intro, all lengths/modes/difficulties clear with actual input, preview/retry isolation, stable daily length during layout retry');
+console.log('PASS score-derived normal/Daily lengths, exact recipe previews; retained debug planner all lengths/families clear via real input with preview/retry isolation');
 console.log(JSON.stringify({counts,report}));
 `)(assert);

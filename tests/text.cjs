@@ -5,8 +5,11 @@ vm.runInContext(read('js/text-ja.js')+'\n'+read('js/text-en.js')+'\n'+read('js/t
 const {catalog,playerCatalog,devCatalog,text,apply}=context.copy;
 const english=vm.runInContext('GAME_TEXT_EN',context);
 assert.deepEqual(Object.keys(english).sort(),Object.keys(playerCatalog).sort());
+// New owner-authored Japanese blocks have no replacement English prose; their
+// entire containers are intentionally absent in English (help-owner-copy.cjs).
+const absentEnglish=new Set(['help.controls.feet','help.holds.goalLabel','help.holds.goal','help.map.chalk','help.map.unlock','help.rules.lives']);
 for(const key of Object.keys(playerCatalog)) {
- assert(english[key].length>0);
+ assert(absentEnglish.has(key)?english[key]==='':english[key].length>0);
  const placeholders=s=>[...s.matchAll(/\{(value\d+)\}/g)].map(m=>m[1]).sort();
  assert.deepEqual(placeholders(english[key]),placeholders(playerCatalog[key]),key);
 }
@@ -36,7 +39,8 @@ for(const node of nodes)for(const [attribute,key]of Object.entries(node.attrs))i
 assert(bindings>100);
 for(const key of Object.keys(devCatalog))assert(!Object.hasOwn(playerCatalog,key));
 const scripts=[...html.matchAll(/<script(?: type="module")? src="([^"?]+)/g)].map(m=>m[1]);
-assert.deepEqual(scripts.slice(0,6),['js/text-ja.js','js/text-en.js','js/text-dev-ja.js','js/text.js','js/score-metadata.js','js/config.js']);
+assert.deepEqual(scripts.slice(0,7),['js/tutorial-state.js','js/text-ja.js','js/text-en.js','js/text-dev-ja.js','js/text.js','js/score-metadata.js','js/config.js']);
+assert(scripts.indexOf('js/course-progression-config.js')>scripts.indexOf('js/config.js'));assert(scripts.indexOf('js/difficulty-config.js')>scripts.indexOf('js/course-progression.js'));assert(scripts.indexOf('js/difficulty-config.js')<scripts.indexOf('js/difficulty.js'));
 for(const file of scripts.filter(p=>!['js/text-ja.js','js/text-en.js','js/text-dev-ja.js'].includes(p))) {
  const source=read(file);
  for(const match of source.matchAll(/gameText\("([^"]+)"/g))assert(Object.hasOwn(catalog,match[1]),file+': '+match[1]);
@@ -45,11 +49,13 @@ for(const file of scripts.filter(p=>!['js/text-ja.js','js/text-en.js','js/text-d
  assert(!/[\u3040-\u30ff\u3400-\u9fff]/.test(code),'Unextracted copy: '+file);
 }
 // Check both directions: every reference exists and every definition has a caller.
-const sourceFiles=['index.html',...scripts.filter(file=>!file.startsWith('js/text'))];
+const sourceFiles=['index.html','scripts/formal-debug-seed.js',...scripts.filter(file=>!file.startsWith('js/text'))];
 const source=sourceFiles.map(read).join('\n');
 const refs=new Set([...source.matchAll(/(?:gameText\(["']|data-i18n(?:-[\w-]+)?=")([^"']+)["']/g)].map(m=>m[1]));
+// Artifact-only controls select among literal localization keys by state.
+for(const match of source.matchAll(/["'](formal\.[a-zA-Z.]+)["']/g)){assert(Object.hasOwn(catalog,match[1]));refs.add(match[1]);}
 for(const key of ['tips.scroll','tips.undo','tips.reach','tips.wideHold','tips.goal','tips.heart','tips.sideways','tips.appearance'])refs.add(key);
-for(const key of ['course.short','course.medium','course.long'])refs.add(key);
+for(const match of source.matchAll(/labelKey:[\s]*['"]([^'"]+)['"]/g)){assert(Object.hasOwn(catalog,match[1]),'Missing definition label '+match[1]);refs.add(match[1]);}
 for(const day of ['sun','mon','tue','wed','thu','fri','sat'])refs.add('date.weekday.'+day);
 for(const key of Object.keys(catalog))assert(refs.has(key),'Unused dictionary entry: '+key);
 console.log(`PASS text: ${Object.keys(catalog).length} source strings, ${bindings} static bindings, all JS/HTML keys, unchanged dynamic formats, literal substitution, errors and idempotent safe DOM initialization`);
