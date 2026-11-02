@@ -1,5 +1,5 @@
 {
-  "release": "0.4.36",
+  "release": "0.4.37",
   "distribution": "7",
   "identity": "trial-d7-offset10",
   "normalIdentity": "trial-d7-offset10",
@@ -9,7 +9,7 @@
   "progressionVersion": "5",
   "seedControl": true,
   "seedPreferenceKey": "ascent.trial-seed-offset.v2",
-  "commit": "612be5066f403446b8bfb23ba183d4c2f7a99cfe",
+  "commit": "311c00225c20bcec07c3fde0cbd1adcb43e1d8f1",
   "dirty": false,
   "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
   "sourceFiles": [
@@ -39,7 +39,7 @@
     },
     {
       "path": "js/config.js",
-      "sha256": "e4986937c68df6d33f311fe6aeb04fffbe5fe10505d6a128f229f46b78653575"
+      "sha256": "72b2cdb474b8feb008fe74b4dc8f4d04fba1d51b19c90eb2c3212cc0eb8289d3"
     },
     {
       "path": "js/explanation-images.js",
@@ -248,7 +248,7 @@
     {
       "path": "js/config.js",
       "bytes": 6063,
-      "sha256": "ceb51bc357534d52f0ac012909c6ad5ba51c2ea435b60a799b9afa2fe1be88ba"
+      "sha256": "d471b8aeeeeede169503d9bbad2eef36ff6d89688f2ff3251c635b4fc258bead"
     },
     {
       "path": "js/explanation-images.js",
@@ -561,6 +561,16 @@
       "sha256": "c7b6177ed8175aba7fd323122dfc975208948d1b8a6fa3f231748cdca81c93cb"
     },
     {
+      "path": "assets/help-body-tap-78-v1.png",
+      "bytes": 9892,
+      "sha256": "83531563522724d5dcb50ff510f9e1aa06f2c04af4a36a8701aafb3bc3f74700"
+    },
+    {
+      "path": "assets/help-stamina-lives-v1.jpg",
+      "bytes": 12909,
+      "sha256": "549232186278c92900491fedab7990ed40a0d5d6833fa16741bc10e34b5b4cae"
+    },
+    {
       "path": "assets/hold-hazard-source.webp",
       "bytes": 9720,
       "sha256": "6db7f68bec38cc1592e3213cbab05a8f1161f289c7979b821e34dbd4e0113a26"
@@ -678,7 +688,7 @@
     {
       "path": "js/pages-trial-bootstrap.js",
       "bytes": 2268,
-      "sha256": "9dfeab7fd629aaa7f6c4aa6d649741ffd64186c5d0fbee8be3511d0a6187d881"
+      "sha256": "f6dc3f8f4be27f4b2b1104eeedbf9c9e6948defd7213d5ea9867a63682cc7889"
     },
     {
       "path": "js/pages-trial-presentation.js",
@@ -692,8 +702,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 41057,
-      "sha256": "60a013ac91132baa7affbc69812424d098aa491e4084207eeb40273fbc7297e4"
+      "bytes": 41555,
+      "sha256": "ad0f0c16e3b87a551c4485d798beb5d2c3c9b874c4b03b8634542911b6b3c1d7"
     },
     {
       "path": ".nojekyll",
@@ -701,7 +711,7 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "totalBytes": 7326640,
+  "totalBytes": 7349939,
   "omitted": [
     "firebase-client.js",
     "native SDK",
