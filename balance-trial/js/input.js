@@ -213,6 +213,7 @@ function syncDebugCourseControls() {
 
 ui.showHelp.onclick = () => {
     if (mapPreparing || !settingsOpen || !['map','daily','playing'].includes(state) || ui.helpDialog.open) return;
+    if(typeof prepareHelpIllustrations==='function')prepareHelpIllustrations();
     ui.helpDialog.showModal();
     ui.helpScroll.scrollTop = 0;
 };
