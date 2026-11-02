@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const {createNativeFirebaseController,ATTEMPT_KEY,IDENTITY_KEY}=require('../scripts/native-firebase-controller.cjs');
 const readPolicy={firebaseMode:'read-only',firebaseEnabled:true,firebaseAuthAllowed:true,firebaseAnonymousAllowed:true,firebaseReadsAllowed:true};
-function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=false,failPersistence=false,lostResponse=false,known=null,loadGate=null,allowWrites=false,remote=new Map(),lostCommit=false}={}) {
+function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=false,failPersistence=false,lostResponse=false,known=null,loadGate=null,allowWrites=false,remote=new Map(),lostCommit=false,connectionEpoch=()=>0}={}) {
  let activePolicy={...policy},user=data.get('mock-auth')?{uid:data.get('mock-auth')}:null;
  const calls={load:0,app:0,auth:0,create:0,read:0,write:0,transactions:0};const reports=[];
  const storage={getItem:k=>{if(failStorage)throw Error('storage');return data.get(k)??null;},setItem:(k,v)=>{if(failStorage)throw Error('storage');data.set(k,v);},removeItem:k=>data.delete(k)};
@@ -21,7 +21,7 @@ function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=
    },deleteDoc(){calls.write++;throw Error('delete forbidden');}}
  };
  const control=createNativeFirebaseController({mode,config:{projectId:'bouldering-7482d'},policy:()=>activePolicy,storage,knownUid:()=>known,
-  loadSDK:async()=>{calls.load++;if(loadGate)await loadGate;sdk.loaded=true;return sdk;},onReport:r=>reports.push(r)});
+  loadSDK:async()=>{calls.load++;if(loadGate)await loadGate;sdk.loaded=true;return sdk;},onReport:r=>reports.push(r),connectionEpoch,connectionEpoch});
  return {control,calls,data,reports,remote,revoke:()=>activePolicy.firebaseEnabled=false};
 }
 (async()=>{
@@ -64,6 +64,30 @@ function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=
  assert.deepEqual(require('../js/score-metadata.js').scoreMetadata(auto.remote.get('stageScores/v1_existing_2/entries/existing-test')),capturedMeta);
  await auto.control.syncFreshScore('existing-test','v1_existing_2',{moves:10,timeMs:11000});assert.equal(auto.calls.write,3);
  await assert.rejects(auto.control.adapter().saveScore(),/write-disabled/);await assert.rejects(auto.control.syncFreshScore('another-owner','v1_existing_2',{moves:1,timeMs:1}),/identity-mismatch/);assert.equal(auto.calls.create,0);
+ // New generation support never changes authentication or legacy provenance.
+ const generations=fixture({mode:'auto-sync',policy:autoPolicy,data:identity(),allowWrites:true});
+ assert.equal(generations.control.report().connectionSuccesses,0);
+ await generations.control.authenticate();assert.equal(generations.control.report().connectionSuccesses,0,'Auth restore is not verified service access');
+ for(const version of ['v1','v2','v3','v4'])await generations.control.syncFreshScore('existing-test',version+'_existing_1',{moves:20,timeMs:200,scoreSpecVersion:version});
+ const successful=generations.control.report().connectionSuccesses;
+ await generations.control.syncFreshScore('existing-test','v4_existing_1',{moves:30,timeMs:300,scoreSpecVersion:'v4'});
+ assert.equal(generations.control.report().connectionSuccesses,successful+1,'No-op server transaction is verified');
+ for(const [board,score] of [['v4_existing_1',{moves:1,timeMs:1,scoreSpecVersion:'v3'}],['v3_existing_1',{moves:1,timeMs:1,scoreSpecVersion:'v4'}],['v4_existing_1',{moves:1,timeMs:1,rankingEligible:false}],['v4_daily_1',{moves:1,timeMs:1}],['trial-d7-offset10_existing_1',{moves:1,timeMs:1}],['v1_prototype_1',{moves:1,timeMs:1}]])await assert.rejects(generations.control.syncFreshScore('existing-test',board,score),/invalid-score/);
+ assert.equal(generations.control.report().connectionSuccesses,successful+1,'Errors are not successes');
+ generations.remote.set('stageScores/v4_existing_2/entries/existing-test',{moves:1,timeMs:1});
+ await generations.control.syncFreshScore('existing-test','v4_existing_2',{moves:10,timeMs:10,scoreSpecVersion:'v4'});
+ assert.deepEqual(generations.remote.get('stageScores/v4_existing_2/entries/existing-test'),{moves:1,timeMs:1},'Unknown old metadata remains unknown');
+ generations.remote.set('stageScores/v4_existing_3/entries/existing-test',{moves:1,timeMs:1,scoreSpecVersion:'v3'});
+ await assert.rejects(generations.control.syncFreshScore('existing-test','v4_existing_3',{moves:10,timeMs:10,scoreSpecVersion:'v4'}),/invalid-remote-score/);
+ await assert.rejects(generations.control.scores('existing-test','v4_existing_3'),/invalid-remote-score/);
+ generations.remote.set('players/existing-test',{...input.profile,name:'Real saved name'});
+ let chosen=await generations.control.syncAutomaticProfile('existing-test',{...input.profile,name:'iOS接続テスト'});
+ assert.equal(chosen.name,'Real saved name');assert.equal(generations.remote.get('players/existing-test').name,'Real saved name');
+ chosen=await generations.control.syncAutomaticProfile('existing-test',{...input.profile,name:'Explicit edit'},{nameChanged:true});assert.equal(chosen.name,'Explicit edit');
+ let epoch=2,unblock;const gate=new Promise(r=>unblock=r);const stale=fixture({data:identity(),loadGate:gate,connectionEpoch:()=>epoch});
+ const reading=stale.control.getProfile('existing-test');epoch=3;unblock();await reading;assert.equal(stale.control.report().connectionEpoch,2,'Request carries its starting epoch, not completion epoch');
+ await stale.control.getProfile('existing-test');assert.equal(stale.control.report().connectionEpoch,3);
+ assert.equal(generations.control.permissions().create,false);assert.equal(generations.control.permissions().transfer,false);assert.equal(generations.control.permissions().deletion,false);
  console.log('PASS native Firebase mock: dormant offline SDK; separate auth/read gates; persistence fail-stop; durable one-attempt creation; restored identity; every write/transfer/delete denied; queues preserved; reports sanitized');
  console.log('PASS automatic writes: own identity only; unchanged profile and worse score skipped; better score saved; limited test API removed');
 })().catch(e=>{console.error(e);process.exitCode=1;});

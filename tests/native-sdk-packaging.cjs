@@ -1,5 +1,5 @@
 'use strict';
-// Baseline native SDK/control only. Not the complete game wrapper or an Xcode build.
+// Native SDK/control only. Not the complete game wrapper or an Xcode build.
 const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {spawnSync}=require('node:child_process');
 const root=path.resolve(__dirname,'..'),out=fs.mkdtempSync(path.join(os.tmpdir(),'ascent-native-sdk-'));
@@ -17,5 +17,5 @@ try {
   });
   process.stdout.write(run.stdout||'');process.stderr.write(run.stderr||'');
   assert.equal(run.error,undefined);assert.equal(run.status,0);
-  console.log('PASS baseline native SDK packaging: real esbuild/Firebase dependency; offline VM gates; NOT full native integration or device verification');
+  console.log('PASS native SDK packaging: real esbuild/Firebase dependency; offline VM gates; NOT an Xcode build or device verification');
 } finally {fs.rmSync(out,{recursive:true,force:true});}

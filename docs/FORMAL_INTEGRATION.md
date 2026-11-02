@@ -1,4 +1,4 @@
-# Current game integration — Web 0.4.47 (not published)
+# Current game integration — Web 0.4.50 (game deployment pending)
 
 The current game is the formal development baseline. Use the existing GitHub
 repository and Firebase project `bouldering-7482d`; no second service environment.
@@ -50,20 +50,25 @@ short-heart cap and low-score exclusivity remain unchanged. No rebalance.
 Private policy/support drafts, local release identity settings and private commit
 ancestry are not introduced. Existing public `balance-trial/`, native project,
 old documents, logs and metadata are left unchanged. The native project remains
-public-baseline 0.4.6/build14, not a new native release. Its later private work is
-retained separately and is not discarded or represented as integrated here.
+public-baseline 0.4.6/build14, not a new native release. Current game-to-native
+source adapters and the queue support formal course generations; see
+[NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) for remaining limits. Later private
+native work is retained separately; signing, identity and optional launch artwork
+are not imported.
 
-`firestore.rules` is an additive local draft for v4. Before enabling public
-online play, review the actual deployed Rules and run the v1–v4 scenarios in a
-real emulator, then deploy only with authority. Neither live Rules nor Firebase
-accounts/data were accessed or changed. No dependency installation was performed.
+`firestore.rules` is an additive draft for v4. Its v1–v4 suite passed 129
+assertions in the GitHub demo emulator (see [CI scope](FIRESTORE_RULES_CI.md)).
+Before public online play, review the actual deployed Rules and deploy changes
+only with authority. No live Rules/accounts/data were accessed or changed.
+Locked official test dependencies are installed for CI and local mocked builds.
 
 The focused `test:web` command tests the packaged runtime using mocks/VM, save
 continuation, fresh STAGE0, deletion/reload, settings/SEED/ranking isolation,
 profiles/queues/transfer, tutorial, Daily, ads, and actual stages1–20 generation.
-It is not the entire legacy/native test aggregate. Browser/device/audio, actual
-Firebase access and current Rules emulator validation remain unperformed.
+It is not the entire legacy/native test aggregate. Browser/device/audio and
+actual Firebase access remain unperformed; current native scope is documented
+separately and is not a signed/Xcode-compiled release.
 
-Final focused result: **31/31 suites passed**. One copied native-upgrade fixture
-was separated from Web connection presentation and rerun; no native implementation
-was changed to satisfy it. Results: [verification/web-integration-0.4.47.json](verification/web-integration-0.4.47.json).
+Current focused result: **31/31 Web suites passed**, alongside the native checks
+listed above. The initial Web-only integration result is retained separately:
+[verification/web-integration-0.4.47.json](verification/web-integration-0.4.47.json).

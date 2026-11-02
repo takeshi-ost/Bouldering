@@ -1,11 +1,12 @@
 'use strict';
-const {scoreMetadata}=require('../js/score-metadata.js');
+const {scoreMetadata,supportedScoreBoard,scoreMatchesBoard}=require('../js/score-metadata.js');
 const PROJECT='bouldering-7482d';
 const ATTEMPT_KEY='ascent.native-firebase.auth-attempt.v1';
 const IDENTITY_KEY='ascent.native-firebase.identity-check.v1';
-function createNativeFirebaseController({policy,mode,config,loadSDK,storage,knownUid=()=>null,onReport=()=>{}}) {
+function createNativeFirebaseController({policy,mode,config,loadSDK,storage,knownUid=()=>null,onReport=()=>{},connectionEpoch=()=>globalThis.ASCENT_SETTINGS_CONNECTION?.ticket()}) {
     let sdkPromise,authPromise,app,auth,db;
-    const report={phase:'offline',authenticated:false,restored:false,createdThisRun:0,sameIdentity:false,readQueries:0,mapDocuments:0,scoreDocuments:0,blockedWrites:0,writesIssued:0,lastError:''};
+    const report={phase:'offline',authenticated:false,restored:false,createdThisRun:0,sameIdentity:false,readQueries:0,mapDocuments:0,scoreDocuments:0,blockedWrites:0,writesIssued:0,lastError:'',connectionSuccesses:0};
+    function verified(ticket){report.connectionSuccesses++;report.connectionEpoch=ticket;report.lastError='';}
     const publish=()=>onReport(Object.freeze({...report}));
     const error=code=>Object.assign(new Error(code),{code});
     function permissions() {
@@ -79,10 +80,12 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
         const s=await sdk();db ||= s.firestore.getFirestore(app);return s.firestore;
     }
     async function getProfile(uid) {
+        const connectionTicket=connectionEpoch();
         const f=await database();requirePermission('read');report.readQueries++;
-        const snap=await f.getDocFromServer(f.doc(db,'players',uid));publish();return snap.exists()?snap.data():null;
+        const snap=await f.getDocFromServer(f.doc(db,'players',uid));verified(connectionTicket);publish();return snap.exists()?snap.data():null;
     }
     async function players(first,last,modeName) {
+        const connectionTicket=connectionEpoch();
         if(!Number.isSafeInteger(first) || !Number.isSafeInteger(last) || first<1 || last<first || last-first>=20 || !['existing','prototype'].includes(modeName))throw error('native-firebase/invalid-query');
         const f=await database(),field=modeName==='prototype'?'reachedPrototypeLevel':'reachedLevel',rows=[];
         for(let n=first;n<=last;n++) {
@@ -90,11 +93,12 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
             const snap=await f.getDocsFromServer(f.query(f.collection(db,'players'),f.where(field,'==',n),f.limit(6)));
             rows.push(...snap.docs.map(doc=>({...doc.data(),id:doc.id})));
         }
-        report.mapDocuments+=rows.length;report.phase='reading';publish();return rows;
+        report.mapDocuments+=rows.length;report.phase='reading';verified(connectionTicket);publish();return rows;
     }
     async function scores(uid,board) {
+        const connectionTicket=connectionEpoch();
         requirePermission('read');
-        if(!/^v1_(existing|prototype)_[1-9][0-9]{0,5}$/.test(board))throw error('native-firebase/invalid-board');
+        if(!supportedScoreBoard(board))throw error('native-firebase/invalid-board');
         const user=await authenticate();if(user.uid!==uid)throw error('native-firebase/identity-mismatch');
         const f=await database();requirePermission('read');
         const collection=f.collection(db,'stageScores',board,'entries');report.readQueries+=2;
@@ -103,14 +107,16 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
             f.getDocFromServer(f.doc(collection,uid))]);
         const rows=snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));
         if(own.exists() && !rows.some(row=>row.id===uid))rows.push({...own.data(),id:uid});
+        if(rows.some(row=>!scoreMatchesBoard(board,row)))throw error('native-firebase/invalid-remote-score');
         for(const row of rows.filter(row=>row.id!==uid).slice(0,5))row.profile=await getProfile(row.id);
-        report.scoreDocuments+=rows.length;report.phase='ready';publish();return rows;
+        report.scoreDocuments+=rows.length;report.phase='ready';verified(connectionTicket);publish();return rows;
     }
     function validProfile(p) {
         const color=x=>typeof x==='string' && /^#[0-9a-fA-F]{6}$/.test(x);
         return p && typeof p.name==='string' && p.name.trim().length>0 && Array.from(p.name).length<=40 && Array.isArray(p.colors) && p.colors.length>=1 && p.colors.length<=8 && p.colors.every(color) && color(p.headColor) && [p.reachedLevel,p.reachedPrototypeLevel].every(n=>Number.isSafeInteger(n) && n>=1 && n<=1000000);
     }
-    async function syncAutomaticProfile(owner,profile) {
+    async function syncAutomaticProfile(owner,profile,{nameChanged=false}={}) {
+        const connectionTicket=connectionEpoch();
         requirePermission('automaticSync');
         const user=await authenticate();if(user.uid!==owner)throw error('native-firebase/identity-mismatch');
         if(!validProfile(profile))throw error('native-firebase/invalid-profile');
@@ -118,27 +124,28 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
         const result=await f.runTransaction(db,async t=>{
             const snapshot=await t.get(ref),remote=snapshot.exists()?snapshot.data():null;
             if(remote && !validProfile(remote))throw error('native-firebase/invalid-remote-profile');
-            const next={name:profile.name,colors:[...profile.colors],headColor:profile.headColor,
+            const next={name:remote && !nameChanged?remote.name:profile.name,colors:[...profile.colors],headColor:profile.headColor,
                 reachedLevel:Math.max(profile.reachedLevel,remote?.reachedLevel||1),reachedPrototypeLevel:Math.max(profile.reachedPrototypeLevel,remote?.reachedPrototypeLevel||1)};
-            if(remote && Object.entries(next).every(([k,v])=>JSON.stringify(remote[k])===JSON.stringify(v)))return {written:false};
+            if(remote && Object.entries(next).every(([k,v])=>JSON.stringify(remote[k])===JSON.stringify(v)))return {written:false,name:next.name};
             requirePermission('automaticSync');if(auth.currentUser?.uid!==owner)throw error('native-firebase/identity-mismatch');
-            t.set(ref,{...next,updatedAt:f.serverTimestamp()});return {written:true};
+            t.set(ref,{...next,updatedAt:f.serverTimestamp()});return {written:true,name:next.name};
         });
-        if(result.written){report.writesIssued++;report.profileUpdates=(report.profileUpdates||0)+1;}report.lastError='';report.phase='synced';publish();return result;
+        if(result.written){report.writesIssued++;report.profileUpdates=(report.profileUpdates||0)+1;}verified(connectionTicket);report.phase='synced';publish();return result;
     }
     async function syncFreshScore(owner,board,score) {
+        const connectionTicket=connectionEpoch();
         requirePermission('automaticSync');
         const user=await authenticate();if(user.uid!==owner)throw error('native-firebase/identity-mismatch');
-        if(!/^v1_(existing|prototype)_[1-9][0-9]{0,5}$/.test(board) || !Number.isSafeInteger(score?.moves) || score.moves<1 || score.moves>1000000 || !Number.isSafeInteger(score.timeMs) || score.timeMs<0 || score.timeMs>604800000)throw error('native-firebase/invalid-score');
+        if(!supportedScoreBoard(board) || board.split('_')[1]!=='existing' || score?.rankingEligible===false || !scoreMatchesBoard(board,score) || !Number.isSafeInteger(score?.moves) || score.moves<1 || score.moves>1000000 || !Number.isSafeInteger(score.timeMs) || score.timeMs<0 || score.timeMs>604800000)throw error('native-firebase/invalid-score');
         const f=await database(),ref=f.doc(db,'stageScores',board,'entries',owner);
         const result=await f.runTransaction(db,async t=>{
             const snapshot=await t.get(ref),previous=snapshot.exists()?snapshot.data():null;
-            if(previous && (!Number.isSafeInteger(previous.moves) || !Number.isSafeInteger(previous.timeMs)))throw error('native-firebase/invalid-remote-score');
+            if(previous && (!Number.isSafeInteger(previous.moves) || !Number.isSafeInteger(previous.timeMs) || !scoreMatchesBoard(board,previous)))throw error('native-firebase/invalid-remote-score');
             if(previous && (previous.moves<score.moves || (previous.moves===score.moves && previous.timeMs<=score.timeMs)))return {written:false};
             requirePermission('automaticSync');if(auth.currentUser?.uid!==owner)throw error('native-firebase/identity-mismatch');
             t.set(ref,{moves:score.moves,timeMs:score.timeMs,...scoreMetadata(score),updatedAt:f.serverTimestamp()});return {written:true};
         });
-        if(result.written){report.writesIssued++;report.freshScoreWrites=(report.freshScoreWrites||0)+1;}report.lastError='';report.phase='synced';publish();return result;
+        if(result.written){report.writesIssued++;report.freshScoreWrites=(report.freshScoreWrites||0)+1;}verified(connectionTicket);report.phase='synced';publish();return result;
     }
     const deny=()=>{report.blockedWrites++;publish();return Promise.reject(error('native-firebase/write-disabled'));};
     const safePlayers=(...args)=>players(...args).catch(e=>{throw fail(e);});

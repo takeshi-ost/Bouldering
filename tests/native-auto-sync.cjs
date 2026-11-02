@@ -1,13 +1,13 @@
 'use strict';
 const assert=require('node:assert/strict');
 const {createNativeAutoSync,SYNC_KEY}=require('../scripts/native-auto-sync.cjs');
-function fixture(data=new Map(),remote=new Map()) {
+function fixture(data=new Map(),remote=new Map(),courseVersion='v1') {
  const calls={profiles:[],scores:[],writes:0,auth:0};let online=true,lost=false,blockProfile;
  const storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v)};
  const controller={permissions:()=>({automaticSync:true}),authenticate:async o=>{assert.equal(o.createAnonymous,false);calls.auth++;if(!online)throw {code:'auth/network-request-failed'};},
-  syncAutomaticProfile:async(uid,p)=>{if(!online)throw {code:'firestore/unavailable'};calls.profiles.push(p);if(blockProfile){const block=blockProfile;blockProfile=null;await block;}remote.set('profile',p);return {written:true};},
+  syncAutomaticProfile:async(uid,p,{nameChanged=false}={})=>{if(!online)throw {code:'firestore/unavailable'};calls.profiles.push(p);if(blockProfile){const block=blockProfile;blockProfile=null;await block;}const name=!nameChanged && remote.has('profile')?remote.get('profile').name:p.name;remote.set('profile',{...p,name});return {written:true,name};},
   syncFreshScore:async(uid,board,s)=>{if(!online)throw {code:'firestore/unavailable'};calls.scores.push({board,score:s});const old=remote.get(board);if(!old || old.moves>s.moves || (old.moves===s.moves && old.timeMs>s.timeMs)){remote.set(board,s);calls.writes++;}if(lost){lost=false;throw {code:'firestore/unavailable'};}return {written:true};}};
- const queue=createNativeAutoSync({storage,owner:'existing-owner',controller,clock:()=>1000});
+ const queue=createNativeAutoSync({storage,owner:'existing-owner',controller,courseVersion,clock:()=>1000});
  return {queue,data,remote,calls,online:v=>online=v,lose:()=>lost=true,block:p=>blockProfile=p};
 }
 const profile={name:'local-private-name',colors:['#123456'],headColor:'#abcdef',reachedLevel:2,reachedPrototypeLevel:1};
@@ -18,8 +18,8 @@ const profile={name:'local-private-name',colors:['#123456'],headColor:'#abcdef',
  h.queue.recordClear(1,'existing',{moves:12,timeMs:5000,version:'v1'});await h.queue.flush();
  assert.equal(h.calls.scores[0].score.moves,12,'Send actual new clear, even when worse than historical local best');assert.equal(h.remote.get('v1_existing_1').moves,12);
  assert.equal(data.get('ascent.pending-scores.v1'),oldQueue);assert.equal(data.get('ascent.records.v1'),'old best: 4 moves');
- h.queue.queueProfile(profile);await h.queue.flush();assert.equal(h.calls.profiles.at(-1).name,'iOS接続テスト');
- h.queue.profileEdited({...profile,colors:['#112233']},false);await h.queue.flush();assert.equal(h.calls.profiles.at(-1).name,'iOS接続テスト');
+ h.queue.queueProfile(profile);await h.queue.flush();assert.equal(h.calls.profiles.at(-1).name,profile.name);
+ h.queue.profileEdited({...profile,colors:['#112233']},false);await h.queue.flush();assert.equal(h.calls.profiles.at(-1).name,profile.name);
  h.queue.profileEdited({...profile,name:'explicit-public-name'},true);await h.queue.flush();assert.equal(h.calls.profiles.at(-1).name,'explicit-public-name');
  const offline=fixture();offline.online(false);
  offline.queue.recordClear(2,'existing',{moves:10,timeMs:8000,version:'v1'});await offline.queue.flush();
@@ -32,5 +32,30 @@ const profile={name:'local-private-name',colors:['#123456'],headColor:'#abcdef',
  const concurrent=fixture();let release;concurrent.block(new Promise(r=>release=r));concurrent.queue.queueProfile(profile);await new Promise(r=>setImmediate(r));
  concurrent.queue.queueProfile({...profile,colors:['#445566']});release();await concurrent.queue.flush();assert.equal(concurrent.calls.profiles.length,2);assert.deepEqual(concurrent.remote.get('profile').colors,['#445566']);
  const invalid=new Map([[SYNC_KEY,'{"version":1}']]);const safe=fixture(invalid);await safe.queue.flush();assert(safe.queue.report().syncError);assert.equal(safe.calls.scores.length,0);assert.equal(invalid.get(SYNC_KEY),'{"version":1}');
- console.log('PASS automatic queue: persistent activation boundary; historical queues/best never imported; worse fresh result sent; offline/restart recovery; duplicate suppression; safe public name; concurrent profile edits; corrupt storage fail-stop');
+ // Upgrade keeps old queue bytes/provenance and skips retained-only events.
+ const entries=[{sequence:1,board:'v1_existing_1',score:{moves:8,timeMs:10}},
+  {sequence:2,board:'v2_existing_1',score:{moves:7,timeMs:11,scoreSpecVersion:'v2',appVersion:'0.4.10'}},
+  {sequence:3,board:'v3_existing_1',score:{moves:6,timeMs:12,scoreSpecVersion:'v3'}},
+  {sequence:4,board:'v1_prototype_1',score:{moves:1,timeMs:1}},
+  {sequence:5,board:'v5_existing_1',score:{moves:1,timeMs:1}},
+  {sequence:6,board:'v4_existing_2',score:{moves:1,timeMs:1,scoreSpecVersion:'v3'}},
+  {sequence:7,board:'v4_existing_3',score:{moves:1,timeMs:1,rankingEligible:false}}];
+ const upgradeData=new Map([[SYNC_KEY,JSON.stringify({version:1,owner:'existing-owner',activatedAt:42,sequence:7,name:'Saved name',profile:null,events:entries})],['ascent.pending-scores.v1',oldQueue]]);
+ const upgraded=fixture(upgradeData,new Map(),'v4');upgraded.online(false);
+ for(const candidate of [{moves:30,timeMs:40,version:'v3'},{moves:30,timeMs:40,version:'v4',rankingEligible:false},{moves:30,timeMs:40,version:'v4',scoreSpecVersion:'v3'}])assert.equal(upgraded.queue.recordClear(1,'existing',candidate),false);
+ assert.equal(upgraded.queue.recordClear(1,'daily',{moves:30,timeMs:40,version:'v4'}),false);
+ assert(upgraded.queue.recordClear(1,'existing',{moves:30,timeMs:40,version:'v4',scoreSpecVersion:'v4',appVersion:'0.4.49'}));await upgraded.queue.flush();
+ const resumed=fixture(upgradeData,new Map(),'v4');await resumed.queue.flush();
+ assert.deepEqual(resumed.calls.scores.map(e=>e.board),['v1_existing_1','v2_existing_1','v3_existing_1','v4_existing_1']);
+ assert.deepEqual(resumed.calls.scores.slice(0,3).map(e=>e.score),entries.slice(0,3).map(e=>e.score));
+ assert.deepEqual(JSON.parse(upgradeData.get(SYNC_KEY)).events,entries.slice(3));assert.equal(JSON.parse(upgradeData.get(SYNC_KEY)).activatedAt,42);assert.equal(upgradeData.get('ascent.pending-scores.v1'),oldQueue);assert.equal(resumed.queue.report().freshPending,0);assert.equal(resumed.queue.report().retainedEvents,4);
+ const existingProfile=fixture(new Map(),new Map([['profile',{...profile,name:'Existing remote name'}]]),'v4');existingProfile.queue.queueProfile(profile);await existingProfile.queue.flush();assert.equal(existingProfile.remote.get('profile').name,'Existing remote name');assert.equal(JSON.parse(existingProfile.data.get(SYNC_KEY)).name,'Existing remote name');
+ existingProfile.online(false);existingProfile.queue.profileEdited({...profile,name:'Explicit offline rename'},true);existingProfile.queue.profileEdited({...profile,colors:['#445566']},false);await existingProfile.queue.flush();assert.equal(JSON.parse(existingProfile.data.get(SYNC_KEY)).profile.nameChanged,true);
+ const nameRestart=fixture(existingProfile.data,existingProfile.remote,'v4');await nameRestart.queue.flush();assert.equal(nameRestart.remote.get('profile').name,'Explicit offline rename');
+ const presentationEvents=[null,{}, {board:'v4_existing_9'}, {sequence:1,board:'v3_existing_9',score:{moves:2,timeMs:2,scoreSpecVersion:'v3'}}, {sequence:2,board:'v4_existing_10',score:{moves:2,timeMs:2,rankingEligible:false}}];
+ const presentationData=new Map([[SYNC_KEY,JSON.stringify({version:1,owner:'existing-owner',sequence:2,name:'Saved',profile:null,events:presentationEvents})]]);
+ const presentation=fixture(presentationData,new Map(),'v4');assert.equal(presentation.queue.pendingForBoard('v4_existing_9'),false);assert.equal(presentation.queue.pendingForBoard('v4_existing_10'),false);assert.equal(presentation.queue.pendingForBoard('v3_existing_9'),true);assert.equal(presentation.queue.report().freshPending,1);assert.equal(presentation.queue.report().retainedEvents,4);
+ await presentation.queue.flush();assert.equal(presentation.queue.pendingForBoard('v3_existing_9'),false);assert.deepEqual(JSON.parse(presentationData.get(SYNC_KEY)).events,presentationEvents.filter((_,i)=>i!==3));
+ const malformed=JSON.stringify({version:1,owner:'existing-owner',sequence:0,name:'Saved',events:{}});const malformedData=new Map([[SYNC_KEY,malformed]]);const blocked=fixture(malformedData,new Map(),'v4');await blocked.queue.flush();assert.equal(malformedData.get(SYNC_KEY),malformed);assert.equal(blocked.calls.scores.length,0);assert.equal(blocked.queue.report().syncError,'native-sync/invalid-ledger');
+ console.log('PASS automatic queue: persistent activation boundary; historical queues/best never imported; worse fresh result sent; offline/restart recovery; duplicate suppression; real names preserved; v4 mixed-history/assisted exclusions; concurrent profile edits; corrupt storage fail-stop');
 })().catch(e=>{console.error(e);process.exitCode=1;});

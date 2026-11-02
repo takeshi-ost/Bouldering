@@ -14,10 +14,10 @@ module.exports = function nativeSource(name, source) {
     if(name==='online-scores.js') {
         // Native uses its separate post-enable ledger. Never rewrite historical
         // Web queues, even while loading/normalizing old optional metadata.
-        source=replaceOnce(source,"    try {globalThis.localStorage?.setItem(ONLINE_SCORES_KEY,JSON.stringify({uid:onlineScores.owner,items:[...onlineScores.pending]}));}catch(_) {}",'    // Historical pending storage is immutable in the native wrapper.');
+        source=replaceOnce(source,"    if(!onlineScores.blocked)try {globalThis.localStorage?.setItem(ONLINE_SCORES_KEY,JSON.stringify({uid:onlineScores.owner,items:[...onlineScores.pending]}));}catch(_) {}",'    // Historical pending storage is immutable in the native wrapper.');
         source=replaceOnce(source,`    const status=document.getElementById('onlineScoreStatus');
-    status.hidden=onlineScores.pending.size===0;
-    status.textContent=onlineScores.pending.size?gameText("online-scores.persistPendingScores", {value0: onlineScores.pending.size}):'';`,"    const status=document.getElementById('onlineScoreStatus');status.hidden=true;status.textContent='';globalThis.ASCENT_NATIVE_SYNC_STATUS?.refresh();");
+    status.hidden=!onlineScores.blocked && onlineScores.pending.size===0;
+    status.textContent=onlineScores.blocked?gameText('online-scores.pendingBlocked'):onlineScores.pending.size?gameText("online-scores.persistPendingScores", {value0: onlineScores.pending.size}):'';`,"    const status=document.getElementById('onlineScoreStatus');status.hidden=true;status.textContent='';globalThis.ASCENT_NATIVE_SYNC_STATUS?.refresh();");
         source=replaceOnce(source,'function queueOnlineScore(stage,mode,score) {',"function queueOnlineScore(stage,mode,score) {\n    if(globalThis.ASCENT_NATIVE_SYNC)return false;");
         source=replaceOnce(source,'function connectOnlineScores(uid) {',"function connectOnlineScores(uid) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().pendingScores!==true)return;");
         source=replaceOnce(source,'async function flushOnlineScores() {',"async function flushOnlineScores() {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().pendingScores!==true)return;");
@@ -26,7 +26,7 @@ module.exports = function nativeSource(name, source) {
     }
     if(name==='language.js') {
         source=replaceOnce(source,`    const pending=document.getElementById('onlineScoreStatus');
-    pending.textContent=onlineScores.pending.size?gameText("online-scores.persistPendingScores",{value0:onlineScores.pending.size}):'';`,"    const pending=document.getElementById('onlineScoreStatus');pending.hidden=true;pending.textContent='';globalThis.ASCENT_NATIVE_SYNC_STATUS?.refresh();");
+    pending.textContent=onlineScores.blocked?gameText('online-scores.pendingBlocked'):onlineScores.pending.size?gameText("online-scores.persistPendingScores",{value0:onlineScores.pending.size}):'';`,"    const pending=document.getElementById('onlineScoreStatus');pending.hidden=true;pending.textContent='';globalThis.ASCENT_NATIVE_SYNC_STATUS?.refresh();");
     }
     if(name==='level-map.js')source=replaceOnce(source,'        queueOnlineScore(level,courseMode,candidate);',
         '        globalThis.ASCENT_NATIVE_SYNC?.recordClear(level,courseMode,candidate);\n        queueOnlineScore(level,courseMode,candidate);');

@@ -59,7 +59,9 @@ for (const entry of fs.readdirSync(path.join(root, 'assets'), {recursive: true, 
     const relative = path.relative(root, source);
     assert.deepEqual(fs.readFileSync(path.join(bundle, relative)), fs.readFileSync(source), `Changed asset: ${relative}`);
 }
-const nativeDirectories = ['ios/App/App/public'];
+// CI can verify the complete generated bundle without syncing or changing an
+// Xcode project. Default behavior still verifies the synced native copy too.
+const nativeDirectories = process.argv.includes('--bundle-only')?[]:['ios/App/App/public'];
 const configuration=process.argv.includes('--release')?'Release':'Debug';
 const builtApp=`build/DerivedData/Build/Products/${configuration}-iphonesimulator/App.app`;
 if (process.argv.includes('--built')) nativeDirectories.push(`${builtApp}/public`);
@@ -80,4 +82,5 @@ for (const relative of nativeDirectories) {
         assert.equal(fs.readFileSync(path.join(nativePublic,'js/game.js'),'utf8'),expected,'Wrong native debug mutability for this configuration');
     }
 }
-console.log('PASS iOS bundle: '+firebaseMode+' Firebase gates, exact CSP/resources, no Web bootstrap, verified native adaptations and synced HTML');
+console.log('PASS iOS bundle: '+firebaseMode+' Firebase gates, exact CSP/resources, no Web bootstrap, verified native adaptations'+
+    (process.argv.includes('--bundle-only')?' (bundle only; no Xcode/device/synced-copy verification)':' and synced HTML'));

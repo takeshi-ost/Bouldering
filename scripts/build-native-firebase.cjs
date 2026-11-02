@@ -26,6 +26,7 @@ const {createNativeFirebaseController}=require('./scripts/native-firebase-contro
 const {createNativeAutoSync}=require('./scripts/native-auto-sync.cjs');
 const {createNativeSyncStatus}=require('./scripts/native-sync-status.cjs');
 const mode=${JSON.stringify(mode)},config=${JSON.stringify(config)||'undefined'};
+const courseVersion=typeof COURSE_VERSION==='string'?COURSE_VERSION:'v1';
 let storage;try{storage=globalThis.localStorage;}catch(_){}
 function pendingValue(){try{return storage?.getItem('ascent.pending-scores.v1');}catch(_){return 'unavailable';}}
 const baseline=pendingValue();
@@ -39,10 +40,12 @@ function publish(report,stats=sync?.report()||{}){
 }
 const controller=createNativeFirebaseController({mode,config,policy:()=>globalThis.ASCENT_IOS_BUILD,
  storage,loadSDK:()=>import('../vendor/firebase-sdk.js'),
+ connectionEpoch:()=>globalThis.ASCENT_SETTINGS_CONNECTION?.ticket(),
  knownUid:()=>readOnlineCheckpoint()?.uid || onlineScores.owner || null,onReport:publish});
 Object.defineProperty(globalThis,'ASCENT_NATIVE_FIREBASE',{value:controller,writable:false,configurable:false});
 if(controller.permissions().automaticSync){
- sync=createNativeAutoSync({storage,owner:storage.getItem('ascent.native-firebase.identity-check.v1'),controller,onReport:stats=>publish(controller.report(),stats)});
+ let owner;try{owner=storage?.getItem('ascent.native-firebase.identity-check.v1');}catch(_){}
+ sync=createNativeAutoSync({storage,owner,controller,courseVersion,onReport:stats=>publish(controller.report(),stats)});
  Object.defineProperty(globalThis,'ASCENT_NATIVE_SYNC',{value:sync,writable:false,configurable:false});
  for(const event of ['online','focus','ascent-native-resume'])window.addEventListener(event,()=>{void sync.flush();});
 }
@@ -54,7 +57,9 @@ if(controller.permissions().network)void(async()=>{
   setOnlineStatus(mode==='auto-sync'?'オンライン同期 / Online sync':'オンライン（読み取り専用） / Read-only online');
   renderTransferAvailability();renderMapPlayers();
   if(sync){sync.queueProfile(onlineProfile());await sync.flush();}
-  await controller.players(1,1,'existing');await controller.scores(user.uid,'v1_existing_1');
+  await controller.players(1,1,'existing');
+  const firstBoard=typeof scoreBoardKey==='function'?scoreBoardKey(1,'existing'):courseVersion+'_existing_1';
+  await controller.scores(user.uid,firstBoard);
  }catch(error){online.ready=false;setOnlineStatus('オンライン接続なし / Offline');console.warn('Native Firebase:',controller.report().lastError || 'native-firebase/read-unavailable');}
 })();`;
     esbuild.buildSync({stdin:{contents:entry,resolveDir:root},bundle:true,format:'iife',platform:'browser',target:'ios15',
