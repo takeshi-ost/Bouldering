@@ -108,6 +108,12 @@ button:disabled { opacity: .45; cursor: default; }
 .help-heading h2 { margin: 0; font-size: 20px; }
 .help-heading button { flex-shrink: 0; padding: 10px 14px; }
 .help-dialog h3 { margin: 22px 0 8px; font-size: 15px; }
+.help-dialog h4 { margin: 0 0 8px; font-size: 14px; }
+.help-scroll section > h3 { margin-top:16px; }
+.help-scroll .help-divider { border:0; border-top:1px solid #dce0d4; margin:20px 0; }
+.help-scroll p, .help-scroll li, .help-dialog .help-heading h2 { overflow-wrap:anywhere; }
+.help-scroll:focus-visible { outline:2px solid #8b9b80; outline-offset:-2px; }
+.help-dialog .help-trial-note { padding:10px 12px; border-radius:10px; background:#eee9df; }
 .help-dialog p, .help-dialog li { font-size: 13px; line-height: 1.8; }
 .help-dialog ul { padding-left: 20px; }
 

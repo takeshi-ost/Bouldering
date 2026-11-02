@@ -5,18 +5,18 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=b0749789b0d6">
+    <link rel="stylesheet" href="styles.css?v=bfc13e788481">
     <link rel="stylesheet" href="pages-trial.css?v=c7480538c274">
-    <script src="js/pages-trial-bootstrap.js?v=5a0aee402887" defer></script>
+    <script src="js/pages-trial-bootstrap.js?v=376c1ed94bf1" defer></script>
     <script src="js/pages-trial-seed-state.js?v=81b9c063eaaf" defer></script>
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=26e4029dfbb5" defer></script>
-    <script src="js/text-ja.js?v=84e751b3c26a" defer></script>
-    <script src="js/text-en.js?v=5463e3554551" defer></script>
+    <script src="js/text-ja.js?v=4825655c0bad" defer></script>
+    <script src="js/text-en.js?v=9517b9c51ae9" defer></script>
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
     <script src="js/text.js?v=cc1d9f4cd73e" defer></script>
     <script src="js/score-metadata.js?v=00c4b2028f9d" defer></script>
-    <script src="js/config.js?v=1c86d4b81353" defer></script>
+    <script src="js/config.js?v=666036260d32" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=5f7bedbad5c1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -58,7 +58,7 @@
     <script src="js/main.js?v=31bc14f06d88" defer></script>
     <script src="js/pages-trial-seed-core.js?v=3a2df88e53da" defer></script>
     <script src="js/pages-trial-seed-ui.js?v=e46ba3482153" defer></script>
-    <script src="js/pages-trial-presentation.js?v=0919ac27e527" defer></script>
+    <script src="js/pages-trial-presentation.js?v=60e4f9a2beab" defer></script>
 </head>
 <body>
     <main>
@@ -335,26 +335,74 @@
         </dialog>
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
             <div class="help-heading"><h2 id="helpTitle" data-i18n="ui.showHelp"></h2><button id="closeHelp" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeHelp.aria-label">×</button></div>
-            <div id="helpScroll" class="help-scroll">
-            <h3 data-i18n="help.stage.heading"></h3>
-            <p data-i18n="help.stage.movement"></p>
-            <p data-i18n="help.stage.undoScroll"></p>
-            <h3 data-i18n="help.holds.heading"></h3>
-            <ul>
+            <div id="helpScroll" class="help-scroll" tabindex="0" aria-label="" data-i18n-aria-label="ui.showHelp">
+                <section aria-labelledby="helpContents">
+                <h3 id="helpContents" data-i18n="help.contents.heading"></h3>
+                <ul class="help-contents">
+                <li><span data-i18n="help.game.heading"></span><ul><li data-i18n="help.rules.heading"></li><li data-i18n="help.controls.heading"></li><li data-i18n="help.holds.heading"></li></ul></li>
+                <li data-i18n="help.map.heading"></li>
+                <li data-i18n="help.daily.heading"></li>
+                <li><span data-i18n="help.settings.heading"></span><ul><li data-i18n="help.editor.heading"></li></ul></li>
+                </ul>
+                <p id="helpTrialNote" class="help-trial-note" hidden data-i18n="help.trialNote"></p>
+                </section>
+                <hr class="help-divider">
+                <section aria-labelledby="helpGame">
+                <h3 id="helpGame" data-i18n="help.game.heading"></h3>
+                <p data-i18n="help.game.intro"></p>
+                <hr class="help-divider">
+                <section aria-labelledby="helpRules">
+                <h4 id="helpRules" data-i18n="help.rules.heading"></h4>
+                <p data-i18n="help.rules.goal"></p>
+                <p data-i18n="help.rules.stamina"></p>
+                <p data-i18n="help.rules.tutorial"></p>
+                </section>
+                <hr class="help-divider">
+                <section aria-labelledby="helpControls">
+                <h4 id="helpControls" data-i18n="help.controls.heading"></h4>
+                <p data-i18n="help.controls.move"></p>
+                <p data-i18n="help.controls.undo"></p>
+                <p data-i18n="help.controls.scroll"></p>
+                </section>
+                <hr class="help-divider">
+                <section aria-labelledby="helpHolds">
+                <h4 id="helpHolds" data-i18n="help.holds.heading"></h4>
+                <ul>
                 <li><strong data-i18n="help.holds.normalLabel"></strong><span data-i18n="help.holds.normal"></span></li>
                 <li><strong data-i18n="help.holds.wideLabel"></strong><span data-i18n="help.holds.wide"></span></li>
                 <li><strong data-i18n="help.holds.hazardLabel"></strong><span data-i18n="help.holds.hazard"></span></li>
                 <li><strong data-i18n="help.holds.heartLabel"></strong><span data-i18n="help.holds.heart"></span></li>
-            </ul>
-            <p data-i18n="help.stamina"></p>
-            <h3 data-i18n="help.mapDaily.heading"></h3>
-            <p><strong data-i18n="help.mapLabel"></strong><span data-i18n="help.map"></span></p>
-            <p><strong data-i18n="help.livesLabel"></strong><span data-i18n="help.lives"></span></p>
-            <p><strong data-i18n="help.rankingLabel"></strong><span data-i18n="help.ranking"></span></p>
-            <p><strong data-i18n="help.dailyLabel"></strong><span data-i18n="help.daily"></span></p>
-            <h3 data-i18n="ui.characterEditor.aria-label"></h3>
-            <p data-i18n="help.editor.customize"></p>
-            <p data-i18n="help.editor.saveCancel"></p>
+                <li><strong data-i18n="help.holds.chalkLabel"></strong><span data-i18n="help.holds.chalk"></span></li>
+                </ul>
+                </section>
+                </section>
+                <hr class="help-divider">
+                <section aria-labelledby="helpMap">
+                <h3 id="helpMap" data-i18n="help.map.heading"></h3>
+                <p data-i18n="help.map.select"></p>
+                <p data-i18n="help.map.records"></p>
+                <p data-i18n="help.map.rewards"></p>
+                <p data-i18n="help.map.lives"></p>
+                </section>
+                <hr class="help-divider">
+                <section aria-labelledby="helpDaily">
+                <h3 id="helpDaily" data-i18n="help.daily.heading"></h3>
+                <p data-i18n="help.daily.select"></p>
+                <p data-i18n="help.daily.attempts"></p>
+                <p data-i18n="help.daily.rewards"></p>
+                </section>
+                <hr class="help-divider">
+                <section aria-labelledby="helpSettings">
+                <h3 id="helpSettings" data-i18n="help.settings.heading"></h3>
+                <p data-i18n="help.settings.audio"></p>
+                <p data-i18n="help.settings.navigation"></p>
+                <hr class="help-divider">
+                <section aria-labelledby="helpEditor">
+                <h4 id="helpEditor" data-i18n="help.editor.heading"></h4>
+                <p data-i18n="help.editor.customize"></p>
+                <p data-i18n="help.editor.saveCancel"></p>
+                </section>
+                </section>
             </div>
         </dialog>
     </main>

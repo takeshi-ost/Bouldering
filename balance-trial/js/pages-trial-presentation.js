@@ -5,4 +5,6 @@
  for(const id of ['titleTransfer','transferDialog','deleteUserDialog','debugDeleteUser']){const node=document.getElementById(id);if(node){node.hidden=true;node.inert=true;node.setAttribute('aria-hidden','true');}}
  setOnlineStatus('試遊専用・オフライン（ランキング送信／引き継ぎなし）');
  document.getElementById('playerUuid').textContent='TRIAL — separate local save';
+ // Explanations of trial-only limits never appear in the formal game's help.
+ document.getElementById('helpTrialNote').hidden=false;
 })();

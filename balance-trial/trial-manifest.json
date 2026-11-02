@@ -1,5 +1,5 @@
 {
-  "release": "0.4.33",
+  "release": "0.4.34",
   "distribution": "7",
   "identity": "trial-d7-offset10",
   "normalIdentity": "trial-d7-offset10",
@@ -9,7 +9,7 @@
   "progressionVersion": "5",
   "seedControl": true,
   "seedPreferenceKey": "ascent.trial-seed-offset.v2",
-  "commit": "90ed04bedb4802db89fea798c41e3ffc3ad457da",
+  "commit": "3bad9c5a9d90a094d7ff962a80a9148ab445d01a",
   "dirty": false,
   "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
   "sourceFiles": [
@@ -19,11 +19,11 @@
     },
     {
       "path": "js/text-ja.js",
-      "sha256": "84e751b3c26ab70111fb724bbec7f5c5ceff46cabcd5c47349abeefed58567d8"
+      "sha256": "4825655c0bad5363fe5897eff90f8bbf17e79cce313ef4ed855498303660853a"
     },
     {
       "path": "js/text-en.js",
-      "sha256": "5463e3554551e8a1360e0bb7da1d490bde90975d6455e08c86ed27f0a5cc75df"
+      "sha256": "9517b9c51ae9457f797b29e850c0f68f6457a0283ebb4eff239ba6c43f40b508"
     },
     {
       "path": "js/text-dev-ja.js",
@@ -39,7 +39,7 @@
     },
     {
       "path": "js/config.js",
-      "sha256": "4b5013ed60f97f35e93439e843db41b1df0b2a43d838710553875c24e71b1a55"
+      "sha256": "7e84ca4a8de8941951f78dade60f83e8b4ffa30f560b127bf79e65741fdb9f1c"
     },
     {
       "path": "js/explanation-images.js",
@@ -218,13 +218,13 @@
     },
     {
       "path": "js/text-ja.js",
-      "bytes": 17589,
-      "sha256": "84e751b3c26ab70111fb724bbec7f5c5ceff46cabcd5c47349abeefed58567d8"
+      "bytes": 20845,
+      "sha256": "4825655c0bad5363fe5897eff90f8bbf17e79cce313ef4ed855498303660853a"
     },
     {
       "path": "js/text-en.js",
-      "bytes": 15940,
-      "sha256": "5463e3554551e8a1360e0bb7da1d490bde90975d6455e08c86ed27f0a5cc75df"
+      "bytes": 18406,
+      "sha256": "9517b9c51ae9457f797b29e850c0f68f6457a0283ebb4eff239ba6c43f40b508"
     },
     {
       "path": "js/text-dev-ja.js",
@@ -244,7 +244,7 @@
     {
       "path": "js/config.js",
       "bytes": 6063,
-      "sha256": "1c86d4b813539636a8cd6a71f07cbf2492994df00c239073536aebac7cc352e3"
+      "sha256": "666036260d32eab820504bfbb2319072e178e5e7df57441e81481ce604278308"
     },
     {
       "path": "js/explanation-images.js",
@@ -458,8 +458,8 @@
     },
     {
       "path": "styles.css",
-      "bytes": 51405,
-      "sha256": "b0749789b0d6bd9629324380cc6faa470f6ff3cfccf13e9afe53f585fad2ddf2"
+      "bytes": 51855,
+      "sha256": "bfc13e7884817b4b70afeb297f5e66e84c734ed7bc3101ca37a024ed53fb15c2"
     },
     {
       "path": "assets/audio/bgm-loop.mp3",
@@ -669,12 +669,12 @@
     {
       "path": "js/pages-trial-bootstrap.js",
       "bytes": 2268,
-      "sha256": "5a0aee402887a0cb831a4f4db88e4f02632de0665dbe3a6468084a0e7d74b246"
+      "sha256": "376c1ed94bf1a8f87293970a37865a2b0d5daa33bdf4d69179646799b1b02efb"
     },
     {
       "path": "js/pages-trial-presentation.js",
-      "bytes": 766,
-      "sha256": "0919ac27e5274c9aee686dafc8ebef4ef6946c45de5ff489ce90144396f3feb6"
+      "bytes": 900,
+      "sha256": "60e4f9a2beab0c47e0ace718453362d39da6c482bef2b7c4707206ee706de135"
     },
     {
       "path": "pages-trial.css",
@@ -683,8 +683,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 35538,
-      "sha256": "9df15f05020f5da5625930d43d68a567e4297e3aaa506934ea815154eb37ff3a"
+      "bytes": 38163,
+      "sha256": "4607e50507996dbf1c7dbb01f9cd3b9800f7c46de288b2d6084ab14f660bcd04"
     },
     {
       "path": ".nojekyll",
@@ -692,7 +692,7 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "totalBytes": 7312691,
+  "totalBytes": 7321622,
   "omitted": [
     "firebase-client.js",
     "native SDK",
