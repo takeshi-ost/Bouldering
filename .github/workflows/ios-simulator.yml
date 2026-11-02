@@ -1,0 +1,82 @@
+name: Unsigned offline iOS simulator build
+
+on:
+  push:
+    branches: [feature/formal-integration]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-simulator-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  simulator:
+    # Standard hosted macOS is free for public repositories. Do not silently
+    # consume private-repository minutes if repository visibility changes.
+    if: ${{ github.event.repository.private == false }}
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+      ASCENT_FIREBASE_MODE: offline
+      CI: 'true'
+    steps:
+      - name: Check out this commit without retained credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '24.22.1'
+          package-manager-cache: false
+      - name: Check installed Xcode and simulator SDK
+        run: |
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version
+          xcrun --sdk iphonesimulator --show-sdk-version
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate safe CI configuration
+        run: node tests/ios-simulator-ci.cjs
+      - name: Copy offline bundle only into this disposable checkout
+        run: |
+          npm run build:ios-assets
+          ./node_modules/.bin/cap copy ios
+          node tests/ios-assets.cjs
+          git diff --exit-code
+      - name: Compile and verify unsigned Debug and Release products
+        run: |
+          for configuration in Debug Release; do
+            xcodebuild -project ios/App/App.xcodeproj -scheme App \
+              -configuration "$configuration" -sdk iphonesimulator \
+              -destination 'generic/platform=iOS Simulator' \
+              -derivedDataPath build/DerivedData \
+              CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= \
+              ASCENT_FIREBASE_MODE=offline build
+            flags=()
+            if [ "$configuration" = Release ]; then flags+=(--release); fi
+            node tests/ios-assets.cjs --built "${flags[@]}"
+            app="build/DerivedData/Build/Products/$configuration-iphonesimulator/App.app"
+            test "$(/usr/libexec/PlistBuddy -c 'Print :ASCENTFirebaseMode' "$app/Info.plist")" = offline
+            test "$(/usr/libexec/PlistBuddy -c 'Print :ASCENTBuildConfiguration' "$app/Info.plist")" = "$configuration"
+            xcrun vtool -show-build "$app/App" | grep -q IOSSIMULATOR
+          done
+          git diff --exit-code
+      - name: Record verification scope
+        if: always()
+        env:
+          TEST_RESULT: ${{ job.status }}
+        run: |
+          {
+            echo '## Unsigned offline simulator compilation'
+            echo "Commit: $GITHUB_SHA"
+            echo "Result: $TEST_RESULT"
+            xcodebuild -version
+            echo 'Target: generic iOS Simulator; Debug and Release; signing disabled.'
+            echo 'Verifies Swift/SPM compilation, resources and configuration-specific game bundle.'
+            echo 'No app launch, physical device, Apple account, signing, secrets, artifact upload, Pages deploy or Firebase access.'
+            echo 'This does not verify runtime UI/audio, online authentication or deployed production Rules.'
+          } >> "$GITHUB_STEP_SUMMARY"
