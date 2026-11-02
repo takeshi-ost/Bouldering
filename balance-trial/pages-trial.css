@@ -10,7 +10,7 @@
 .pages-trial-seed-dialog input[type=checkbox]{width:24px;height:24px;accent-color:#9dceff}
 #pagesTrialSeedInput{box-sizing:border-box;display:block;width:100%;min-height:48px;margin-top:8px;padding:10px;border:1px solid #a9bbce;border-radius:6px;font:18px monospace;background:#fff;color:#111}
 .pages-trial-seed-dialog input:focus-visible{outline:3px solid #82c9ff;outline-offset:3px}
-.pages-trial-seed-dialog button:focus-visible,#pagesTrialSeedOpenTitle:focus-visible{outline:none;box-shadow:var(--button-focus-mark);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.pages-trial-seed-dialog button:focus-visible,#pagesTrialSeedOpenTitle:focus-visible{outline:none;box-shadow:none;text-decoration:none;text-shadow:none}
 .pages-trial-seed-dialog :disabled{opacity:.55;cursor:not-allowed}
 #pagesTrialSeedRange,#pagesTrialSeedHelp{font-size:13px;color:#d4deea}
 #pagesTrialSeedError{color:#ffb8b0;min-height:1.5em}

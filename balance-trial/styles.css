@@ -5,7 +5,7 @@
     --button-focus: #315b70;
     --button-focus-contrast: #fffdf4;
     --button-selection-glow: #6b91a63d;
-    --button-focus-mark: inset 0 -3px 0 var(--button-focus), inset 0 -5px 0 var(--button-focus-contrast);
+    --button-keyboard-bg: #b1c6d0;
 }
 
 * {
@@ -94,14 +94,15 @@ button:hover, .transfer-download:hover {
 button:active, .transfer-download:active { filter:brightness(.96); }
 button:disabled:hover, button:disabled:active { filter:none; }
 
-/* No enclosing focus frame: a two-tone bottom mark plus text underline. */
+/* Button feedback must not add underlines, bars, frames or glyph shadows.
+   Local palette overrides also reach high-specificity ID/secondary styles. */
+button, [role="button"], .transfer-download, .modal-tap { text-decoration:none; text-shadow:none; }
 button:focus, [role="button"]:focus, .transfer-download:focus { outline:none; }
 button:focus-visible, [role="button"]:focus-visible, .transfer-download:focus-visible {
-    outline:none;
-    box-shadow:var(--button-focus-mark);
-    text-decoration:underline;
-    text-decoration-thickness:2px;
-    text-underline-offset:4px;
+    outline:none; box-shadow:none; text-decoration:none; text-shadow:none;
+}
+button:focus-visible, .transfer-download:focus-visible {
+    --button-bg:var(--button-keyboard-bg);
 }
 
 .card button {
@@ -186,7 +187,7 @@ html[lang="ja"] .help-scroll .help-item-gap { margin-top:16px; }
 .map-node:disabled:hover { filter:none; }
 .map-node[aria-current] { outline:none; }
 .map-node[aria-current] .map-wall[data-status="active"] .map-icon-image { filter:saturate(2.4) hue-rotate(-8deg) contrast(1.06); }
-.map-node:focus-visible { outline:none; box-shadow:var(--button-focus-mark); }
+.map-node:focus-visible { outline:none; box-shadow:none; }
 .map-marker { position:absolute; transform:translate(-50%,-100%); width:24px; height:32px; pointer-events:none; z-index:1; filter:drop-shadow(0 2px 1px #25372f30); }
 .map-marker i { position:absolute; top:0; left:6px; width:12px; height:12px; border-radius:50%; background:var(--head-color,#e0b99b); border:1px solid #fff7e9; }
 .map-marker b { position:absolute; left:3px; top:12px; width:18px; height:20px; border:2px solid #fff7e9; border-radius:5px 5px 3px 3px; background:var(--body-stripes,#39785b); }
@@ -213,7 +214,7 @@ html[lang="ja"] .help-scroll .help-item-gap { margin-top:16px; }
 .editor-workspace { display:flex; flex:1 1 0; min-height:0; max-height:420px; }
 .editor-preview { display:block; width:100%; height:100%; min-height:0; background:radial-gradient(ellipse,#e2e8dc 0,transparent 65%); }
 .editor-preview [data-stripe],.editor-preview [data-part="head"] { cursor:pointer; }
-.editor-preview [data-stripe]:focus-visible,.editor-preview [data-part="head"]:focus-visible { outline:none; filter:drop-shadow(0 0 2px var(--button-focus-contrast)) drop-shadow(0 0 3px var(--button-focus)); }
+.editor-preview [data-stripe]:focus-visible,.editor-preview [data-part="head"]:focus-visible { outline:none; filter:brightness(.78); }
 .stripe-slider { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; }
 .stripe-slider output { color:#39785b; font-size:18px; }
 #stripeCount { width:100%; margin:0; accent-color:#39785b; min-height:28px; }
@@ -310,7 +311,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .daily-streak { margin:2px 0 0; color:#8a6322; font-size:13px; font-weight:800; line-height:16px; }
 .daily-month-navigation h2 { font-size:18px; margin:0; }
 .daily-month-navigation button { padding:6px 12px; background:var(--button-bg); box-shadow:none; }
-.daily-month-navigation button:focus-visible { box-shadow:var(--button-focus-mark); }
+.daily-month-navigation button:focus-visible { box-shadow:none; }
 .daily-weekdays,.daily-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:0; }
 .daily-weekdays { text-align:center; font-size:12px; color:#627864; margin-bottom:4px; }
 .daily-month-viewport { position:relative; flex:1; min-height:0; overflow:hidden; }
@@ -332,7 +333,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .daily-day[aria-current="date"]::before,.daily-day.is-selected::before { content:""; position:absolute; z-index:-1; top:50%; left:50%; width:36px; height:36px; transform:translate(-50%,-50%); border-radius:50%; pointer-events:none; }
 .daily-day[aria-current="date"]::before { background:#478bc6; }
 .daily-day.is-selected:not([aria-current="date"])::before { box-shadow:inset 0 0 0 2px #478bc6; }
-.daily-day:focus-visible { outline:none; box-shadow:var(--button-focus-mark); }
+.daily-day:focus-visible { outline:none; box-shadow:none; }
 .daily-stage-start { position:relative; flex:none; margin-top:0; padding:18px; border-radius:18px; background:#f8f6ee; color:#25372f; }
 .daily-stage-start h2 { margin:0; font-size:20px; line-height:28px; letter-spacing:0; white-space:nowrap; }
 #dailyStartButton { display:block; width:100%; height:44px; min-height:44px; margin:0; font-size:15px; }
@@ -347,7 +348,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .map-page { position:absolute; z-index:3; left:50%; transform:translateX(-50%); display:grid; place-items:center; width:100px; height:44px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; appearance:none; -webkit-tap-highlight-color:transparent; }
 .map-page svg { display:block; width:100%; height:28px; overflow:visible; fill:#f4dfa0; stroke:#fff; stroke-width:2; stroke-linejoin:round; pointer-events:none; transform-origin:center; transition:transform 100ms ease-out; }
 .map-page:active:not(:disabled) > svg { transform:scale(1.1); }
-.map-page:focus-visible { outline:none; box-shadow:var(--button-focus-mark); }
+.map-page:focus-visible { outline:none; box-shadow:none; }
 @media (prefers-reduced-motion:reduce) { .map-page svg { transition:none; } }
 .map-page:hover { background:transparent; filter:brightness(1.1); }
 .map-page[hidden] { display:none; }
@@ -403,11 +404,9 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
     box-shadow:none;
 }
 .modal-close:hover { background:transparent; }
-/* Icon-only dismissal must not inherit text-button underlines/bottom bars.
-   Native dialog autofocus may count as focus-visible. Keep the glyph intact;
-   keyboard focus is indicated on the glyph itself, never across its hit box. */
+/* Native autofocus may count as focus-visible; only tint the close glyph. */
 button.modal-close { text-decoration:none; }
-button.modal-close:focus-visible { outline:none; box-shadow:none; text-decoration:none; color:var(--button-focus); text-shadow:0 0 1px var(--button-focus),0 0 4px var(--button-focus-contrast); }
+button.modal-close:focus-visible { outline:none; box-shadow:none; text-decoration:none; color:var(--button-focus); text-shadow:none; }
 .modal-tap,dialog .modal-tap { display:block; width:100%; margin:12px 0 0; padding:4px 0;
     background:transparent; color:#555; font:900 18px/26px system-ui,-apple-system,sans-serif;
     -webkit-text-stroke:2px #fff; paint-order:stroke fill;
@@ -449,7 +448,7 @@ button.modal-close:focus-visible { outline:none; box-shadow:none; text-decoratio
 /* The title covers a laid-out, decoded map until preparation is complete. */
 .title-screen { outline:none; cursor:default; -webkit-tap-highlight-color:transparent; }
 .title-screen:focus-visible { box-shadow:none; text-decoration:none; }
-.title-screen:focus-visible .title-tap { text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:4px; }
+.title-screen:focus-visible .title-tap { color:var(--button-focus); text-decoration:none; text-shadow:none; }
 .title-screen[aria-disabled="false"] { cursor:pointer; }
 .title-content .title-tagline { margin:6px 0 0; font-size:13px; letter-spacing:.4px; }
 /* The wall already uses the safe logical viewport. Equal top/bottom padding
@@ -695,7 +694,7 @@ dialog.help-dialog { max-height:min(560px,calc(var(--viewport-height,700px) - 32
 .map-heading .daily-airship { -webkit-tap-highlight-color:transparent; appearance:none; }
 .daily-airship-body { position:relative; display:block; width:100%; height:100%; pointer-events:none; transition:transform 100ms ease-out; transform-origin:center; }
 .daily-airship:active > .daily-airship-body { transform:scale(1.04); }
-.daily-airship:focus-visible { outline:none; box-shadow:var(--button-focus-mark); }
+.daily-airship:focus-visible { outline:none; box-shadow:none; }
 @media (prefers-reduced-motion:reduce) { .daily-airship-body { transition:none; } }
 
 /* Isolated generation inspector; logical viewport coordinates, Debug only. */
@@ -716,15 +715,20 @@ dialog.help-dialog { max-height:min(560px,calc(var(--viewport-height,700px) - 32
 .tutorial-dialog .feature-help-icon img { display:block; width:100%; height:100%; object-fit:contain; }
 .tutorial-dialog .feature-help-icon img[hidden] { display:none; }
 .tutorial-dialog button.modal-tap { border:0; border-radius:0; min-height:44px; cursor:pointer; }
-/* Programmatic page focus has no frame. Keyboard users can still Tab to TAP;
-   its visible indicator follows the text instead of boxing the full hit area. */
+/* Reading-card autofocus stays undecorated; keyboard TAP only changes color. */
 .tutorial-dialog .card:focus { outline:none; }
-.tutorial-dialog button.modal-tap:focus-visible { outline:none; box-shadow:none; text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:4px; }
+.tutorial-dialog button.modal-tap:focus-visible { outline:none; box-shadow:none; text-decoration:none; text-shadow:none; color:var(--button-focus); }
 .title-tutorial-error { position:absolute; left:22px; right:22px; bottom:108px; text-align:center; color:#9b3f32; font-size:13px; }
 
-/* These ID-level button surfaces otherwise outrank the shared focus rule. */
-#stageHeartCount:focus-visible,#stageHeartReset:focus-visible { box-shadow:var(--button-focus-mark); }
 /* The file picker has a browser-owned button, not a recolored file field. */
 .transfer-dialog input[type=file]::file-selector-button { border:0; border-radius:8px; background:var(--button-bg); color:var(--button-fg); padding:10px 12px; font:inherit; cursor:pointer; }
-.transfer-dialog input[type=file]:focus-visible { outline:none; text-decoration:underline; text-underline-offset:4px; }
-.transfer-dialog input[type=file]:focus-visible::file-selector-button { box-shadow:var(--button-focus-mark); }
+.transfer-dialog input[type=file]:focus-visible { outline:none; text-decoration:none; text-shadow:none; --button-bg:var(--button-keyboard-bg); }
+.transfer-dialog input[type=file]:focus-visible::file-selector-button { box-shadow:none; }
+
+/* Image-only controls have no text to tint. Change brightness, not their shape,
+   white strokes, layout or shadow geometry. Existing selection art is retained. */
+button.settings-button:focus-visible,button.map-node:focus-visible,
+button.map-page:focus-visible,button.daily-airship:focus-visible,
+button.daily-day:focus-visible,.palette-swatches button:focus-visible,
+#openDaily:focus-visible,#dailyBack:focus-visible { filter:brightness(.78); }
+.map-opponent:focus-visible { opacity:.7; }
