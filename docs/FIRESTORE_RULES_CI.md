@@ -21,15 +21,17 @@ to commit SHAs. Installation downloads packages and the CLI downloads the offici
 Firestore emulator; this is not a network-free job. No Firebase authentication,
 production secrets, service account or OIDC permission is supplied.
 
-The suite accepts only `127.0.0.1:8089` and uses the synthetic `demo-score-legacy`
-and `demo-score-metadata` projects. The CLI also uses a `demo-` ID. Authenticated
+The suite accepts only `127.0.0.1:8089` and uses the synthetic `demo-score-legacy`,
+`demo-score-console` and `demo-score-metadata` projects. The CLI also uses a `demo-` ID. Authenticated
 contexts are mocks, not real Firebase sign-ins. Full Git history is checked out
-because the legacy Rules fixture comes from public commit `795bc083`.
+because the legacy Rules fixture comes from public commit `795bc083`, and the
+owner-provided Console snapshot matches public commit `a5ffb19`.
+See [the snapshot comparison](FIRESTORE_CONSOLE_REVIEW_2026-11-02.md).
 
 ## Scope
 
-The tests compare historical Rules with the current repository file, including
-v1–v4 score generations, metadata compatibility, ownership, anonymous rejection,
+The tests compare historical, owner-provided Console and current repository Rules, including
+v1–v4 score generations, metadata compatibility, ownership, unauthenticated rejection,
 numeric/timestamp validation, improved-record updates and deletion locks.
 They do not verify currently deployed production Rules, real connectivity,
 anonymous-account creation/deletion, a browser, or native SDK integration.
