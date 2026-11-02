@@ -14,7 +14,7 @@
     "test": "node scripts/test-all.cjs",
     "test:web": "node scripts/test-web-integration.cjs",
     "build:web": "node scripts/build-pages-formal.cjs",
-    "test:rules": "firebase emulators:exec --config tests/firestore/firebase.emulator.json --project demo-ascent-rules --only firestore --non-interactive \"node tests/firestore/score-metadata.mjs\""
+    "test:rules": "firebase emulators:exec --config firebase.emulator.json --project demo-ascent-rules --only firestore --non-interactive \"node tests/firestore/score-metadata.mjs\""
   },
   "dependencies": {
     "@capacitor/core": "8.5.3",

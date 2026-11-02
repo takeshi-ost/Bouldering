@@ -1,15 +1,15 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs');
-const config=JSON.parse(fs.readFileSync('tests/firestore/firebase.emulator.json','utf8'));
+const config=JSON.parse(fs.readFileSync('firebase.emulator.json','utf8'));
 assert.deepEqual(config.emulators.firestore,{host:'127.0.0.1',port:8089});
 assert.equal(config.emulators.ui.enabled,false);
 assert.equal(config.emulators.singleProjectMode,false); // Two independent demo projects in the suite.
-assert.equal(config.firestore.rules,'../../firestore.rules');
+assert.equal(config.firestore.rules,'firestore.rules');
 const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
 assert.equal(pkg.dependencies.firebase,'12.11.0');
 assert.equal(pkg.devDependencies['@firebase/rules-unit-testing'],'5.0.0');
 assert.equal(pkg.devDependencies['firebase-tools'],'15.34.2');
-assert.equal(pkg.scripts['test:rules'],'firebase emulators:exec --config tests/firestore/firebase.emulator.json --project demo-ascent-rules --only firestore --non-interactive "node tests/firestore/score-metadata.mjs"');
+assert.equal(pkg.scripts['test:rules'],'firebase emulators:exec --config firebase.emulator.json --project demo-ascent-rules --only firestore --non-interactive "node tests/firestore/score-metadata.mjs"');
 const lock=JSON.parse(fs.readFileSync('package-lock.json','utf8'));
 for(const name of ['firebase','firebase-tools','@firebase/rules-unit-testing'])
   assert.equal(lock.packages['node_modules/'+name].version,pkg.dependencies[name]||pkg.devDependencies[name]);

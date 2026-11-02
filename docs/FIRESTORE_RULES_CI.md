@@ -43,3 +43,7 @@ Only pushes to this work branch trigger it; main does not need a workflow change
 
 Actual run status and the tested commit are available in GitHub Actions. The final
 step records the checked Rules SHA-256 and the explicitly excluded verification.
+
+The emulator config lives at the repository root so its `firestore.rules` path
+stays inside the CLI project directory. An initial CI attempt rejected the old
+nested config path before running any Rules assertions; no permission bypass is used.
