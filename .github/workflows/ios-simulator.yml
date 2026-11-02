@@ -1,4 +1,4 @@
-name: Unsigned offline iOS simulator build
+name: Offline iOS simulator build and runtime smoke
 
 on:
   push:
@@ -65,6 +65,21 @@ jobs:
             xcrun vtool -show-build "$app/App" | grep -q IOSSIMULATOR
           done
           git diff --exit-code
+      - name: Build temporary simulator-only runtime harness
+        run: |
+          node scripts/prepare-ios-runtime-smoke.cjs --apply
+          trap 'git restore -- ios/App/App/SceneDelegate.swift' EXIT
+          xcodebuild -project ios/App/App.xcodeproj -scheme App \
+            -configuration Debug -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= \
+            ASCENT_FIREBASE_MODE=offline build > build/runtime-smoke-xcode.log 2>&1 || { tail -150 build/runtime-smoke-xcode.log; exit 1; }
+          tail -5 build/runtime-smoke-xcode.log
+          git restore -- ios/App/App/SceneDelegate.swift
+          git diff --exit-code
+      - name: Launch a new disposable offline simulator and exercise real WebKit
+        run: bash scripts/run-ios-runtime-smoke.sh
       - name: Record verification scope
         if: always()
         env:
@@ -77,6 +92,8 @@ jobs:
             xcodebuild -version
             echo 'Target: generic iOS Simulator; Debug and Release; signing disabled.'
             echo 'Verifies Swift/SPM compilation, resources and configuration-specific game bundle.'
-            echo 'No app launch, physical device, Apple account, signing, secrets, artifact upload, Pages deploy or Firebase access.'
-            echo 'This does not verify runtime UI/audio, online authentication or deployed production Rules.'
+            echo 'Also launches a temporary instrumented Debug copy in a fresh disposable simulator; real WebKit DOM/route-input smoke.'
+            echo 'Screenshots remain on the runner; no artifact storage/upload is configured.'
+            echo 'No physical device, Apple account, signing, secrets, Pages deploy or Firebase access.'
+            echo 'This is not physical-gesture, listening, visual-review, online-authentication or deployed-Rules verification.'
           } >> "$GITHUB_STEP_SUMMARY"
