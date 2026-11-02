@@ -403,8 +403,11 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
     box-shadow:none;
 }
 .modal-close:hover { background:transparent; }
-/* Native dialog autofocus stays frameless; keyboard focus has a bottom mark. */
-button.modal-close:focus-visible { outline:none; box-shadow:var(--button-focus-mark); }
+/* Icon-only dismissal must not inherit text-button underlines/bottom bars.
+   Native dialog autofocus may count as focus-visible. Keep the glyph intact;
+   keyboard focus is indicated on the glyph itself, never across its hit box. */
+button.modal-close { text-decoration:none; }
+button.modal-close:focus-visible { outline:none; box-shadow:none; text-decoration:none; color:var(--button-focus); text-shadow:0 0 1px var(--button-focus),0 0 4px var(--button-focus-contrast); }
 .modal-tap,dialog .modal-tap { display:block; width:100%; margin:12px 0 0; padding:4px 0;
     background:transparent; color:#555; font:900 18px/26px system-ui,-apple-system,sans-serif;
     -webkit-text-stroke:2px #fff; paint-order:stroke fill;

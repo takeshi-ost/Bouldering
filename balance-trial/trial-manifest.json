@@ -1,5 +1,5 @@
 {
-  "release": "0.4.43",
+  "release": "0.4.44",
   "distribution": "7",
   "identity": "trial-d7-offset10",
   "normalIdentity": "trial-d7-offset10",
@@ -9,7 +9,7 @@
   "progressionVersion": "5",
   "seedControl": true,
   "seedPreferenceKey": "ascent.trial-seed-offset.v2",
-  "commit": "a68851e0e3d70518aea05ba6db228495997b7bdc",
+  "commit": "f2d29904627e0cb6f1c65410c0009c31e293f53f",
   "dirty": false,
   "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
   "sourceFiles": [
@@ -39,7 +39,7 @@
     },
     {
       "path": "js/config.js",
-      "sha256": "6fd8fe3da17ebc91c29386a620dfa68526dcd91771265cfaee0c06b24d6b373e"
+      "sha256": "43bf5b0a0372a6638e415f82b473a41cc68397123eeccae613c949168286629a"
     },
     {
       "path": "js/explanation-images.js",
@@ -252,7 +252,7 @@
     {
       "path": "js/config.js",
       "bytes": 6063,
-      "sha256": "6c7a17450cc21a2d4450c2d058157a0174308797d0c9008c480e490332b8eaa5"
+      "sha256": "dbb7828af6f6d4544dd4cde7edc27fb170f1c6b00089701cfc0812c873d7d413"
     },
     {
       "path": "js/explanation-images.js",
@@ -476,8 +476,8 @@
     },
     {
       "path": "styles.css",
-      "bytes": 55885,
-      "sha256": "f2cec68b94d4dc542dc00b3b2ebbbdf6efe0d17d3d2b2134f97ce7b2c6ac17a2"
+      "bytes": 56191,
+      "sha256": "e14ec770911862995864e4272dd2dcead1b3f0dcddbe91cb2fa9b52235a64944"
     },
     {
       "path": "assets/audio/bgm-loop.mp3",
@@ -712,7 +712,7 @@
     {
       "path": "js/pages-trial-bootstrap.js",
       "bytes": 2268,
-      "sha256": "90546af099badf189c83ed196cb530daf6ac5721b43d2ee47498bf752dd60e05"
+      "sha256": "d05de9d19c5dba9c2da80a8ef930c44c0b305021945961b3a32e08f169b7812a"
     },
     {
       "path": "js/pages-trial-presentation.js",
@@ -727,7 +727,7 @@
     {
       "path": "index.html",
       "bytes": 42131,
-      "sha256": "2a2e5149dd71f25c06f360beb37245cf9016b1dd3c72cd22871831b7d3c8cea0"
+      "sha256": "a5eea2c2f217305df3191a8de6f31c9e60ea712e739ab26d2d765a9f564fe5a5"
     },
     {
       "path": ".nojekyll",
@@ -735,7 +735,7 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "totalBytes": 7494631,
+  "totalBytes": 7494937,
   "omitted": [
     "firebase-client.js",
     "native SDK",
