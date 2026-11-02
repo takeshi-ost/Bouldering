@@ -216,6 +216,12 @@ const GAME_TEXT_EN = Object.freeze({
     "ui.transferDialog.label": "File to Import",
     "ui.transferImport": "Import This Data",
     "ui.transferReload": "Reload",
+    // Owner-authored JA-only help blocks; empty translations are intentionally hidden.
+    "help.controls.feet": "",
+    "help.holds.goalLabel": "",
+    "help.holds.goal": "",
+    "help.map.chalk": "",
+    "help.map.unlock": "",
     "help.contents.heading": "Contents",
     "help.game.heading": "Playing the Game",
     "help.game.intro": "ASCENT is a bouldering game where you guide a climber to the goal. Choose your holds and try to reach the top in fewer moves.",

@@ -33,6 +33,11 @@ function applyGameText(root) {
             element.setAttribute(attribute, gameText(element.getAttribute(`data-i18n-${attribute}`)));
         }
     }
+    // Authored help can intentionally omit a block in one locale. Re-evaluate
+    // on every language switch; do not touch the separately gated trial notice.
+    for (const element of root.querySelectorAll('[data-help-if-text]')) {
+        element.hidden = !gameText(element.getAttribute('data-help-if-text')).trim();
+    }
     if (root.documentElement) root.documentElement.lang = GAME_TEXT_LANGUAGE;
     const choice = root.getElementById?.('languageChoice');
     if (choice) choice.value = GAME_TEXT_LANGUAGE;

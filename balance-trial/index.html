@@ -5,18 +5,18 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=bfc13e788481">
+    <link rel="stylesheet" href="styles.css?v=55f1cdc0f756">
     <link rel="stylesheet" href="pages-trial.css?v=c7480538c274">
-    <script src="js/pages-trial-bootstrap.js?v=376c1ed94bf1" defer></script>
+    <script src="js/pages-trial-bootstrap.js?v=ea63b9d6c1b1" defer></script>
     <script src="js/pages-trial-seed-state.js?v=81b9c063eaaf" defer></script>
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=26e4029dfbb5" defer></script>
-    <script src="js/text-ja.js?v=4825655c0bad" defer></script>
-    <script src="js/text-en.js?v=9517b9c51ae9" defer></script>
+    <script src="js/text-ja.js?v=a38a636b53a1" defer></script>
+    <script src="js/text-en.js?v=f1faaae4288d" defer></script>
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
-    <script src="js/text.js?v=cc1d9f4cd73e" defer></script>
+    <script src="js/text.js?v=39c1e3881416" defer></script>
     <script src="js/score-metadata.js?v=00c4b2028f9d" defer></script>
-    <script src="js/config.js?v=666036260d32" defer></script>
+    <script src="js/config.js?v=9340b8c850b1" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=5f7bedbad5c1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -355,12 +355,13 @@
                 <h4 id="helpRules" data-i18n="help.rules.heading"></h4>
                 <p data-i18n="help.rules.goal"></p>
                 <p data-i18n="help.rules.stamina"></p>
-                <p data-i18n="help.rules.tutorial"></p>
+                <p data-help-if-text="help.rules.tutorial" data-i18n="help.rules.tutorial"></p>
                 </section>
                 <hr class="help-divider">
                 <section aria-labelledby="helpControls">
                 <h4 id="helpControls" data-i18n="help.controls.heading"></h4>
                 <p data-i18n="help.controls.move"></p>
+                <p data-help-if-text="help.controls.feet" data-i18n="help.controls.feet"></p>
                 <p data-i18n="help.controls.undo"></p>
                 <p data-i18n="help.controls.scroll"></p>
                 </section>
@@ -371,8 +372,9 @@
                 <li><strong data-i18n="help.holds.normalLabel"></strong><span data-i18n="help.holds.normal"></span></li>
                 <li><strong data-i18n="help.holds.wideLabel"></strong><span data-i18n="help.holds.wide"></span></li>
                 <li><strong data-i18n="help.holds.hazardLabel"></strong><span data-i18n="help.holds.hazard"></span></li>
-                <li><strong data-i18n="help.holds.heartLabel"></strong><span data-i18n="help.holds.heart"></span></li>
-                <li><strong data-i18n="help.holds.chalkLabel"></strong><span data-i18n="help.holds.chalk"></span></li>
+                <li data-help-if-text="help.holds.goal"><strong data-i18n="help.holds.goalLabel"></strong><span data-i18n="help.holds.goal"></span></li>
+                <li class="help-item-gap"><strong data-i18n="help.holds.heartLabel"></strong><span data-i18n="help.holds.heart"></span></li>
+                <li data-help-if-text="help.holds.chalk"><strong data-i18n="help.holds.chalkLabel"></strong><span data-i18n="help.holds.chalk"></span></li>
                 </ul>
                 </section>
                 </section>
@@ -380,22 +382,24 @@
                 <section aria-labelledby="helpMap">
                 <h3 id="helpMap" data-i18n="help.map.heading"></h3>
                 <p data-i18n="help.map.select"></p>
-                <p data-i18n="help.map.records"></p>
-                <p data-i18n="help.map.rewards"></p>
-                <p data-i18n="help.map.lives"></p>
+                <p data-help-if-text="help.map.chalk" data-i18n="help.map.chalk"></p>
+                <p data-help-if-text="help.map.unlock" data-i18n="help.map.unlock"></p>
+                <p data-help-if-text="help.map.records" data-i18n="help.map.records"></p>
+                <p data-help-if-text="help.map.rewards" data-i18n="help.map.rewards"></p>
+                <p data-help-if-text="help.map.lives" data-i18n="help.map.lives"></p>
                 </section>
                 <hr class="help-divider">
                 <section aria-labelledby="helpDaily">
                 <h3 id="helpDaily" data-i18n="help.daily.heading"></h3>
                 <p data-i18n="help.daily.select"></p>
-                <p data-i18n="help.daily.attempts"></p>
-                <p data-i18n="help.daily.rewards"></p>
+                <p data-help-if-text="help.daily.attempts" data-i18n="help.daily.attempts"></p>
+                <p data-help-if-text="help.daily.rewards" data-i18n="help.daily.rewards"></p>
                 </section>
                 <hr class="help-divider">
                 <section aria-labelledby="helpSettings">
                 <h3 id="helpSettings" data-i18n="help.settings.heading"></h3>
                 <p data-i18n="help.settings.audio"></p>
-                <p data-i18n="help.settings.navigation"></p>
+                <p data-help-if-text="help.settings.navigation" data-i18n="help.settings.navigation"></p>
                 <hr class="help-divider">
                 <section aria-labelledby="helpEditor">
                 <h4 id="helpEditor" data-i18n="help.editor.heading"></h4>
