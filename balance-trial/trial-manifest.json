@@ -1,5 +1,5 @@
 {
-  "release": "0.4.38",
+  "release": "0.4.39",
   "distribution": "7",
   "identity": "trial-d7-offset10",
   "normalIdentity": "trial-d7-offset10",
@@ -9,7 +9,7 @@
   "progressionVersion": "5",
   "seedControl": true,
   "seedPreferenceKey": "ascent.trial-seed-offset.v2",
-  "commit": "767d52b497b76ea7e7feb5f0ee8d65ce26bf0280",
+  "commit": "3350e3bb240125ba0024c10e988656c121db80f8",
   "dirty": false,
   "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'",
   "sourceFiles": [
@@ -19,7 +19,7 @@
     },
     {
       "path": "js/text-ja.js",
-      "sha256": "32bd7c22e66ca39321ac9c14c3563f4090256afcfaf9e20cdb28c44a22b23d92"
+      "sha256": "77157b2ff74219528f26c14e9ea71035747c329c5009404308146e43bc6fac49"
     },
     {
       "path": "js/text-en.js",
@@ -39,7 +39,7 @@
     },
     {
       "path": "js/config.js",
-      "sha256": "e8dc52c0ef018d38043bbfb27eef7c2c1506878a8c02e2974fa9c4a6fe5c98ed"
+      "sha256": "5ac88dd065660136d9c94fd21b7d85d06f73cad5eb91396033aea50e6164472c"
     },
     {
       "path": "js/explanation-images.js",
@@ -222,8 +222,8 @@
     },
     {
       "path": "js/text-ja.js",
-      "bytes": 19174,
-      "sha256": "32bd7c22e66ca39321ac9c14c3563f4090256afcfaf9e20cdb28c44a22b23d92"
+      "bytes": 19031,
+      "sha256": "77157b2ff74219528f26c14e9ea71035747c329c5009404308146e43bc6fac49"
     },
     {
       "path": "js/text-en.js",
@@ -248,7 +248,7 @@
     {
       "path": "js/config.js",
       "bytes": 6063,
-      "sha256": "6a56ac94650b73b301230b926a8d5c939a81172edc22418dfbec459efb20ec59"
+      "sha256": "6355ed9a09b67d866950782a841c915aca1920423c3884023fb47e0e3fe5741d"
     },
     {
       "path": "js/explanation-images.js",
@@ -566,6 +566,21 @@
       "sha256": "83531563522724d5dcb50ff510f9e1aa06f2c04af4a36a8701aafb3bc3f74700"
     },
     {
+      "path": "assets/help-character-editor-v1.jpg",
+      "bytes": 88207,
+      "sha256": "24ee6b6531f9f1736a46fae5bc258f567311b304310ded0a1691956ed6d06a6a"
+    },
+    {
+      "path": "assets/help-daily-challenge-v1.jpg",
+      "bytes": 26642,
+      "sha256": "5e11bea3fa8ccee126e5852c88a5b7ba487f3f84607745dca53605ed96cad75f"
+    },
+    {
+      "path": "assets/help-stage-map-v1.jpg",
+      "bytes": 22100,
+      "sha256": "b2b39786b7637147fa02b49946e0ce3398a15380352b6162f96ce078f28426b1"
+    },
+    {
       "path": "assets/help-stamina-lives-v1.jpg",
       "bytes": 12909,
       "sha256": "549232186278c92900491fedab7990ed40a0d5d6833fa16741bc10e34b5b4cae"
@@ -688,7 +703,7 @@
     {
       "path": "js/pages-trial-bootstrap.js",
       "bytes": 2268,
-      "sha256": "73595acd86e22a15da117a697912410695fbfeff5fc2b4f6175f9515fcdb41b5"
+      "sha256": "553f7ff425e30b4b123558664e44eeddcb39f3442adbb98f34f036dd8f896c5c"
     },
     {
       "path": "js/pages-trial-presentation.js",
@@ -702,8 +717,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 40923,
-      "sha256": "95064dffa61029c726746fc79fb4daec6236d468e05d1b1df2585a60a79a385d"
+      "bytes": 41674,
+      "sha256": "e33b58e8583ac50568a333e85ba657e220315418a2793d69db1cbffe057e1a3c"
     },
     {
       "path": ".nojekyll",
@@ -711,7 +726,7 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "totalBytes": 7349661,
+  "totalBytes": 7487218,
   "omitted": [
     "firebase-client.js",
     "native SDK",
