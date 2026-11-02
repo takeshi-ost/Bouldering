@@ -124,6 +124,13 @@ html[lang="ja"] .help-scroll .help-item-gap { margin-top:16px; }
 .help-illustration { display:block; flex:0 0 78px; width:78px; height:78px; overflow:hidden; border-radius:12px; background:#eee9df; }
 .help-illustration canvas { display:block; width:78px; height:78px; pointer-events:none; }
 .help-illustration canvas[hidden] { display:none; }
+.help-dialog .help-hold-list { list-style:none; padding-left:0; }
+.help-hold-list strong { display:block; font-weight:700; }
+/* Shrink only these four existing icons, not their plates or the large hold. */
+.help-hold-list canvas[data-help-art="normal"],
+.help-hold-list canvas[data-help-art="hazard"],
+.help-hold-list canvas[data-help-art="goal"],
+.help-hold-list canvas[data-help-art="heart"] { transform:scale(.8); transform-origin:center; }
 
 /* A winding, touchable trail, with separate progress for each course. */
 .wall.map-open { touch-action:pan-y; }

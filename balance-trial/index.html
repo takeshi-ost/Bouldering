@@ -5,18 +5,18 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=1c43fd4de299">
+    <link rel="stylesheet" href="styles.css?v=e847b589bf77">
     <link rel="stylesheet" href="pages-trial.css?v=c7480538c274">
-    <script src="js/pages-trial-bootstrap.js?v=f6dc3f8f4be2" defer></script>
+    <script src="js/pages-trial-bootstrap.js?v=73595acd86e2" defer></script>
     <script src="js/pages-trial-seed-state.js?v=81b9c063eaaf" defer></script>
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=26e4029dfbb5" defer></script>
-    <script src="js/text-ja.js?v=0490916573af" defer></script>
-    <script src="js/text-en.js?v=f1faaae4288d" defer></script>
+    <script src="js/text-ja.js?v=32bd7c22e66c" defer></script>
+    <script src="js/text-en.js?v=26f58ad0095b" defer></script>
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
     <script src="js/text.js?v=39c1e3881416" defer></script>
     <script src="js/score-metadata.js?v=00c4b2028f9d" defer></script>
-    <script src="js/config.js?v=d471b8aeeeee" defer></script>
+    <script src="js/config.js?v=6a56ac94650b" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=5f7bedbad5c1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -337,39 +337,28 @@
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
             <div class="help-heading"><h2 id="helpTitle" data-i18n="ui.showHelp"></h2><button id="closeHelp" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeHelp.aria-label">×</button></div>
             <div id="helpScroll" class="help-scroll" tabindex="0" aria-label="" data-i18n-aria-label="ui.showHelp">
-                <section aria-labelledby="helpContents">
-                <h3 id="helpContents" data-i18n="help.contents.heading"></h3>
-                <ul class="help-contents">
-                <li><span data-i18n="help.game.heading"></span><ul><li data-i18n="help.rules.heading"></li><li data-i18n="help.controls.heading"></li><li data-i18n="help.holds.heading"></li></ul></li>
-                <li data-i18n="help.map.heading"></li>
-                <li data-i18n="help.daily.heading"></li>
-                <li><span data-i18n="help.settings.heading"></span><ul><li data-i18n="help.editor.heading"></li></ul></li>
-                </ul>
-                <p id="helpTrialNote" class="help-trial-note" hidden data-i18n="help.trialNote"></p>
-                </section>
-                <hr class="help-divider">
-                <section aria-labelledby="helpGame">
-                <h3 id="helpGame" data-i18n="help.game.heading"></h3>
                 <p data-i18n="help.game.intro"></p>
                 <hr class="help-divider">
                 <section aria-labelledby="helpRules">
-                <h4 id="helpRules" data-i18n="help.rules.heading"></h4>
+                <h3 id="helpRules" data-i18n="help.rules.heading"></h3>
                 <div class="help-illustrated-row"><span class="help-illustration" aria-hidden="true"><canvas width="156" height="156" data-help-image="assets/tutorial-goal-hands-78-v2.png" data-help-art="image" hidden></canvas></span><p class="help-illustrated-copy" data-i18n="help.rules.goal"></p></div>
                 <div class="help-illustrated-row"><span class="help-illustration" aria-hidden="true"><canvas width="156" height="156" data-help-image="assets/help-stamina-lives-v1.jpg" data-help-art="image" hidden></canvas></span><p class="help-illustrated-copy" data-i18n="help.rules.stamina"></p></div>
+                <p data-help-if-text="help.rules.lives" data-i18n="help.rules.lives"></p>
                 <p data-help-if-text="help.rules.tutorial" data-i18n="help.rules.tutorial"></p>
                 </section>
                 <hr class="help-divider">
                 <section aria-labelledby="helpControls">
-                <h4 id="helpControls" data-i18n="help.controls.heading"></h4>
+                <h3 id="helpControls" data-i18n="help.controls.heading"></h3>
                 <div class="help-illustrated-row"><span class="help-illustration" aria-hidden="true"><canvas width="156" height="156" data-help-image="assets/tutorial-swipe-78-v1.png" data-help-art="image" hidden></canvas></span><p class="help-illustrated-copy" data-i18n="help.controls.move"></p></div>
+                <p data-help-if-text="help.controls.commit" data-i18n="help.controls.commit"></p>
                 <div class="help-illustrated-row" data-help-if-text="help.controls.feet"><span class="help-illustration" aria-hidden="true"><canvas width="156" height="156" data-help-image="assets/tutorial-feet-limit-78-v2.png" data-help-art="image" hidden></canvas></span><p class="help-illustrated-copy" data-i18n="help.controls.feet"></p></div>
                 <div class="help-illustrated-row"><span class="help-illustration" aria-hidden="true"><canvas width="156" height="156" data-help-image="assets/help-body-tap-78-v1.png" data-help-art="image" hidden></canvas></span><p class="help-illustrated-copy" data-i18n="help.controls.undo"></p></div>
                 <p data-i18n="help.controls.scroll"></p>
                 </section>
                 <hr class="help-divider">
                 <section aria-labelledby="helpHolds">
-                <h4 id="helpHolds" data-i18n="help.holds.heading"></h4>
-                <ul>
+                <h3 id="helpHolds" data-i18n="help.holds.heading"></h3>
+                <ul class="help-hold-list" role="list">
                 <li><div class="help-illustrated-row"><span class="help-illustration" aria-hidden="true"><canvas width="156" height="156" data-help-image="assets/hold-shapes-gray-contrast.webp" data-help-art="normal" hidden></canvas></span><span class="help-illustrated-copy"><strong data-i18n="help.holds.normalLabel"></strong><span data-i18n="help.holds.normal"></span></span></div></li>
                 <li><div class="help-illustrated-row"><span class="help-illustration" aria-hidden="true"><canvas width="156" height="156" data-help-image="assets/hold-wide-flat.webp" data-help-art="wide" hidden></canvas></span><span class="help-illustrated-copy"><strong data-i18n="help.holds.wideLabel"></strong><span data-i18n="help.holds.wide"></span></span></div></li>
                 <li><div class="help-illustrated-row"><span class="help-illustration" aria-hidden="true"><canvas width="156" height="156" data-help-image="assets/hold-hazard-source.webp" data-help-art="hazard" hidden></canvas></span><span class="help-illustrated-copy"><strong data-i18n="help.holds.hazardLabel"></strong><span data-i18n="help.holds.hazard"></span></span></div></li>
@@ -377,7 +366,6 @@
                 <li class="help-item-gap"><div class="help-illustrated-row"><span class="help-illustration" aria-hidden="true"><canvas width="156" height="156" data-help-image="assets/course-heart-2.svg" data-help-art="heart" hidden></canvas></span><span class="help-illustrated-copy"><strong data-i18n="help.holds.heartLabel"></strong><span data-i18n="help.holds.heart"></span></span></div></li>
                 <li data-help-if-text="help.holds.chalk"><strong data-i18n="help.holds.chalkLabel"></strong><span data-i18n="help.holds.chalk"></span></li>
                 </ul>
-                </section>
                 </section>
                 <hr class="help-divider">
                 <section aria-labelledby="helpMap">
@@ -408,6 +396,7 @@
                 <p data-i18n="help.editor.saveCancel"></p>
                 </section>
                 </section>
+                <p id="helpTrialNote" class="help-trial-note" hidden data-i18n="help.trialNote"></p>
             </div>
         </dialog>
     </main>
