@@ -40,6 +40,7 @@ function setOnlineStatus(message) {
     if(typeof renderTransferAvailability==='function')renderTransferAvailability();
 }
 function onlineError(error) {
+    globalThis.ASCENT_SETTINGS_CONNECTION?.failure();
     setOnlineStatus(gameText("online.onlineError"));
     console.warn('Online profile:',error?.code || error?.message || 'connection unavailable');
 }
@@ -81,7 +82,9 @@ async function flushOnlineProfile(preferLocal=true) {
         while(online.dirty && !accountDeletion.marker && !(typeof transferBusy==='function' && transferBusy())) {
             const revision=online.revision,profile=onlineProfile();online.dirty=false;
             setOnlineStatus(gameText("online.flushOnlineProfile.2"));
+            const connectionTicket=globalThis.ASCENT_SETTINGS_CONNECTION?.ticket();
             const saved=await online.adapter.sync(online.uid,profile,preferLocal);
+            globalThis.ASCENT_SETTINGS_CONNECTION?.success(connectionTicket);
             if(accountDeletion.marker){online.dirty=false;return;}
             // A delayed first download must not replace an edit/clear made while loading.
             const changed=revision!==online.revision || onlineProfileKey(profile)!==onlineProfileKey(onlineProfile());
@@ -142,7 +145,7 @@ function onlineMapPlayers(first,last,mode) {
                 const bounds=mapBounds();
                 if(courseMode===mode && bounds.first===first && bounds.last===last)renderMapPlayers();
             }
-        }).catch(error=>console.warn('Online map:',error?.code || 'connection unavailable'))
+        }).catch(error=>{globalThis.ASCENT_SETTINGS_CONNECTION?.failure();console.warn('Online map:',error?.code || 'connection unavailable');})
             .finally(()=>{page.pending=false;});
     }
     return page.players.filter(row=>row.id!==online.uid);

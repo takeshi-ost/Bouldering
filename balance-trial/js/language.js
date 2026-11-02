@@ -5,6 +5,7 @@ function refreshGameLanguage(previous) {
     GAMEPLAY_TIPS.splice(0,GAMEPLAY_TIPS.length,...GAMEPLAY_TIP_KEYS.map(key=>gameText(key)));
     if(tipIndex>=0)ui.resultTipText.textContent=GAMEPLAY_TIPS[tipIndex];
     ui.languageChoice.value=GAME_TEXT_LANGUAGE;
+    if(typeof refreshSettingsConnection==='function')refreshSettingsConnection();
     ui.releaseVersion.textContent=gameText("label.version",{value0:RELEASE_VERSION});
     setOnlineStatus(translateExistingGameText(online.status,previous));
     for(const element of [ui.mapError,ui.dailyError,transferElement('transferStatus')]) {
@@ -18,10 +19,11 @@ function refreshGameLanguage(previous) {
     else if(state==='daily')renderDailyCalendar();
     else if(state==='editing')renderCharacterEditor();
     if(['playing','won','lost'].includes(state)) {
-        ui.level.textContent=dailyRun?gameText("label.daily",{value0:dailyRun.date.slice(5).replace('-','/')}):gameText("label.stage",{value0:level});
+        ui.level.textContent=activeDebugCourse()?gameText("debug.trialTitle",{value0:courseTypeId}):dailyRun?gameText("label.daily",{value0:dailyRun.date.slice(5).replace('-','/')}):gameText("label.stage",{value0:level});
         ui.retry.textContent=gameText(dailyRun?'action.retry':'action.retryEnglish');
         if(state==='won' || state==='lost') {
             ui.resultTitle.textContent=gameText(state==='won'?'result.success':'result.failure');
+            ui.next.textContent=dailyRun?gameText("action.returnCalendar"):gameText("action.returnMap");
             if(state==='won') {
                 ui.resultStats.textContent=formatStageRecord({moves:moveCount,timeMs:runElapsedMs});
                 if(dailyRun)ui.resultDifficulty.textContent=dailyResultDateLabel(dailyRun.date);
@@ -39,7 +41,7 @@ function dailyResultDateLabel(date) {
     return GAME_TEXT_LANGUAGE==='ja'?label.replace('(','（').replace(')','）'):label;
 }
 ui.languageChoice.onchange=()=>{
-    if(!settingsOpen || !['map','daily'].includes(state) || transferBusy()) {
+    if(!settingsOpen || !ui.settingsDialog.open || ui.helpDialog.open || !['map','daily','playing'].includes(state) || transferBusy()) {
         ui.languageChoice.value=GAME_TEXT_LANGUAGE;return;
     }
     setGameLanguage(ui.languageChoice.value);

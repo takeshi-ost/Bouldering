@@ -60,9 +60,11 @@ async function flushOnlineScores() {
             if(!next)break;
             const [board,score]=next;
             if(onlineScores.owner!==online.uid)return;
+            const connectionTicket=globalThis.ASCENT_SETTINGS_CONNECTION?.ticket();
             const saved=await online.adapter.saveScore(online.uid,board,score);
             if(accountDeletion.marker)return;
             if(!validStageScore(saved))throw new Error('Invalid saved score');
+            globalThis.ASCENT_SETTINGS_CONNECTION?.success(connectionTicket);
             if(onlineScores.pending.get(board)===score)onlineScores.pending.delete(board);
             const [version,mode,n]=board.split('_'),stage=Number(n);
             // A legacy upload must never replace a newer-generation local best.
@@ -82,6 +84,7 @@ async function flushOnlineScores() {
             refreshOpenScoreViews(board);
         }
     } catch(error) {
+        globalThis.ASCENT_SETTINGS_CONNECTION?.failure();
         console.warn('Online score save:',error?.code || error?.message);
     } finally {onlineScores.saving=false;persistPendingScores();refreshOpenScoreViews();}
 }
@@ -112,7 +115,7 @@ function onlineStageScores(stage,mode) {
                     appearance:profile?{colors:profile.colors,headColor:profile.headColor}:null};
             });
             page.loaded=true;
-        }).catch(error=>{page.error=true;console.warn('Online ranking:',error?.message || error?.code);})
+        }).catch(error=>{page.error=true;globalThis.ASCENT_SETTINGS_CONNECTION?.failure();console.warn('Online ranking:',error?.message || error?.code);})
         .finally(()=>{
             page.pending=false;
             if(page.retry){page.retry=false;page.at=0;}

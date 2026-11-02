@@ -5,18 +5,18 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=e847b589bf77">
+    <link rel="stylesheet" href="styles.css?v=33e03d4125bd">
     <link rel="stylesheet" href="pages-trial.css?v=c7480538c274">
-    <script src="js/pages-trial-bootstrap.js?v=553f7ff425e3" defer></script>
+    <script src="js/pages-trial-bootstrap.js?v=3f8de9e2a0cd" defer></script>
     <script src="js/pages-trial-seed-state.js?v=81b9c063eaaf" defer></script>
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=26e4029dfbb5" defer></script>
-    <script src="js/text-ja.js?v=77157b2ff742" defer></script>
-    <script src="js/text-en.js?v=26f58ad0095b" defer></script>
+    <script src="js/text-ja.js?v=38106bcc9248" defer></script>
+    <script src="js/text-en.js?v=c1fcb756b9f8" defer></script>
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
     <script src="js/text.js?v=39c1e3881416" defer></script>
     <script src="js/score-metadata.js?v=00c4b2028f9d" defer></script>
-    <script src="js/config.js?v=6355ed9a09b6" defer></script>
+    <script src="js/config.js?v=29aca1d2bcea" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=5f7bedbad5c1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -29,7 +29,7 @@
     <script src="js/utils.js?v=d73670fd1f8d" defer></script>
     <script src="js/difficulty.js?v=c750680f755f" defer></script>
     <script src="js/stage.js?v=1c768a6ef803" defer></script>
-    <script src="js/game.js?v=1683f5b5e8bb" defer></script>
+    <script src="js/game.js?v=82acc9587bbf" defer></script>
     <script src="js/route.js?v=850c0b3b7c69" defer></script>
     <script src="js/course.js?v=15b72884cb1e" defer></script>
     <script src="js/hazards.js?v=94e27f98abbb" defer></script>
@@ -44,22 +44,23 @@
     <script src="js/lives.js?v=9501eda39307" defer></script>
     <script src="js/rewards.js?v=9a8a6545bb5b" defer></script>
     <script src="js/debug-course.js?v=e05bdae6db0e" defer></script>
-    <script src="js/input.js?v=59fb67ec6dc0" defer></script>
+    <script src="js/input.js?v=9667ef397241" defer></script>
     <script src="js/renderer.js?v=27b99870bfcf" defer></script>
     <script src="js/help-illustrations.js?v=3aa3b1ddec68" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
     <script src="js/appearance.js?v=1557949c0558" defer></script>
     <script src="js/leaderboard.js?v=412d1528a5f3" defer></script>
-    <script src="js/online.js?v=a9a1a6dba4c6" defer></script>
-    <script src="js/online-scores.js?v=3c6f92253ac0" defer></script>
+    <script src="js/online.js?v=1c26ec94189d" defer></script>
+    <script src="js/online-scores.js?v=cca629b0deee" defer></script>
+    <script src="js/settings-connection.js?v=d7c11b465917" defer></script>
     <script src="js/account-deletion.js?v=083071301ce6" defer></script>
     <script src="js/transfer.js?v=563bc885ce41" defer></script>
-    <script src="js/language.js?v=95886a149f00" defer></script>
+    <script src="js/language.js?v=8e882c718589" defer></script>
     <script src="js/tutorial.js?v=229a0c346a1b" defer></script>
     <script src="js/main.js?v=31bc14f06d88" defer></script>
     <script src="js/pages-trial-seed-core.js?v=3a2df88e53da" defer></script>
     <script src="js/pages-trial-seed-ui.js?v=e46ba3482153" defer></script>
-    <script src="js/pages-trial-presentation.js?v=60e4f9a2beab" defer></script>
+    <script src="js/pages-trial-presentation.js?v=c93007e79de9" defer></script>
 </head>
 <body>
     <main>
@@ -216,7 +217,7 @@
                         <p id="resultScoreStatus" class="score-status" role="status"></p>
                     </section>
                     <p id="resultTap" class="modal-tap" hidden data-i18n="action.tap"></p>
-                    <button id="next" hidden></button>
+                    <button id="next" type="button" hidden></button>
                     <button class="secondary" id="retry" data-i18n="action.retryEnglish"></button>
                 </div>
             </dialog>
@@ -285,12 +286,10 @@
         </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
             <div class="help-heading"><h2 id="settingsTitle" data-i18n="ui.settingsTitle"></h2><button id="closeSettings" class="modal-close" aria-label="" autofocus data-i18n-aria-label="ui.closeSettings.aria-label">✕</button></div>
+            <div id="settingsConnectionStatus" class="settings-row settings-connection"><span data-i18n="settings.connection"></span><strong id="settingsConnectionValue" role="status" aria-live="polite"></strong></div>
             <p id="onlineStatus" class="online-status" role="status" data-i18n="online"></p>
             <p id="onlineScoreStatus" class="online-status" role="status" hidden></p>
-            <button id="restart" data-i18n="ui.restart"></button>
-            <div id="mapSettingsControls" class="map-settings-controls" hidden>
-                <button id="mapEditCharacter" class="secondary" data-i18n="ui.mapEditCharacter"></button>
-            </div>
+            <label id="mapSettingsLanguage" class="settings-row" for="languageChoice"><span data-i18n="ui.mapSettingsControls.label.span.2"></span><select id="languageChoice"><option value="ja" data-i18n="ui.languageChoice.option"></option><option value="en" data-i18n="ui.languageChoice.option.2"></option></select></label>
             <div class="settings-row audio-settings-row">
                 <label class="audio-toggle" for="musicEnabled"><span data-i18n="audio.music"></span><input id="musicEnabled" type="checkbox" checked></label>
                 <input id="musicVolume" type="range" min="0" max="100" step="1" value="100" data-i18n-aria-label="audio.musicVolume">
@@ -299,10 +298,16 @@
                 <label class="audio-toggle" for="soundEnabled"><span data-i18n="audio.effects"></span><input id="soundEnabled" type="checkbox" checked></label>
                 <input id="soundVolume" type="range" min="0" max="100" step="1" value="100" data-i18n-aria-label="audio.effectsVolume">
             </div>
-            <label id="mapSettingsLanguage" class="settings-row" for="languageChoice" hidden><span data-i18n="ui.mapSettingsControls.label.span.2"></span><select id="languageChoice"><option value="ja" data-i18n="ui.languageChoice.option"></option><option value="en" data-i18n="ui.languageChoice.option.2"></option></select></label>
             <button id="showHelp" class="secondary" aria-haspopup="dialog" aria-controls="helpDialog" data-i18n="ui.showHelp"></button>
+            <hr id="settingsDivider" class="settings-divider">
+            <div id="mapSettingsControls" class="map-settings-controls" hidden>
+                <button id="mapEditCharacter" class="secondary" data-i18n="ui.mapEditCharacter"></button>
+            </div>
             <div id="mapSettingsFooter" class="map-settings-footer" hidden>
                 <button id="mapCourses" class="secondary" data-i18n="ui.mapCourses"></button>
+            </div>
+            <button id="restart" data-i18n="ui.restart"></button>
+            <div id="mapSettingsDebug" class="map-settings-debug" hidden>
                 <label id="mapDebugModeRow" class="settings-row" for="mapDebugMode" hidden><span data-i18n="ui.mapSettingsFooter.label.span"></span><input id="mapDebugMode" type="checkbox"></label>
                 <button id="debugDeleteUser" class="account-delete-button" hidden data-i18n="ui.debugDeleteUser"></button>
             </div>

@@ -247,7 +247,14 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .settings-dialog::backdrop { background:#23372dbd; }
 .settings-dialog > button { display:block; width:100%; min-height:44px; margin-top:14px; }
 .settings-dialog [hidden] { display:none; }
-.map-settings-controls > button,.map-settings-footer > button { display:block; width:100%; min-height:44px; margin-top:14px; }
+.map-settings-controls > button,.map-settings-footer > button,.map-settings-debug > button { display:block; width:100%; min-height:44px; margin-top:14px; }
+.settings-divider { border:0; border-top:1px solid #dce0d4; margin:20px 0 6px; }
+.settings-connection { margin-top:0; }
+.settings-connection strong { font-size:14px; text-align:right; }
+#settingsDialog { box-sizing:border-box; overscroll-behavior:contain; touch-action:pan-y; }
+#settingsDialog .settings-row > span,#settingsDialog .online-status { min-width:0; overflow-wrap:anywhere; }
+#settingsDialog .settings-row select { min-width:0; flex-shrink:1; }
+#settingsDialog .help-heading h2 { overflow-wrap:anywhere; }
 .settings-row { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:48px; margin-top:12px; font-size:14px; }
 .settings-row input { width:22px; height:22px; accent-color:#39785b; }
 .settings-row select { min-height:44px; max-width:60%; padding:6px 10px; font:inherit; font-size:16px; color:inherit; background:#fffdf3; border:1px solid #c7d2bf; border-radius:8px; }

@@ -144,6 +144,11 @@ function restartInput(n,staminaBonus=0) {
     bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n,staminaBonus);showStageHelp();
 }
 ui.next.onclick = () => {
+    if(state==='lost') {
+        // Ignore queued/hidden clicks while retry confirmation or an ad owns UI.
+        if(ui.overlay.hidden || stageStartContext || lifePrompt || dummyAd || adCoverPending)return;
+        returnFromStage();return; // Same settled-life and ad gate as the close button.
+    }
     if(dailyRun && ['won','lost'].includes(state))continueDailyResult();
     else if(state==='won')continueNormalClear();
 };
@@ -218,6 +223,7 @@ ui.showHelp.onclick = () => {
     ui.helpScroll.scrollTop = 0;
 };
 ui.closeHelp.onclick = () => ui.helpDialog.close();
+ui.helpDialog.addEventListener('cancel',e=>{e.preventDefault();ui.closeHelp.onclick();});
 ui.helpDialog.onclick = e => {if(e.target===ui.helpDialog && ui.helpDialog.open)ui.helpDialog.close();};
 ui.helpDialog.addEventListener('close', () => ui.showHelp.focus());
 
@@ -287,7 +293,9 @@ function openSettings() {
     if(settingsOpen || stageStartContext || (onMap ? !!mapTransition || mapPreparing : state!=='playing' || cameraIntro || featureHelpOpen))return;
     if(!onMap) {endPointer(null,true);endPan();touchId=null;ignoreTouches=false;}
     ui.restart.hidden=onMap;
-    ui.mapSettingsControls.hidden=ui.mapSettingsFooter.hidden=ui.mapSettingsLanguage.hidden=!onMap;
+    ui.mapSettingsControls.hidden=ui.mapSettingsFooter.hidden=ui.mapSettingsDebug.hidden=!onMap;
+    ui.mapSettingsLanguage.hidden=false;
+    if(typeof refreshSettingsConnection==='function')refreshSettingsConnection();
     syncAudioControls();
     ui.stageDebugDisplay.hidden=onMap || !debugMode;
     for(const [key,control] of Object.entries(debugDisplayControls))control.checked=debugDisplay[key];
