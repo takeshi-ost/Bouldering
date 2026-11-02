@@ -44,6 +44,20 @@ Only pushes to this work branch trigger it; main does not need a workflow change
 Actual run status and the tested commit are available in GitHub Actions. The final
 step records the checked Rules SHA-256 and the explicitly excluded verification.
 
+The same job also runs `test:web` (31 focused suites, including mocked online
+adapters/queues and save continuation), the baseline native authentication/queue
+mocks, and `tests/native-sdk-packaging.cjs`. The last test builds the real Firebase
+SDK/control with esbuild into a disposable directory, then executes the offline
+controller in a VM that rejects SDK imports, network access and storage writes.
+It does not run Firebase authentication or touch the application's saved data.
+
+**Native integration is still incomplete.** The public native source remains
+0.4.6/build14: its controller/queue use v1 boards, and the full game source
+transform fails an outdated `online-scores.js` anchor. A passing SDK-only bundle
+test does not certify `build:ios-assets`, `native-sync-status`, Xcode, signing,
+or device operation. Later Mac-native changes must be reviewed separately rather
+than importing private identity/signing settings or unrelated source history.
+
 The emulator config lives at the repository root so its `firestore.rules` path
 stays inside the CLI project directory. An initial CI attempt rejected the old
 nested config path before running any Rules assertions; no permission bypass is used.
