@@ -12,7 +12,7 @@ function currentMapPlayers(first,last,mode) {
 function stageLeaderboardRows(record,others) {
     const uid=online.uid || 'local-self';
     const remote=others.find(row=>row.id===uid);
-    let own=record;
+    let own=record?.rankingEligible===false?null:record;
     if(remote && (!own || compareStageScores(remote,own)<0))own=remote;
     const sorted=others.filter(row=>row.id!==uid).map(row=>({...row,isPlayer:false}));
     if(own)sorted.push({...own,id:uid,name:playerName,isPlayer:true});
@@ -46,9 +46,9 @@ function stageLeaderboardMarkup(record,others) {
 
 function renderStageLeaderboard(expectedMoves) {
     const record=stageRecords[courseMode][level];
-    const own=!debugAttempt && record?.version===COURSE_VERSION?record:null;
+    const own=!debugAttempt && rankingAttemptEligible() && record?.version===COURSE_VERSION && record.rankingEligible!==false?record:null;
     ui.resultLeaderboard.innerHTML=stageLeaderboardMarkup(own,currentStageScores(level,courseMode,expectedMoves));
-    document.getElementById('resultScoreStatus').textContent=debugAttempt?gameText("leaderboard.renderStageLeaderboard"):stageScoreStatus(level,courseMode);
+    document.getElementById('resultScoreStatus').textContent=debugAttempt?gameText("leaderboard.renderStageLeaderboard"):!rankingAttemptEligible()?gameText("formal.ranking.localOnly"):stageScoreStatus(level,courseMode);
 }
 function renderStageStartRecord(context) {
     const record=context.n<=stageProgress[context.mode].cleared && stageRecords[context.mode][context.n]?.version===COURSE_VERSION?stageRecords[context.mode][context.n]:null;

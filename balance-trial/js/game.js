@@ -17,6 +17,10 @@ const DEBUG_FEATURES_ALLOWED = globalThis.location?.protocol === 'capacitor:'
     : true;
 let debugMode = false;
 const debugDisplay={route:true,holdNumbers:true,courseInfo:true};
+// Latched per attempt: turning a displayed route off (or undoing a move) never
+// makes an assisted attempt eligible for the formal leaderboard again.
+let rankingAssistanceUsed=false;
+function rankingAttemptEligible(){return !rankingAssistanceUsed && !debugAttempt && !activeDebugCourse();}
 let settingsOpen = false;
 function hideSettings() {
     settingsOpen=false;
@@ -27,7 +31,7 @@ function hideSettings() {
 const FEATURE_HELP_KEY='ascent.feature-help.v1';
 function readFeatureHelpSeen() {
     try {
-        const saved=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(FEATURE_HELP_KEY)||'null');
+        const saved=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(FEATURE_HELP_KEY)||'null');
         return {heart:saved?.heart===true,hazard:saved?.hazard===true};
     } catch(_) {return {heart:false,hazard:false};}
 }
@@ -69,7 +73,7 @@ function dismissStageHelp() {
     if(!featureHelpOpen || featureHelpImageLoading || !pendingFeatureHelp.length)return;
     playSound('move');
     featureHelpSeen[pendingFeatureHelp.shift()]=true;
-    try {if(!debugAttempt)ASCENT_TRIAL_STORAGE?.setItem(FEATURE_HELP_KEY,JSON.stringify(featureHelpSeen));}
+    try {if(!debugAttempt)ASCENT_FORMAL_STORAGE?.setItem(FEATURE_HELP_KEY,JSON.stringify(featureHelpSeen));}
     catch(_) { /* Remember for this session if storage is unavailable. */ }
     if(pendingFeatureHelp.length) {
         renderStageHelp();
@@ -654,6 +658,7 @@ function reset(n,staminaBonus=0) {
     difficulty=courseTypeRule(courseTypeId).generationDifficulty;
     prepareCurrentStage();
     if(currentCourseInitialStamina()+staminaBonus<=0)throw new Error('Course initial stamina is not positive');
+    rankingAssistanceUsed=false;
 
     body = { ...route[0] };
     committed = { ...body };

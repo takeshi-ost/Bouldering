@@ -12,7 +12,7 @@ function refreshGameLanguage(previous) {
         if(element?.textContent)element.textContent=translateExistingGameText(element.textContent,previous);
     }
     const pending=document.getElementById('onlineScoreStatus');
-    pending.textContent=onlineScores.pending.size?gameText("online-scores.persistPendingScores",{value0:onlineScores.pending.size}):'';
+    pending.textContent=onlineScores.blocked?gameText('online-scores.pendingBlocked'):onlineScores.pending.size?gameText("online-scores.persistPendingScores",{value0:onlineScores.pending.size}):'';
     syncDebugCourseControls();
     dailyEntryToday=null;refreshDailyEntry();
     if(state==='map')renderLevelMap();

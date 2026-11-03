@@ -356,6 +356,7 @@ function danglingTip(p, index, time) {
 function drawPath() {
     const showPlanned=debugMode && debugDisplay.route;
     if (!showPlanned)return;
+    if(state==='playing'||state==='lost')rankingAssistanceUsed=true;
 
     ctx.save();
 

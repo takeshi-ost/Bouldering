@@ -16,13 +16,13 @@
     let record,persisted=false;
     function save() {
         try {
-            if(!ASCENT_TRIAL_STORAGE)return persisted=false;
-            ASCENT_TRIAL_STORAGE.setItem(KEY,JSON.stringify(record));
+            if(!ASCENT_FORMAL_STORAGE)return persisted=false;
+            ASCENT_FORMAL_STORAGE.setItem(KEY,JSON.stringify(record));
             return persisted=true;
         } catch(_) {return persisted=false;}
     }
     try {
-        const storage=ASCENT_TRIAL_STORAGE;
+        const storage=ASCENT_FORMAL_STORAGE;
         if(!storage)throw Error('Storage unavailable');
         const raw=storage.getItem(KEY);
         if(raw!==null) {

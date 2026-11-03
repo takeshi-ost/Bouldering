@@ -3,7 +3,7 @@ const LANGUAGE_KEY = 'ascent.language.v1';
 const GAME_TEXT_LOCALES = Object.freeze({ja: GAME_TEXT_JA, en: GAME_TEXT_EN});
 function readGameLanguage() {
     try {
-        const language = ASCENT_TRIAL_STORAGE?.getItem(LANGUAGE_KEY);
+        const language = ASCENT_FORMAL_STORAGE?.getItem(LANGUAGE_KEY);
         if (Object.hasOwn(GAME_TEXT_LOCALES, language)) return language;
     } catch (_) { /* Keep the session preference when device storage is unavailable. */ }
     return 'ja';
@@ -46,7 +46,7 @@ function setGameLanguage(language) {
     if (!Object.hasOwn(GAME_TEXT_LOCALES, language)) return false;
     const previous = GAME_TEXT_LANGUAGE;
     GAME_TEXT_LANGUAGE = language;
-    try { ASCENT_TRIAL_STORAGE?.setItem(LANGUAGE_KEY, language); } catch (_) {}
+    try { ASCENT_FORMAL_STORAGE?.setItem(LANGUAGE_KEY, language); } catch (_) {}
     if (typeof document !== 'undefined' && document.querySelectorAll) applyGameText(document);
     if (previous !== language && typeof refreshGameLanguage === 'function') refreshGameLanguage(previous);
     return true;

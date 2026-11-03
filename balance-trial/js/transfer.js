@@ -12,19 +12,19 @@ function validTransferIdentity(value) {
         typeof value.password==='string' && /^Aa1![0-9a-f]{64}$/.test(value.password);
 }
 function createTransferIdentity(uid) {
-    throw Error('Transfer disabled in balance trial'); // Artifact-only safety gate.
     if(!globalThis.crypto?.getRandomValues)throw Error(gameText("transfer.createTransferIdentity"));
     const hex=size=>Array.from(globalThis.crypto.getRandomValues(new Uint8Array(size)),b=>b.toString(16).padStart(2,'0')).join('');
     return {project:TRANSFER_PROJECT,uid,email:`transfer-${hex(16)}@bouldering-7482d.firebaseapp.com`,password:'Aa1!'+hex(32)};
 }
 function readTransferIdentity() {
-    try {const value=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(TRANSFER_IDENTITY_KEY)||'null');return validTransferIdentity(value)?value:null;}
+    try {const value=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(TRANSFER_IDENTITY_KEY)||'null');return validTransferIdentity(value)?value:null;}
     catch(_){return null;}
 }
 function snapshotTransferData() {
     recoverLives();
     return JSON.parse(JSON.stringify({
         profile:{name:playerName,colors:[...playerColors],headColor:playerHeadColor},
+        progressVersion:ONLINE_PROGRESS_VERSION,
         progress:stageProgress,records:stageRecords,dailyRecords,dailyAttempts,dailyPlayAdState,
         heartItems,lives:{...lives,inProgress:false},mapRewards,featureHelpSeen,soundEnabled,audioSettings:{musicEnabled,musicVolume,soundVolume},playsSinceAd,
         pendingScores:[...onlineScores.pending],localId:playerUuid
@@ -36,6 +36,9 @@ function validateTransferFile(value) {
     if(!transferObject(value) || value.format!=='ascent-transfer' || value.version!==1 ||
         !validTransferIdentity(value.identity) || !transferObject(value.data))fail();
     const d=value.data,p=d.profile;
+    // Do not turn a legacy exported stage reach into current-generation progress.
+    // Reject before authentication/storage changes; the original file stays intact.
+    if(!currentOnlineProgress(d))throw Object.assign(Error(gameText("transfer.progressGeneration")),{code:'ascent/legacy-progress-transfer'});
     if(!transferObject(p) || typeof p.name!=='string' || !normalizedPlayerName(p.name) || Array.from(p.name).length>40 ||
         !Array.isArray(p.colors) || p.colors.length<1 || p.colors.length>8 || !p.colors.every(validBodyColor) || !validBodyColor(p.headColor))fail();
     for(const mode of ['existing','prototype']) {
@@ -74,9 +77,10 @@ function validateTransferFile(value) {
 function validTransferRecord(value,allowHistory=true) {
     return transferObject(value) && transferInteger(value.moves,1) && transferInteger(value.timeMs) &&
         (value.stars===undefined || transferInteger(value.stars,1,3)) &&
+        (value.rankingEligible===undefined || typeof value.rankingEligible==='boolean') &&
         (value.version===undefined || (typeof value.version==='string' && value.version.length<=40)) &&
         (value.previousVersions===undefined || (allowHistory && transferObject(value.previousVersions) &&
-            Object.entries(value.previousVersions).every(([version,record])=>supportedCourseVersion(version) &&
+            Object.entries(value.previousVersions).every(([version,record])=>historicalCourseVersion(version) &&
                 record?.version===version && validTransferRecord(record,false))));
 }
 function transferStorageEntries(file) {
@@ -94,8 +98,7 @@ function transferStorageEntries(file) {
     ]);
 }
 function commitTransferFile(file) {
-    throw Error('Transfer disabled in balance trial'); // Artifact-only safety gate.
-    const entries=transferStorageEntries(file),storage=ASCENT_TRIAL_STORAGE;
+    const entries=transferStorageEntries(file),storage=ASCENT_FORMAL_STORAGE;
     if(!storage)throw Error(gameText("transfer.commitTransferFile.2"));
     const previous=new Map([...entries.keys()].map(key=>[key,storage.getItem(key)]));
     try {
@@ -110,7 +113,6 @@ function commitTransferFile(file) {
     }
 }
 function renderTransferAvailability() {
-    for(const id of ['transferExport','transferImport','transferFile'])transferElement(id).disabled=true;return; // Artifact-only safety gate.
     const ready=online.ready && !accountDeletion.marker && !transferBusy();
     transferElement('transferExport').disabled=!ready;
     transferElement('transferImport').disabled=!ready || !transferState.file;
@@ -125,7 +127,6 @@ function transferErrorMessage(error) {
     return error?.message || gameText("transfer.transferErrorMessage");
 }
 async function withTransferLock(action) {
-    throw Error('Transfer disabled in balance trial'); // Artifact-only safety gate.
     if(transferBusy() || state!=='choosing' || accountDeletion.marker || !online.ready)throw Error(gameText("transfer.withTransferLock"));
     transferState.busy=true;const wasReady=online.ready;online.ready=false;renderTransferAvailability();
     try {await waitForAccountWrites();return await action();}
@@ -137,14 +138,13 @@ async function withTransferLock(action) {
     }
 }
 async function exportTransferFile() {
-    throw Error('Transfer disabled in balance trial'); // Artifact-only safety gate.
     return withTransferLock(async()=>{
         transferMessage(gameText("transfer.exportTransferFile.2"));
         let identity=readTransferIdentity();
         if(identity?.uid!==online.uid)identity=createTransferIdentity(online.uid);
         // Keep credentials durable before linking; a retry can recover from a
         // lost response without creating another account or rotating its password.
-        try {ASCENT_TRIAL_STORAGE.setItem(TRANSFER_IDENTITY_KEY,JSON.stringify(identity));}
+        try {ASCENT_FORMAL_STORAGE.setItem(TRANSFER_IDENTITY_KEY,JSON.stringify(identity));}
         catch(_){throw Error(gameText("transfer.exportTransferFile"));}
         await online.adapter.prepareTransferIdentity(identity);
         const file=validateTransferFile({format:'ascent-transfer',version:1,createdAt:new Date().toISOString(),identity,data:snapshotTransferData()});
@@ -152,7 +152,6 @@ async function exportTransferFile() {
     });
 }
 async function importTransferFile(file) {
-    throw Error('Transfer disabled in balance trial'); // Artifact-only safety gate.
     validateTransferFile(file);
     return withTransferLock(async()=>{
         transferMessage(gameText("transfer.importTransferFile.3"));
@@ -173,7 +172,6 @@ function closeTransferDialog() {
     ui.titleTransfer.focus();requestGameRender();
 }
 ui.titleTransfer.onclick=e=>{
-    e?.preventDefault?.();e?.stopPropagation?.();return false; // Artifact-only safety gate.
     e?.stopPropagation?.();
     if(state!=='choosing' || accountDeletion.marker)return;
     transferElement('transferDialog').showModal?.();ui.wall.classList.toggle('transfer-open',true);
@@ -192,7 +190,6 @@ transferElement('transferExport').onclick=async()=>{
     } catch(error){transferMessage(transferErrorMessage(error));}
 };
 transferElement('transferFile').onchange=async e=>{
-    return false; // Artifact-only safety gate.
     const ticket=++transferState.readTicket;
     transferState.file=null;transferElement('transferPreview').hidden=true;transferElement('transferImport').hidden=true;
     try {
@@ -205,7 +202,7 @@ transferElement('transferFile').onchange=async e=>{
         transferElement('transferPreview').textContent=gameText("transfer.3", {value0: file.data.profile.name, value1: file.identity.uid, value2: file.data.progress.existing.cleared+1});
         transferElement('transferPreview').hidden=false;transferElement('transferImport').hidden=false;
         transferMessage(gameText("transfer.2"));
-    } catch(_){if(ticket===transferState.readTicket)transferMessage(gameText("transfer"));}
+    } catch(error){if(ticket===transferState.readTicket)transferMessage(gameText(error?.code==='ascent/legacy-progress-transfer'?"transfer.progressGeneration":"transfer"));}
     renderTransferAvailability();
 };
 transferElement('transferImport').onclick=async()=>{

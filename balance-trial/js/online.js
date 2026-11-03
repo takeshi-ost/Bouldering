@@ -8,25 +8,26 @@ function onlineProfile() {
     const name=Array.from(normalizedPlayerName(playerName)).slice(0,40).join('');
     return {name,colors:[...playerColors],headColor:playerHeadColor,
         reachedLevel:Math.min(1000000,stageProgress.existing.cleared+1),
-        reachedPrototypeLevel:Math.min(1000000,stageProgress.prototype.cleared+1)};
+        reachedPrototypeLevel:Math.min(1000000,stageProgress.prototype.cleared+1),progressVersion:ONLINE_PROGRESS_VERSION};
 }
 function onlineProfileFrom(data) {
-    if(!data || typeof data.name!=='string' || !normalizedPlayerName(data.name) ||
+    if(!data || ('progressVersion' in data && !currentOnlineProgress(data)) || typeof data.name!=='string' || !normalizedPlayerName(data.name) ||
         Array.from(data.name).length>40 || !Array.isArray(data.colors) ||
         data.colors.length<1 || data.colors.length>8 || !data.colors.every(validBodyColor) ||
         !validBodyColor(data.headColor) || ![data.reachedLevel,data.reachedPrototypeLevel]
             .every(n=>Number.isSafeInteger(n) && n>=1 && n<=1000000))return null;
     return {name:normalizedPlayerName(data.name),colors:data.colors.map(c=>c.toLowerCase()),
         headColor:data.headColor.toLowerCase(),reachedLevel:data.reachedLevel,
-        reachedPrototypeLevel:data.reachedPrototypeLevel};
+        reachedPrototypeLevel:data.reachedPrototypeLevel,
+        ...(currentOnlineProgress(data)?{progressVersion:ONLINE_PROGRESS_VERSION}:{})};
 }
 function onlineProfileKey(profile) {return JSON.stringify(profile);}
 function readOnlineCheckpoint() {
-    try {return JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(ONLINE_PROFILE_KEY)||'null');}
+    try {return JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(ONLINE_PROFILE_KEY)||'null');}
     catch(_) {return null;}
 }
 function saveOnlineCheckpoint(profile) {
-    try {ASCENT_TRIAL_STORAGE?.setItem(ONLINE_PROFILE_KEY,JSON.stringify({uid:online.uid,key:onlineProfileKey(profile)}));}
+    try {ASCENT_FORMAL_STORAGE?.setItem(ONLINE_PROFILE_KEY,JSON.stringify({uid:online.uid,key:onlineProfileKey(profile)}));}
     catch(_) { /* Local gameplay remains usable with storage disabled. */ }
 }
 function updateTitleUid() {
@@ -46,9 +47,12 @@ function onlineError(error) {
 }
 function mergeOnlineProfile(local,remote,preferLocal) {
     if(!remote)return local;
-    return {...(preferLocal?local:remote),
-        reachedLevel:Math.max(local.reachedLevel,remote.reachedLevel),
-        reachedPrototypeLevel:Math.max(local.reachedPrototypeLevel,remote.reachedPrototypeLevel)};
+    // A legacy profile can supply appearance, never progress in this generation.
+    // This is applied on every transaction/retry, not only the first login.
+    const sameGeneration=currentOnlineProgress(remote);
+    return {...(preferLocal?local:remote),progressVersion:ONLINE_PROGRESS_VERSION,
+        reachedLevel:Math.max(local.reachedLevel,sameGeneration?remote.reachedLevel:1),
+        reachedPrototypeLevel:Math.max(local.reachedPrototypeLevel,sameGeneration?remote.reachedPrototypeLevel:1)};
 }
 function applyOnlineProfile(profile,keepAppearance=false) {
     if(!keepAppearance) {
@@ -57,9 +61,11 @@ function applyOnlineProfile(profile,keepAppearance=false) {
         updateMapAppearance();
     }
     const before=JSON.stringify(stageProgress);
-    stageProgress.existing.cleared=Math.max(stageProgress.existing.cleared,profile.reachedLevel-1);
-    stageProgress.prototype.cleared=Math.max(stageProgress.prototype.cleared,profile.reachedPrototypeLevel-1);
-    try {ASCENT_TRIAL_STORAGE?.setItem(PROGRESS_KEY,JSON.stringify(stageProgress));}catch(_) {}
+    if(currentOnlineProgress(profile)) {
+        stageProgress.existing.cleared=Math.max(stageProgress.existing.cleared,profile.reachedLevel-1);
+        stageProgress.prototype.cleared=Math.max(stageProgress.prototype.cleared,profile.reachedPrototypeLevel-1);
+    }
+    try {ASCENT_FORMAL_STORAGE?.setItem(PROGRESS_KEY,JSON.stringify(stageProgress));}catch(_) {}
     if(before!==JSON.stringify(stageProgress)) {
         if(state==='choosing')prepareTitleMapLayout();
         else if(state==='map' && !mapTransition && !stageStartContext && !mapPreparing) {
@@ -69,13 +75,11 @@ function applyOnlineProfile(profile,keepAppearance=false) {
     }
 }
 function queueOnlineProfileSave() {
-    return false; // Artifact-only safety gate.
     if(accountDeletion.marker)return;
     online.revision++;online.dirty=true;
     void flushOnlineProfile();
 }
 async function flushOnlineProfile(preferLocal=true) {
-    return false; // Artifact-only safety gate.
     if(accountDeletion.marker || !online.ready || online.saving || (typeof transferBusy==='function' && transferBusy()))return;
     online.saving=true;
     try {
@@ -99,7 +103,6 @@ async function flushOnlineProfile(preferLocal=true) {
     finally {online.saving=false;}
 }
 async function startOnline(adapter) {
-    return false; // Artifact-only safety gate.
     if(typeof transferBusy==='function' && transferBusy())return;
     if(accountDeletion.marker){await restoreDeletionSession(adapter);return;}
     if(online.connecting || online.ready)return;
@@ -121,7 +124,6 @@ async function startOnline(adapter) {
     finally {online.connecting=false;}
 }
 function onlineMapPlayers(first,last,mode) {
-    return []; // Artifact-only safety gate.
     if(mode!=='existing')return [];
     if(!online.ready)return [];
     const key=`${mode}:${first}:${last}`,now=Date.now();
@@ -137,7 +139,7 @@ function onlineMapPlayers(first,last,mode) {
             const counts=new Map();
             page.players=rows.flatMap(row=>{
                 const profile=onlineProfileFrom(row),n=profile?.reachedLevel;
-                if(!profile || typeof row.id!=='string' || row.id===online.uid || n<first || n>last || (counts.get(n)||0)>=5)return [];
+                if(!profile || !currentOnlineProgress(profile) || typeof row.id!=='string' || row.id===online.uid || n<first || n>last || (counts.get(n)||0)>=5)return [];
                 counts.set(n,(counts.get(n)||0)+1);
                 return [{id:row.id,name:profile.name,appearance:{colors:profile.colors,headColor:profile.headColor},reachedLevel:n,isPlayer:false}];
             });
@@ -151,7 +153,6 @@ function onlineMapPlayers(first,last,mode) {
     return page.players.filter(row=>row.id!==online.uid);
 }
 function resumeOnline() {
-    return false; // Artifact-only safety gate.
     if(typeof transferBusy==='function' && transferBusy())return;
     if(!online.adapter)return;
     if(accountDeletion.marker) {

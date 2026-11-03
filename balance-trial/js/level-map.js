@@ -3,7 +3,7 @@
 const HEART_ITEMS_KEY='ascent.heart-items.v1';
 function readHeartItems() {
     try {
-        const count=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(HEART_ITEMS_KEY)||'null');
+        const count=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(HEART_ITEMS_KEY)||'null');
         if(Number.isSafeInteger(count) && count>=0)return count;
     } catch(_) {}
     return 5;
@@ -15,7 +15,7 @@ function renderMapInventory() {
     ui.mapInventory.setAttribute('aria-label',gameText("level-map.renderMapInventory", {value0: count}));
 }
 function saveHeartItems() {
-    try {ASCENT_TRIAL_STORAGE?.setItem(HEART_ITEMS_KEY,JSON.stringify(heartItems));}catch(_) {}
+    try {ASCENT_FORMAL_STORAGE?.setItem(HEART_ITEMS_KEY,JSON.stringify(heartItems));}catch(_) {}
     renderMapInventory();
 }
 saveHeartItems();
@@ -26,7 +26,7 @@ const MAP_HOP_DURATION = 650;
 function readStageProgress() {
     const result = {existing:{cleared:0},prototype:{cleared:0}};
     try {
-        const saved = JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(PROGRESS_KEY) || 'null');
+        const saved = JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(PROGRESS_KEY) || 'null');
         for (const mode of ['existing','prototype']) {
             const n = saved?.[mode]?.cleared;
             if (Number.isSafeInteger(n) && n >= 0 && n < Number.MAX_SAFE_INTEGER)
@@ -39,7 +39,7 @@ const RECORDS_KEY='ascent.records.v1';
 function readStageRecords() {
     const result={existing:{},prototype:{}};
     try {
-        const saved=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(RECORDS_KEY)||'null');
+        const saved=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(RECORDS_KEY)||'null');
         for(const mode of ['existing','prototype']) {
             const records=saved?.[mode];
             if(!records || typeof records!=='object' || Array.isArray(records))continue;
@@ -49,13 +49,15 @@ function readStageRecords() {
                 if(Number.isSafeInteger(value?.moves) && value.moves>0 &&
                     Number.isSafeInteger(value?.timeMs) && value.timeMs>=0) {
                     result[mode][key]={moves:value.moves,timeMs:value.timeMs,...scoreMetadata(value)};
-                    if(supportedCourseVersion(value.version))result[mode][key].version=value.version;
+                    if(value.rankingEligible===false)result[mode][key].rankingEligible=false;
+                    if(historicalCourseVersion(value.version))result[mode][key].version=value.version;
                     const previousVersions={};
                     for(const [version,record] of Object.entries(value.previousVersions||{})) {
-                        if(!supportedCourseVersion(version) || !record || record.version!==version ||
+                        if(!historicalCourseVersion(version) || !record || record.version!==version ||
                             !Number.isSafeInteger(record.moves) || record.moves<1 ||
                             !Number.isSafeInteger(record.timeMs) || record.timeMs<0)continue;
                         previousVersions[version]={moves:record.moves,timeMs:record.timeMs,version,...scoreMetadata(record)};
+                        if(record.rankingEligible===false)previousVersions[version].rankingEligible=false;
                         if(Number.isInteger(record.stars)&&record.stars>=1&&record.stars<=3)previousVersions[version].stars=record.stars;
                     }
                     if(Object.keys(previousVersions).length)result[mode][key].previousVersions=previousVersions;
@@ -117,21 +119,23 @@ function recordStageClear() {
     if (debugAttempt) return;
     if(moveCount>0) {
         const stars=Math.max((stageRecords[courseMode][level]?.version===COURSE_VERSION?stageRecords[courseMode][level]?.stars:0)||0,clearStars(moveCount,routeExpectedMoves()));
-        const candidate={moves:moveCount,timeMs:Math.floor(runElapsedMs),version:COURSE_VERSION,...currentScoreMetadata()};
+        const candidate={moves:moveCount,timeMs:Math.floor(runElapsedMs),version:COURSE_VERSION,...currentScoreMetadata(),...(rankingAttemptEligible()?{}:{rankingEligible:false})};
         const previous=stageRecords[courseMode][level];
         const best=previous?.version===COURSE_VERSION && compareStageScores(previous,candidate)<=0?previous:candidate;
         const previousVersions={...previous?.previousVersions};
-        if(previous && supportedCourseVersion(previous.version) && previous.version!==COURSE_VERSION) {
+        if(previous && historicalCourseVersion(previous.version) && previous.version!==COURSE_VERSION) {
             const {previousVersions:ignored,...historic}=previous;
             previousVersions[previous.version]=historic;
         }
         stageRecords[courseMode][level]={...best,stars,...(Object.keys(previousVersions).length?{previousVersions}:{})};
+        if(rankingAttemptEligible()) {
         queueOnlineScore(level,courseMode,candidate);
+        }
     }
     stageProgress[courseMode].cleared = Math.max(stageProgress[courseMode].cleared,level);
-    try { ASCENT_TRIAL_STORAGE?.setItem(PROGRESS_KEY,JSON.stringify(stageProgress)); }
+    try { ASCENT_FORMAL_STORAGE?.setItem(PROGRESS_KEY,JSON.stringify(stageProgress)); }
     catch (_) { /* Completing a level must still work without storage. */ }
-    try {ASCENT_TRIAL_STORAGE?.setItem(RECORDS_KEY,JSON.stringify(stageRecords));}
+    try {ASCENT_FORMAL_STORAGE?.setItem(RECORDS_KEY,JSON.stringify(stageRecords));}
     catch(_) { /* Keep records in memory when storage is unavailable. */ }
     queueOnlineProfileSave();
 }

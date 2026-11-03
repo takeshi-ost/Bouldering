@@ -6,7 +6,7 @@ const MAP_REWARD_INTERVAL=4;
 function readMapRewards() {
     const records={};
     try {
-        const saved=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(MAP_REWARDS_KEY)||'null');
+        const saved=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(MAP_REWARDS_KEY)||'null');
         if(saved && typeof saved==='object' && !Array.isArray(saved))
             for(const [key,value] of Object.entries(saved)) {
                 const n=Number(key);
@@ -20,7 +20,7 @@ function readMapRewards() {
 }
 let mapRewards=readMapRewards();
 function saveMapRewards() {
-    try {ASCENT_TRIAL_STORAGE?.setItem(MAP_REWARDS_KEY,JSON.stringify(mapRewards));}catch(_) {}
+    try {ASCENT_FORMAL_STORAGE?.setItem(MAP_REWARDS_KEY,JSON.stringify(mapRewards));}catch(_) {}
 }
 function hasMapReward(n) {
     return Number.isSafeInteger(n) && n>=1 && !(typeof isTutorialRun==='function' && isTutorialRun()) && courseMode==='existing' && n%MAP_REWARD_INTERVAL===0 && mapRewards[n]?.status!=='claimed';

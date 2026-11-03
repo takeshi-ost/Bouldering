@@ -3,7 +3,7 @@ const LIVES_KEY='ascent.lives.v1';
 const LIFE_INITIAL=3,LIFE_MAX=5,LIFE_RECOVERY_CAP=3,LIFE_RECOVERY_MS=30*60*1000;
 function readLives(now=Date.now()) {
     try {
-        const saved=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(LIVES_KEY)||'null');
+        const saved=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(LIVES_KEY)||'null');
         if(Number.isInteger(saved?.count) && saved.count>=0 && saved.count<=LIFE_MAX) {
             const recoveryAt=saved.count<LIFE_RECOVERY_CAP && Number.isFinite(saved.recoveryAt) && saved.recoveryAt>=0
                 ? Math.min(now,saved.recoveryAt) : saved.count<LIFE_RECOVERY_CAP ? now : null;
@@ -17,7 +17,7 @@ let lives=readLives();
 let lifeRunId=null;
 let lifePrompt=null;
 function saveLives() {
-    try {ASCENT_TRIAL_STORAGE?.setItem(LIVES_KEY,JSON.stringify(lives));}
+    try {ASCENT_FORMAL_STORAGE?.setItem(LIVES_KEY,JSON.stringify(lives));}
     catch(_) { /* Lives and recovery remain usable within the session. */ }
 }
 function recoverLives(now=Date.now()) {

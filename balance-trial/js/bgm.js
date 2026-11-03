@@ -9,13 +9,13 @@ const bgmCache=new Map();
 let bgmTrack='main',bgmPlayback=null,bgmOffset=0,bgmFadeSeconds=.03,bgmFadeElapsed=0;
 let bgmPageActive=!document.hidden,bgmAdBlocked=false,bgmAfterAdPending=false,bgmSceneUpdateQueued=false;
 async function prepareBackgroundMusic(retry=false,name=bgmTrack) {
-    if(!musicEnabled || typeof ASCENT_TRIAL_AUDIO_FETCH!=='function')return;
+    if(!musicEnabled || typeof globalThis.fetch!=='function')return;
     let entry=bgmCache.get(name);
     if(!entry){entry={};bgmCache.set(name,entry);}
     if(!entry.loading || (retry && entry.failed)) {
         entry.failed=false;
         entry.loading=(async()=>{
-            const response=await ASCENT_TRIAL_AUDIO_FETCH(BACKGROUND_MUSIC[name].src);
+            const response=await globalThis.fetch(BACKGROUND_MUSIC[name].src);
             if(!response.ok)throw new Error('Music unavailable');
             entry.bytes=await response.arrayBuffer();
         })().catch(()=>{entry.failed=true;});

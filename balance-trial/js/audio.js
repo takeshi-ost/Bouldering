@@ -3,16 +3,16 @@
 const SOUND_KEY='ascent.sound-enabled.v1';
 const MUSIC_KEY='ascent.music-settings.v1',SOUND_VOLUME_KEY='ascent.sound-volume.v1';
 let soundEnabled=true;
-try {soundEnabled=ASCENT_TRIAL_STORAGE?.getItem(SOUND_KEY)!=='false';} catch(_) {}
+try {soundEnabled=ASCENT_FORMAL_STORAGE?.getItem(SOUND_KEY)!=='false';} catch(_) {}
 let musicEnabled=soundEnabled,musicVolume=1,soundVolume=1;
 function validAudioVolume(value){return typeof value==='number' && Number.isFinite(value) && value>=0 && value<=1;}
 try {
-    const music=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(MUSIC_KEY)||'null');
+    const music=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(MUSIC_KEY)||'null');
     if(typeof music?.enabled==='boolean')musicEnabled=music.enabled;
     if(validAudioVolume(music?.volume))musicVolume=music.volume;
 }catch(_){}
 try {
-    const effects=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(SOUND_VOLUME_KEY)||'null');
+    const effects=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(SOUND_VOLUME_KEY)||'null');
     if(validAudioVolume(effects))soundVolume=effects;
 }catch(_){}
 let soundContext=null,soundMaster=null,soundEffectsGain=null,musicMaster=null,soundPrimed=false,pendingSound=null;
@@ -56,13 +56,13 @@ const SOUND_FILE_FALLBACKS={
 };
 const soundFileCache=new Map();
 async function prepareSoundFile(name,retry=false) {
-    if(typeof ASCENT_TRIAL_AUDIO_FETCH!=='function')return null;
+    if(typeof globalThis.fetch!=='function')return null;
     let entry=soundFileCache.get(name);
     if(!entry){entry={};soundFileCache.set(name,entry);}
     if(!entry.loading || (retry && entry.failed)) {
         entry.failed=false;
         entry.loading=(async()=>{
-            const response=await ASCENT_TRIAL_AUDIO_FETCH(SOUND_FILES[name].src);
+            const response=await globalThis.fetch(SOUND_FILES[name].src);
             if(!response.ok)throw new Error('Sound file unavailable');
             entry.bytes=await response.arrayBuffer();
         })().catch(()=>{entry.failed=true;});
@@ -140,7 +140,7 @@ function setSoundEnabled(enabled) {
     // Freeze the migrated music preference before changing the legacy SE flag.
     saveMusicSettings();
     soundEnabled=!!enabled;
-    try {ASCENT_TRIAL_STORAGE?.setItem(SOUND_KEY,String(soundEnabled));} catch(_) {}
+    try {ASCENT_FORMAL_STORAGE?.setItem(SOUND_KEY,String(soundEnabled));} catch(_) {}
     if(soundEnabled){unlockSound();playSound('tap');}else stopSoundEffects();
     syncAudioControls();
 }
@@ -191,7 +191,7 @@ function playSound(name,delaySeconds=0) {
     } catch(_) {return false;}
 }
 function saveMusicSettings() {
-    try {ASCENT_TRIAL_STORAGE?.setItem(MUSIC_KEY,JSON.stringify({enabled:musicEnabled,volume:musicVolume}));}catch(_){}
+    try {ASCENT_FORMAL_STORAGE?.setItem(MUSIC_KEY,JSON.stringify({enabled:musicEnabled,volume:musicVolume}));}catch(_){}
 }
 function setMusicEnabled(enabled) {
     musicEnabled=!!enabled;saveMusicSettings();
@@ -201,7 +201,7 @@ function setMusicEnabled(enabled) {
 function setSoundVolume(value) {
     if(!validAudioVolume(value))return;
     soundVolume=value;
-    try {ASCENT_TRIAL_STORAGE?.setItem(SOUND_VOLUME_KEY,JSON.stringify(value));}catch(_){}
+    try {ASCENT_FORMAL_STORAGE?.setItem(SOUND_VOLUME_KEY,JSON.stringify(value));}catch(_){}
     if(soundEffectsGain)soundEffectsGain.gain.value=value;
     syncAudioControls();
 }

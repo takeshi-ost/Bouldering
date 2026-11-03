@@ -2,26 +2,23 @@
 const ACCOUNT_DELETION_KEY='ascent.account-deletion.v1';
 function readAccountDeletion() {
     try {
-        const value=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(ACCOUNT_DELETION_KEY)||'null');
+        const value=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(ACCOUNT_DELETION_KEY)||'null');
         if(value && typeof value.uid==='string' && ['pending','done'].includes(value.phase))return value;
     } catch(_) {}
     return null;
 }
 const accountDeletion={marker:readAccountDeletion(),busy:false,restoreBusy:false};
 function markAccountDeletion(uid,phase) {
-    return false; // Artifact-only safety gate.
     accountDeletion.marker={uid,phase};
-    try {ASCENT_TRIAL_STORAGE?.setItem(ACCOUNT_DELETION_KEY,JSON.stringify(accountDeletion.marker));}catch(_) {}
+    try {ASCENT_FORMAL_STORAGE?.setItem(ACCOUNT_DELETION_KEY,JSON.stringify(accountDeletion.marker));}catch(_) {}
 }
 function deleteUserElement(id) {return document.getElementById(id);}
 function updateDeleteUserButton() {
-    deleteUserElement('debugDeleteUser').hidden=true;deleteUserElement('debugDeleteUser').disabled=true;return; // Artifact-only safety gate.
     const button=deleteUserElement('debugDeleteUser');
     button.hidden=!debugMode;
     button.disabled=!online.uid || !online.adapter?.deleteAccount || accountDeletion.busy;
 }
 function showDeleteUserDialog() {
-    return false; // Artifact-only safety gate.
     const done=accountDeletion.marker?.phase==='done';
     deleteUserElement('deleteUserSummary').textContent=done?gameText("account-deletion.showDeleteUserDialog.3"):gameText("account-deletion.identitySummary", {value0: playerName, value1: online.uid || accountDeletion.marker?.uid || ''});
     deleteUserElement('deleteUserWarning').hidden=done;
@@ -35,7 +32,6 @@ function showDeleteUserDialog() {
     const dialog=deleteUserElement('deleteUserDialog');if(!dialog.open)dialog.showModal?.();
 }
 async function restoreDeletionSession(adapter) {
-    return false; // Artifact-only safety gate.
     if(accountDeletion.restoreBusy || accountDeletion.marker?.phase==='done')return;
     accountDeletion.restoreBusy=true;online.adapter=adapter;
     try {
@@ -60,11 +56,10 @@ function clearLocalGameData() {
     const keys=[APPEARANCE_KEY,PLAYER_NAME_KEY,PLAYER_UUID_KEY,ONLINE_PROFILE_KEY,ONLINE_SCORES_KEY,
         PROGRESS_KEY,RECORDS_KEY,HEART_ITEMS_KEY,LIVES_KEY,MAP_REWARDS_KEY,FEATURE_HELP_KEY,SOUND_KEY,MUSIC_KEY,SOUND_VOLUME_KEY,
         LANGUAGE_KEY,AD_PLAYS_KEY,DAILY_RECORDS_KEY,DAILY_ATTEMPTS_KEY,DAILY_PLAY_AD_KEY,
-        'ascent.tutorial-stage0.v1','ascent.ad-clears.v1','ascent.ad-plays.v1','ascent.daily-entry-ad.v1','ascent.transfer-identity.v1'];
-    for(const key of keys)ASCENT_TRIAL_STORAGE?.removeItem(key);
+        'ascent.tutorial-stage0.v1','ascent.ad-clears.v1','ascent.ad-plays.v1','ascent.daily-entry-ad.v1','ascent.transfer-identity.v1','ascent.formal-debug-seed.v1'];
+    for(const key of keys)ASCENT_FORMAL_STORAGE?.removeItem(key);
 }
 async function deleteCurrentAccount() {
-    return false; // Artifact-only safety gate.
     if(accountDeletion.busy || accountDeletion.marker?.phase==='done' || !online.uid || !online.adapter?.deleteAccount)return;
     if(!accountDeletion.marker && (!debugMode || !settingsOpen || !['map','daily'].includes(state)))return;
     const uid=accountDeletion.marker?.uid || online.uid;
@@ -101,14 +96,14 @@ deleteUserElement('deleteUserDialog').addEventListener('cancel',event=>{
     if(accountDeletion.busy || accountDeletion.marker)event.preventDefault();
 });
 deleteUserElement('deleteUserNew').onclick=()=>{
-    return false; // Artifact-only safety gate.
     if(accountDeletion.busy || accountDeletion.marker?.phase!=='done')return;
-    try {clearLocalGameData();ASCENT_TRIAL_STORAGE?.removeItem(ACCOUNT_DELETION_KEY);}
+    try {clearLocalGameData();ASCENT_FORMAL_STORAGE?.removeItem(ACCOUNT_DELETION_KEY);}
     catch(_) {deleteUserElement('deleteUserStatus').textContent=gameText("account-deletion.2");return;}
     accountDeletion.marker=null;globalThis.location?.reload();
 };
 window.addEventListener('storage',event=>{
-    if(event.key!==ACCOUNT_DELETION_KEY || !event.newValue)return;
+    const storageKey=globalThis.ASCENT_FORMAL_STORAGE?.physicalKey(ACCOUNT_DELETION_KEY) || ACCOUNT_DELETION_KEY;
+    if(event.key!==storageKey || !event.newValue)return;
     const marker=readAccountDeletion();
     if(marker && (!online.uid || marker.uid===online.uid)) {
         accountDeletion.marker=marker;online.ready=false;

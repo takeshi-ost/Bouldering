@@ -1,6 +1,15 @@
 "use strict";
 // Player-facing Japanese copy, including accessibility and recoverable errors.
 const GAME_TEXT_JA = Object.freeze({
+    "online-scores.pendingBlocked": "未送信記録を保護しています。通信を停止しました。",
+    "formal.ranking.localOnly": "パス表示を使用した記録です。進行は保存されますが、ランキングには送信されません。",
+    "formal.seed.label": "DEBUG SEED 補正値",
+    "formal.seed.apply": "適用",
+    "formal.seed.help": "通常プレイは +10 固定です。DEBUG の補正値は次の検証用ステージから使用し、進行・正式記録には保存しません。デイリーは変わりません。",
+    "formal.seed.invalid": "0〜4294967295 の整数を入力してください。",
+    "formal.seed.unsafe": "DEBUG を ON にして、マップで適用してください。",
+    "formal.seed.saved": "適用しました。次の検証用ステージから反映します。",
+    "formal.seed.unsaved": "このセッションに適用しました。端末への保存はできませんでした。",
     // Owner-supplied tutorial copy, verbatim; English intentionally falls back to Japanese until a translation is approved.
     "tutorial.title.play": "ASCENTにようこそ！",
     "tutorial.title.complete": "チュートリアル完了",
@@ -26,7 +35,6 @@ const GAME_TEXT_JA = Object.freeze({
     "settings.connection": "通信状態",
     "settings.online": "オンライン",
     "settings.offline": "オフライン",
-    "settings.trialOffline": "試遊専用・オフライン（ランキング送信／引き継ぎなし）",
     "audio.music": "BGM",
     "audio.effects": "効果音",
     "audio.musicVolume": "音楽の音量",
@@ -137,6 +145,7 @@ const GAME_TEXT_JA = Object.freeze({
     "rewards.rewardResultMarkup": "チョークバッグ",
     "rewards.rewardResultMarkup.2": "ライフアップ",
     "rewards.rewardResultMarkup.3": "ライフは上限{value0}です",
+    "transfer.progressGeneration": "旧版の引き継ぎファイルは、この版には読み込めません。現在のデータは変更していません。",
     "transfer": "ASCENTの引き継ぎファイルとして読み込めません。",
     "transfer.2": "内容を確認して「このデータを読み込む」を押してください。",
     "transfer.3": "{value0}\nUID {value1}\n到達ステージ {value2}\nこの端末のゲームデータを置き換えます。",

@@ -2,7 +2,7 @@
 const PLAYER_UUID_KEY='ascent.player-uuid.v1';
 function readPlayerUuid() {
     const valid=value=>typeof value==='string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-    try {const saved=ASCENT_TRIAL_STORAGE?.getItem(PLAYER_UUID_KEY);if(valid(saved))return saved;}
+    try {const saved=ASCENT_FORMAL_STORAGE?.getItem(PLAYER_UUID_KEY);if(valid(saved))return saved;}
     catch(_) { /* Keep the generated identity in this session if storage is blocked. */ }
     const bytes=new Uint8Array(16);
     if(globalThis.crypto?.getRandomValues)globalThis.crypto.getRandomValues(bytes);
@@ -10,7 +10,7 @@ function readPlayerUuid() {
     bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
     const hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
     const uuid=`${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
-    try {ASCENT_TRIAL_STORAGE?.setItem(PLAYER_UUID_KEY,uuid);}catch(_) {}
+    try {ASCENT_FORMAL_STORAGE?.setItem(PLAYER_UUID_KEY,uuid);}catch(_) {}
     return uuid;
 }
 const playerUuid=readPlayerUuid();

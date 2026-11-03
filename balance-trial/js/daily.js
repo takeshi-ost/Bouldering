@@ -14,7 +14,7 @@ function validDailyDate(key) {
 function readDailyAttempts() {
     const attempts={};
     try {
-        const saved=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(DAILY_ATTEMPTS_KEY)||'null');
+        const saved=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(DAILY_ATTEMPTS_KEY)||'null');
         if(saved && typeof saved==='object' && !Array.isArray(saved))
             for(const [key,count] of Object.entries(saved))
                 if(validDailyDate(key) && Number.isSafeInteger(count) && count>0 && count<Number.MAX_SAFE_INTEGER)
@@ -24,12 +24,12 @@ function readDailyAttempts() {
 }
 let dailyAttempts=readDailyAttempts();
 function saveDailyAttempts() {
-    try {ASCENT_TRIAL_STORAGE?.setItem(DAILY_ATTEMPTS_KEY,JSON.stringify(dailyAttempts));}
+    try {ASCENT_FORMAL_STORAGE?.setItem(DAILY_ATTEMPTS_KEY,JSON.stringify(dailyAttempts));}
     catch(_) { /* Use session-local attempt counts if persistence fails. */ }
 }
 function readDailyPlayAdState() {
     try {
-        const saved=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(DAILY_PLAY_AD_KEY)||'null');
+        const saved=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(DAILY_PLAY_AD_KEY)||'null');
         if((saved?.plays===0 || saved?.plays===1) && typeof saved.adPaid==='boolean')
             return {plays:saved.plays,adPaid:saved.adPaid};
     } catch(_) { /* Keep the interval available without storage. */ }
@@ -37,7 +37,7 @@ function readDailyPlayAdState() {
 }
 let dailyPlayAdState=readDailyPlayAdState();
 function saveDailyPlayAdState() {
-    try {ASCENT_TRIAL_STORAGE?.setItem(DAILY_PLAY_AD_KEY,JSON.stringify(dailyPlayAdState));}
+    try {ASCENT_FORMAL_STORAGE?.setItem(DAILY_PLAY_AD_KEY,JSON.stringify(dailyPlayAdState));}
     catch(_) { /* Keep the interval within this session. */ }
 }
 function returnDailyWithoutClear() {
@@ -57,7 +57,7 @@ function dailyProfile(key) {
 function readDailyRecords() {
     const records={};
     try {
-        const saved=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(DAILY_RECORDS_KEY)||'null');
+        const saved=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(DAILY_RECORDS_KEY)||'null');
         if(!saved || typeof saved!=='object' || Array.isArray(saved))return records;
         for(const [date,record] of Object.entries(saved)) {
             if(validDailyDate(date) && Number.isSafeInteger(record?.moves) && record.moves>0 &&
@@ -77,7 +77,7 @@ function readDailyRecords() {
 }
 let dailyRecords=readDailyRecords();
 function saveDailyRecords() {
-    try {ASCENT_TRIAL_STORAGE?.setItem(DAILY_RECORDS_KEY,JSON.stringify(dailyRecords));}
+    try {ASCENT_FORMAL_STORAGE?.setItem(DAILY_RECORDS_KEY,JSON.stringify(dailyRecords));}
     catch(_) { /* Keep earned records and rewards in this session. */ }
 }
 function startDailyClearReward(date) {

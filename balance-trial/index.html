@@ -2,34 +2,32 @@
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'none'; connect-src 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com; object-src 'none'; frame-src https://bouldering-7482d.firebaseapp.com; form-action 'none'; base-uri 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=0480355f5ae6">
-    <link rel="stylesheet" href="pages-trial.css?v=5c4cecc87740">
-    <script src="js/pages-trial-bootstrap.js?v=105280190ddb" defer></script>
-    <script src="js/pages-trial-seed-state.js?v=81b9c063eaaf" defer></script>
+    <link rel="stylesheet" href="styles.css?v=e29e85032e49">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
-    <script src="js/tutorial-state.js?v=26e4029dfbb5" defer></script>
-    <script src="js/text-ja.js?v=38106bcc9248" defer></script>
-    <script src="js/text-en.js?v=c1fcb756b9f8" defer></script>
+    <script src="js/pages-storage.js?v=93b97d622cb3" defer></script>
+    <script src="js/tutorial-state.js?v=19e297e819a3" defer></script>
+    <script src="js/text-ja.js?v=26ef81be0c2c" defer></script>
+    <script src="js/text-en.js?v=db63587d7d37" defer></script>
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
-    <script src="js/text.js?v=39c1e3881416" defer></script>
-    <script src="js/score-metadata.js?v=00c4b2028f9d" defer></script>
-    <script src="js/config.js?v=71efc3494d3d" defer></script>
+    <script src="js/text.js?v=9456a533b8a6" defer></script>
+    <script src="js/score-metadata.js?v=ad0e02f921ca" defer></script>
+    <script src="js/config.js?v=683089a62068" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
-    <script src="js/course-progression-config.js?v=5f7bedbad5c1" defer></script>
+    <script src="js/course-progression-config.js?v=3438658870e1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
     <script src="js/course-distribution.js?v=b8ee0f3a1f11" defer></script>
     <script src="js/course-progression.js?v=03d7bbaa775d" defer></script>
     <script src="js/difficulty-config.js?v=7f4b057f8319" defer></script>
     <script src="js/viewport.js?v=b5ffb9620615" defer></script>
-    <script src="js/audio.js?v=1635b9791374" defer></script>
-    <script src="js/bgm.js?v=a319a9cfe68f" defer></script>
+    <script src="js/audio.js?v=168ebda40b81" defer></script>
+    <script src="js/bgm.js?v=c96d77ab4e58" defer></script>
     <script src="js/utils.js?v=d73670fd1f8d" defer></script>
     <script src="js/difficulty.js?v=c750680f755f" defer></script>
     <script src="js/stage.js?v=1c768a6ef803" defer></script>
-    <script src="js/game.js?v=82acc9587bbf" defer></script>
+    <script src="js/game.js?v=a7186f36573a" defer></script>
     <script src="js/route.js?v=850c0b3b7c69" defer></script>
     <script src="js/course.js?v=15b72884cb1e" defer></script>
     <script src="js/hazards.js?v=94e27f98abbb" defer></script>
@@ -38,29 +36,28 @@
     <script src="js/course-adoption.js?v=dbf121536018" defer></script>
     <script src="js/tutorial-course.js?v=b56228d85597" defer></script>
     <script src="js/map-art.js?v=ba5492a063da" defer></script>
-    <script src="js/level-map.js?v=1ee723c2427f" defer></script>
-    <script src="js/daily.js?v=85e97c19b7d3" defer></script>
-    <script src="js/ads.js?v=66114ad0eec4" defer></script>
-    <script src="js/lives.js?v=9501eda39307" defer></script>
-    <script src="js/rewards.js?v=9a8a6545bb5b" defer></script>
+    <script src="js/level-map.js?v=e5570a04836c" defer></script>
+    <script src="js/daily.js?v=21449ea6a4dc" defer></script>
+    <script src="js/ads.js?v=31f873a38295" defer></script>
+    <script src="js/lives.js?v=8a41cdf7a6d9" defer></script>
+    <script src="js/rewards.js?v=3783e2028729" defer></script>
     <script src="js/debug-course.js?v=e05bdae6db0e" defer></script>
     <script src="js/input.js?v=9667ef397241" defer></script>
-    <script src="js/renderer.js?v=27b99870bfcf" defer></script>
+    <script src="js/renderer.js?v=13fd8023d1a2" defer></script>
     <script src="js/help-illustrations.js?v=3aa3b1ddec68" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
-    <script src="js/appearance.js?v=1557949c0558" defer></script>
-    <script src="js/leaderboard.js?v=412d1528a5f3" defer></script>
-    <script src="js/online.js?v=1c26ec94189d" defer></script>
-    <script src="js/online-scores.js?v=cca629b0deee" defer></script>
+    <script src="js/appearance.js?v=15577f59118f" defer></script>
+    <script src="js/leaderboard.js?v=4a9462986314" defer></script>
+    <script src="js/online.js?v=27f88dfd19f3" defer></script>
+    <script src="js/online-scores.js?v=dfe6d62cdd31" defer></script>
     <script src="js/settings-connection.js?v=d7c11b465917" defer></script>
-    <script src="js/account-deletion.js?v=083071301ce6" defer></script>
-    <script src="js/transfer.js?v=563bc885ce41" defer></script>
-    <script src="js/language.js?v=8e882c718589" defer></script>
+    <script src="js/account-deletion.js?v=62286bff4b13" defer></script>
+    <script src="js/transfer.js?v=556f0719450c" defer></script>
+    <script src="js/language.js?v=08a7d0335d32" defer></script>
     <script src="js/tutorial.js?v=229a0c346a1b" defer></script>
-    <script src="js/main.js?v=31bc14f06d88" defer></script>
-    <script src="js/pages-trial-seed-core.js?v=3a2df88e53da" defer></script>
-    <script src="js/pages-trial-seed-ui.js?v=e46ba3482153" defer></script>
-    <script src="js/pages-trial-presentation.js?v=c93007e79de9" defer></script>
+    <script src="js/main.js?v=48436e28c87d" defer></script>
+    <script src="js/formal-debug-seed.js?v=d0ed4443aacf" defer></script>
+    <script type="module" src="js/firebase-client.js?v=ec7299200981"></script>
 </head>
 <body>
     <main>
@@ -287,6 +284,7 @@
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
             <div class="help-heading"><h2 id="settingsTitle" data-i18n="ui.settingsTitle"></h2><button id="closeSettings" class="modal-close" aria-label="" autofocus data-i18n-aria-label="ui.closeSettings.aria-label">✕</button></div>
             <div id="settingsConnectionStatus" class="settings-row settings-connection"><span data-i18n="settings.connection"></span><strong id="settingsConnectionValue" role="status" aria-live="polite"></strong></div>
+            <p id="onlineStatus" class="online-status" role="status" data-i18n="online"></p>
             <p id="onlineScoreStatus" class="online-status" role="status" hidden></p>
             <label id="mapSettingsLanguage" class="settings-row" for="languageChoice"><span data-i18n="ui.mapSettingsControls.label.span.2"></span><select id="languageChoice"><option value="ja" data-i18n="ui.languageChoice.option"></option><option value="en" data-i18n="ui.languageChoice.option.2"></option></select></label>
             <div class="settings-row audio-settings-row">
@@ -310,7 +308,6 @@
                 <label id="mapDebugModeRow" class="settings-row" for="mapDebugMode" hidden><span data-i18n="ui.mapSettingsFooter.label.span"></span><input id="mapDebugMode" type="checkbox"></label>
                 <button id="debugDeleteUser" class="account-delete-button" hidden data-i18n="ui.debugDeleteUser"></button>
             </div>
-            <p id="onlineStatus" class="online-status" role="status" data-i18n="online"></p>
             <div id="stageDebugDisplay" hidden>
                 <label class="settings-row" for="debugRoute"><span data-i18n="ui.stageDebugDisplay.label.span"></span><input id="debugRoute" type="checkbox" checked></label>
                 <label class="settings-row" for="debugHoldNumbers"><span data-i18n="ui.stageDebugDisplay.label.span.2"></span><input id="debugHoldNumbers" type="checkbox" checked></label>
@@ -405,29 +402,5 @@
             </div>
         </dialog>
     </main>
-<button id="pagesTrialSeedOpenTitle" type="button" aria-haspopup="dialog" aria-controls="pagesTrialSeedDialog" hidden>試遊設定</button>
-<button id="pagesTrialSeedOpenSettings" type="button" aria-haspopup="dialog" aria-controls="pagesTrialSeedDialog" hidden>通常 SEED の試遊設定</button>
-<dialog id="pagesTrialSeedDialog" class="pages-trial-seed-dialog" aria-labelledby="pagesTrialSeedTitle" aria-describedby="pagesTrialSeedHelp">
-  <form id="pagesTrialSeedForm" novalidate>
-    <div class="pages-trial-seed-heading">
-      <h2 id="pagesTrialSeedTitle">試遊 DEBUG 設定</h2>
-      <button id="pagesTrialSeedClose" type="button" aria-label="試遊設定を閉じる">閉じる</button>
-    </div>
-    <label class="pages-trial-seed-toggle" for="pagesTrialSeedDebug"><span>DEBUG モード</span><input id="pagesTrialSeedDebug" type="checkbox"></label>
-    <p id="pagesTrialSeedHelp">通常ステージの SEED に加える値です。進行・アイテム・デイリーは変わりません。変更後、次に開始する通常コースに反映します。補正値はこのブラウザに保存されます。通常ベストは補正値ごとに別保存され、同じ値へ戻すとその値の記録に切り替わります。</p>
-    <p id="pagesTrialSeedCurrent"></p>
-    <p id="pagesTrialSeedWarning" role="status"></p>
-    <div id="pagesTrialSeedControls" hidden>
-      <label for="pagesTrialSeedInput">通常 SEED 補正値</label>
-      <input id="pagesTrialSeedInput" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-describedby="pagesTrialSeedRange pagesTrialSeedError" value="10">
-      <p id="pagesTrialSeedRange">0〜4294967295 の整数（初期値 10）。小数・負数・指数表記は使えません。</p>
-      <div class="pages-trial-seed-actions"><button id="pagesTrialSeedDefault" type="button">入力を 10 に戻す</button><button id="pagesTrialSeedApply" type="submit">適用</button></div>
-    </div>
-    <p id="pagesTrialSeedError" role="alert"></p>
-    <p id="pagesTrialSeedStatus" role="status" aria-live="polite"></p>
-  </form>
-</dialog>
-
-    <aside id="pagesTrialLabel" aria-label="Balance trial, isolated local saves"></aside>
 </body>
 </html>

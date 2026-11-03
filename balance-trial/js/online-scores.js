@@ -1,6 +1,6 @@
 "use strict";
 const ONLINE_SCORES_KEY='ascent.pending-scores.v1';
-const onlineScores={pending:new Map(),owner:null,saving:false,boards:new Map()};
+const onlineScores={pending:new Map(),owner:null,saving:false,boards:new Map(),blocked:null};
 function scoreBoardKey(stage,mode) {
     return `${COURSE_VERSION}_${mode}_${stage}`;
 }
@@ -12,30 +12,46 @@ function validScoreBoard(key) {
     return supportedScoreBoard(key);
 }
 function persistPendingScores() {
-    try {ASCENT_TRIAL_STORAGE?.setItem(ONLINE_SCORES_KEY,JSON.stringify({uid:onlineScores.owner,items:[...onlineScores.pending]}));}catch(_) {}
+    // Unsafe restored payloads remain byte-for-byte in their original key.
+    if(!onlineScores.blocked)try {ASCENT_FORMAL_STORAGE?.setItem(ONLINE_SCORES_KEY,JSON.stringify({uid:onlineScores.owner,items:[...onlineScores.pending]}));}catch(_) {}
     const status=document.getElementById('onlineScoreStatus');
-    status.hidden=onlineScores.pending.size===0;
-    status.textContent=onlineScores.pending.size?gameText("online-scores.persistPendingScores", {value0: onlineScores.pending.size}):'';
+    status.hidden=!onlineScores.blocked && onlineScores.pending.size===0;
+    status.textContent=onlineScores.blocked?gameText('online-scores.pendingBlocked'):onlineScores.pending.size?gameText("online-scores.persistPendingScores", {value0: onlineScores.pending.size}):'';
 }
 function readPendingScores() {
     try {
-        const saved=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(ONLINE_SCORES_KEY)||'null');
-        if(!saved || !Array.isArray(saved.items) || saved.items.length>10000)return;
-        onlineScores.owner=typeof saved.uid==='string'?saved.uid:null;
-        for(const entry of saved.items)if(Array.isArray(entry) && entry.length===2 && validScoreBoard(entry[0]) && validStageScore(entry[1]))
-            onlineScores.pending.set(entry[0],{moves:entry[1].moves,timeMs:entry[1].timeMs,...scoreMetadata(entry[1])});
-    } catch(_) {}
+        const raw=ASCENT_FORMAL_STORAGE?.getItem(ONLINE_SCORES_KEY);
+        if(raw==null)return;
+        const saved=JSON.parse(raw);
+        if(!saved || !Array.isArray(saved.items) || saved.items.length>10000 ||
+            !(saved.uid==null || (typeof saved.uid==='string' && saved.uid.length>0))) {
+            onlineScores.blocked='invalid-pending-envelope';return;
+        }
+        onlineScores.owner=saved.uid??null;
+        const restored=new Map();
+        for(const entry of saved.items) {
+            if(!Array.isArray(entry) || entry.length!==2 || !validScoreBoard(entry[0]) ||
+                !validStageScore(entry[1]) || !scoreMatchesBoard(entry[0],entry[1]) || restored.has(entry[0])) {
+                onlineScores.blocked='invalid-pending-entry';return;
+            }
+            restored.set(entry[0],{moves:entry[1].moves,timeMs:entry[1].timeMs,...scoreMetadata(entry[1])});
+        }
+        onlineScores.pending=restored;
+    } catch(_) {onlineScores.blocked='unreadable-pending';}
 }
 readPendingScores();
 persistPendingScores();
 function connectOnlineScores(uid) {
-    return false; // Artifact-only safety gate.
     // Do not submit another guest account's pending records under a new identity.
-    if(onlineScores.owner && onlineScores.owner!==uid)onlineScores.pending.clear();
+    if(onlineScores.owner && onlineScores.owner!==uid) {
+        onlineScores.blocked='pending-owner-mismatch';persistPendingScores();refreshOpenScoreViews();return;
+    }
+    if(onlineScores.blocked==='pending-owner-mismatch')onlineScores.blocked=null;
+    if(onlineScores.blocked)return;
     onlineScores.owner=uid;persistPendingScores();void flushOnlineScores();refreshOpenScoreViews();
 }
 function queueOnlineScore(stage,mode,score) {
-    return false; // Artifact-only safety gate.
+    if(onlineScores.blocked || score?.rankingEligible===false)return false;
     if(stage<1 || (typeof isTutorialRun==='function' && isTutorialRun()))return false;
     if(accountDeletion.marker)return false;
     if(mode!=='existing')return false;
@@ -50,8 +66,7 @@ function queueOnlineScore(stage,mode,score) {
     void flushOnlineScores();return true;
 }
 async function flushOnlineScores() {
-    return false; // Artifact-only safety gate.
-    if(accountDeletion.marker || !online.ready || !online.adapter.saveScore || onlineScores.saving || (typeof transferBusy==='function' && transferBusy()))return;
+    if(onlineScores.blocked || accountDeletion.marker || !online.ready || !online.adapter.saveScore || onlineScores.saving || (typeof transferBusy==='function' && transferBusy()))return;
     onlineScores.saving=true;
     try {
         while(onlineScores.pending.size && !accountDeletion.marker && !(typeof transferBusy==='function' && transferBusy())) {
@@ -63,7 +78,7 @@ async function flushOnlineScores() {
             const connectionTicket=globalThis.ASCENT_SETTINGS_CONNECTION?.ticket();
             const saved=await online.adapter.saveScore(online.uid,board,score);
             if(accountDeletion.marker)return;
-            if(!validStageScore(saved))throw new Error('Invalid saved score');
+            if(!validStageScore(saved) || !scoreMatchesBoard(board,saved))throw new Error('Invalid saved score');
             globalThis.ASCENT_SETTINGS_CONNECTION?.success(connectionTicket);
             if(onlineScores.pending.get(board)===score)onlineScores.pending.delete(board);
             const [version,mode,n]=board.split('_'),stage=Number(n);
@@ -72,12 +87,12 @@ async function flushOnlineScores() {
                 const previous=stageRecords[mode][stage];
                 const best=previous?.version===version && compareStageScores(previous,saved)<=0?previous:saved;
                 const previousVersions={...previous?.previousVersions};
-                if(previous && supportedCourseVersion(previous.version) && previous.version!==version) {
+                if(previous && historicalCourseVersion(previous.version) && previous.version!==version) {
                     const {previousVersions:ignored,...historical}=previous;
                     previousVersions[previous.version]=historical;
                 }
-                stageRecords[mode][stage]={moves:best.moves,timeMs:best.timeMs,...scoreMetadata(best),version,...(previous?.stars?{stars:previous.stars}:{}),...(Object.keys(previousVersions).length?{previousVersions}:{})};
-                try {ASCENT_TRIAL_STORAGE?.setItem(RECORDS_KEY,JSON.stringify(stageRecords));}catch(_) {}
+                stageRecords[mode][stage]={moves:best.moves,timeMs:best.timeMs,...scoreMetadata(best),version,...(best.rankingEligible===false?{rankingEligible:false}:{}),...(previous?.version===version && previous?.stars?{stars:previous.stars}:{}),...(Object.keys(previousVersions).length?{previousVersions}:{})};
+                try {ASCENT_FORMAL_STORAGE?.setItem(RECORDS_KEY,JSON.stringify(stageRecords));}catch(_) {}
             }
             persistPendingScores();
             const cached=onlineScores.boards.get(board);if(cached){cached.at=0;cached.retry=cached.pending;}
@@ -89,6 +104,7 @@ async function flushOnlineScores() {
     } finally {onlineScores.saving=false;persistPendingScores();refreshOpenScoreViews();}
 }
 function stageScoreStatus(stage,mode) {
+    if(onlineScores.blocked)return gameText('online-scores.pendingBlocked');
     const board=scoreBoardKey(stage,mode),page=onlineScores.boards.get(board);
     if(onlineScores.pending.has(board))return onlineScores.saving?gameText("online-scores.stageScoreStatus.6"):gameText("online-scores.stageScoreStatus.5");
     if(!online.ready)return gameText("online-scores.stageScoreStatus.4");
@@ -97,7 +113,6 @@ function stageScoreStatus(stage,mode) {
     return page?.rows.length?'':gameText("online-scores.stageScoreStatus");
 }
 function onlineStageScores(stage,mode) {
-    return []; // Artifact-only safety gate.
     if(mode!=='existing')return [];
     const board=scoreBoardKey(stage,mode);
     if(!validScoreBoard(board))return [];

@@ -732,3 +732,10 @@ button.map-page:focus-visible,button.daily-airship:focus-visible,
 button.daily-day:focus-visible,.palette-swatches button:focus-visible,
 #openDaily:focus-visible,#dailyBack:focus-visible { filter:brightness(.78); }
 .map-opponent:focus-visible { opacity:.7; }
+
+/* Normal settings DEBUG control; no separate trial dialog. */
+#formalDebugSeed{display:grid;gap:12px;min-width:0;max-width:100%}
+#formalDebugSeed input{box-sizing:border-box;min-width:0;width:100%;font-size:16px}
+#formalDebugSeed button{min-height:44px}
+#formalDebugSeed p{overflow-wrap:anywhere}
+#formalDebugSeed[hidden]{display:none!important}

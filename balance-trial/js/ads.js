@@ -7,7 +7,7 @@ const AD_PLAYS_KEY='ascent.ad-plays.v2';
 const DUMMY_AD_DURATION=10000;
 function readAdPlayCount() {
     try {
-        const count=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(AD_PLAYS_KEY)||'0');
+        const count=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(AD_PLAYS_KEY)||'0');
         return Number.isSafeInteger(count) && count>=0 ? count : 0;
     } catch(_) {return 0;}
 }
@@ -21,7 +21,7 @@ function finishDummyAdCover() {
     resumeBackgroundMusicAfterAd();
 }
 function saveAdPlayCount() {
-    try {ASCENT_TRIAL_STORAGE?.setItem(AD_PLAYS_KEY,JSON.stringify(playsSinceAd));}
+    try {ASCENT_FORMAL_STORAGE?.setItem(AD_PLAYS_KEY,JSON.stringify(playsSinceAd));}
     catch(_) { /* Keep the interval within this session if storage is unavailable. */ }
 }
 function recordAdPlay() {

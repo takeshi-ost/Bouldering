@@ -7,7 +7,7 @@ function validBodyColor(value) { return typeof value==='string' && /^#[0-9a-f]{6
 const DEFAULT_HEAD_COLOR='#e0b99b';
 function readAppearance() {
     try {
-        const saved=JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(APPEARANCE_KEY)||'null');
+        const saved=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(APPEARANCE_KEY)||'null');
         const colors=saved?.colors;
         if(Array.isArray(colors) && colors.length>=1 && colors.length<=8 && colors.every(validBodyColor))
             return {colors:colors.map(c=>c.toLowerCase()),
@@ -17,8 +17,8 @@ function readAppearance() {
 }
 function saveAppearance(appearance) {
     try {
-        if(ASCENT_TRIAL_STORAGE) {
-            ASCENT_TRIAL_STORAGE.setItem(APPEARANCE_KEY,JSON.stringify(appearance));return true;
+        if(ASCENT_FORMAL_STORAGE) {
+            ASCENT_FORMAL_STORAGE.setItem(APPEARANCE_KEY,JSON.stringify(appearance));return true;
         }
     } catch(_) { /* Apply for this session even if persistence is unavailable. */ }
     return false;
@@ -44,11 +44,11 @@ function randomPlayerName() {
     return Array.from({length:8},()=>letters[Math.floor(Math.random()*letters.length)]).join('');
 }
 function readPlayerName() {
-    try {return normalizedPlayerName(JSON.parse(ASCENT_TRIAL_STORAGE?.getItem(PLAYER_NAME_KEY)||'null'));}
+    try {return normalizedPlayerName(JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(PLAYER_NAME_KEY)||'null'));}
     catch(_) {return '';}
 }
 function savePlayerName(name) {
-    try {if(ASCENT_TRIAL_STORAGE){ASCENT_TRIAL_STORAGE.setItem(PLAYER_NAME_KEY,JSON.stringify(name));return true;}}
+    try {if(ASCENT_FORMAL_STORAGE){ASCENT_FORMAL_STORAGE.setItem(PLAYER_NAME_KEY,JSON.stringify(name));return true;}}
     catch(_) { /* Keep the name in memory when storage is unavailable. */ }
     return false;
 }

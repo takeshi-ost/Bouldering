@@ -1,6 +1,15 @@
 "use strict";
 // Approved English player copy. Placeholder names match the Japanese source.
 const GAME_TEXT_EN = Object.freeze({
+    "online-scores.pendingBlocked": "Pending records are preserved. Score sync is paused.",
+    "formal.ranking.localOnly": "This run used a displayed route. Progress is saved, but this record is not submitted to rankings.",
+    "formal.seed.label": "DEBUG SEED offset",
+    "formal.seed.apply": "Apply",
+    "formal.seed.help": "Normal play always uses +10. This DEBUG offset applies to the next test stage, without progress or formal score records. Daily is unchanged.",
+    "formal.seed.invalid": "Enter an integer from 0 to 4294967295.",
+    "formal.seed.unsafe": "Enable DEBUG and apply from the map.",
+    "formal.seed.saved": "Applied to the next test stage.",
+    "formal.seed.unsaved": "Applied for this session. Could not save on this device.",
     // Owner-supplied tutorial copy, verbatim; English intentionally falls back to Japanese until a translation is approved.
     "tutorial.title.play": "ASCENTにようこそ！",
     "tutorial.title.complete": "チュートリアル完了",
@@ -26,7 +35,6 @@ const GAME_TEXT_EN = Object.freeze({
     "settings.connection": "Connection",
     "settings.online": "Online",
     "settings.offline": "Offline",
-    "settings.trialOffline": "Offline trial (no ranking uploads or data transfer)",
     "audio.music": "BGM",
     "audio.effects": "Effects",
     "audio.musicVolume": "Music volume",
@@ -137,6 +145,7 @@ const GAME_TEXT_EN = Object.freeze({
     "rewards.rewardResultMarkup": "Chalk Bag",
     "rewards.rewardResultMarkup.2": "Extra Life",
     "rewards.rewardResultMarkup.3": "Lives are capped at {value0}",
+    "transfer.progressGeneration": "Transfer files from an older progress generation cannot be imported into this version. Your current data has not changed.",
     "transfer": "This is not a valid ASCENT transfer file.",
     "transfer.2": "Check the details, then select “Import This Data.”",
     "transfer.3": "{value0}\nUID {value1}\nStage Reached: {value2}\nThis will replace the game data on this device.",
