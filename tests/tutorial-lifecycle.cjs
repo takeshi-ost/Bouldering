@@ -47,29 +47,29 @@ for(const won of [true,false]){
  const reload=boot(b.data);assert.equal(reload.run('tutorialPending()'),false,'completed tutorial never repeats');
 }
 // Actual native drag/release clear: retain the live tutorial across a normal
-// preview, grab the central hold with a hand, then reach the goal naturally.
+// preview, traverse ordinary holds, then reach the goal naturally.
 {
  const b=boot(),before=snapshot(b);titleStart(b);
  const references=b.run('({tutorialRun,activeCourseGeneration,holds,route,stamina,state,level})');
  assert.equal(b.run('stagePreview(1).seed'),b.run('CourseProgression.resolveStage(1).seed'));
  for(const [key,value] of Object.entries(references))assert.equal(b.run(key),value,'normal preview changed active tutorial '+key);
- b.run(`cameraIntro=null;hideStageHelp();const tutorialPath=[...route],centerId=tutorialRun.centerHoldId,initialBudget=stamina;let grabbedCenter=false;
-  assert.equal(initialBudget,routeExpectedMoves()+8);
+ b.run(`cameraIntro=null;hideStageHelp();const tutorialPath=[...route],initialBudget=stamina,expectedMoves=routeExpectedMoves();
+  assert.equal(initialBudget,stageStamina(routeExpectedMoves())+TUTORIAL_COURSE_CONFIG.extraStamina);
   for(let i=1;i<tutorialPath.length;i++){
    camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const target=tutorialPath[i];
    down({clientX:body.x,clientY:body.y-camera});move({clientX:target.x,clientY:target.y-camera});release();
    assert.equal(moveCount,i);assert(grips.every((h,k)=>h&&limbReachable(body,h,k)));
-   grabbedCenter ||= grips.slice(0,2).some(h=>h.id===centerId);
+   assert.equal(stamina,initialBudget-i);
   }
-  assert(grabbedCenter,'actual hand contact must reach central tutorial hold');assert.equal(moveCount,6);assert.equal(stamina,8);assert(bothHandsOnGoal());`);
+  assert.equal(moveCount,expectedMoves);assert.equal(stamina,initialBudget-expectedMoves);assert(stamina>0);assert(bothHandsOnGoal());`);
  completedToStageOne(b);assert.equal(b.run('AscentTutorialState.snapshot().reason'),'cleared');assert.equal(snapshot(b),before);
 }
 // Legal back-and-forth moves, not a forced stamina edit or synthetic failure:
-// exhaust the complete14-point starting budget without touching the goal.
+// exhaust the complete route-derived starting budget without touching the goal.
 {
  const b=boot(),before=snapshot(b);titleStart(b);
  b.run(`cameraIntro=null;hideStageHelp();const bottom={...route[0]},firstStep={...route[1]},initialBudget=stamina;
-  assert.equal(initialBudget,14);
+  assert.equal(initialBudget,stageStamina(routeExpectedMoves())+TUTORIAL_COURSE_CONFIG.extraStamina);
   for(let i=0;i<initialBudget;i++){
    assert(isTutorialRun());const target=i%2?bottom:firstStep;
    camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
@@ -118,10 +118,9 @@ for(const action of ['ui.restart.onclick();','returnFromStage();']){
  const b=boot();b.run(`TUTORIAL_CONFIG.steps.push(
   {id:'intro',when:{event:'start'},title:'<b>literal</b>',text:'test intro'},
   {id:'move-two',when:{event:'move',count:2},text:'test move'},
-  {id:'center-hand',when:{event:'hold',hold:'center'},text:'test hold'},
   {id:'bad-url',when:{event:'start'},image:'https://example.com/image.png'}
  );`);
- titleStart(b);assert(!b.node('tutorialDialog').open);b.run('advanceCameraIntro(0);advanceCameraIntro(100000);');assert(b.node('tutorialDialog').open);assert.equal(b.node('tutorialTitle').textContent,'<b>literal</b>');assert.equal(b.run('tutorialInstructionsOpen()'),true);assert.equal(b.run('featureHelpOpen'),true);
+ titleStart(b);b.run("var chosenTriggerHold=holds.find(h=>h.type==='normal');assert(chosenTriggerHold);TUTORIAL_CONFIG.steps.push({id:'normal-hand',when:{event:'hold',hold:chosenTriggerHold.id},text:'test hold'});");assert(!b.node('tutorialDialog').open);b.run('advanceCameraIntro(0);advanceCameraIntro(100000);');assert(b.node('tutorialDialog').open);assert.equal(b.node('tutorialTitle').textContent,'<b>literal</b>');assert.equal(b.run('tutorialInstructionsOpen()'),true);assert.equal(b.run('featureHelpOpen'),true);
  assert.equal(b.run('tutorialRun.seen.has("bad-url")'),false);
  b.run('cameraIntro=null;');const paused=b.run('JSON.stringify({body,grips,stamina,moveCount})');
  b.run('down({clientX:body.x,clientY:body.y-camera});move({clientX:body.x+30,clientY:body.y-camera-30});release();');assert.equal(b.run('JSON.stringify({body,grips,stamina,moveCount})'),paused);
@@ -130,8 +129,8 @@ for(const action of ['ui.restart.onclick();','returnFromStage();']){
  b.run('moveCount=1;tutorialTrigger("move");');assert.equal(b.run('tutorialInstructionsOpen()'),false);
  b.run('runStartedAt=performance.now()-500;moveCount=2;tutorialTrigger("move");');assert.equal(b.run('runStartedAt'),null);assert(b.run('runElapsedMs')>=500);assert.equal(b.node('tutorialText').textContent,'test move');
  b.run('tutorialTrigger("move");');assert.equal(b.run('tutorialRun.queue.length'),0);b.node('tutorialContinue').onclick();assert.notEqual(b.run('runStartedAt'),null);
- b.run('const originalTutorialGrips=[...grips],centerForTest=holds.find(h=>h.id===tutorialRun.centerHoldId);grips[2]=centerForTest;tutorialTrigger("hold");');assert.equal(b.run('tutorialInstructionsOpen()'),false,'foot contact is not grabbing');
- b.run('grips[0]=centerForTest;tutorialTrigger("hold");');assert.equal(b.node('tutorialText').textContent,'test hold');b.node('tutorialContinue').onclick();b.run('tutorialTrigger("hold");');assert.equal(b.run('tutorialInstructionsOpen()'),false);assert.equal(b.run('tutorialRun.seen.size'),3);
+ b.run('const originalTutorialGrips=[...grips],normalForTest=chosenTriggerHold;grips[2]=normalForTest;tutorialTrigger("hold");');assert.equal(b.run('tutorialInstructionsOpen()'),false,'foot contact is not grabbing');
+ b.run('grips[0]=normalForTest;tutorialTrigger("hold");');assert.equal(b.node('tutorialText').textContent,'test hold');b.node('tutorialContinue').onclick();b.run('tutorialTrigger("hold");');assert.equal(b.run('tutorialInstructionsOpen()'),false);assert.equal(b.run('tutorialRun.seen.size'),3);
  b.run('grips=originalTutorialGrips;showTitleScreen();');assert.equal(b.run('tutorialPending()'),true);
 }
 // A final-move explanation queue must finish before either terminal outcome
@@ -151,6 +150,6 @@ for(const won of [true,false]){
  resolveDecode();for(let i=0;i<6;i++){await Promise.resolve();b.flushFrames();}
  completedToStageOne(b);
 }
-console.log('PASS tutorial lifecycle: fresh/existing early detection, complete success/failure to Stage1 confirmation, interruption/reload, blocked storage, duplicate starts/completion, no Stage0 progression/life/items/ads/rank/rewards, normal/Daily preservation, once-only paused triggers, deferred final explanations and async map-ready barrier, actual drag clear and legal14-move exhaustion');
+console.log('PASS tutorial lifecycle: fresh/existing early detection, complete success/failure to Stage1 confirmation, interruption/reload, blocked storage, duplicate starts/completion, no Stage0 progression/life/items/ads/rank/rewards, normal/Daily preservation, once-only paused triggers, deferred final explanations and async map-ready barrier, actual drag clear and legal route-budget exhaustion');
 
 })().catch(error=>{console.error(error);process.exitCode=1;});

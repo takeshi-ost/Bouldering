@@ -1,11 +1,10 @@
 'use strict';
 // Owner-approved pages. English intentionally uses the same Japanese copy;
 // mark its language explicitly rather than inventing an unapproved translation.
-const TUTORIAL_CONFIG={version:'9',steps:[
+const TUTORIAL_CONFIG={version:'10',steps:[
     {id:'intro-welcome',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.welcome"),image:'assets/tutorial-swipe-78-v1.png'},
     {id:'intro-movement',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.movement"),image:'assets/tutorial-feet-limit-78-v2.png'},
     {id:'intro-goal',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.goal"),image:'assets/tutorial-goal-hands-78-v2.png'},
-    {id:'center-wide',when:{event:'hold',hold:'center'},language:'ja',title:gameText("tutorial.title.wide"),text:gameText("tutorial.wide"),image:'assets/hold-wide-flat.webp'},
     {id:'goal-fixed',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.complete"),text:gameText("tutorial.goal.fixed"),image:'assets/tutorial-goal-feet-78-v2.png'},
     {id:'goal-finish',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.complete"),text:gameText("tutorial.goal.finish"),image:'assets/settings-gear.svg'}
 ]};
@@ -14,17 +13,14 @@ function tutorialPending(){return globalThis.AscentTutorialState?.pending()===tr
 function tutorialInstructionsOpen(){return !!tutorialRun?.explanation;}
 function startTutorialRun() {
     if(state!=='choosing' || isTutorialRun() || !tutorialPending())return false;
-    tutorialRun={seen:new Set(),queue:[],explanation:null,centerHoldId:null,introReady:false,timing:false,paused:false,pendingOutcome:null,clearSoundPlayed:false,transition:null,transitionTimer:null,imageLoading:false,imageTicket:0};
+    tutorialRun={seen:new Set(),queue:[],explanation:null,introReady:false,timing:false,paused:false,pendingOutcome:null,clearSoundPlayed:false,transition:null,transitionTimer:null,imageLoading:false,imageTicket:0};
     try {
         endDebugCourseTrial();leaveDailyRun();debugAttempt=false;
         hideStageStart();cancelMapReveal();
         ui.wall.classList.toggle('title-open',false);
         restartInput(0);
-        tutorialRun.centerHoldId=activeCourseGeneration.report.centerHoldId;
-        canvas.setAttribute('tabindex','0');
         refreshLives();
         // The camera intro owns the start trigger, at the playable boundary.
-        canvas.focus();
         return true;
     } catch(error) {
         interruptTutorialRun();
@@ -87,7 +83,7 @@ function finishTutorialRun(won) {
     return true;
 }
 // Steps are data: {id,when:{event:'start'|'move'|'hold'|'goal',count?,hold?},
-// title?,text?,image?,alt?}. hold:'center' selects the protected central hold.
+// title?,text?,image?,alt?}. A hold trigger uses an explicit generated hold ID.
 // No content means no modal. Text uses textContent, never HTML injection.
 function tutorialTrigger(event) {
     if(!isTutorialRun() || state!=='playing')return;
@@ -98,7 +94,7 @@ function tutorialTrigger(event) {
         if(!when || when.event!==event)continue;
         if(event==='move' && (!Number.isSafeInteger(when.count) || when.count!==moveCount))continue;
         if(event==='hold') {
-            const id=when.hold==='center'?tutorialRun.centerHoldId:when.hold;
+            const id=when.hold;
             // "Grabbed" is a hand contact, not a foot merely standing on it.
             if(!grips.slice(0,2).some(h=>h?.id===id))continue;
         }
@@ -141,8 +137,8 @@ function showNextTutorialExplanation(whenReady=null) {
             document.getElementById('tutorialContinue').disabled=false;
             document.getElementById('tutorialContent').setAttribute('aria-busy','false');
         }
-        // Mount the already-decoded node before revealing/focusing the card.
-        document.getElementById('tutorialContent').focus();requestGameRender();
+        // Mount the already-decoded node before revealing the card.
+        requestGameRender();
         whenReady?.();
     });
 }
@@ -177,7 +173,7 @@ function dismissTutorialExplanation() {
     hideTutorialExplanation();
     if(tutorialRun.pendingOutcome!==null) {finishTutorialRun(tutorialRun.pendingOutcome);return;}
     if(timing)runStartedAt=performance.now()-runElapsedMs;
-    canvas.focus();requestGameRender();
+    requestGameRender();
 }
 function advanceTutorialExplanation(event) {
     event?.preventDefault?.();event?.stopPropagation?.();
@@ -186,12 +182,6 @@ function advanceTutorialExplanation(event) {
 document.getElementById('tutorialContinue').onclick=advanceTutorialExplanation;
 document.getElementById('tutorialDialog').onclick=advanceTutorialExplanation;
 document.getElementById('tutorialDialog').addEventListener('cancel',advanceTutorialExplanation);
-document.getElementById('tutorialDialog').addEventListener('keydown',event=>{
-    if(event.key==='Enter' || event.key===' ') {
-        event.preventDefault();event.stopPropagation?.();
-        if(!event.repeat)dismissTutorialExplanation();
-    }
-});
 document.getElementById('tutorialDialog').addEventListener('close',()=>{
     // Ignore delayed close events after a newer modal has opened. An unexpected
     // external close must not leave hidden instructions locking gameplay.
@@ -200,4 +190,4 @@ document.getElementById('tutorialDialog').addEventListener('close',()=>{
 });
 
 // Start requests during title preparation, but retain the playable-boundary trigger.
-preloadExplanationImages([...TUTORIAL_CONFIG.steps.map(step=>step.image),COURSE_HEART_IMAGE_SRC,'assets/hold-hazard-source.webp']);
+preloadExplanationImages([...TUTORIAL_CONFIG.steps.map(step=>step.image),'assets/hold-wide-flat.webp',COURSE_HEART_IMAGE_SRC,'assets/hold-hazard-source.webp']);

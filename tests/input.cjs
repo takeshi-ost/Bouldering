@@ -108,7 +108,7 @@ e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal
 fixture();stamina=1;play(2);assert.equal(state,'lost');assert.equal(characterAnimation.kind,'fall');
 const lossCamera=camera;HEIGHT=H*3;assert.equal(canScrollStage(),false);
 canvas.events.wheel({deltaY:100,deltaMode:0,preventDefault(){}});
-canvas.events.keydown({key:'End',preventDefault(){}});
+assert.equal(canvas.events.keydown,undefined,'Stage has no custom keyboard scrolling');
 beginTouchPan([finger(1,eventAt(body)),finger(2,eventAt({x:body.x+30,y:body.y}))]);assert.equal(pan,null);
 draw(0);assert.equal(camera,lossCamera);assert(!ui.overlay.hidden);assert(!ui.overlay.classList.values.reviewing);
 e=visibleEvent();mouse('mousedown',e);clock+=100;mouse('mouseup',e);assert.equal(state,'lost');assert.equal(bodyTap,null);ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert(ui.overlay.hidden);assert.equal(moveCount,0);

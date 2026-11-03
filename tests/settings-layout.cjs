@@ -46,7 +46,7 @@ for(const scene of ['map','daily','normal','daily-play','tutorial']){
  b.node('showHelp').onclick();assert(b.node('helpDialog').open);const helpCount=b.node('helpDialog').showCount;b.node('showHelp').onclick();assert.equal(b.node('helpDialog').showCount,helpCount);
  b.node('languageChoice').value='en';b.node('languageChoice').onchange();assert.equal(b.run('GAME_TEXT_LANGUAGE'),'ja','Underlying language control is inert under help');assert.equal(b.node('languageChoice').value,'ja');
  b.node('helpDialog').onclick({target:b.node('helpScroll')});assert(b.node('helpDialog').open);
- let prevented=false;b.node('helpDialog').events.cancel({preventDefault(){prevented=true;}});assert(prevented);assert(!b.node('helpDialog').open);b.node('helpDialog').events.close();assert.equal(b.run('document.activeElement.id'),'showHelp');assert(b.run('settingsOpen'));
+ let prevented=false;b.node('helpDialog').events.cancel({preventDefault(){prevented=true;}});assert(prevented);assert(!b.node('helpDialog').open);b.node('helpDialog').events.close?.();assert.equal(b.node('helpDialog').events.close,undefined,'No custom focus return');assert(b.run('settingsOpen'));
  assert.equal(snapshot(b),before);
  // Gestures/Undo remain disabled while reading/settings; original timer policy
  // is unchanged (settings is not a free play-clock pause).
@@ -68,4 +68,4 @@ for(const scene of ['map','daily','normal','daily-play','tutorial']){
  b.node('closeSettings').onclick();b.node('debugCourseExit').onclick();assert.equal(b.run('state'),'map');b.run('cancelMapReveal();mapPreparing=false;mapTransition=null;openSettings();');
  b.node('mapDebugMode').checked=false;b.node('mapDebugMode').onchange();assert.equal(b.run('debugMode'),false);assert.equal(b.node('stageDebugDisplay').hidden,true);
 }
-console.log('PASS settings: requested shared/contextual order, labeled native controls, bounded/scaled layout, JA/EN in map/Daily/normal/Daily play/STAGE0/debug trial, no gameplay/save reset, audio persistence, nested help/Escape/focus/repeat guards, unchanged timer/navigation/retirement/debug controls (no browser or audio audition)');
+console.log('PASS settings: requested shared/contextual order, labeled native controls, bounded/scaled layout, JA/EN in map/Daily/normal/Daily play/STAGE0/debug trial, no gameplay/save reset, audio persistence, nested help/native-cancel/repeat guards, unchanged timer/navigation/retirement/debug controls (no browser or audio audition)');

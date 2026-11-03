@@ -91,7 +91,7 @@
     window.addEventListener('pagehide', pause);
     window.addEventListener('pageshow', activate);
     // Existing gesture handlers unlock the context first; then restore the page gate.
-    for (const event of ['pointerup', 'touchend', 'click', 'keydown']) {
+    for (const event of ['pointerup', 'touchend', 'click']) {
         document.addEventListener(event, resume, {passive:true});
     }
 })();

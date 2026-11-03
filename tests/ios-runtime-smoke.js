@@ -65,7 +65,7 @@
         node('tutorialContinue').click();
         ensure(tutorialRun.transition==='closing','tutorial-transition-not-started');
         node('tutorialDialog').click();
-        node('tutorialDialog').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',repeat:true,bubbles:true,cancelable:true}));
+        node('tutorialDialog').click();
         ensure(tutorialRun.explanation.id==='intro-welcome','transition-repeat-skipped-page');
         ensure(pose()===frozen,'transition-mutated-gameplay');
         await readyPage('intro-movement');await tapPage('intro-movement');await readyPage('intro-goal');await tapPage('intro-goal');
@@ -89,26 +89,28 @@
         node('closeSettings').click();await wait(()=>!settingsOpen&&!node('settingsDialog').open,'settings-not-closed');
         checks.push('stage-settings-language-sound-help-scroll-return');
         phase='programmatic-gameplay';
-        let wideSeen=false,goalSeen=false;
+        let goalSeen=false;
+        ensure(!holds.some(h=>h.wide&&h.type!=='start'),'tutorial-nonstart-wide');
+        ensure(stamina===activeCourseGeneration.report.initialStamina,'tutorial-stamina-mismatch');
         const routePoints=route.slice(1).map(p=>({x:p.x,y:p.y}));ensure(routePoints.length>0&&routePoints.length<=20,'unexpected-tutorial-route');
         for(const target of routePoints){
             ensure(state==='playing'&&!tutorialInstructionsOpen(),'route-state-invalid');
             const beforeMoves=moveCount;
             down(client(body));move(client(target));release();
             await wait(()=>moveCount===beforeMoves+1,'programmatic-move-not-committed',3000);
-            if(tutorialRun?.explanation?.id==='center-wide'){await tapPage('center-wide');wideSeen=true;await wait(()=>!tutorialInstructionsOpen(),'wide-page-not-dismissed');}
             if(tutorialRun?.explanation?.id==='goal-fixed'){
                 await tapPage('goal-fixed');await readyPage('goal-finish');goalSeen=true;await tapPage('goal-finish');break;
             }
             await delay(200);
         }
-        ensure(wideSeen&&goalSeen,'required-route-pages-missing');
+        ensure(goalSeen,'required-route-pages-missing');
+        ensure(stamina===8,'tutorial-route-stamina-margin');
         phase='map';await wait(()=>state==='map'&&stageStartContext?.n===1&&node('stageStartDialog').open,'map-stage1-not-ready',15000);
         ensure(!isTutorialRun()&&!tutorialPending(),'tutorial-not-completed');
         ensure(globalThis.AscentTutorialState.snapshot().reason==='cleared','tutorial-not-cleared');
         ensure(resources()===originalResources,'tutorial-changed-free-resources');
         ensure(stageRecords.existing[0]===undefined,'stage0-record-created');
-        checks.push('programmatic-route-wide-and-two-goal-pages','map-stage1-prestart-free-resources-preserved');
+        checks.push('programmatic-alternating-route-and-two-goal-pages','map-stage1-prestart-free-resources-preserved');
         await capture('map-start');finish(true);
     } catch(error){
         // Do not return exception messages, URLs, identifiers or saved data.

@@ -15,25 +15,24 @@ function trace(b){return JSON.parse(b.run('JSON.stringify(feedbackSounds)'));}
 {
  const b=boot();start(b);b.run('var feedbackSounds=[];playSound=name=>feedbackSounds.push(name);');
  click(b,{buttonTap:true,settle:false});assert.deepEqual(trace(b),['move'],'TAP button must not add generic tap or bubble twice');
- click(b,{buttonTap:true,settle:false});click(b,{settle:false});b.node('tutorialDialog').events.keydown(event(null,{key:'Enter',repeat:true}));assert.deepEqual(trace(b),['move']);
+ click(b,{buttonTap:true,settle:false});click(b,{settle:false});assert.equal(b.node('tutorialDialog').events.keydown,undefined);assert.deepEqual(trace(b),['move']);
  settleTransition(b);page(b,2);click(b);page(b,3);assert.deepEqual(trace(b),['move','move']);
- b.node('tutorialDialog').events.keydown(event(null,{key:'x'}));assert.deepEqual(trace(b),['move','move']);
- b.node('tutorialDialog').events.keydown(event(null,{key:' ',repeat:false}));assert.deepEqual(trace(b),['move','move','move']);assert(!b.run('tutorialInstructionsOpen()'));
+ assert.equal(b.node('tutorialDialog').events.keydown,undefined);assert.deepEqual(trace(b),['move','move']);
+ click(b);assert.deepEqual(trace(b),['move','move','move']);assert(!b.run('tutorialInstructionsOpen()'));
  click(b);assert.equal(trace(b).length,3,'dismissed modal is silent');
- const center=b.run('route.findIndex(p=>p.grips?.slice(0,2).includes(tutorialRun.centerHoldId))');for(let i=1;i<=center;i++)play(b,i);
- page(b,4);b.run('feedbackSounds=[];');click(b);assert.deepEqual(trace(b),['move']);
- const length=b.run('route.length');for(let i=center+1;i<length;i++)play(b,i);
- page(b,5);assert.equal(trace(b).filter(name=>name==='clear').length,1);b.run('feedbackSounds=[];');click(b);page(b,6);assert.deepEqual(trace(b),['move']);click(b,{buttonTap:true});assert.deepEqual(trace(b),['move','move'],'Clear cue already played before goal pages; accepted TAPs retain one move cue each');
+ const length=b.run('route.length');for(let i=1;i<length;i++)play(b,i);
+ page(b,4);assert.equal(trace(b).filter(name=>name==='clear').length,1);b.run('feedbackSounds=[];');click(b);page(b,5);assert.deepEqual(trace(b),['move']);click(b,{buttonTap:true});assert.deepEqual(trace(b),['move','move'],'Clear cue already played before goal pages; accepted TAPs retain one move cue each');
 }
-// Image-wait inputs cannot advance or produce sound. Heart/spike share the same
-// confirmation cue, including supported keyboard/Escape, with no key-repeat cue.
+// Image-wait inputs cannot advance or produce sound. Wide/heart/spike share the same
+// confirmation cue, including native cancel, with no custom key handlers.
 {
- const b=boot();start(b);b.run('var feedbackSounds=[];playSound=name=>feedbackSounds.push(name);tutorialRun.imageLoading=true;');click(b,{settle:false});assert.deepEqual(trace(b),[]);b.run('showTitleScreen();reset(1);featureHelpSeen={heart:false,hazard:false};hearts=[{}];holds.push({type:"hazard"});showStageHelp();feedbackSounds=[];');
- b.run('featureHelpImageLoading=true;');b.node('featureHelpDialog').onclick();b.node('featureHelpDialog').events.keydown(event(null,{key:'Enter',repeat:false}));assert.deepEqual(trace(b),[]);assert.equal(b.run('pendingFeatureHelp.length'),2);
- b.run('featureHelpImageLoading=false;');b.node('featureHelpDialog').events.keydown(event(null,{key:'Enter',repeat:true}));assert.deepEqual(trace(b),[]);assert.equal(b.run('pendingFeatureHelp.length'),2);
- const e=event(target(b.node('featureHelpDialog')));b.emitDocument('click',e);b.node('featureHelpDialog').onclick(e);assert.deepEqual(trace(b),['move']);assert.equal(b.run('pendingFeatureHelp[0]'),'hazard');
- b.node('featureHelpDialog').events.cancel(event(null));assert.deepEqual(trace(b),['move','move']);b.node('featureHelpDialog').onclick();assert.deepEqual(trace(b),['move','move']);
- const ordinary={id:'closeSettings',disabled:false,closest:()=>null};b.emitDocument('click',event({closest:()=>ordinary}));assert.deepEqual(trace(b),['move','move','tap'],'Other modal buttons retain generic tap');
+ const b=boot();start(b);b.run('var feedbackSounds=[];playSound=name=>feedbackSounds.push(name);tutorialRun.imageLoading=true;');click(b,{settle:false});assert.deepEqual(trace(b),[]);b.run('showTitleScreen();reset(1);featureHelpSeen={wide:false,heart:false,hazard:false};hearts=[{}];holds.push({id:999,type:"normal",wide:true},{type:"hazard"});showStageHelp();feedbackSounds=[];');
+ b.run('featureHelpImageLoading=true;');b.node('featureHelpDialog').onclick();assert.equal(b.node('featureHelpDialog').events.keydown,undefined);assert.deepEqual(trace(b),[]);assert.equal(b.run('pendingFeatureHelp.length'),3);
+ b.run('featureHelpImageLoading=false;');assert.equal(b.node('featureHelpDialog').events.keydown,undefined);assert.deepEqual(trace(b),[]);assert.equal(b.run('pendingFeatureHelp.length'),3);
+ const e=event(target(b.node('featureHelpDialog')));b.emitDocument('click',e);b.node('featureHelpDialog').onclick(e);assert.deepEqual(trace(b),['move']);assert.equal(b.run('pendingFeatureHelp[0]'),'heart');
+ b.node('featureHelpDialog').onclick(e);assert.deepEqual(trace(b),['move','move']);assert.equal(b.run('pendingFeatureHelp[0]'),'hazard');
+ b.node('featureHelpDialog').events.cancel(event(null));assert.deepEqual(trace(b),['move','move','move']);b.node('featureHelpDialog').onclick();assert.deepEqual(trace(b),['move','move','move']);
+ const ordinary={id:'closeSettings',disabled:false,closest:()=>null};b.emitDocument('click',event({closest:()=>ordinary}));assert.deepEqual(trace(b),['move','move','move','tap'],'Other modal buttons retain generic tap');
 }
 // Use the real audio path with a deterministic Web Audio double: the same move
 // file/cache and gain buses are used, mute/zero volume still apply, no new asset.
@@ -55,4 +54,4 @@ function trace(b){return JSON.parse(b.run('JSON.stringify(feedbackSounds)'));}
  b.run('soundEnabled=true;soundContext.currentTime+=1;setSoundVolume(0);');click(b);assert.equal(count(),2);assert.equal(voices.at(-1).output.output.gain.value,0);
 }
 const css=fs.readFileSync('styles.css','utf8');assert(/\.feature-help \.card h1\s*\{[^}]*text-align:center;/.test(css));assert(/\.feature-help \.card\s*\{[^}]*text-align:left;/.test(css));
-console.log('PASS explanation feedback: STAGE0 six pages and heart/spike use one existing move-confirmation cue per accepted gesture; capture/bubble dedup, loading/transition/repeat guards, mute/volume routing, centered heading only and unrelated modal sounds retained (no browser/audio audition)');
+console.log('PASS explanation feedback: STAGE0 five pages and wide/heart/spike use one existing move-confirmation cue per accepted gesture; capture/bubble dedup, loading/transition/repeat guards, mute/volume routing, centered heading only and unrelated modal sounds retained (no browser/audio audition)');

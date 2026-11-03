@@ -43,16 +43,15 @@ const resting=style(tap);tap.pseudo=['focus','focus-visible'];const keyboard=sty
 assert.equal(resting.border,'0');assert.equal(resting['box-shadow'],'none');assert.equal(resting.background,'transparent');
 assert.equal(resting['border-radius'],'0');assert.equal(resting['min-height'],'44px');assert.equal(resting['grid-column'],'1 / -1');
 assert.equal(resting.font,'900 18px/26px system-ui,-apple-system,sans-serif');assert.equal(resting['letter-spacing'],'.18em');
-assert.equal(keyboard.outline,'none');assert.equal(keyboard['text-decoration'],'none');assert.equal(keyboard['text-shadow'],'none');assert.equal(keyboard.color,'var(--button-focus)');
+assert.equal(keyboard.outline,'none');assert.equal(keyboard['text-decoration'],'none');assert.equal(keyboard['text-shadow'],'none');assert.equal(keyboard.color,resting.color);
 assert.equal(style(card).outline,'none');
-// Both tutorial TAP and ordinary controls remain frameless, with visible
-// keyboard cues instead of the previous global yellow rectangle.
+// Browser focus must not change touch/mouse control appearance.
 const regular=style(node('button',[],node('dialog',['settings-dialog']),['focus-visible']));
-assert.equal(regular.outline,'none');assert.equal(regular['box-shadow'],'none');assert.equal(regular['text-decoration'],'none');assert.equal(regular['--button-bg'],'var(--button-keyboard-bg)');
+assert.equal(regular.outline,'none');assert.equal(regular['box-shadow'],'none');assert.equal(regular['text-decoration'],'none');assert.equal(regular['--button-bg'],undefined);
 const oldRule='.tutorial-dialog button.modal-tap:focus-visible { outline:2px solid #39785b; outline-offset:2px; }';
 assert.equal(style(tap,css+oldRule).outline,'2px solid #39785b','regression fixture reproduces the original higher-specificity rectangle');
-assert(/id="tutorialContent"[^>]*tabindex="-1"[^>]*autofocus/.test(html));
+assert(!/<[^>]*id="tutorialContent"[^>]*(?:tabindex|autofocus)/.test(html));
 const button=html.match(/<button\b[^>]*id="tutorialContinue"[^>]*>/)?.[0];assert(button);assert(!/tabindex="-1"/.test(button));
-assert(source.includes("document.getElementById('tutorialContent').focus()"));
+assert(!source.includes("document.getElementById('tutorialContent').focus()"));
 assert(!source.includes("document.getElementById('tutorialContinue').focus()"));
-console.log('PASS tutorial TAP author cascade: no border/shadow/rectangular focus; shared typography/grid and 44px hit area; color-only keyboard focus; reading-card autofocus; ordinary button focus palette retained (static, no browser QA)');
+console.log('PASS tutorial TAP author cascade: no border/shadow/rectangular focus; shared typography/grid and 44px hit area; no focus-only recoloring or reading-card autofocus (static, no browser QA)');

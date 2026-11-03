@@ -37,7 +37,6 @@ function startDebugCourse(typeId,lengthCategory,seed=null) {
         // Stage 2 avoids the STAGE1-only straight layout; seed is fully independent.
         restartInput(2);
         ui.titleScreen.hidden=true;ui.levelMap.hidden=true;
-        canvas.setAttribute('tabindex','0');if(!featureHelpOpen)canvas.focus();
         updateDebugCourseReport();return true;
     } catch(error) {
         showLevelMap();ui.mapError.textContent=gameText('debug.trialError',{value0:String(error.message||error)});ui.mapError.hidden=false;return false;

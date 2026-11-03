@@ -43,12 +43,10 @@ function blocked(b){const before=frozen(b);b.run('down({clientX:body.x,clientY:b
   tap(b,false);b.fireTimer(b.run('tutorialRun.transitionTimer'));assert.equal(b.run('tutorialRun.transition'),'loading');assert(b.node('tutorialDialog').classList.contains('explanation-image-loading'));blocked(b);tap(b,false);
   await c.ready(second);assert.equal(b.run('tutorialRun.transition'),'opening');settleTransition(b);page(b,2);
   tap(b,false);b.fireTimer(b.run('tutorialRun.transitionTimer'));await c.ready(third);settleTransition(b);page(b,3);tap(b);
-  const center=b.run('route.findIndex(p=>p.grips?.slice(0,2).includes(tutorialRun.centerHoldId))');for(let i=1;i<=center;i++)play(b,i);
-  assert(b.run('tutorialRun.imageLoading'));assert(!b.node('tutorialDialog').open);blocked(b);await c.ready(wide);page(b,4);tap(b);
-  const length=b.run('route.length');for(let i=center+1;i<length;i++)play(b,i);
+  const length=b.run('route.length');for(let i=1;i<length;i++)play(b,i);
   assert(b.run('tutorialRun.imageLoading'));assert.equal(b.run('tutorialRun.pendingOutcome'),true);assert.equal(b.run('state'),'playing');assert.equal(b.run('stageStartContext'),null);blocked(b);
-  await c.ready(goal);page(b,5);tap(b,false);b.fireTimer(b.run('tutorialRun.transitionTimer'));assert.equal(b.run('state'),'playing');assert.equal(b.run('tutorialPending()'),true);
-  await c.ready(gear);settleTransition(b);page(b,6);tap(b);assert.equal(b.run('state'),'map');assert.equal(b.run('stageStartContext.n'),1);
+  await c.ready(goal);page(b,4);tap(b,false);b.fireTimer(b.run('tutorialRun.transitionTimer'));assert.equal(b.run('state'),'playing');assert.equal(b.run('tutorialPending()'),true);
+  await c.ready(gear);settleTransition(b);page(b,5);tap(b);assert.equal(b.run('state'),'map');assert.equal(b.run('stageStartContext.n'),1);
  }
  // Error twice falls back once to a blank plate plus unchanged text, never a late
  // inserted image. A new attempt retries, and obsolete loads cannot open dialogs.
@@ -70,11 +68,43 @@ function blocked(b){const before=frozen(b);b.run('down({clientX:body.x,clientY:b
     assert.deepEqual(iconPaint,['clearRect','save','translate','rotate','drawImage','restore']);
     assert.equal(paintHazardHelpIcon(iconCanvas,null),false);assert.equal(iconPaint.length,6);`);
  }
+ // First wide explanation uses the same actual decoded image node. Its entire
+ // wide -> heart -> hazard queue remains paused, with no early acknowledgement.
+ {
+  const c=controlledImages(),b=boot(new Map([['ascent.player-uuid.v1','existing']]),{imageClass:c.Image});
+  b.run("reset(1);hideStageHelp();featureHelpSeen={wide:false,heart:false,hazard:false};hearts=[{}];holds.push({id:999,type:'normal',wide:true},{id:1000,type:'hazard'});showStageHelp();");
+  assert.equal(b.run('JSON.stringify(pendingFeatureHelp)'), '["wide","heart","hazard"]');
+  assert(b.run('featureHelpImageLoading'));assert(!b.node('featureHelpDialog').open);blocked(b);
+  const before=frozen(b);b.advance(60000);assert.equal(frozen(b),before);assert.equal(b.run('runTimeMs()'),0);
+  b.run('dismissStageHelp();');assert(!b.run('featureHelpSeen.wide'));
+  const wideImage=c.pending(wide);wideImage.load();await flush();assert(!b.node('featureHelpDialog').open);assert(!b.run('featureHelpSeen.wide'));
+  wideImage.resolveDecode();await flush();assert(b.node('featureHelpDialog').open);
+  assert.equal(b.node('featureHelpContent').querySelector('.feature-wide-image'),wideImage);
+  assert.equal(wideImage.width,78);assert.equal(wideImage.height,78);assert.equal(wideImage.className,'feature-wide-image');
+  b.run('dismissStageHelp();');assert(b.run('featureHelpSeen.wide'));assert(b.run('featureHelpImageLoading'));blocked(b);
+  await c.ready(heart);b.run('var queuedHazardPainted=false;paintHazardHelpIcon=(canvas,image)=>{assert(image.complete);assert(image.decodeCalls>0);queuedHazardPainted=true;};dismissStageHelp();');assert(b.run('featureHelpSeen.heart'));assert(b.run('featureHelpImageLoading'));blocked(b);
+  await c.ready(hazard);assert(b.run('queuedHazardPainted'));b.run('dismissStageHelp();');assert(b.run('featureHelpSeen.hazard'));assert(!b.run('featureHelpOpen'));assert.equal(b.run('cameraIntro.start'),null);
+ }
+ // Two wide image errors leave a dismissible text-only card; stale success after
+ // leaving cannot reopen it or mark an unread explanation as acknowledged.
+ for(const mode of ['failure','leave']){
+  const c=controlledImages(),b=boot(new Map([['ascent.player-uuid.v1','existing']]),{imageClass:c.Image});
+  b.run("reset(1);hideStageHelp();featureHelpSeen={wide:false,heart:true,hazard:true};holds.push({id:999,type:'normal',wide:true});showStageHelp();");
+  assert(b.run('featureHelpImageLoading'));assert(!b.node('featureHelpDialog').open);
+  if(mode==='failure'){
+   const stale=c.pending(wide);stale.fail();assert(!b.node('featureHelpDialog').open);c.pending(wide).fail();
+   assert(b.node('featureHelpDialog').open);assert(b.node('featureHelpContent').querySelector('.feature-wide-image').hidden);assert(!b.run('featureHelpSeen.wide'));
+   stale.load();stale.resolveDecode?.();await flush();assert(b.node('featureHelpContent').querySelector('.feature-wide-image').hidden);
+   b.run('dismissStageHelp();');assert(b.run('featureHelpSeen.wide'));assert(!b.run('featureHelpOpen'));
+  }else{
+   b.run('showTitleScreen();');await c.ready(wide);assert(!b.node('featureHelpDialog').open);assert(!b.run('featureHelpOpen'));assert(!b.run('featureHelpSeen.wide'));assert.equal(b.run('state'),'choosing');
+  }
+ }
  // Heart IMG and hazard canvas stay invisible until their decoded source is ready.
  // Consecutive feature pages retain pause/shield and do not acknowledge early taps.
  {
   const c=controlledImages(),b=boot(new Map([['ascent.player-uuid.v1','existing']]),{imageClass:c.Image});
-  b.run("reset(1);featureHelpSeen={heart:false,hazard:false};hearts=[{x:200,y:300}];holds.push({type:'hazard'});showStageHelp();");
+  b.run("reset(1);featureHelpSeen={heart:false,hazard:false,wide:true};hearts=[{x:200,y:300}];holds.push({type:'hazard'});showStageHelp();");
   assert(b.run('featureHelpImageLoading'));assert(!b.node('featureHelpDialog').open);blocked(b);b.run('dismissStageHelp();');assert(!b.run('featureHelpSeen.heart'));
   const decodedHeart=await c.ready(heart);assert(b.node('featureHelpDialog').open);assert.equal(b.node('featureHelpContent').querySelector('.course-heart-icon'),decodedHeart);
   b.run('var hazardPainted=false;paintHazardHelpIcon=(canvas,image)=>{assert(image.complete);assert(image.decodeCalls>0);assert(featureHelpImageLoading);hazardPainted=true;};dismissStageHelp();');
@@ -83,8 +113,8 @@ function blocked(b){const before=frozen(b);b.run('down({clientX:body.x,clientY:b
  }
  // Feature image failure remains dismissible; leaving during loading cannot reopen.
  {
-  const c=controlledImages(),b=boot(new Map([['ascent.player-uuid.v1','existing']]),{imageClass:c.Image});b.run('reset(1);hearts=[{}];showStageHelp();');c.pending(heart).fail();c.pending(heart).fail();assert(b.node('featureHelpDialog').open);assert(b.node('featureHelpContent').querySelector('.course-heart-icon').hidden);b.run('dismissStageHelp();');assert(!b.run('featureHelpOpen'));
+  const c=controlledImages(),b=boot(new Map([['ascent.player-uuid.v1','existing']]),{imageClass:c.Image});b.run('reset(1);featureHelpSeen.wide=true;hearts=[{}];showStageHelp();');c.pending(heart).fail();c.pending(heart).fail();assert(b.node('featureHelpDialog').open);assert(b.node('featureHelpContent').querySelector('.course-heart-icon').hidden);b.run('dismissStageHelp();');assert(!b.run('featureHelpOpen'));
   b.run('reset(1);featureHelpSeen.heart=false;hearts=[{}];showStageHelp();showTitleScreen();');await c.ready(heart);assert(!b.node('featureHelpDialog').open);assert(!b.run('featureHelpOpen'));
  }
- console.log('PASS explanation image readiness: shared preload/cache, actual decoded-node mount, all six tutorial pages and heart/hazard barrier, continuous pause/input/goal deferral, decode/error retry, 2×4s timeout, text-only nonblocking fallback, no late insertion, subsequent retry and stale navigation/transition guards (controlled Image/DOM, not browser QA)');
+ console.log('PASS explanation image readiness: shared preload/cache, actual decoded-node mount, all five tutorial pages and wide/heart/hazard barrier, continuous pause/input/goal deferral, decode/error retry, 2×4s timeout, text-only nonblocking fallback, no late insertion, subsequent retry and stale navigation/transition guards (controlled Image/DOM, not browser QA)');
 })().catch(error=>{console.error(error);process.exitCode=1;});

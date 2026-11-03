@@ -102,7 +102,7 @@ function renderCharacterEditor() {
     const w=TORSO.width,h=TORSO.height,pose=EDITOR_POSES[draftStripeCount-1],outline=PLAYER_SILHOUETTE_STYLE;
     const bands=draftColors.slice(0,draftStripeCount).map((color,i)=>{
         const selected=selectedPart==='body' && i===selectedStripe;
-        return `<rect data-stripe="${i}" x="${-w/2}" y="${-h/2+h*i/draftStripeCount}" width="${w}" height="${h/draftStripeCount}" fill="${color}" role="button" tabindex="0" aria-label="${gameText("appearance.renderCharacterEditor.4", {value6: i+1, value7: color})}" aria-pressed="${selected}" aria-haspopup="dialog" aria-controls="editorPalette"/>`;
+        return `<rect data-stripe="${i}" x="${-w/2}" y="${-h/2+h*i/draftStripeCount}" width="${w}" height="${h/draftStripeCount}" fill="${color}" role="button" aria-label="${gameText("appearance.renderCharacterEditor.4", {value6: i+1, value7: color})}" aria-pressed="${selected}" aria-haspopup="dialog" aria-controls="editorPalette"/>`;
     }).join('');
     ui.editorPreview.setAttribute('aria-label',gameText("appearance.renderCharacterEditor.3", {value0: draftStripeCount, value1: pose.name}));
     ui.editorPreview.innerHTML=`<defs><filter id="editor-outline-shadow" x="-100%" y="-100%" width="300%" height="300%"><feDropShadow dx="0" dy="${outline.shadowOffsetY}" stdDeviation="${outline.shadowBlur/2}" flood-color="${outline.shadowColor}"/></filter></defs>
@@ -110,7 +110,7 @@ function renderCharacterEditor() {
         ${[2,3,0,1].map(i=>previewLimb(i,pose)).join('')}
         <g transform="rotate(${pose.tilt})">
         <path d="M0 ${-h/2} V${-h/2-9}" stroke="${PLAYER_OUTLINE_COLOR}" stroke-width="5"/>
-        <circle data-part="head" cx="0" cy="${-h/2-13}" r="10" fill="${draftHeadColor}" role="button" tabindex="0" aria-label="${gameText("appearance.renderCharacterEditor.2", {value11: draftHeadColor})}" aria-pressed="${selectedPart==='head'}" aria-haspopup="dialog" aria-controls="editorPalette"/>
+        <circle data-part="head" cx="0" cy="${-h/2-13}" r="10" fill="${draftHeadColor}" role="button" aria-label="${gameText("appearance.renderCharacterEditor.2", {value11: draftHeadColor})}" aria-pressed="${selectedPart==='head'}" aria-haspopup="dialog" aria-controls="editorPalette"/>
         <circle cx="0" cy="${-h/2-13}" r="10" fill="none" stroke="${outline.color}" stroke-width="${outline.width}" filter="url(#editor-outline-shadow)" pointer-events="none"/>
         ${bands}<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" fill="none" stroke="${outline.color}" stroke-width="${outline.width}" filter="url(#editor-outline-shadow)" pointer-events="none"/>
         ${[0,1,2,3].map(i=>{const root=limbRoot({x:0,y:0},i);return `<circle data-editor-root="${i}" cx="${root.x}" cy="${root.y}" r="${outline.rootRadius}" fill="${outline.rootColor}" pointer-events="none"/>`;}).join('')}
@@ -125,18 +125,15 @@ function renderCharacterEditor() {
     }
 }
 function openEditorPalette() {
+    // A palette tap ends name editing before the native modal records its focus.
+    ui.playerName.blur?.();
     ui.editorPalette.hidden=false;
     if(!ui.editorPalette.open)ui.editorPalette.showModal?.();
-    (ui.paletteSwatches.querySelector?.('[aria-pressed="true"]') || ui.paletteSwatches.querySelector?.('button'))?.focus({preventScroll:true});
 }
 function closeEditorPalette() {
-    const selector=selectedPart==='head'?'[data-part="head"]':`[data-stripe="${selectedStripe}"]`;
     if(ui.editorPalette.open)ui.editorPalette.close?.();
     ui.editorPalette.hidden=true;selectedPart=null;selectedStripe=null;
-    if(state==='editing') {
-        renderCharacterEditor();
-        ui.editorPreview.querySelector?.(selector)?.focus({preventScroll:true});
-    }
+    if(state==='editing')renderCharacterEditor();
 }
 function randomizeEditorAppearance(random=Math.random) {
     if(state!=='editing')return false;
@@ -160,19 +157,18 @@ function showCharacterEditor() {
     ui.playerName.value=playerName;ui.playerNameError.hidden=true;
     state='editing';ui.titleScreen.hidden=true;ui.characterEditor.hidden=false;
     ui.hud.hidden=true;
-    renderCharacterEditor();ui.stripeCount.focus();
+    renderCharacterEditor();
     return true;
 }
 function returnFromCharacterEditor() {
     closeEditorPalette();
     const destination=editorMapReturn;editorMapReturn=null;
     if(destination?.daily) {
-        showDailyCalendar();ui.dailySettingsButton.focus({preventScroll:true});
+        showDailyCalendar();
     } else if(destination) {
         showLevelMap({target:destination.selected});
         mapPage=destination.page;mapSelected=destination.selected;
         renderLevelMap();ui.mapScroll.scrollTop=destination.scrollTop;
-        ui.mapSettingsButton.focus({preventScroll:true});
     } else showLevelMap();
 }
 function resizeEditorStripes(n) {
@@ -219,14 +215,6 @@ ui.editorPreview.onclick=e=>{
         if(band.dataset.part==='head')selectEditorHead();else selectEditorStripe(Number(band.dataset.stripe));
     }
 };
-ui.editorPreview.onkeydown=e=>{
-    if(e.key!=='Enter' && e.key!==' ')return;
-    const band=e.target.closest('[data-stripe], [data-part="head"]');
-    if(band && ui.editorPreview.contains(band)) {
-        e.preventDefault();
-        if(band.dataset.part==='head')selectEditorHead();else selectEditorStripe(Number(band.dataset.stripe));
-    }
-};
 ui.paletteSwatches.onclick=e=>{
     const swatch=e.target.closest('button[data-color]');
     if(swatch && ui.paletteSwatches.contains(swatch))paintEditorColor(swatch.dataset.color);
@@ -238,5 +226,8 @@ ui.playerName.oninput=e=>{if(!e.isComposing)limitPlayerNameInput();};
 ui.playerName.oncompositionend=limitPlayerNameInput;
 ui.editorConfirm.onclick=confirmCharacterEditor;
 ui.editorCancel.onclick=()=>{
-    if(state==='editing')returnFromCharacterEditor();
+    if(state==='editing') {
+        ui.playerName.blur?.();
+        returnFromCharacterEditor();
+    }
 };

@@ -50,7 +50,11 @@ lives.recoveryAt=Date.now()-LIFE_RECOVERY_MS;refreshLives();assert.equal(lives.c
 ui.lifeWatchAd.onclick();assert.equal(state,'map');assert(ui.stageStartDialog.open);assert(!dummyAd);closeStageStart();
 // A last-moment depletion repeats confirmation after recovery instead of launching.
 assert(openStageStart(1));lives.count=0;lives.recoveryAt=Date.now();ui.stageStartButton.onclick();assert.equal(state,'life-prompt');assert(!ui.stageStartDialog.open);ui.lifeCancel.onclick();assert.equal(state,'map');
-assert(!openStageStart(99,true));setDebugMode(true);assert(openStageStart(1,true));ui.stageStartButton.onclick();assert.equal(state,'playing');assert(debugAttempt);assert.equal(lives.count,0);
+assert(!openStageStart(99,true));setDebugMode(true);
+let debugBlurs=0;ui.debugStage.blur=()=>{debugBlurs++;};
+assert(openStageStart(1,true));assert.equal(debugBlurs,1,'Debug confirmation dismisses the touch numeric keyboard');
+ui.stageStartButton.onclick();assert.equal(debugBlurs,2,'Debug launch also dismisses the numeric input');
+assert.equal(state,'playing');assert(debugAttempt);assert.equal(lives.count,0);
 showLevelMap();lives.count=3;lives.recoveryAt=null;assert(openStageStart(1,false,button));const stale=timers.at(-1).fn;showTitleScreen();stale();assert(!stageStartContext && !ui.stageStartDialog.open);assert.equal(state,'choosing');
 startCourse('existing');stageProgress.existing.cleared=21;lives.count=3;lives.recoveryAt=null;
 const hopPreview=stagePreview;let hopPreviewCalls=0;stagePreview=(...args)=>{hopPreviewCalls++;return hopPreview(...args);};
@@ -84,5 +88,5 @@ assert.deepEqual(stageRecords.existing[1],{moves:5,timeMs:12345,stars:3,version:
 closeStageStart();assert(openStageStart(2));assert.equal(reads,2);
 assert(ui.stageStartRanking.hidden && ui.stageStartStars.hidden);assert.equal(ui.stageStartLeaderboard.innerHTML,'');
 closeStageStart();currentStageScores=savedSource;
-console.log('PASS stage start: correct stage/difficulty/length, no item elements, close/backdrop/Escape no life cost, visible tap pulse, Start-only launch and life gate, double-start guard, debug launch and canceled delayed opening');
+console.log('PASS stage start: correct stage/difficulty/length, no item elements, close/backdrop/native cancel no life cost, visible tap pulse, Start-only launch and life gate, double-start guard, debug touch keyboard dismissal and canceled delayed opening');
 `)(assert);

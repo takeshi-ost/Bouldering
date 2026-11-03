@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=e29e85032e49">
+    <link rel="stylesheet" href="styles.css?v=0bfe62f9c492">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=7403d9191a84" defer></script>
     <script src="js/text-ja.js?v=26ef81be0c2c" defer></script>
@@ -12,7 +12,7 @@
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
     <script src="js/text.js?v=504005081cf0" defer></script>
     <script src="js/score-metadata.js?v=ad0e02f921ca" defer></script>
-    <script src="js/config.js?v=ffdfcd612871" defer></script>
+    <script src="js/config.js?v=b767a07f4e1e" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=3438658870e1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -20,12 +20,12 @@
     <script src="js/course-progression.js?v=03d7bbaa775d" defer></script>
     <script src="js/difficulty-config.js?v=7f4b057f8319" defer></script>
     <script src="js/viewport.js?v=b5ffb9620615" defer></script>
-    <script src="js/audio.js?v=4e92abd44cba" defer></script>
+    <script src="js/audio.js?v=993cf413c7fa" defer></script>
     <script src="js/bgm.js?v=c96d77ab4e58" defer></script>
     <script src="js/utils.js?v=d73670fd1f8d" defer></script>
     <script src="js/difficulty.js?v=c750680f755f" defer></script>
     <script src="js/stage.js?v=1c768a6ef803" defer></script>
-    <script src="js/game.js?v=2db3e8d21438" defer></script>
+    <script src="js/game.js?v=eba25d1b169f" defer></script>
     <script src="js/route.js?v=850c0b3b7c69" defer></script>
     <script src="js/course.js?v=15b72884cb1e" defer></script>
     <script src="js/hazards.js?v=94e27f98abbb" defer></script>
@@ -34,32 +34,32 @@
     <script src="js/course-adoption.js?v=dbf121536018" defer></script>
     <script src="js/tutorial-course.js?v=b56228d85597" defer></script>
     <script src="js/map-art.js?v=ba5492a063da" defer></script>
-    <script src="js/level-map.js?v=85056ea8b21c" defer></script>
-    <script src="js/daily.js?v=42e74e188fdc" defer></script>
-    <script src="js/ads.js?v=53cc433c7c0b" defer></script>
-    <script src="js/lives.js?v=8b08e5de3a1a" defer></script>
-    <script src="js/rewards.js?v=ad9ce0559112" defer></script>
-    <script src="js/debug-course.js?v=e05bdae6db0e" defer></script>
-    <script src="js/input.js?v=9667ef397241" defer></script>
-    <script src="js/renderer.js?v=13fd8023d1a2" defer></script>
+    <script src="js/level-map.js?v=aaf46d794078" defer></script>
+    <script src="js/daily.js?v=261aec3ab521" defer></script>
+    <script src="js/ads.js?v=10c96c8913f3" defer></script>
+    <script src="js/lives.js?v=43566a05fc33" defer></script>
+    <script src="js/rewards.js?v=bca1d0759442" defer></script>
+    <script src="js/debug-course.js?v=0c8b33d2cd64" defer></script>
+    <script src="js/input.js?v=619e6cb788f5" defer></script>
+    <script src="js/renderer.js?v=f7b2cfc64ea7" defer></script>
     <script src="js/help-illustrations.js?v=3aa3b1ddec68" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
-    <script src="js/appearance.js?v=d2a169c18333" defer></script>
+    <script src="js/appearance.js?v=ba9e13d0cb98" defer></script>
     <script src="js/leaderboard.js?v=4a9462986314" defer></script>
     <script src="js/online.js?v=5dbe4738c12d" defer></script>
     <script src="js/online-scores.js?v=ed4c420f2537" defer></script>
     <script src="js/settings-connection.js?v=d7c11b465917" defer></script>
     <script src="js/account-deletion.js?v=a26b680d9a8b" defer></script>
-    <script src="js/transfer.js?v=57b6c1e5e9d7" defer></script>
+    <script src="js/transfer.js?v=9abb4b970993" defer></script>
     <script src="js/language.js?v=08a7d0335d32" defer></script>
-    <script src="js/tutorial.js?v=229a0c346a1b" defer></script>
-    <script src="js/main.js?v=774e00dbb2ef" defer></script>
+    <script src="js/tutorial.js?v=4ee489b2bcfa" defer></script>
+    <script src="js/main.js?v=d6b3474031a0" defer></script>
     <script type="module" src="js/firebase-client.js?v=ec7299200981"></script>
 </head>
 <body>
     <main>
         <section class="wall" id="wall" aria-label="" data-i18n-aria-label="ui.wall.aria-label">
-            <canvas id="game" tabindex="0" width="400" height="700" aria-label="" data-i18n-aria-label="ui.game.aria-label"></canvas>
+            <canvas id="game" width="400" height="700" aria-label="" data-i18n-aria-label="ui.game.aria-label"></canvas>
             <div id="goalEffects" class="goal-effects" aria-hidden="true" hidden><i></i><i></i><i></i><i></i></div>
             <section id="debugCourseStatus" class="debug-course-status" hidden><details><summary id="debugCourseSummary"></summary><strong id="debugCourseVerdict"></strong><pre id="debugCourseReport"></pre></details><button id="debugRegenerate" type="button" data-i18n="debug.regenerate"></button><button id="debugCourseExit" type="button" data-i18n="debug.exit"></button></section>
             <div id="lifeStatus" class="life-status" aria-label="" hidden></div>
@@ -83,7 +83,7 @@
                 <div class="progress" id="progress" hidden></div>
             </div>
 
-            <div class="title-screen" id="titleScreen" role="button" tabindex="0" aria-label="" aria-disabled="true" data-i18n-aria-label="ui.titleScreen.aria-label">
+            <div class="title-screen" id="titleScreen" role="button" aria-label="" aria-disabled="true" data-i18n-aria-label="ui.titleScreen.aria-label">
                 <div id="titleWallpaper" class="title-wallpaper" aria-hidden="true"></div>
                 <div class="title-content">
                     <h1 class="brand"><span data-i18n="title.brand"></span><span class="brand-dot">.</span></h1>
@@ -127,7 +127,7 @@
                     </button>
                 </div>
                 <p id="mapError" class="map-error" role="alert" hidden></p>
-                <div class="map-scroll" id="mapScroll" tabindex="0" aria-label="" data-i18n-aria-label="ui.mapScroll.aria-label">
+                <div class="map-scroll" id="mapScroll" aria-label="" data-i18n-aria-label="ui.mapScroll.aria-label">
                     <div class="map-track" id="mapTrack">
                         <svg id="mapScenery" class="map-scenery" aria-hidden="true" preserveAspectRatio="none"></svg>
                         <svg id="mapRoad" class="map-road" aria-hidden="true" preserveAspectRatio="none"></svg>
@@ -196,7 +196,7 @@
                     <button id="adComplete" hidden data-i18n="ui.adComplete"></button>
                 </div>
             </dialog>
-            <dialog class="overlay" id="overlay" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultTipText resultDifficulty resultStars resultStats" tabindex="-1" hidden>
+            <dialog class="overlay" id="overlay" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultTipText resultDifficulty resultStars resultStats" hidden>
                 <div class="card">
                     <button id="closeResult" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeResult.aria-label">✕</button>
                     <div class="result-heading">
@@ -261,17 +261,17 @@
             </div>
             <button id="stageStartButton" data-i18n="ui.dailyStartButton"></button>
         </dialog>
-        <dialog id="rewardDialog" tabindex="-1" class="reward-screen" aria-labelledby="rewardTitle" hidden>
+        <dialog id="rewardDialog" class="reward-screen" aria-labelledby="rewardTitle" hidden>
             <section class="reward-card">
                 <h2 id="rewardTitle" data-i18n="ui.rewardTitle"></h2>
                 <p id="rewardStatus" class="reward-status" role="status" aria-live="polite"></p>
                 <div class="reward-roulette"><span class="reward-pointer" aria-hidden="true"></span><div id="rewardWheel" class="reward-wheel"></div></div>
                 <p id="rewardStop" class="modal-tap" aria-hidden="true" data-i18n="action.tap"></p>
-                <div id="rewardResult" class="reward-result" role="dialog" aria-modal="true" aria-labelledby="rewardResultTitle" tabindex="-1" hidden></div>
+                <div id="rewardResult" class="reward-result" role="dialog" aria-modal="true" aria-labelledby="rewardResultTitle" hidden></div>
             </section>
         </dialog>
         <dialog id="tutorialDialog" class="overlay feature-help tutorial-dialog" aria-labelledby="tutorialTitle" aria-describedby="tutorialText">
-            <div class="card" id="tutorialContent" aria-live="polite" tabindex="-1" autofocus>
+            <div class="card" id="tutorialContent" aria-live="polite">
                 <h1 id="tutorialTitle"></h1>
                 <div class="feature-help-icon" id="tutorialImageSlot" aria-hidden="true"><img id="tutorialImage" alt="" hidden></div>
                 <p id="tutorialText"></p>
@@ -279,7 +279,7 @@
             </div>
         </dialog>
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
-            <div class="help-heading"><h2 id="settingsTitle" data-i18n="ui.settingsTitle"></h2><button id="closeSettings" class="modal-close" aria-label="" autofocus data-i18n-aria-label="ui.closeSettings.aria-label">✕</button></div>
+            <div class="help-heading"><h2 id="settingsTitle" data-i18n="ui.settingsTitle"></h2><button id="closeSettings" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeSettings.aria-label">✕</button></div>
             <div id="settingsConnectionStatus" class="settings-row settings-connection"><span data-i18n="settings.connection"></span><strong id="settingsConnectionValue" role="status" aria-live="polite"></strong></div>
             <p id="onlineStatus" class="online-status" role="status" data-i18n="online"></p>
             <p id="onlineScoreStatus" class="online-status" role="status" hidden></p>
@@ -335,7 +335,7 @@
         </dialog>
         <dialog id="helpDialog" class="help-dialog" aria-labelledby="helpTitle">
             <div class="help-heading"><h2 id="helpTitle" data-i18n="ui.showHelp"></h2><button id="closeHelp" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeHelp.aria-label">×</button></div>
-            <div id="helpScroll" class="help-scroll" tabindex="0" aria-label="" data-i18n-aria-label="ui.showHelp">
+            <div id="helpScroll" class="help-scroll" aria-label="" data-i18n-aria-label="ui.showHelp">
                 <p data-i18n="help.game.intro"></p>
                 <hr class="help-divider">
                 <section aria-labelledby="helpRules">

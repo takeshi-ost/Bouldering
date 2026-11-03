@@ -114,7 +114,7 @@ for(const stars of [0,4,1.5,'3',null]) {
  assert.deepEqual(readStageRecords().existing[1],expectedScore({moves:2,timeMs:100}));
 }
 data[RECORDS_KEY]=savedRecords;
-// Card, backdrop and keyboard all use the same continuation, once per visible clear.
+// Card and backdrop use the same continuation, once per visible clear.
 const continueSaved=continueNormalClear;let continuations=0;
 continueNormalClear=()=>{continuations++;state='map';hideResultModal();};
 for(const target of [ui.overlay,ui.resultTitle,ui.resultTap]) {
@@ -122,14 +122,8 @@ for(const target of [ui.overlay,ui.resultTitle,ui.resultTap]) {
  ui.overlay.events.click({target});
 }
 assert.equal(continuations,3);
-for(const key of ['Enter',' ']) {
- state='won';showResultModal();let prevented=0;
- ui.overlay.events.keydown({key,repeat:true,preventDefault(){prevented++;}});
- assert.equal(state,'won');
- ui.overlay.events.keydown({key,repeat:false,preventDefault(){prevented++;}});
- assert.equal(state,'map');assert.equal(prevented,2);
-}
-assert.equal(continuations,5);continueNormalClear=continueSaved;
+assert.equal(ui.overlay.events.keydown,undefined,'Result continuation is touch/mouse only');
+assert.equal(continuations,3);continueNormalClear=continueSaved;
 `)(assert,data);
 new Function('assert',env+source+`
 reset(1);debugAttempt=true;
@@ -145,7 +139,7 @@ try {
   updateUI();assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
  }
  dailyRun={...dailyProfile('2026-10-17'),returnCourse:'existing'};finish(false);assert(!ui.resultTip.hidden);
- assert(!ui.next.hidden,'Daily failure restores the calendar button');assert.equal(ui.next.textContent,'カレンダーにもどる');assert.equal(document.activeElement,ui.retry);
+ assert(!ui.next.hidden,'Daily failure restores the calendar button');assert.equal(ui.next.textContent,'カレンダーにもどる');assert.equal(ui.overlay.events.keydown,undefined);
  assert(!ui.retry.hidden && !ui.closeResult.hidden);
  ui.closeResult.onclick();assert.equal(state,'daily');assert(ui.overlay.hidden);
  for(const daily of [null,{...dailyProfile('2026-10-17'),returnCourse:'existing'}]) {

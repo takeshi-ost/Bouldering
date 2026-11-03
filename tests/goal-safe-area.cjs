@@ -13,9 +13,9 @@ function check(n){
  assert.equal(cameraTop(),Math.min(0,goal.y-CAMERA_CONFIG.goalTopPadding));
  cameraIntro=null;hideStageHelp();state='playing';settingsOpen=false;hideResultModal();
  assert(canScrollStage(),'High goal must be scrollable even in one-screen stage');
- canvas.events.keydown({key:'Home',preventDefault(){}});assert.equal(camera,cameraTop());
+ canvas.events.wheel({deltaY:-100000,deltaMode:0,preventDefault(){}});assert.equal(camera,cameraTop());
  assert(goal.y-camera>=CAMERA_CONFIG.goalTopPadding);
- canvas.events.keydown({key:'End',preventDefault(){}});assert.equal(camera,HEIGHT-H);
+ canvas.events.wheel({deltaY:100000,deltaMode:0,preventDefault(){}});assert.equal(camera,HEIGHT-H);
  canvas.events.wheel({deltaY:-100000,deltaMode:0,preventDefault(){}});assert.equal(camera,cameraTop());
  canvas.events.wheel({deltaY:100000,deltaMode:0,preventDefault(){}});assert.equal(camera,HEIGHT-H);
  const e={clientX:body.x,clientY:body.y-camera};beginTouchPan([{...e,identifier:1},{...e,identifier:2,clientY:e.clientY+30}]);
@@ -27,5 +27,5 @@ function check(n){
 check(1);assert.equal(HEIGHT,H);assert(cameraTop()<0);
 check(2);check(5);courseMode='existing';check(1);
 courseMode='existing';dailyRun={...dailyProfile('2026-01-01'),returnCourse:'existing'};check(dailyRun.referenceStage);
-console.log('PASS goal safe area: intro/automatic follow, Home/End/wheel/two-finger pan, scrollable STAGE1, normal/daily, unchanged route geometry');
+console.log('PASS goal safe area: intro/automatic follow, wheel/two-finger pan, scrollable STAGE1, normal/daily, unchanged route geometry');
 `)(assert);

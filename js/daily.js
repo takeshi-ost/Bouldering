@@ -198,7 +198,6 @@ function chooseDailyDate(key) {
     selected?.classList.toggle('is-selected',true);
     selected?.setAttribute('aria-pressed','true');
     renderDailyStart();
-    selected?.focus({preventScroll:true});
     return true;
 }
 function refreshDailyCalendar() {
@@ -228,9 +227,7 @@ function showDailyCalendar({openFromMap=false}={}) {
     ui.dailyCalendar.hidden=false;ui.dailyError.hidden=true;
     ui.wall.classList.toggle('map-open',true);
     ui.restart.disabled=true;
-    canvas.setAttribute('tabindex','-1');
     renderDailyCalendar();
-    (ui.dailyGrid.querySelector?.(`[data-date="${localToday()}"]:not(:disabled)`)||ui.dailyBack).focus();
     const pending=Object.keys(dailyRecords).sort().find(date=>dailyRecords[date].rewardStatus==='pending');
     if(pending)startDailyClearReward(pending);
 }
@@ -249,8 +246,6 @@ function launchDailyAttempt(profile,attempt) {
         restartInput(profile.referenceStage);
         dailyAttempts[profile.date]=attempt;saveDailyAttempts();
         dailyPlayAdState={plays:(dailyPlayAdState.plays+1)%2,adPaid:false};saveDailyPlayAdState();
-        canvas.setAttribute('tabindex','0');
-        if(!featureHelpOpen)canvas.focus();
         return true;
     } catch(error) {return reportDailyGenerationError(error);}
 }

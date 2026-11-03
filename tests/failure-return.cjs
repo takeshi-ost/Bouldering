@@ -14,7 +14,7 @@ function normal(b,{stage=1,lives=3,plays=0}={}){
  assert.equal(b.run('heartItems'),8);assert.equal(b.run('lives.inProgress'),true);
  assert.equal(b.node('next').hidden,true,'New play clears stale return-button visibility');
 }
-function failByMove(b){b.run('stamina=1;');play(b,1);assert.equal(b.run('state'),'lost');assert.equal(b.node('overlay').hidden,false);assert.equal(b.node('overlay').open,true);assert.equal(b.node('next').hidden,false);assert.equal(b.node('retry').hidden,false);assert.equal(b.node('closeResult').hidden,false);assert.equal(b.run('document.activeElement.id'),'retry');}
+function failByMove(b){b.run('stamina=1;');play(b,1);assert.equal(b.run('state'),'lost');assert.equal(b.node('overlay').hidden,false);assert.equal(b.node('overlay').open,true);assert.equal(b.node('next').hidden,false);assert.equal(b.node('retry').hidden,false);assert.equal(b.node('closeResult').hidden,false);assert.equal(b.node('overlay').events.keydown,undefined);}
 function completeAd(b){b.run('advanceDummyAd(dummyAd.start+DUMMY_AD_DURATION);assert(completeDummyAd());');}
 // Actual stamina failure, primary return button, repeat click, X and Escape parity.
 for(const action of ['next','closeResult','escape','backdrop']){
@@ -77,5 +77,5 @@ for(const action of ['next','closeResult','escape','backdrop']){
  const b=boot();const before=records(b),life=b.run('JSON.stringify(lives)');b.run('TUTORIAL_CONFIG.steps=[];titleReady=true;');b.node('titleScreen').onclick();assert.equal(b.run('isTutorialRun()'),true);
  b.run('cameraIntro=null;stamina=1;');play(b,1);assert.equal(b.run('state'),'map');assert.equal(b.node('overlay').hidden,true);assert.equal(b.node('next').hidden,true);assert.equal(b.run('stageStartContext.n'),1);assert.equal(records(b),before);assert.equal(b.run('JSON.stringify(lives)'),life);
 }
-const html=fs.readFileSync('index.html','utf8');assert(html.includes('<button id="next" type="button" hidden></button>'),'Use a native keyboard-accessible button, no nested click target');
+const html=fs.readFileSync('index.html','utf8');assert(html.includes('<button id="next" type="button" hidden></button>'),'Use a native button, no nested click target');
 console.log('PASS failure returns: actual normal/Daily stamina loss, map/calendar destinations, normal/zero-life/Daily ad gates, no double charges/rewards/ranks, retry and stale/repeated input guards, JA/EN labels, success TAP and free STAGE0 transition retained (no browser rendering)');

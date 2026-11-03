@@ -30,18 +30,16 @@ async function advance(b){
 async function climb(b){
  b.run('titleReady=true;');b.node('titleScreen').onclick();b.run('advanceCameraIntro(0);advanceCameraIntro(100000);');await flush();
  for(let n=1;n<=3;n++){page(b,n);await advance(b);}
- const center=b.run('route.findIndex(p=>p.grips?.slice(0,2).includes(tutorialRun.centerHoldId))');
- for(let i=1;i<=center;i++)play(b,i);await flush();page(b,4);await advance(b);
  b.run('clearOrder=[];');
- const length=b.run('route.length');for(let i=center+1;i<length;i++)play(b,i);
+ const length=b.run('route.length');for(let i=1;i<length;i++)play(b,i);
  assert(b.run('bothHandsOnGoal() && grips.every((h,i)=>h && limbReachable(body,h,i))'));
 }
 async function finishPages(b){
- page(b,5);assert.deepEqual(trace(b).filter(x=>x==='clear'||x.startsWith('open:')),['clear','open:goal-fixed']);
+ page(b,4);assert.deepEqual(trace(b).filter(x=>x==='clear'||x.startsWith('open:')),['clear','open:goal-fixed']);
  b.run('finishTutorialRun(true);finishTutorialRun(false);');assert.equal(b.run('tutorialRun.pendingOutcome'),true);
  const frozen=b.run('JSON.stringify({body,grips,stamina,moveCount,runElapsedMs})');b.advance(30000);
  b.run('down({clientX:body.x,clientY:body.y-camera});release();undoMove();');assert.equal(b.run('JSON.stringify({body,grips,stamina,moveCount,runElapsedMs})'),frozen);
- b.run('clearOrder=[];');await advance(b);page(b,6);await advance(b);
+ b.run('clearOrder=[];');await advance(b);page(b,5);await advance(b);
  assert.deepEqual(trace(b),['move','move'],'No delayed/duplicate clear at page taps or map transition');
  assert.equal(b.run('state'),'map');assert.equal(b.run('stageStartContext.n'),1);assert.equal(b.run('AscentTutorialState.snapshot().reason'),'cleared');
  b.run('finishTutorialRun(true);');assert.deepEqual(trace(b),['move','move']);
@@ -65,7 +63,7 @@ async function finishPages(b){
   }
   const b=boot(new Map(),{audioClass:Audio});b.run('var originalPlaySound=playSound;');installTrace(b);
   b.run(`playSound=name=>{clearOrder.push(name);return originalPlaySound(name);};musicEnabled=false;unlockSound();soundFileCache.set('clear',{buffer:{approvedClear:true},context:soundContext});setSoundVolume(${volume});soundEnabled=${enabled};`);
-  await climb(b);page(b,5);const clearVoices=()=>voices.filter(v=>v.buffer?.approvedClear);
+  await climb(b);page(b,4);const clearVoices=()=>voices.filter(v=>v.buffer?.approvedClear);
   assert.equal(clearVoices().length,enabled?1:0);
   if(enabled){const v=clearVoices()[0];assert(v.started);assert.equal(v.output.output.gain.value,volume);assert.equal(v.output.gain.value,b.run('SOUND_FILES.clear.volume*SOUND_LEVELS.clear'));}
   b.run('soundEnabled=true;soundContext.currentTime+=1;');await finishPages(b);
@@ -107,7 +105,7 @@ async function finishPages(b){
    assert.equal(b.run('tutorialRun.explanation.id'),'goal-fixed');assert(b.node('tutorialDialog').open);
    // page() expects artwork; the bounded text-only fallback is intentional.
    assert.deepEqual(trace(b).filter(x=>x==='clear'||x.startsWith('open:')),['clear','open:goal-fixed']);
-   b.run('clearOrder=[];');await advance(b);page(b,6);await advance(b);assert.deepEqual(trace(b),['move','move']);assert.equal(b.run('state'),'map');
+   b.run('clearOrder=[];');await advance(b);page(b,5);await advance(b);assert.deepEqual(trace(b),['move','move']);assert.equal(b.run('state'),'map');
   }else await finishPages(b);
  }
  // A genuine exhausted tutorial still plays only fail and reaches Stage 1;

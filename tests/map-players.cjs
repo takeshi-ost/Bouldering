@@ -63,7 +63,9 @@ const originalSource=currentMapPlayers;
 currentMapPlayers=()=>[{id:'\"<x>',name:'<img onerror=bad>',avatar:1,reachedLevel:6}];
 renderMapPlayers();assert(!ui.mapPlayers.innerHTML.includes('<img onerror'));
 assert(ui.mapPlayers.innerHTML.includes('&lt;img onerror=bad&gt;'));
-assert(!ui.mapPlayers.innerHTML.includes('data-level='));currentMapPlayers=originalSource;
+assert(!ui.mapPlayers.innerHTML.includes('data-level='));
+assert(!ui.mapPlayers.innerHTML.includes('tabindex='),'Pointer-only player names need no tab stops');
+currentMapPlayers=originalSource;
 assert.equal(JSON.stringify({holds,route,body,grips,stageProgress,stageRecords}),physics);
 // Names stay visible for two seconds after release; new holds cancel the old timer.
 state='map';settingsOpen=false;mapPreparing=false;
@@ -93,46 +95,53 @@ window.events.pointerup[0]({pointerId:7});assert.equal(timers.at(-1).ms,2000);
 timers.at(-1).fn();assert(!visible && !mapPlayersRefreshPending);
 // Explicit page/layout changes still dismiss a name and apply any queued refresh.
 hold();renderMapPlayers();renderLevelMap();assert(!visible && !mapPlayersRefreshPending);
-hold();ui.mapPlayers.events.focusout({relatedTarget:icon});assert(visible,'Focus transfer to the newly pressed icon must not hide its name');
-ui.mapPlayers.events.focusout({relatedTarget:null});assert(!visible);
-let prevented=false;ui.mapPlayers.events.keydown({...press,key:' ',preventDefault(){prevented=true;}});assert(visible && prevented);
-ui.mapPlayers.events.keyup({key:' '});assert(visible);assert.equal(timers.at(-1).ms,2000);timers.at(-1).fn();assert(!visible);
+for(const event of ['keydown','keyup','focusout'])assert.equal(ui.mapPlayers.events[event],undefined);
+hold();window.events.blur.forEach(fn=>fn());assert(!visible);
 settingsOpen=true;hold();assert(!visible);settingsOpen=false;
+mapPreparing=true;hold();assert(!visible);mapPreparing=false;
+state='playing';hold();assert(!visible);state='map';
+ui.mapPlayers.events.pointerdown({...press,button:2});assert(!visible);
+ui.mapPlayers.events.pointerdown({...press,target:{}});assert(!visible);
 
-// Model node replacement and real focus identity, including two distinct icons.
-let domNodes=[],domMarkup='';
-const makeNode=id=>({dataset:{player:id},visible:false,
- closest(){return this;},classList:{toggle(name,value){domNodes.find(n=>n.dataset.player===id).visible=value;}},
- focus(options){assert.deepEqual(options,{preventScroll:true});document.activeElement=this;}});
+// Pointer switching keeps both original nodes attached until the latest name expires.
+let domNodes=[],domMarkup='',domWrites=0;
+const makeNode=id=>{
+ const node={dataset:{player:id},visible:false,closest(){return this;},
+  focus(){assert.fail('Map names must not move DOM focus');}};
+ node.classList={toggle(name,value){assert.equal(name,'is-name-visible');node.visible=value;}};
+ return node;
+};
 Object.defineProperty(ui.mapPlayers,'innerHTML',{configurable:true,get(){return domMarkup;},set(value){
- if(domNodes.includes(document.activeElement))document.activeElement=null;
- domMarkup=value;domNodes=[makeNode('focus-a'),makeNode('focus-b')];
+ domWrites++;domMarkup=value;domNodes=[makeNode('pointer-a'),makeNode('pointer-b')];
 }});
 ui.mapPlayers.contains=node=>domNodes.includes(node);
 ui.mapPlayers.querySelectorAll=()=>domNodes;
 renderMapPlayers();let [a,b]=domNodes;
-const key=node=>({target:node,key:' ',preventDefault(){}});
-document.activeElement=a;ui.mapPlayers.events.keydown(key(a));renderMapPlayers();
-ui.mapPlayers.events.focusout({relatedTarget:b});
-assert.equal(domNodes[1],b,'Tab destination stays attached until focus transfer finishes');
-assert.equal(timers.at(-1).ms,0);document.activeElement=b;timers.at(-1).fn();
-assert.equal(document.activeElement,domNodes[1]);assert.notEqual(document.activeElement,b);
-assert(!mapPlayersRefreshPending,'Queued refresh flushed after Tab');
-[a,b]=domNodes;document.activeElement=a;ui.mapPlayers.events.keydown(key(a));
-ui.mapPlayers.events.keyup({key:' '});const expiry=timers.at(-1);renderMapPlayers();expiry.fn();
-assert.equal(document.activeElement,domNodes[0],'Two-second expiry preserves the focused player');
-assert(!mapPlayersRefreshPending && !mapPlayerNameHold);
-[a,b]=domNodes;
+const outside={};document.activeElement=outside;
 const pointer=node=>({...press,target:node});
-ui.mapPlayers.events.pointerdown(pointer(a));renderMapPlayers();window.events.pointerup[0]({pointerId:7});
-const firstExpiry=timers.at(-1);ui.mapPlayers.events.pointerdown(pointer(b));
-ui.mapPlayers.events.focusout({relatedTarget:b});
+const beforeSwitch=domWrites;
+ui.mapPlayers.events.pointerdown(pointer(a));renderMapPlayers();
+assert.equal(domWrites,beforeSwitch);assert.equal(domNodes[0],a);assert(a.visible);
+window.events.pointerup[0]({pointerId:7});const firstExpiry=timers.at(-1);
+ui.mapPlayers.events.pointerdown(pointer(b));
 assert(firstExpiry.canceled && !a.visible && b.visible && mapPlayerNameHold.element===b);
-window.events.pointerup[0]({pointerId:7});timers.at(-1).fn();assert(!mapPlayerNameHold && !mapPlayersRefreshPending);
-// Leaving the roster must not steal focus back from another control.
-a=domNodes[0];document.activeElement=a;ui.mapPlayers.events.keydown(key(a));renderMapPlayers();
-const outside={};ui.mapPlayers.events.focusout({relatedTarget:outside});document.activeElement=outside;
-timers.at(-1).fn();assert.equal(document.activeElement,outside);
+assert.equal(domNodes[1],b);assert.equal(domWrites,beforeSwitch);
+window.events.pointerup[0]({pointerId:7});const secondExpiry=timers.at(-1);
+assert.equal(secondExpiry.ms,2000);renderMapPlayers();assert.equal(timers.at(-1),secondExpiry);
+assert.equal(domWrites,beforeSwitch);assert(b.visible);
+secondExpiry.fn();assert(!b.visible && !mapPlayerNameHold && !mapPlayersRefreshPending);
+assert.equal(domWrites,beforeSwitch+1,'Queued online updates flush once after the latest name expires');
+assert.notEqual(domNodes[0],a);assert.notEqual(domNodes[1],b);
+assert.equal(document.activeElement,outside,'Pointer names leave unrelated controls alone');
+// Gesture interruption applies queued updates without leaving detached names or timers.
+for(const dismiss of [()=>ui.mapScroll.events.scroll(),()=>window.events.pointercancel[0]({}),
+ ()=>window.events.blur.forEach(fn=>fn()),
+ ()=>window.events.pointermove[0]({pointerId:7,clientX:50,clientY:30})]) {
+ const node=domNodes[0],before=domWrites;
+ ui.mapPlayers.events.pointerdown(pointer(node));renderMapPlayers();assert(node.visible);
+ dismiss();assert(!node.visible && !mapPlayerNameHold && !mapPlayersRefreshPending);
+ assert.equal(mapPlayerNameTimer,null);assert.equal(domWrites,before+1);
+}
 
 // Moving the local icon updates depth every animation frame, not just on rerender.
 state='map';mapPreparing=false;mapTransition={from:6,to:7,start:null};

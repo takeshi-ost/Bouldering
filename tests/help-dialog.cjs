@@ -4,7 +4,7 @@ const input=fs.readFileSync('js/input.js','utf8');
 const handlers=input.slice(input.indexOf('ui.showHelp.onclick ='),input.indexOf('// Full-screen dialogs'));
 let focused=0,opened=0,prepared=0;
 const events={};
-const dialog={open:false,showModal(){this.open=true;opened++;},close(){this.open=false;events.close();},addEventListener(name,fn){events[name]=fn;}};
+const dialog={open:false,showModal(){this.open=true;opened++;},close(){this.open=false;events.close?.();},addEventListener(name,fn){events[name]=fn;}};
 const env={mapPreparing:false,settingsOpen:true,state:'map',prepareHelpIllustrations(){prepared++;},ui:{
     helpDialog:dialog,helpScroll:{scrollTop:0},closeHelp:{},showHelp:{focus(){focused++;}}}};
 vm.runInNewContext(handlers,env);
@@ -14,7 +14,7 @@ for(const scene of ['map','daily','playing']) {
     const count=opened;env.ui.showHelp.onclick();assert.equal(opened,count,'Do not reopen the active modal');
     env.ui.helpScroll.scrollTop=500;
     dialog.onclick({target:env.ui.helpScroll});assert(dialog.open,'Reading/scrolling inside must not dismiss');
-    const before=focused;env.ui.closeHelp.onclick();assert(!dialog.open);assert.equal(focused,before+1);
+    const before=focused;env.ui.closeHelp.onclick();assert(!dialog.open);assert.equal(focused,before,'Close does not move focus to another control');
     assert.equal(env.state,scene);assert(env.settingsOpen,'Closing help must return to settings');
     env.ui.showHelp.onclick();assert(dialog.open);assert.equal(env.ui.helpScroll.scrollTop,0,'Reopen at the beginning');
     dialog.onclick({target:dialog});assert(!dialog.open);assert.equal(env.state,scene);
@@ -24,4 +24,4 @@ for(const overrides of [{settingsOpen:false},{mapPreparing:true},{state:'choosin
     const count=opened;env.ui.showHelp.onclick();assert.equal(opened,count);assert(!dialog.open);
 }
 assert.equal(prepared,opened,'Illustration preparation runs only for valid opens and does not block showing or closing help');
-console.log('PASS help: map/daily/stage opening, inner interaction, close/focus return, repeat-open scroll reset and blocked scenes');
+console.log('PASS help: map/daily/stage opening, inner interaction, close without forced focus, repeat-open scroll reset and blocked scenes');

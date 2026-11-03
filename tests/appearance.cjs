@@ -2,8 +2,8 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
-const elements={};const document={getElementById(id){return elements[id] ||= {
- style:{setProperty(k,v){this[k]=v;}},classList:{toggle(){}},focus(){this.focused=true;},setAttribute(){},events:{},addEventListener(k,f){this.events[k]=f;},showModal(){this.open=true;},close(){this.open=false;},contains(){return true;},
+const elements={},focusLog=[],blurLog=[];const document={getElementById(id){return elements[id] ||= {
+ style:{setProperty(k,v){this[k]=v;}},classList:{toggle(){}},focus(){this.focused=true;focusLog.push(id);},blur(){this.focused=false;blurLog.push(id);},setAttribute(){},events:{},addEventListener(k,f){this.events[k]=f;},showModal(){this.open=true;},close(){this.open=false;},contains(){return true;},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){}
@@ -28,8 +28,14 @@ playerColors=['#39785b'];playerHeadColor=DEFAULT_HEAD_COLOR;
 data[APPEARANCE_KEY]=JSON.stringify({colors:playerColors,headColor:playerHeadColor});
 const originalSave=data[APPEARANCE_KEY];
 const physics=JSON.stringify({body,holds,grips,route});
+ui.paletteSwatches.querySelector=()=>({focus(){focusLog.push('paletteSwatch');}});
+ui.editorPreview.querySelector=()=>({focus(){focusLog.push('editorPart');}});
 startCourse('existing');showCharacterEditor();assert.equal(state,'editing');assert(!ui.characterEditor.hidden && ui.titleScreen.hidden);
 assert(ui.editorPalette.hidden);assert.equal(ui.stripeCount.value,'1');
+assert.equal(ui.editorPreview.onkeydown,undefined,'Body parts use pointer activation, not custom keyboard controls');
+assert(!ui.editorPreview.innerHTML.includes('tabindex='),'SVG body parts must not enter the tab order');
+assert(/data-part="head"[^>]*role="button"[^>]*aria-label="[^"]+"[^>]*aria-haspopup="dialog"/.test(ui.editorPreview.innerHTML));
+assert(/data-stripe="0"[^>]*role="button"[^>]*aria-label="[^"]+"[^>]*aria-haspopup="dialog"/.test(ui.editorPreview.innerHTML));
 const unchangedName=ui.playerName.value;
 for(let n=1;n<=8;n++) {
  let draws=0;assert(randomizeEditorAppearance(()=>draws++===0?(n-.5)/8:.1));
@@ -45,6 +51,7 @@ assert(draftColors.every((color,i)=>!i || color!==draftColors[i-1]));
 selectEditorStripe(0);const colorBeforeCancel=draftColors[0];let canceled=false;
 ui.editorPalette.events.cancel({preventDefault(){canceled=true;}});
 assert(canceled && ui.editorPalette.hidden && !ui.editorPalette.open);assert.equal(draftColors[0],colorBeforeCancel);
+closeEditorPalette();closeEditorPalette();assert.equal(selectedPart,null);assert.equal(selectedStripe,null);
 selectEditorHead();ui.editorPalette.events.click({target:ui.editorPalette,clientX:-1,clientY:-1});
 assert(ui.editorPalette.hidden && !ui.editorPalette.open);
 ui.editorCancel.onclick();showCharacterEditor();assert.equal(draftStripeCount,1);
@@ -92,14 +99,21 @@ assert.equal(selectedPart,'head');assert.equal(selectedStripe,null);assert(!ui.b
 assert(!ui.editorPalette.hidden);
 paintEditorColor('#765432');assert.equal(draftHeadColor,'#765432');assert.deepEqual(draftColors,bodyDraftBefore);selectEditorHead();
 ui.paletteSwatches.onclick({target:{closest(){return {dataset:{color:'#263849'}};}}});assert.equal(draftHeadColor,'#263849');
-let headKey=false;ui.editorPreview.onkeydown({key:'Enter',preventDefault(){headKey=true;},target:{closest(){return {dataset:{part:'head'}};}}});assert(headKey && selectedPart==='head' && ui.editorPalette.open);
+ui.editorPreview.onclick({target:{closest(){return {dataset:{part:'head'}};}}});assert(selectedPart==='head' && ui.editorPalette.open);
 resizeEditorStripes(2);assert.equal(draftHeadColor,'#263849');resizeEditorStripes(8);
 selectEditorStripe(3);assert(!ui.bodyStripeControls.hidden);
 resizeEditorStripes(1);assert.equal(selectedStripe,0);resizeEditorStripes(8);assert.equal(draftColors[3],'#df865a');
-let prevented=false;ui.editorPreview.onkeydown({key:'Enter',preventDefault(){prevented=true;},target:{closest(){return {dataset:{stripe:'4'}};}}});
-assert(prevented && ui.editorPalette.open);assert.equal(selectedStripe,4);
+ui.editorPreview.onclick({target:{closest(){return {dataset:{stripe:'4'}};}}});
+assert(ui.editorPalette.open);assert.equal(selectedStripe,4);
 assert.equal(JSON.stringify({body,holds,grips,route}),physics,'Editor must not change game geometry');
 ui.editorCancel.onclick();assert.equal(state,'map');assert(ui.characterEditor.hidden);assert.deepEqual(playerColors,['#39785b']);assert.equal(data[APPEARANCE_KEY],originalSave);assert.equal(playerHeadColor,DEFAULT_HEAD_COLOR);
+// Tapping nonfocusable artwork dismisses the name keyboard before showModal,
+// so native dialog close cannot restore the still-active text field.
+showCharacterEditor();ui.playerName.focus();const paletteShow=ui.editorPalette.showModal;
+ui.editorPalette.showModal=function(){assert(!ui.playerName.focused,'Name keyboard must be dismissed before modal focus capture');paletteShow.call(this);};
+ui.editorPreview.onclick({target:{closest(){return {dataset:{part:'head'}};}}});
+assert(!ui.playerName.focused);closeEditorPalette();assert(!ui.playerName.focused);
+ui.editorPalette.showModal=paletteShow;ui.editorCancel.onclick();
 // Confirm creates precisely the chosen three-color palette, not hidden draft slots.
 showCharacterEditor();resizeEditorStripes(3);
 const chosen=['#112233','#abcdef','#f0a040'];chosen.forEach((c,i)=>{selectEditorStripe(i);paintEditorColor(c);});
@@ -116,6 +130,13 @@ selectEditorStripe(0);paintEditorColor('#abcdef');ui.editorCancel.onclick();asse
 assert.equal(mapPage,mapReturn.page);assert.equal(mapSelected,mapReturn.selected);
 ui.mapSettingsButton.onclick();ui.mapEditCharacter.onclick();selectEditorHead();paintEditorColor('#445566');assert(confirmCharacterEditor());assert.equal(state,'map');assert.equal(playerHeadColor,'#445566');assert.equal(ui.mapMarker.style['--head-color'],'#445566');assert.equal(ui.mapScroll.scrollTop,173);
 playerHeadColor='#334455';updateMapAppearance();
+showDailyCalendar({openFromMap:true});assert.equal(state,'daily');
+showCharacterEditor();assert.equal(state,'editing');selectEditorHead();ui.editorCancel.onclick();
+assert.equal(state,'daily');assert(ui.characterEditor.hidden && !ui.dailyCalendar.hidden && ui.editorPalette.hidden && !ui.editorPalette.open);
+showCharacterEditor();assert(confirmCharacterEditor());assert.equal(state,'daily');
+showLevelMap({target:mapReturn.selected});
+assert(!focusLog.some(id=>['stripeCount','mapSettingsButton','dailySettingsButton','paletteSwatch','editorPart'].includes(id)),
+ 'Editor controls, palettes and return navigation must not move focus for keyboard navigation');
 assert(selectStage(1));cameraIntro=null;
 const fills=[];ctx.fill=()=>fills.push(ctx.fillStyle);
 paints=[];draw(0);assert(fills.includes('#334455'));chosen.forEach(c=>assert(paints.some(p=>p.color===c && p.w===TORSO.width && Math.abs(p.h-TORSO.height/3)<1e-8)));
@@ -150,19 +171,25 @@ new Function('assert','data','storage',env+source+`
 assert.equal(playerName,JSON.parse(data[PLAYER_NAME_KEY]));assert.equal(nameCharacters(playerName).length,8);
 startCourse('existing');showCharacterEditor();const savedName=playerName;
 ui.playerName.value='  ';assert(!confirmCharacterEditor());assert(!ui.playerNameError.hidden);assert.equal(state,'editing');assert.equal(playerName,savedName);
+assert.equal(focusLog.at(-1),'playerName','Invalid names focus the text field for correction');assert(ui.playerName.focused);assert.equal(blurLog.length,0);
 ui.playerName.value='岳志1234567890';ui.playerName.oninput({isComposing:false});assert.equal(ui.playerName.value,'岳志12345678');
+assert(ui.playerNameError.hidden,'Editing clears the validation error');
 ui.playerName.value='新しい名前';ui.editorCancel.onclick();assert.equal(playerName,savedName);
+assert.equal(blurLog.length,1);assert.equal(blurLog.at(-1),'playerName','Cancel also dismisses the mobile text keyboard');assert(!ui.playerName.focused);
+ui.editorCancel.onclick();assert.equal(blurLog.length,1,'Cancel outside the editor does not disturb another screen');
 showCharacterEditor();assert.equal(ui.playerName.value,savedName);
+ui.playerName.focus();const beforeSaveBlurCount=blurLog.length;
 ui.playerName.value='👨‍👩‍👧‍👦'.repeat(11);ui.playerName.oninput({isComposing:true});assert.equal(nameCharacters(ui.playerName.value).length,11);
 ui.playerName.oncompositionend();assert.equal(nameCharacters(ui.playerName.value).length,10);
 assert(confirmCharacterEditor());assert.equal(playerName,'👨‍👩‍👧‍👦'.repeat(10));assert.equal(readPlayerName(),playerName);
+assert.equal(blurLog.length,beforeSaveBlurCount+1);assert.equal(blurLog.at(-1),'playerName','Saving dismisses the mobile text keyboard');assert(!ui.playerName.focused);
 showCharacterEditor();ui.playerName.value='  岳志  ';assert(confirmCharacterEditor());assert.equal(playerName,'岳志');
 const old=data[PLAYER_NAME_KEY];data[PLAYER_NAME_KEY]='{bad';assert.equal(readPlayerName(),'');data[PLAYER_NAME_KEY]=old;
 const set=storage.setItem;storage.setItem=()=>{throw Error('full');};showCharacterEditor();ui.playerName.value='Guest';assert(confirmCharacterEditor());assert.equal(playerName,'Guest');assert(!ui.mapError.hidden);storage.setItem=set;
 assert.equal(readPlayerName(),'岳志');
 `)(assert,data,storage);
 new Function('assert',env+source+`assert.equal(playerName,'岳志');startCourse('existing');showCharacterEditor();assert.equal(ui.playerName.value,'岳志');`)(assert);
-console.log('PASS character editor: randomized saved first run, single head color, legacy body migration, map entry and same-map return, 1-8 equal stripes, mouse/keyboard one-tap modal palette, random drafts, hidden slot retention, draft/cancel/confirm, game and map fills, press feedback, reload, malformed/blocked storage, unchanged physics');
+console.log('PASS character editor: randomized saved first run, single head color, legacy body migration, map/daily entry and return, 1-8 equal stripes, touch/mouse one-tap modal palette without keyboard focus transfers, name validation/IME/mobile keyboard dismissal, random drafts, hidden slot retention, draft/cancel/confirm, game and map fills, press feedback, reload, malformed/blocked storage, unchanged physics');
 } finally {
  if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);
  else delete globalThis.localStorage;

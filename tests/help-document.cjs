@@ -23,7 +23,7 @@ for(const token of help.matchAll(/<\/?(?:section|h[34])\b[^>]*>|<hr class="help-
  }else if(t.startsWith('<hr'))sinceLast+=t;
 }
 assert.deepEqual(sectionParents,[['helpRules'],['helpControls'],['helpHolds'],['helpMap'],['helpDaily'],['helpSettings'],['helpSettings','helpEditor']]);assert.equal(stack.length,0);
-assert(/id="helpScroll"[^>]*tabindex="0"[^>]*data-i18n-aria-label="ui.showHelp"/.test(help));
+assert(/id="helpScroll"[^>]*data-i18n-aria-label="ui.showHelp"/.test(help));assert(!/tabindex/.test(help),'Help scrolling uses native touch/wheel without a keyboard tab stop');
 assert(/id="helpTrialNote"[^>]*hidden[^>]*data-i18n="help.trialNote"/.test(help),'Formal help keeps trial-only note hidden');
 for(const language of ['ja','en'])for(const m of help.matchAll(/data-i18n(?:-aria-label)?="([^"]+)"/g))assert.equal(typeof c.copy[language][m[1]],'string',m[1]);
 assert(c.copy.en['help.settings.navigation'].includes(c.copy.en['ui.restart']),'Help names the actual Give Up control');
@@ -39,4 +39,4 @@ assert(/\.help-scroll \.help-divider\s*\{[^}]*border-top:1px solid #dce0d4;/.tes
 assert(css.includes('.help-dialog .help-heading h2 { overflow-wrap:anywhere; }'));
 assert(!/<table\b/.test(help),'Help remains a responsive document, not a fixed-width table');
 assert.equal((help.match(/data-help-image=/g)||[]).length,13,'Thirteen requested illustrations supplement the complete text');
-console.log('PASS detailed help: exact title, intro-first, 7 ordered/nested headings and dividers, no contents, JA/EN bindings and real UI names, distinct items/Daily/life limits, trial-only notice, keyboard-focusable bounded vertical scroll and wrapping (structural, not browser rendering)');
+console.log('PASS detailed help: exact title, intro-first, 7 ordered/nested headings and dividers, no contents, JA/EN bindings and real UI names, distinct items/Daily/life limits, trial-only notice, native touch/wheel bounded vertical scroll and wrapping (structural, not browser rendering)');

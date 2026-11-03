@@ -10,7 +10,7 @@ const approvedArtworks=[
  ['assets/tutorial-goal-feet-78-v2.png','a5a29865fca4456037dd3be6d81edfcd15dceb3241ff70fb3c99b2bf6c2bed63']
 ];
 const wideArtwork='assets/hold-wide-flat.webp';
-const pageArtwork=[approvedArtworks[0][0],approvedArtworks[1][0],approvedArtworks[2][0],wideArtwork,approvedArtworks[3][0],'assets/settings-gear.svg'];
+const pageArtwork=[approvedArtworks[0][0],approvedArtworks[1][0],approvedArtworks[2][0],approvedArtworks[3][0],'assets/settings-gear.svg'];
 for(const [file,hash] of approvedArtworks){
  const bytes=fs.readFileSync(path.join(root,file));
  assert.equal(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
@@ -61,10 +61,6 @@ const pages=[
   "スタミナがなくなる前に、ゴールを両手でつかむと登頂成功です"
  ],
  [
-  "大きなホールド",
-  "大きなホールドには、両手または両足を置くことができます。"
- ],
- [
   "チュートリアル完了",
   "ゴールするには両足もホールドに固定されていないといけません"
  ],
@@ -95,7 +91,7 @@ function start(b,{completeIntro=true}={}){
  b.run('advanceCameraIntro(performance.now());tutorialReadyToPlay();tutorialTrigger("start");');
  assert.equal(b.run('tutorialRun.queue.length'),2,'start boundary must enqueue exactly once');
 }
-function page(b,n){assert.equal(b.node('tutorialDialog').open,true);assert.equal(b.run('tutorialInstructionsOpen()'),true);assert.equal(b.node('tutorialTitle').textContent,pages[n-1][0]);assert.equal(b.node('tutorialText').textContent,pages[n-1][1]);assert.equal(b.node('tutorialTitle').lang,'ja');assert.equal(b.node('tutorialText').lang,'ja');assert.equal(b.node('tutorialImage').hidden,!pageArtwork[n-1]);assert.equal(b.node('tutorialImage').src,pageArtwork[n-1]);assert.equal(b.run('featureHelpOpen'),true);assert.equal(b.run('document.activeElement.id'),'tutorialContent');}
+function page(b,n){assert.equal(b.node('tutorialDialog').open,true);assert.equal(b.run('tutorialInstructionsOpen()'),true);assert.equal(b.node('tutorialTitle').textContent,pages[n-1][0]);assert.equal(b.node('tutorialText').textContent,pages[n-1][1]);assert.equal(b.node('tutorialTitle').lang,'ja');assert.equal(b.node('tutorialText').lang,'ja');assert.equal(b.node('tutorialImage').hidden,!pageArtwork[n-1]);assert.equal(b.node('tutorialImage').src,pageArtwork[n-1]);assert.equal(b.run('featureHelpOpen'),true);assert.equal(b.node('tutorialDialog').events.keydown,undefined);}
 function settleTransition(b){while(b.run('!!tutorialRun?.transition'))b.fireTimer(b.run('tutorialRun.transitionTimer'));}
 function tap(b,settle=true){const e=event();b.node('tutorialContinue').onclick(e);assert(e.stopped,'button tap must not bubble and advance twice');if(settle)settleTransition(b);}
 function intros(b){for(let n=1;n<=3;n++){page(b,n);tap(b);}assert.equal(b.run('tutorialInstructionsOpen()'),false);assert.equal(b.run('cameraIntro'),null);assert.notEqual(b.run('runStartedAt'),null);}
@@ -105,11 +101,11 @@ function runModalTests(){
 // Both language selections deliberately show the same authored Japanese copy.
 for(const language of ['ja','en']){
  const b=boot(new Map([['ascent.language.v1',language],['ascent.tutorial-stage0.v1',JSON.stringify({version:1,status:'pending',reason:'test-language'})]]));assert.equal(b.run('GAME_TEXT_LANGUAGE'),language);const resources=snapshot(b);start(b);
- assert.equal(b.run('TUTORIAL_CONFIG.steps.length'),6);
- assert.equal(b.run('JSON.stringify(TUTORIAL_CONFIG.steps.filter(s=>s.image).map(s=>s.id))'),'["intro-welcome","intro-movement","intro-goal","center-wide","goal-fixed","goal-finish"]');
- const bodyKeys=['tutorial.intro.welcome','tutorial.intro.movement','tutorial.intro.goal','tutorial.wide','tutorial.goal.fixed','tutorial.goal.finish'];
+ assert.equal(b.run('TUTORIAL_CONFIG.steps.length'),5);
+ assert.equal(b.run('JSON.stringify(TUTORIAL_CONFIG.steps.filter(s=>s.image).map(s=>s.id))'),'["intro-welcome","intro-movement","intro-goal","goal-fixed","goal-finish"]');
+ const bodyKeys=['tutorial.intro.welcome','tutorial.intro.movement','tutorial.intro.goal','tutorial.goal.fixed','tutorial.goal.finish'];
  for(const [i,key] of bodyKeys.entries()){assert.equal(b.run('Object.hasOwn(GAME_TEXT_EN,'+JSON.stringify(key)+')'),true);assert.equal(b.run('GAME_TEXT_EN['+JSON.stringify(key)+']'),pages[i][1]);}
- assert.equal(b.run('GAME_TEXT_EN["tutorial.title.complete"]'),pages[4][0]);assert.equal(b.run('GAME_TEXT_EN["tutorial.title.play"]'),pages[0][0]);assert.equal(b.run('GAME_TEXT_EN["tutorial.title.wide"]'),pages[3][0]);page(b,1);
+ assert.equal(b.run('GAME_TEXT_EN["tutorial.title.complete"]'),pages[3][0]);assert.equal(b.run('GAME_TEXT_EN["tutorial.title.play"]'),pages[0][0]);page(b,1);
  const initial=b.run('JSON.stringify({body,grips,stamina,moveCount,runElapsedMs})'),closeCount=b.node('tutorialDialog').closeCount||0;
  for(let n=1;n<=3;n++){
   page(b,n);b.advance(30000);b.run('cameraIntro=null;down({clientX:body.x,clientY:body.y-camera});move({clientX:body.x+40,clientY:body.y-camera-40});release();');
@@ -118,34 +114,48 @@ for(const language of ['ja','en']){
  }
  assert.equal(b.run('tutorialInstructionsOpen()'),false);assert.equal(snapshot(b),resources);
 }
-// Full native gesture progression: only a committed central HAND grip triggers
-// its page; cancellation, feet, Undo/regrip and retries do not duplicate it.
+// Full native gesture progression has no mid-course explanation: all ordinary
+// hand placements remain playable until the two valid-goal pages.
 {
  const b=boot(),resources=snapshot(b);start(b);intros(b);
- const center=b.run('route.findIndex(p=>p.grips?.slice(0,2).includes(tutorialRun.centerHoldId))');assert(center>0);
- b.run('const savedModalGrips=[...grips];grips[2]=holds.find(h=>h.id===tutorialRun.centerHoldId);tutorialTrigger("hold");grips=savedModalGrips;');assert.equal(b.run('tutorialInstructionsOpen()'),false,'foot contact must not trigger');
- for(let i=1;i<center;i++)play(b,i);
- play(b,center,true);assert.equal(b.run('tutorialInstructionsOpen()'),false,'canceled central hand preview must not trigger');assert.equal(b.run('moveCount'),center-1);
- play(b,center);page(b,4);const pausedStamina=b.run('stamina'),pausedElapsed=b.run('runElapsedMs');b.advance(60000);assert.equal(b.run('runTimeMs()'),pausedElapsed);assert.equal(b.run('stamina'),pausedStamina);tap(b);
- assert.equal(b.run('undoMove()'),true);play(b,center);assert.equal(b.run('tutorialInstructionsOpen()'),false,'Undo/regrip may not repeat authored page');
- const count=b.run('route.length');for(let i=center+1;i<count;i++)play(b,i);
- assert.equal(b.run('bothHandsOnGoal()'),true);assert.equal(b.run('grips.every(h=>h!==null)'),true);page(b,5);assert.equal(b.run('tutorialPending()'),true);assert.equal(b.run('state'),'playing');assert.equal(b.run('stageStartContext'),null);assert.equal(snapshot(b),resources);
+ const count=b.run('route.length'),budget=b.run('stamina');
+ for(let i=1;i<count;i++){
+  play(b,i);assert.equal(b.run('moveCount'),i);assert.equal(b.run('stamina'),budget-i);
+  assert(b.run('grips.every((h,k)=>h&&limbReachable(body,h,k))'));
+  if(i<count-1)assert.equal(b.run('tutorialInstructionsOpen()'),false,'ordinary course movement has no middle page');
+ }
+ assert.equal(b.run('bothHandsOnGoal()'),true);assert.equal(b.run('grips.every(h=>h!==null)'),true);page(b,4);assert.equal(b.run('tutorialPending()'),true);assert.equal(b.run('state'),'playing');assert.equal(b.run('stageStartContext'),null);assert.equal(snapshot(b),resources);
  const goalTime=b.run('runTimeMs()');b.advance(60000);assert.equal(b.run('runTimeMs()'),goalTime);
  b.run('tutorialTrigger("goal");finishTutorialRun(true);');assert.equal(b.run('tutorialRun.queue.length'),1,'goal pages must enqueue once');
- const closes=b.node('tutorialDialog').closeCount||0;b.node('tutorialDialog').onclick(event({target:b.node('tutorialText')}));assert.equal(b.run('tutorialRun.transition'),'closing');b.run('finishTutorialRun(false);');assert.equal(b.run('state'),'playing');assert.equal(b.run('tutorialPending()'),true);assert.equal(b.run('tutorialRun.pendingOutcome'),true);assert.equal(b.run('stageStartContext'),null);b.fireTimer(b.run('tutorialRun.transitionTimer'));page(b,6);assert.equal(b.run('tutorialRun.transition'),'opening');tap(b,false);assert.equal(b.run('state'),'playing');settleTransition(b);page(b,6);assert.equal(b.node('tutorialDialog').closeCount||0,closes);b.advance(60000);assert.equal(b.run('runTimeMs()'),goalTime);
- const repeat=event({key:'Enter',repeat:true});b.node('tutorialDialog').events.keydown(repeat);page(b,6);assert(repeat.prevented);
+ const closes=b.node('tutorialDialog').closeCount||0;b.node('tutorialDialog').onclick(event({target:b.node('tutorialText')}));assert.equal(b.run('tutorialRun.transition'),'closing');b.run('finishTutorialRun(false);');assert.equal(b.run('state'),'playing');assert.equal(b.run('tutorialPending()'),true);assert.equal(b.run('tutorialRun.pendingOutcome'),true);assert.equal(b.run('stageStartContext'),null);b.fireTimer(b.run('tutorialRun.transitionTimer'));page(b,5);assert.equal(b.run('tutorialRun.transition'),'opening');tap(b,false);assert.equal(b.run('state'),'playing');settleTransition(b);page(b,5);assert.equal(b.node('tutorialDialog').closeCount||0,closes);b.advance(60000);assert.equal(b.run('runTimeMs()'),goalTime);
+ assert.equal(b.node('tutorialDialog').events.keydown,undefined);page(b,5);
  tap(b);completed(b,'cleared');assert.equal(snapshot(b),resources);
  b.node('tutorialDialog').events.close?.(event());assert.equal(b.run('stageStartContext?.n'),1,'queued native close event cannot advance another flow');
 }
+// Synthetic explicit-ID trigger retains committed HAND/cancel/Undo behavior
+// without coupling the authored tutorial course to a special central hold.
+{
+ const b=boot();start(b);intros(b);
+ b.run(`var triggerHold=holds.find(h=>h.type==='normal' && route.slice(1).some(p=>p.grips?.slice(0,2).includes(h.id)));
+  assert(triggerHold);TUTORIAL_CONFIG.steps.push({id:'test-normal-hand',when:{event:'hold',hold:triggerHold.id},text:'Explicit normal hand'});`);
+ const step=b.run('route.findIndex(p=>p.grips?.slice(0,2).includes(triggerHold.id))');assert(step>0);
+ b.run('const savedModalGrips=[...grips];grips[2]=triggerHold;tutorialTrigger("hold");grips=savedModalGrips;');assert.equal(b.run('tutorialInstructionsOpen()'),false,'foot contact must not trigger');
+ for(let i=1;i<step;i++)play(b,i);
+ play(b,step,true);assert.equal(b.run('tutorialInstructionsOpen()'),false,'canceled hand preview must not trigger');assert.equal(b.run('moveCount'),step-1);
+ play(b,step);assert.equal(b.node('tutorialText').textContent,'Explicit normal hand');assert(b.node('tutorialDialog').open);
+ const pausedStamina=b.run('stamina'),pausedElapsed=b.run('runElapsedMs');b.advance(60000);assert.equal(b.run('runTimeMs()'),pausedElapsed);assert.equal(b.run('stamina'),pausedStamina);tap(b);
+ assert.equal(b.run('undoMove()'),true);play(b,step);assert.equal(b.run('tutorialInstructionsOpen()'),false,'Undo/regrip may not repeat explicit-ID page');
+ assert(b.run('tutorialRun.seen.has("test-normal-hand")'));
+}
 // Visual close -> absent interval -> new card, while native shield, pause and
-// queue remain held. Repeated taps/keys/close callbacks cannot skip a page.
+// queue remain held. Repeated taps/cancel/close callbacks cannot skip a page.
 {
  const b=boot();start(b);const frozen=b.run('JSON.stringify({body,grips,moveCount,stamina,runElapsedMs})');
  tap(b,false);assert.equal(b.run('tutorialRun.transition'),'closing');
  assert(b.node('tutorialDialog').classList.contains('tutorial-page-closing'));assert(b.node('tutorialContinue').disabled);
  const timer=b.run('tutorialRun.transitionTimer');assert.equal(b.node('tutorialContent')['aria-busy'],'true');
  b.advance(120);page(b,1);assert(b.node('tutorialDialog').open,'shield never closes');
- for(const input of [()=>tap(b,false),()=>b.node('tutorialDialog').events.keydown(event({key:'Enter'})),()=>b.node('tutorialDialog').events.cancel(event())])input();
+ for(const input of [()=>tap(b,false),()=>tap(b,false),()=>b.node('tutorialDialog').events.cancel(event())])input();
  b.run('down({clientX:body.x,clientY:body.y-camera});move({clientX:body.x+40,clientY:body.y-camera-40});release();undoMove();');
  assert.equal(b.run('JSON.stringify({body,grips,moveCount,stamina,runElapsedMs})'),frozen);
  assert.equal(b.run('tutorialRun.transitionTimer'),timer);assert.equal(b.run('tutorialRun.queue.length'),2);
@@ -173,14 +183,13 @@ assert(/prefers-reduced-motion:reduce[^}]*tutorial-page-closing \.card[^}]*trans
  const b=boot();start(b);intros(b);b.run('tutorialTrigger("goal");');assert.equal(b.run('tutorialInstructionsOpen()'),false);
  b.run('const goalPose=route.at(-1);body={...goalPose};grips=goalPose.grips.map(id=>holds.find(h=>h.id===id));grips[2]=null;assert(bothHandsOnGoal());tutorialTrigger("goal");');assert.equal(b.run('tutorialInstructionsOpen()'),false);assert.equal(b.run('tutorialRun.seen.has("goal-fixed")'),false);
 }
-// Keyboard and Escape each advance one page, with repeat keys ignored.
+// Pointer cards advance once; native cancel still cleans up through the same queue.
 {
- const b=boot();start(b);const key=event({key:'Enter',repeat:false});b.node('tutorialDialog').events.keydown(key);settleTransition(b);page(b,2);assert(key.prevented);
- b.node('tutorialDialog').events.keydown(event({key:' ',repeat:true}));page(b,2);
- b.node('tutorialContinue').focus();assert.equal(b.run('document.activeElement.id'),'tutorialContinue');
- b.node('tutorialDialog').events.keydown(event({key:' ',repeat:false}));settleTransition(b);page(b,3);b.node('tutorialDialog').events.cancel(event());assert.equal(b.run('tutorialInstructionsOpen()'),false);
+ const b=boot();start(b);assert.equal(b.node('tutorialDialog').events.keydown,undefined);
+ tap(b);page(b,2);tap(b);page(b,3);
+ b.node('tutorialDialog').events.cancel(event());assert.equal(b.run('tutorialInstructionsOpen()'),false);
 }
-// Failure after14 legal moves reaches no goal messages and consumes no resources.
+// Failure after exhausting the legal move budget reaches no goal messages and consumes no resources.
 {
  const b=boot(),resources=snapshot(b);start(b);intros(b);const shows=b.node('tutorialDialog').showCount;
  b.run(`const low={...route[0]},high={...route[1]},budget=stamina;for(let i=0;i<budget;i++){const p=i%2?low:high;camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);down({clientX:body.x,clientY:body.y-camera});move({clientX:p.x,clientY:p.y-camera});release();assert.equal(moveCount,i+1);}assert.equal(stamina,0);`);
@@ -192,7 +201,7 @@ assert(/prefers-reduced-motion:reduce[^}]*tutorial-page-closing \.card[^}]*trans
  const again=boot(b.data);start(again);page(again,1);tap(again);page(again,2);again.node('tutorialDialog').events.close(event());page(again,2);assert.equal(again.run('isTutorialRun()'),true,'queued old close must not interrupt reopened/current dialog');again.node('tutorialDialog').close();again.node('tutorialDialog').events.close(event());assert.equal(again.run('isTutorialRun()'),false);assert.equal(again.run('tutorialPending()'),true);assert.equal(again.run('state'),'choosing');start(again);page(again,1);
  const old=boot(new Map([['ascent.player-uuid.v1','0']]));assert.equal(old.run('tutorialPending()'),false);old.run('titleReady=true;');old.node('titleScreen').onclick();assert.equal(old.run('isTutorialRun()'),false);assert.equal(old.node('tutorialDialog').open,false);
 }
-console.log('PASS six exact revised JA tutorial pages, language fallback, scroll-complete boundary, close/reopen visual queues with uninterrupted input/time pause, transition interruption/repeat protection, committed center HAND once across Undo, valid goal before completion, native clear/exhaustion, keyboard repeat/Escape, interruption/reload/existing skip');
+console.log('PASS five exact revised JA tutorial pages, language fallback, scroll-complete boundary, close/reopen visual queues with uninterrupted input/time pause, transition interruption/repeat protection, committed explicit-ID HAND once across Undo, valid goal before completion, native clear/exhaustion, pointer advance/native cancel, interruption/reload/existing skip');
 
 }
 if(require.main===module)runModalTests();

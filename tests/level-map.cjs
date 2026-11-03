@@ -6,9 +6,11 @@ assert(/id="mapNext"[^>]*><svg/.test(html));assert(/id="mapPrev"[^>]*><svg/.test
 const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
 assert(/\.map-page \{[^}]*width:100px; height:44px;[^}]*background:transparent;[^}]*-webkit-tap-highlight-color:transparent;/.test(css));
 assert(css.includes('.map-page:active:not(:disabled) > svg { transform:scale(1.1); }'));
-assert(css.includes('.map-page:focus-visible { outline:none; box-shadow:none; }'));
+assert(!/\.map-page:focus-visible/.test(css),'Map navigation has no keyboard-only focus styling');
 assert(css.includes('.map-page-prev { bottom:40px; transform:translateX(-50%) rotate(180deg); }'));
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const mapSource=fs.readFileSync(path.join(root,'js/level-map.js'),'utf8');
+assert(!/focusMapLevel|\.focus\(|tabindex/.test(mapSource),'Map/stage transitions need no keyboard focus or tab stops');
 const env=`
 const elements={};const document={getElementById(id){return elements[id] ||= {
  style:{},classList:{toggle(){}},focus(){},addEventListener(){},setAttribute(){},contains(){return true;},showModal(){this.open=true;},close(){this.open=false;},
