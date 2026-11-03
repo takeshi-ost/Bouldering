@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const nativeSource = require('./native-bundle-source.cjs');
 const buildNativeFirebase = require('./build-native-firebase.cjs');
+const nativeSettingsLayout = require('./native-settings-layout.cjs');
 const root = path.resolve(__dirname, '..');
 const out = path.join(root, 'www');
 const firebaseMode=process.env.ASCENT_FIREBASE_MODE || 'auto-sync';
@@ -17,7 +18,7 @@ for (const name of fs.readdirSync(path.join(root, 'js'))) {
     if (!name.endsWith('.js') || name === 'firebase-client.js') continue;
     fs.writeFileSync(path.join(out, 'js', name), nativeSource(name, fs.readFileSync(path.join(root, 'js', name), 'utf8')));
 }
-let html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+let html = nativeSettingsLayout(fs.readFileSync(path.join(root, 'index.html'), 'utf8'));
 const firebaseTag = /<script\s+type="module"\s+src="js\/firebase-client\.js(?:\?[^"\s]*)?"\s*><\/script>/g;
 if ([...html.matchAll(firebaseTag)].length !== 1) {
     throw new Error('Expected one Firebase bootstrap tag; refusing an unverified native build');

@@ -11,6 +11,12 @@ const nativeSource = require('../scripts/native-bundle-source.cjs');
 const bundle = path.join(root, 'www');
 const read = name => fs.readFileSync(path.join(bundle, name), 'utf8');
 const html = read('index.html');
+const nativeSettings=html.match(/<dialog id="settingsDialog"[\s\S]*?<\/dialog>/)?.[0];
+assert(nativeSettings);
+for(const [before,after] of [['settingsConnectionStatus','settingsVersion'],['settingsVersion','mapSettingsLanguage'],['stageDebugDisplay','onlineStatus'],['onlineStatus','onlineScoreStatus']])
+    assert(nativeSettings.indexOf('id="'+before+'"')<nativeSettings.indexOf('id="'+after+'"'),after+' follows '+before+' in the native settings');
+assert(/id="onlineScoreStatus"[^>]*hidden[^>]*><\/p>\s*<\/dialog>$/.test(nativeSettings), 'Native diagnostics must be the final content without a permanent footer spacer');
+assert(/<p hidden id="onlineStatus"/.test(nativeSettings), 'Native diagnostics stay hidden before the policy is applied');
 const firebaseMode=JSON.parse(read('native-firebase-mode.json')).mode;
 assert(['offline','read-only','auto-sync'].includes(firebaseMode));
 assert(fs.existsSync(path.join(bundle,'vendor/firebase-sdk.js')));

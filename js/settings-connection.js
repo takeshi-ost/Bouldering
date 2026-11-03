@@ -10,6 +10,10 @@ function refreshSettingsConnection() {
     const connected=settingsConnectionVerified && !trial && !disconnected && !nativeDisabled;
     const value=document.getElementById('settingsConnectionValue');
     if(value)value.textContent=connected?gameText('settings.online'):gameText('settings.offline');
+    // Use the running game release, not the wrapper's independent native build
+    // metadata. This row is shared by every scene and is never a Debug control.
+    const version=document.getElementById('settingsVersionValue');
+    if(version)version.textContent=typeof RELEASE_VERSION==='string'?RELEASE_VERSION:'';
     return connected;
 }
 const settingsConnectionSignals=Object.freeze({

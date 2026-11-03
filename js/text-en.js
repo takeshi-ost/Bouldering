@@ -33,6 +33,7 @@ const GAME_TEXT_EN = Object.freeze({
     "debug.trialError": "Trial generation failed: {value0}",
 
     "settings.connection": "Connection",
+    "settings.appVersion": "App version",
     "settings.online": "Online",
     "settings.offline": "Offline",
     "audio.music": "BGM",

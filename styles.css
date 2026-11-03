@@ -262,6 +262,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .settings-divider { border:0; border-top:1px solid #dce0d4; margin:20px 0 6px; }
 .settings-connection { margin-top:0; }
 .settings-connection strong { font-size:14px; text-align:right; }
+.settings-version strong { min-width:0; overflow-wrap:anywhere; font-size:14px; text-align:right; font-variant-numeric:tabular-nums; }
 #settingsDialog { box-sizing:border-box; overscroll-behavior:contain; touch-action:pan-y; }
 #settingsDialog .settings-row > span,#settingsDialog .online-status { min-width:0; overflow-wrap:anywhere; }
 #settingsDialog .settings-row select { min-width:0; flex-shrink:1; }

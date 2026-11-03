@@ -33,6 +33,7 @@ const GAME_TEXT_JA = Object.freeze({
     "debug.trialError": "試作生成失敗：{value0}",
 
     "settings.connection": "通信状態",
+    "settings.appVersion": "アプリバージョン",
     "settings.online": "オンライン",
     "settings.offline": "オフライン",
     "audio.music": "BGM",

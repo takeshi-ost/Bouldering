@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=7ce24beaa9f3">
+    <link rel="stylesheet" href="styles.css?v=af8e27458e28">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=7403d9191a84" defer></script>
-    <script src="js/text-ja.js?v=26ef81be0c2c" defer></script>
-    <script src="js/text-en.js?v=db63587d7d37" defer></script>
+    <script src="js/text-ja.js?v=cdecb028e337" defer></script>
+    <script src="js/text-en.js?v=813ee8dbb8e4" defer></script>
     <script src="js/text-dev-ja.js?v=07cdedf03e69" defer></script>
     <script src="js/text.js?v=504005081cf0" defer></script>
     <script src="js/score-metadata.js?v=ad0e02f921ca" defer></script>
-    <script src="js/config.js?v=80ff72ed51f4" defer></script>
+    <script src="js/config.js?v=6a1ba039155b" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=3438658870e1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -48,7 +48,7 @@
     <script src="js/leaderboard.js?v=4a9462986314" defer></script>
     <script src="js/online.js?v=5dbe4738c12d" defer></script>
     <script src="js/online-scores.js?v=ed4c420f2537" defer></script>
-    <script src="js/settings-connection.js?v=d7c11b465917" defer></script>
+    <script src="js/settings-connection.js?v=3f225b2b37d6" defer></script>
     <script src="js/account-deletion.js?v=a26b680d9a8b" defer></script>
     <script src="js/transfer.js?v=f4d72039a7c9" defer></script>
     <script src="js/language.js?v=08a7d0335d32" defer></script>
@@ -281,6 +281,7 @@
         <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
             <div class="help-heading"><h2 id="settingsTitle" data-i18n="ui.settingsTitle"></h2><button id="closeSettings" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeSettings.aria-label">✕</button></div>
             <div id="settingsConnectionStatus" class="settings-row settings-connection"><span data-i18n="settings.connection"></span><strong id="settingsConnectionValue" role="status" aria-live="polite"></strong></div>
+            <div id="settingsVersion" class="settings-row settings-version"><span data-i18n="settings.appVersion"></span><strong id="settingsVersionValue"></strong></div>
             <p id="onlineStatus" class="online-status" role="status" data-i18n="online"></p>
             <p id="onlineScoreStatus" class="online-status" role="status" hidden></p>
             <label id="mapSettingsLanguage" class="settings-row" for="languageChoice"><span data-i18n="ui.mapSettingsControls.label.span.2"></span><select id="languageChoice"><option value="ja" data-i18n="ui.languageChoice.option"></option><option value="en" data-i18n="ui.languageChoice.option.2"></option></select></label>

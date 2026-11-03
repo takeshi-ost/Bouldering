@@ -3,19 +3,23 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const elements={},events={},document={getElementById:id=>elements[id]||=( {textContent:'',hidden:false})};
 let language='ja',unexpected=0;
 const context=vm.createContext({document,navigator:{onLine:true},window:{addEventListener:(name,fn)=>events[name]=fn},
+ RELEASE_VERSION:'0.4.59',ASCENT_BUILD_METADATA:{appVersion:'0.4.6',buildNumber:'14'},
  gameText:key=>({ja:{'settings.online':'オンライン','settings.offline':'オフライン'},en:{'settings.online':'Online','settings.offline':'Offline'}})[language][key],
  fetch(){unexpected++;throw Error('No probes allowed');},localStorage:new Proxy({},{get(){unexpected++;throw Error('No persistence allowed');}})});
 vm.runInContext(fs.readFileSync('js/settings-connection.js','utf8'),context);
 const value=()=>elements.settingsConnectionValue.textContent,signal=context.ASCENT_SETTINGS_CONNECTION;
 assert.equal(value(),'オフライン','navigator true is not service verification');
+assert.equal(elements.settingsVersionValue.textContent,'0.4.59','Display the running game version, not native metadata');
 signal.success();assert.equal(value(),'オンライン');
 language='en';context.refreshSettingsConnection();assert.equal(value(),'Online');
+assert.equal(elements.settingsVersionValue.textContent,'0.4.59');
 context.navigator.onLine=false;events.offline();assert.equal(value(),'Offline');
 context.navigator.onLine=true;events.online();assert.equal(value(),'Offline','Reconnection waits for verified request');
 signal.success();signal.failure();assert.equal(value(),'Offline');
 const oldTicket=signal.ticket();events.offline();events.online();signal.success(oldTicket);assert.equal(value(),'Offline','Delayed acknowledgement from old network epoch is ignored');
 context.ASCENT_TRIAL={};signal.success();assert.equal(value(),'Offline','Public trial stays offline');delete context.ASCENT_TRIAL;
 context.ASCENT_IOS_BUILD={firebaseEnabled:false};signal.success();assert.equal(value(),'Offline');delete context.ASCENT_IOS_BUILD;
+assert.equal(elements.settingsVersionValue.textContent,'0.4.59','Version is not gated by connection or native mode');
 signal.failure();assert.equal(unexpected,0);
 // Web integration only; unchanged native baseline is verified separately.
  const online=fs.readFileSync('js/online.js','utf8'),scores=fs.readFileSync('js/online-scores.js','utf8');

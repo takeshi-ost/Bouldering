@@ -27,6 +27,20 @@ policy={...policy,configuration:'Release',syncStatusAllowed:true};presenter.refr
 // Actual copied native scripts: startup must never show the six historical
 // entries, and the real language-switch path must use the same presenter.
 const html=fs.readFileSync('index.html','utf8');
+const nativeSettingsLayout=require('../scripts/native-settings-layout.cjs');
+const nativeHTML=nativeSettingsLayout(html);
+const dialog=text=>text.match(/<dialog id="settingsDialog"[\s\S]*?<\/dialog>/)[0];
+const webDialog=dialog(html),nativeDialog=dialog(nativeHTML);
+const nodes=['onlineStatus','onlineScoreStatus'].map(id=>webDialog.match(new RegExp('<p\\b[^>]*id="'+id+'"[^>]*>[\\s\\S]*?<\\/p>'))[0]);
+assert(webDialog.indexOf('id="onlineStatus"')<webDialog.indexOf('id="mapSettingsLanguage"'),'Ordinary Web status location stays unchanged');
+assert(nativeDialog.indexOf('id="onlineStatus"')>nativeDialog.indexOf('id="stageDebugDisplay"'),'Native diagnostics follow all context/debug controls');
+assert(nativeDialog.endsWith(nodes.join('\n            ')+'\n        </dialog>'));
+for(const node of nodes)assert.equal(nativeDialog.split(node).length,2,'Preserve attributes and exactly one copy of each diagnostic');
+const withoutDiagnostics=text=>nodes.reduce((s,node)=>s.replace(node,''),text).replace(/\s+/g,' ').trim();
+assert.equal(withoutDiagnostics(html),withoutDiagnostics(nativeHTML),'No unrelated markup is moved/changed');
+assert.throws(()=>nativeSettingsLayout(html.replace(nodes[0],'')),/Expected one native diagnostic/);
+assert.throws(()=>nativeSettingsLayout(html.replace(nodes[0],nodes[0]+nodes[0])),/Expected one native diagnostic/);
+assert.throws(()=>nativeSettingsLayout(html+webDialog),/Expected one settings dialog/);
 const nativeScripts=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)]
  .map(m=>nativeSource(path.basename(m[1]),fs.readFileSync(m[1],'utf8'))).join('\n');
 const historical=JSON.stringify({uid:'mock-owner',items:Array.from({length:6},(_,i)=>['v1_existing_'+(i+1),{moves:12,timeMs:5000}])});
@@ -34,6 +48,8 @@ const data=new Map([['ascent.pending-scores.v1',historical]]),scope={localStorag
 const env=`const elements={};const document={documentElement:{},getElementById(id){return elements[id]||={style:{},classList:{toggle(){}},events:{},focus(){},setAttribute(k,v){this[k]=v;},removeAttribute(){},addEventListener(k,fn){this.events[k]=fn;},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(){return function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};const window={devicePixelRatio:1,addEventListener(){}};function requestAnimationFrame(){}`;
 new Function('assert','createNativeSyncStatus','globalThis',env+nativeScripts+`
 assert.equal(onlineScores.pending.size,6);
+Object.assign(globalThis.ASCENT_IOS_BUILD,{appVersion:'0.4.6',version:'0.4.6',CFBundleShortVersionString:'0.4.6'});refreshSettingsConnection();
+assert.equal(document.getElementById('settingsVersionValue').textContent,RELEASE_VERSION);
 assert.equal(document.getElementById('onlineScoreStatus').textContent,'');assert(document.getElementById('onlineScoreStatus').hidden);
 const presenter=createNativeSyncStatus({document,policy:()=>globalThis.ASCENT_IOS_BUILD,language:()=>GAME_TEXT_LANGUAGE,connectionSignals:()=>globalThis.ASCENT_SETTINGS_CONNECTION});globalThis.ASCENT_NATIVE_SYNC_STATUS=presenter;
 presenter.update({authenticated:true},{freshPending:0});assert(document.getElementById('onlineScoreStatus').textContent.includes('0件'));
@@ -60,6 +76,7 @@ presenter.update({authenticated:true,connectionSuccesses:4,connectionEpoch:conne
 assert.equal(refreshSettingsConnection(),true);
 globalThis.ASCENT_NATIVE_SYNC={pendingForBoard:()=>false};assert(!stageScoreStatus(1,'existing').includes('送信待ち'));
 globalThis.ASCENT_IOS_BUILD.configuration='Release';globalThis.ASCENT_IOS_BUILD.syncStatusAllowed=true;persistPendingScores();setGameLanguage('en');assert(document.getElementById('onlineStatus').hidden);assert(document.getElementById('onlineScoreStatus').hidden);assert.equal(stageScoreStatus(1,'existing'),'');
+assert.equal(document.getElementById('settingsVersionValue').textContent,RELEASE_VERSION,'Release retains the common game version row');
 `)(assert,createNativeSyncStatus,scope);
 assert.equal(data.get('ascent.pending-scores.v1'),historical);
 assert(!nativeSource('online-scores.js',fs.readFileSync('js/online-scores.js','utf8')).includes('setItem(ONLINE_SCORES_KEY'));

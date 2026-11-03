@@ -3,11 +3,14 @@ const fs=require('node:fs'),assert=require('node:assert/strict');
 const {boot}=require('./tutorial-modals.cjs');
 const html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('styles.css','utf8');
 const settings=html.match(/<dialog id="settingsDialog"[\s\S]*?<\/dialog>/)[0];
-const order=['settingsConnectionStatus','mapSettingsLanguage','musicEnabled','musicVolume','soundEnabled','soundVolume','showHelp','settingsDivider','mapEditCharacter','mapCourses','restart','mapSettingsDebug','stageDebugDisplay'];
+const order=['settingsConnectionStatus','settingsVersion','mapSettingsLanguage','musicEnabled','musicVolume','soundEnabled','soundVolume','showHelp','settingsDivider','mapEditCharacter','mapCourses','restart','mapSettingsDebug','stageDebugDisplay'];
 for(let i=1;i<order.length;i++)assert(settings.indexOf('id="'+order[i-1]+'"')<settings.indexOf('id="'+order[i]+'"'),order[i]+' follows '+order[i-1]);
 assert(/id="settingsConnectionValue"[^>]*role="status"[^>]*aria-live="polite"/.test(settings));
 assert(/<hr id="settingsDivider" class="settings-divider">/.test(settings));
 assert(!/id="mapSettingsLanguage"[^>]* hidden/.test(settings));
+assert(!/id="settingsVersion"[^>]* hidden/.test(settings));
+assert.match(settings, /id="settingsVersion"[^>]*>.*data-i18n="settings.appVersion"/);
+assert(css.includes('.settings-version strong { min-width:0; overflow-wrap:anywhere;'));
 for(const id of ['musicEnabled','musicVolume','soundEnabled','soundVolume','languageChoice'])assert(settings.includes('for="'+id+'"')||settings.includes('id="'+id+'" type="range"')&&settings.includes('data-i18n-aria-label="audio.'),'Native labeled controls');
 assert.equal((settings.match(/type="range"/g)||[]).length,2);
 assert(css.includes('#settingsDialog { box-sizing:border-box; overscroll-behavior:contain; touch-action:pan-y; }'));
@@ -35,9 +38,12 @@ for(const scene of ['map','daily','normal','daily-play','tutorial']){
  assert.equal(b.node('mapSettingsLanguage').hidden,false,scene+' offers language');
  assert.equal(b.node('mapSettingsControls').hidden,!onMap);assert.equal(b.node('mapSettingsFooter').hidden,!onMap);assert.equal(b.node('mapSettingsDebug').hidden,!onMap);assert.equal(b.node('restart').hidden,onMap);
  assert.equal(b.node('settingsConnectionValue').textContent,'オフライン');
+ assert.equal(b.node('settingsVersionValue').textContent,b.run('RELEASE_VERSION'),scene+' shows the actual game version');
  for(const lang of ['en','ja']){
   b.node('languageChoice').value=lang;b.node('languageChoice').onchange();assert.equal(b.run('GAME_TEXT_LANGUAGE'),lang);assert.equal(b.data.get('ascent.language.v1'),lang);assert.equal(snapshot(b),before);
   assert.equal(b.node('settingsConnectionValue').textContent,lang==='en'?'Offline':'オフライン');
+  assert.equal(b.node('settingsVersionValue').textContent,b.run('RELEASE_VERSION'));
+  assert.equal(b.run('gameText("settings.appVersion")'),lang==='en'?'App version':'アプリバージョン');
  }
  b.node('musicEnabled').checked=false;b.node('musicEnabled').onchange();b.node('musicVolume').value='25';b.node('musicVolume').oninput();
  b.node('soundEnabled').checked=false;b.node('soundEnabled').onchange();b.node('soundVolume').value='40';b.node('soundVolume').oninput();
@@ -62,6 +68,7 @@ for(const scene of ['map','daily','normal','daily-play','tutorial']){
 // identity and the existing per-stage display controls, not relabel it STAGE2.
 {
  const b=fixture('map');b.run('setDebugMode(true);assert(startDebugCourse(0,"short",1000));cameraIntro=null;hideStageHelp();openSettings();');
+ assert.equal(b.node('settingsVersionValue').textContent,b.run('RELEASE_VERSION'),'Debug play keeps the common version row');
  assert.equal(b.node('stageDebugDisplay').hidden,false);const before=snapshot(b);
  b.node('languageChoice').value='en';b.node('languageChoice').onchange();assert.equal(b.node('level').textContent,b.run('gameText("debug.trialTitle",{value0:courseTypeId})'));assert.equal(snapshot(b),before);
  b.node('debugRoute').checked=false;b.node('debugRoute').onchange();assert.equal(b.run('debugDisplay.route'),false);
