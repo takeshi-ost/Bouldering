@@ -1,6 +1,6 @@
 {
   "name": "ascent-ios-local",
-  "version": "0.4.54",
+  "version": "0.4.55",
   "private": true,
   "description": "Offline iOS simulator wrapper for ASCENT; not a production app identifier",
   "engines": {

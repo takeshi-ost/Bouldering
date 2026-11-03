@@ -177,16 +177,18 @@ function layoutMapPlayers(players) {
     }
     return placed.sort((a,b)=>a.y-b.y || a.x-b.x);
 }
-let mapPlayerNameHold=null,mapPlayerNameTimer=null;
-function hideMapPlayerName() {
+let mapPlayerNameHold=null,mapPlayerNameTimer=null,mapPlayersRefreshPending=false;
+function hideMapPlayerName(refreshPlayers=true) {
     if(mapPlayerNameTimer!==null)clearTimeout(mapPlayerNameTimer);
     mapPlayerNameTimer=null;
     if(!mapPlayerNameHold)return;
     mapPlayerNameHold.element.classList.toggle('is-name-visible',false);
     mapPlayerNameHold=null;
+    if(refreshPlayers && mapPlayersRefreshPending)renderMapPlayers();
 }
 function showMapPlayerName(element,event) {
-    hideMapPlayerName();
+    // Switching/repeating a press must not replace the event's target node.
+    hideMapPlayerName(false);
     element.classList.toggle('is-name-visible',true);
     mapPlayerNameHold={element,pointerId:event.pointerId,x:event.clientX,y:event.clientY};
 }
@@ -195,7 +197,7 @@ function releaseMapPlayerName() {
     mapPlayerNameHold.pointerId=null;
     mapPlayerNameTimer=setTimeout(()=>{
         mapPlayerNameTimer=null;hideMapPlayerName();
-    },1000);
+    },2000);
 }
 ui.mapPlayers.addEventListener('pointerdown',event=>{
     const element=event.target.closest?.('.map-opponent');
@@ -220,16 +222,35 @@ ui.mapPlayers.addEventListener('keydown',event=>{
 ui.mapPlayers.addEventListener('keyup',event=>{
     if(['Enter',' '].includes(event.key))releaseMapPlayerName();
 });
-ui.mapPlayers.addEventListener('focusout',hideMapPlayerName);
+ui.mapPlayers.addEventListener('focusout',event=>{
+    // pointerdown selects the new icon before the browser transfers focus.
+    const active=mapPlayerNameHold?.element,target=event.relatedTarget;
+    if(!active || (target!==active && !active.contains?.(target))) {
+        hideMapPlayerName(false);
+        // Let Tab finish transferring focus before a queued refresh replaces nodes.
+        if(mapPlayersRefreshPending)setTimeout(()=>{
+            if(mapPlayersRefreshPending)renderMapPlayers();
+        },0);
+    }
+});
 ui.mapPlayers.addEventListener('contextmenu',event=>event.preventDefault());
 function renderMapPlayers() {
-    hideMapPlayerName();
+    // Online results and reconnects can arrive during a tap. Keep the live DOM
+    // (including keyboard focus) until the name expires or the gesture ends.
+    if(mapPlayerNameHold){mapPlayersRefreshPending=true;return;}
+    mapPlayersRefreshPending=false;
+    const focused=document.activeElement;
+    const focusedPlayer=ui.mapPlayers.contains?.(focused)?focused?.closest?.('.map-opponent')?.dataset?.player:null;
     const {first,last}=mapBounds(),width=ui.mapTrack.clientWidth||400;
     const players=layoutMapPlayers(currentMapPlayers(first,last,courseMode));
     ui.mapPlayers.innerHTML=players.map(player=>
         `<span class="map-marker map-opponent" role="button" tabindex="0" aria-label="${gameText("level-map.renderMapPlayers", {value0: scoreText(player.name)})}" data-player="${scoreText(player.id)}" data-reached-level="${player.reachedLevel}" data-name-side="${player.x>width/2?'left':'right'}" style="left:${player.x}px;top:${player.y}px;z-index:${player.depth}">${scoreAvatar(player)}<span class="map-player-name" aria-hidden="true">${scoreText(player.name)}</span></span>`).join('');
+    if(focusedPlayer)[...ui.mapPlayers.querySelectorAll('.map-opponent')]
+        .find(element=>element.dataset.player===focusedPlayer)?.focus({preventScroll:true});
 }
 function renderLevelMap() {
+    // Page/layout changes intentionally dismiss names before rebuilding the map.
+    hideMapPlayerName(false);
     const {first,last} = mapBounds();
     const cleared = stageProgress[courseMode].cleared;
     const unlocked = unlockedLevel();

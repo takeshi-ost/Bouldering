@@ -65,13 +65,13 @@ renderMapPlayers();assert(!ui.mapPlayers.innerHTML.includes('<img onerror'));
 assert(ui.mapPlayers.innerHTML.includes('&lt;img onerror=bad&gt;'));
 assert(!ui.mapPlayers.innerHTML.includes('data-level='));currentMapPlayers=originalSource;
 assert.equal(JSON.stringify({holds,route,body,grips,stageProgress,stageRecords}),physics);
-// Names stay visible for one second after release; new holds cancel the old timer.
+// Names stay visible for two seconds after release; new holds cancel the old timer.
 state='map';settingsOpen=false;mapPreparing=false;
 let visible=false;const icon={classList:{toggle(name,value){assert.equal(name,'is-name-visible');visible=value;}}};
 const press={target:{closest:()=>icon},pointerId:7,clientX:20,clientY:30,button:0};
 const hold=()=>ui.mapPlayers.events.pointerdown(press);
 hold();assert(visible);window.events.pointerup[0]({pointerId:8});assert(visible);
-window.events.pointerup[0]({pointerId:7});assert(visible);assert.equal(timers.at(-1).ms,1000);
+window.events.pointerup[0]({pointerId:7});assert(visible);assert.equal(timers.at(-1).ms,2000);
 window.events.pointermove[0]({pointerId:7,clientX:100,clientY:100});assert(visible);
 timers.at(-1).fn();assert(!visible);
 hold();window.events.pointerup[0]({pointerId:7});const oldTimer=timers.at(-1);hold();assert(oldTimer.canceled && visible);
@@ -79,11 +79,60 @@ hold();window.events.pointermove[0]({pointerId:7,clientX:22,clientY:32});assert(
 window.events.pointermove[0]({pointerId:7,clientX:20,clientY:50});assert(!visible);
 hold();window.events.pointercancel[0]({});assert(!visible);
 hold();ui.mapScroll.events.scroll();assert(!visible);
-hold();renderMapPlayers();assert(!visible);
-hold();ui.mapPlayers.events.focusout();assert(!visible);
+hold();const heldMarkup=ui.mapPlayers.innerHTML;
+renderMapPlayers();assert(visible);assert(mapPlayersRefreshPending);
+assert.equal(ui.mapPlayers.innerHTML,heldMarkup,'Async refresh must not replace the pressed DOM');
+window.events.pointerup[0]({pointerId:7});const releaseTimer=timers.at(-1);
+renderMapPlayers();renderMapPlayers();assert(visible);
+assert.equal(timers.at(-1),releaseTimer,'Refresh must not shorten or restart the two-second timer');
+releaseTimer.fn();assert(!visible);assert(!mapPlayersRefreshPending);
+// A second tap while a refresh is pending must retain the new event target.
+hold();renderMapPlayers();window.events.pointerup[0]({pointerId:7});const previousTimer=timers.at(-1);
+hold();assert(previousTimer.canceled && visible && mapPlayersRefreshPending);
+window.events.pointerup[0]({pointerId:7});assert.equal(timers.at(-1).ms,2000);
+timers.at(-1).fn();assert(!visible && !mapPlayersRefreshPending);
+// Explicit page/layout changes still dismiss a name and apply any queued refresh.
+hold();renderMapPlayers();renderLevelMap();assert(!visible && !mapPlayersRefreshPending);
+hold();ui.mapPlayers.events.focusout({relatedTarget:icon});assert(visible,'Focus transfer to the newly pressed icon must not hide its name');
+ui.mapPlayers.events.focusout({relatedTarget:null});assert(!visible);
 let prevented=false;ui.mapPlayers.events.keydown({...press,key:' ',preventDefault(){prevented=true;}});assert(visible && prevented);
-ui.mapPlayers.events.keyup({key:' '});assert(visible);assert.equal(timers.at(-1).ms,1000);timers.at(-1).fn();assert(!visible);
+ui.mapPlayers.events.keyup({key:' '});assert(visible);assert.equal(timers.at(-1).ms,2000);timers.at(-1).fn();assert(!visible);
 settingsOpen=true;hold();assert(!visible);settingsOpen=false;
+
+// Model node replacement and real focus identity, including two distinct icons.
+let domNodes=[],domMarkup='';
+const makeNode=id=>({dataset:{player:id},visible:false,
+ closest(){return this;},classList:{toggle(name,value){domNodes.find(n=>n.dataset.player===id).visible=value;}},
+ focus(options){assert.deepEqual(options,{preventScroll:true});document.activeElement=this;}});
+Object.defineProperty(ui.mapPlayers,'innerHTML',{configurable:true,get(){return domMarkup;},set(value){
+ if(domNodes.includes(document.activeElement))document.activeElement=null;
+ domMarkup=value;domNodes=[makeNode('focus-a'),makeNode('focus-b')];
+}});
+ui.mapPlayers.contains=node=>domNodes.includes(node);
+ui.mapPlayers.querySelectorAll=()=>domNodes;
+renderMapPlayers();let [a,b]=domNodes;
+const key=node=>({target:node,key:' ',preventDefault(){}});
+document.activeElement=a;ui.mapPlayers.events.keydown(key(a));renderMapPlayers();
+ui.mapPlayers.events.focusout({relatedTarget:b});
+assert.equal(domNodes[1],b,'Tab destination stays attached until focus transfer finishes');
+assert.equal(timers.at(-1).ms,0);document.activeElement=b;timers.at(-1).fn();
+assert.equal(document.activeElement,domNodes[1]);assert.notEqual(document.activeElement,b);
+assert(!mapPlayersRefreshPending,'Queued refresh flushed after Tab');
+[a,b]=domNodes;document.activeElement=a;ui.mapPlayers.events.keydown(key(a));
+ui.mapPlayers.events.keyup({key:' '});const expiry=timers.at(-1);renderMapPlayers();expiry.fn();
+assert.equal(document.activeElement,domNodes[0],'Two-second expiry preserves the focused player');
+assert(!mapPlayersRefreshPending && !mapPlayerNameHold);
+[a,b]=domNodes;
+const pointer=node=>({...press,target:node});
+ui.mapPlayers.events.pointerdown(pointer(a));renderMapPlayers();window.events.pointerup[0]({pointerId:7});
+const firstExpiry=timers.at(-1);ui.mapPlayers.events.pointerdown(pointer(b));
+ui.mapPlayers.events.focusout({relatedTarget:b});
+assert(firstExpiry.canceled && !a.visible && b.visible && mapPlayerNameHold.element===b);
+window.events.pointerup[0]({pointerId:7});timers.at(-1).fn();assert(!mapPlayerNameHold && !mapPlayersRefreshPending);
+// Leaving the roster must not steal focus back from another control.
+a=domNodes[0];document.activeElement=a;ui.mapPlayers.events.keydown(key(a));renderMapPlayers();
+const outside={};ui.mapPlayers.events.focusout({relatedTarget:outside});document.activeElement=outside;
+timers.at(-1).fn();assert.equal(document.activeElement,outside);
 
 // Moving the local icon updates depth every animation frame, not just on rerender.
 state='map';mapPreparing=false;mapTransition={from:6,to:7,start:null};

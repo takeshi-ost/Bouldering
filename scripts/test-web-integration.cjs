@@ -2,7 +2,7 @@
 // Focused current Web integration checks. No Firebase/network or native build.
 const fs=require('node:fs'),path=require('node:path'),{spawnSync}=require('node:child_process');
 const root=path.resolve(__dirname,'..');
-const suites=['pages-formal-runtime','pages-storage-deletion','formal-debug-ranking','formal-v4-preservation','course-version-compat','score-metadata','online','online-progress-generation','online-scores','firebase-client','account-deletion','transfer','settings-connection','settings-layout','language','text','button-theme','title-centering','tutorial-lifecycle','tutorial-modals','tutorial-clear-sound','explanation-image-readiness','help-dialog','stage-start','failure-return','level-map','daily','rewards','ads','ads-early-stages','course-progression','formal-course-seed-offset'];
+const suites=['pages-formal-runtime','pages-storage-deletion','formal-debug-ranking','formal-v4-preservation','course-version-compat','score-metadata','online','online-progress-generation','online-scores','firebase-client','account-deletion','transfer','settings-connection','settings-layout','language','text','button-theme','title-centering','tutorial-lifecycle','tutorial-modals','tutorial-clear-sound','explanation-image-readiness','help-dialog','stage-start','failure-return','level-map','map-players','daily','rewards','ads','ads-early-stages','course-progression','formal-course-seed-offset'];
 const results=[];
 for(const suite of suites){
  console.log('\n== '+suite+' ==');const start=Date.now(),run=spawnSync(process.execPath,['tests/'+suite+'.cjs'],{cwd:root,encoding:'utf8',timeout:180000,maxBuffer:12*1024*1024});
