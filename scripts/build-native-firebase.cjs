@@ -14,10 +14,10 @@ module.exports=function buildNativeFirebase(root,out,mode) {
     const writes=mode==='auto-sync';
     const sdk=`
 import {initializeApp,getApps,getApp} from 'firebase/app';
-import {initializeAuth,browserLocalPersistence,setPersistence${mode==='read-only'?',signInAnonymously':''}} from 'firebase/auth';
+import {initializeAuth,browserLocalPersistence,setPersistence${mode!=='offline'?',signInAnonymously':''}} from 'firebase/auth';
 import {getFirestore,doc,collection,getDocFromServer,getDocsFromServer,query,where,orderBy,limit${writes?',runTransaction,serverTimestamp':''}} from 'firebase/firestore';
 export const app={initializeApp,getApps,getApp};
-export const auth={initializeAuth,browserLocalPersistence,setPersistence${mode==='read-only'?',signInAnonymously':''}};
+export const auth={initializeAuth,browserLocalPersistence,setPersistence${mode!=='offline'?',signInAnonymously':''}};
 export const firestore={getFirestore,doc,collection,getDocFromServer,getDocsFromServer,query,where,orderBy,limit${writes?',runTransaction,serverTimestamp':''}};`;
     esbuild.buildSync({stdin:{contents:sdk,resolveDir:root},bundle:true,format:'esm',platform:'browser',target:'ios15',minify:true,
         outfile:path.join(out,'vendor/firebase-sdk.js'),logLevel:'silent',legalComments:'eof'});
@@ -38,21 +38,30 @@ function publish(report,stats=sync?.report()||{}){
  const safe={...report,...stats,pendingUnchanged:pendingValue()===baseline};
  globalThis.webkit?.messageHandlers?.ascentFirebaseReport?.postMessage(safe);
 }
-const controller=createNativeFirebaseController({mode,config,policy:()=>globalThis.ASCENT_IOS_BUILD,
+const controller=createNativeFirebaseController({mode,config,policy:()=>typeof accountDeletion!=='undefined' && accountDeletion.marker?{...globalThis.ASCENT_IOS_BUILD,firebaseEnabled:false}:globalThis.ASCENT_IOS_BUILD,
  storage,loadSDK:()=>import('../vendor/firebase-sdk.js'),
  connectionEpoch:()=>globalThis.ASCENT_SETTINGS_CONNECTION?.ticket(),
- knownUid:()=>readOnlineCheckpoint()?.uid || onlineScores.owner || null,onReport:publish});
+ knownUid:()=>{
+  const known=[readOnlineCheckpoint()?.uid,onlineScores.owner,sync?.ownerUid()].filter(Boolean);
+  if(new Set(known).size>1)throw {code:'native-firebase/identity-mismatch'};
+  return known[0]||null;
+ },onReport:publish});
 Object.defineProperty(globalThis,'ASCENT_NATIVE_FIREBASE',{value:controller,writable:false,configurable:false});
 if(controller.permissions().automaticSync){
- let owner;try{owner=storage?.getItem('ascent.native-firebase.identity-check.v1');}catch(_){}
- sync=createNativeAutoSync({storage,owner,controller,courseVersion,onReport:stats=>publish(controller.report(),stats)});
+ let owner=null;try{owner=storage?.getItem('ascent.native-firebase.identity-check.v1')||null;}catch(_){}
+ sync=createNativeAutoSync({storage,owner,controller,courseVersion,startPaused:true,onReport:stats=>publish(controller.report(),stats)});
  Object.defineProperty(globalThis,'ASCENT_NATIVE_SYNC',{value:sync,writable:false,configurable:false});
- for(const event of ['online','focus','ascent-native-resume'])window.addEventListener(event,()=>{void sync.flush();});
 }
-if(controller.permissions().network)void(async()=>{
+let connectionFlight=null;
+function connectNative(){
+ if(!controller.permissions().network || connectionFlight)return connectionFlight;
+ connectionFlight=(async()=>{
  try {
   if(accountDeletion.marker)throw {code:'native-firebase/deletion-pending'};
-  const user=await controller.authenticate({createAnonymous:mode==='read-only'});
+  sync?.ownerUid(); // Fail before authentication if an existing ledger is invalid.
+  const user=await controller.authenticate({createAnonymous:true});
+  if(accountDeletion.marker)throw {code:'native-firebase/deletion-pending'};
+  if(sync && !sync.activate(user.uid))throw {code:sync.report().syncError};
   online.uid=user.uid;online.adapter=controller.adapter();online.ready=true;
   setOnlineStatus(mode==='auto-sync'?'オンライン同期 / Online sync':'オンライン（読み取り専用） / Read-only online');
   renderTransferAvailability();renderMapPlayers();
@@ -61,7 +70,13 @@ if(controller.permissions().network)void(async()=>{
   const firstBoard=typeof scoreBoardKey==='function'?scoreBoardKey(1,'existing'):courseVersion+'_existing_1';
   await controller.scores(user.uid,firstBoard);
  }catch(error){online.ready=false;setOnlineStatus('オンライン接続なし / Offline');console.warn('Native Firebase:',controller.report().lastError || 'native-firebase/read-unavailable');}
-})();`;
+ })().finally(()=>{connectionFlight=null;});
+ return connectionFlight;
+}
+if(controller.permissions().network){
+ for(const event of ['online','focus','ascent-native-resume'])window.addEventListener(event,()=>{void connectNative();});
+ void connectNative();
+}`;
     esbuild.buildSync({stdin:{contents:entry,resolveDir:root},bundle:true,format:'iife',platform:'browser',target:'ios15',
         external:['../vendor/firebase-sdk.js'],outfile:path.join(out,'js/native-firebase-control.js'),logLevel:'silent'});
     fs.writeFileSync(path.join(out,'native-firebase-mode.json'),JSON.stringify({mode,sdkVersion:'12.11.0'}));

@@ -6,7 +6,7 @@ set -eu
 input_file="${SRCROOT}/App/public/js/game.js"
 output_file="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/public/js/game.js"
 manifest_file="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ascent-build-configuration.txt"
-firebase_mode="${ASCENT_FIREBASE_MODE:-offline}"
+firebase_mode="${ASCENT_FIREBASE_MODE:-auto-sync}"
 case "$firebase_mode" in offline|read-only|auto-sync) ;; *) echo 'Invalid Firebase mode' >&2; exit 1 ;; esac
 if ! grep -q "\"mode\":\"$firebase_mode\"" "$SRCROOT/App/public/native-firebase-mode.json"; then
     echo 'Firebase assets/build mode mismatch; refusing build' >&2

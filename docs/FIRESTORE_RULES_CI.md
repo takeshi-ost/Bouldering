@@ -61,7 +61,7 @@ Only pushes to this work branch trigger it; main does not need a workflow change
 Actual run status and the tested commit are available in GitHub Actions. The final
 step records the checked Rules SHA-256 and the explicitly excluded verification.
 
-The same job also runs `test:web` (32 focused suites, including mocked online
+The same job also runs `test:web` (37 focused suites, including mocked online
 adapters/queues and save continuation), native authentication/queue/connection
 mocks, and `tests/native-sdk-packaging.cjs`. The SDK test builds the real Firebase
 SDK/control with esbuild into a disposable directory, then executes the offline
@@ -73,7 +73,7 @@ operations, and the complete generated offline game bundle with
 `tests/ios-assets.cjs --bundle-only`. Current source transforms, v4 scoring,
 v3 local Daily records, assisted-score exclusion and connection state are covered.
 This does not compile Xcode, sync/install to a device or change signing settings.
-The native project version/build remains 0.4.6/build14, and existing fresh-auto-sync,
+The native project version/build remains 0.4.6/build14, and fresh-auto-sync registration is mocked, while
 transfer and deletion restrictions remain. See [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md).
 
 The emulator config lives at the repository root so its `firestore.rules` path

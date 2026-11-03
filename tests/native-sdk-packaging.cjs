@@ -17,5 +17,12 @@ try {
   });
   process.stdout.write(run.stdout||'');process.stderr.write(run.stderr||'');
   assert.equal(run.error,undefined);assert.equal(run.status,0);
-  console.log('PASS native SDK packaging: real esbuild/Firebase dependency; offline VM gates; NOT an Xcode build or device verification');
+  for(const mode of ['read-only','auto-sync']) {
+    require('../scripts/build-native-firebase.cjs')(root,out,mode);
+    const connectedSdk=fs.readFileSync(path.join(out,'vendor/firebase-sdk.js'),'utf8');
+    assert.match(connectedSdk,/signInAnonymously:/,mode+' must ship the actual anonymous sign-in SDK function');
+    const connectedController=fs.readFileSync(path.join(out,'js/native-firebase-control.js'),'utf8');
+    assert.match(connectedController,/createAnonymous: true/);
+  }
+  console.log('PASS native SDK packaging: real esbuild/Firebase dependency; offline VM gates; read-only/auto-sync anonymous SDK included; NOT an Xcode build or device verification');
 } finally {fs.rmSync(out,{recursive:true,force:true});}

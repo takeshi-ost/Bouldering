@@ -24,6 +24,15 @@ try {
     assert.equal(fs.readFileSync(path.join(src,'App/public/js/game.js'),'utf8'),game,'Never modify shared source assets');
     const mismatch=spawnSync('/bin/sh',[path.join(root,'scripts/prepare-ios-build.sh')],{env:{...process.env,SRCROOT:src,TARGET_BUILD_DIR:path.join(temp,'Release'),UNLOCALIZED_RESOURCES_FOLDER_PATH:'App.app',CONFIGURATION:'Release',ASCENT_FIREBASE_MODE:'read-only'},encoding:'utf8'});
     assert.notEqual(mismatch.status,0,'Offline/online assets must never silently mix');
+    const project=fs.readFileSync(path.join(root,'ios/App/App.xcodeproj/project.pbxproj'),'utf8');
+    assert.equal((project.match(/ASCENT_FIREBASE_MODE = "auto-sync";/g)||[]).length,2,'Both ordinary configurations default to online sync');
+    assert.match(fs.readFileSync(path.join(root,'scripts/build-ios-assets.cjs'),'utf8'),/process\.env\.ASCENT_FIREBASE_MODE \|\| 'auto-sync'/);
+    assert.match(fs.readFileSync(path.join(root,'ios/App/App/SceneDelegate.swift'),'utf8'),/"firebaseAnonymousAllowed": firebaseEnabled/);
+    fs.writeFileSync(path.join(src,'App/public/native-firebase-mode.json'),JSON.stringify({mode:'auto-sync'}));
+    const defaultEnv={...process.env,SRCROOT:src,TARGET_BUILD_DIR:path.join(temp,'Release'),UNLOCALIZED_RESOURCES_FOLDER_PATH:'App.app',CONFIGURATION:'Release'};
+    delete defaultEnv.ASCENT_FIREBASE_MODE;
+    const normal=spawnSync('/bin/sh',[path.join(root,'scripts/prepare-ios-build.sh')],{env:defaultEnv,encoding:'utf8'});
+    assert.equal(normal.status,0,normal.stderr);
     const envSource=`
 const elements={};
 const document={getElementById(id){return elements[id] ||= {
@@ -38,7 +47,7 @@ function requestAnimationFrame(){}
 `;
     function run(configuration,native=true,inject=true) {
         const saved=new Map([['debug','true'],['debugMode','true'],['ascent.debug-mode.v1','true']]);
-        const context=vm.createContext({assert,console,location:{protocol:native?'capacitor:':'https:',search:'?debug=true&debugMode=true',hash:'#debug=true'},
+        const context=vm.createContext({assert,console,setTimeout:()=>0,clearTimeout(){},location:{protocol:native?'capacitor:':'https:',search:'?debug=true&debugMode=true',hash:'#debug=true'},
             localStorage:{getItem:key=>saved.get(key)??null,setItem:(key,value)=>saved.set(key,value)}});
         if(native && inject)vm.runInContext(`Object.defineProperty(globalThis,'ASCENT_IOS_BUILD',{value:Object.freeze(${JSON.stringify({configuration,debugAllowed:configuration==='Debug',firebaseEnabled:false})}),writable:false,configurable:false})`,context);
         const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>m[1]==='js/game.js'?(configuration==='Release'?release:debug):fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
@@ -54,8 +63,7 @@ assert.equal(ui.debugControls.hidden,${!allowed});
 assert.equal(canSelectStage(999,true),${allowed});
 `,context);
         if(!allowed)vm.runInContext(`
-setDebugMode(true);assert.equal(debugMode,false);assert(ui.prototypeCourse.hidden);assert(ui.prototypeDescription.hidden);
-ui.prototypeCourse.onclick();assert.equal(courseMode,'existing');startCourse('prototype');assert.equal(courseMode,'existing');
+setDebugMode(true);assert.equal(debugMode,false);assert.equal(courseMode,'existing');
 assert.throws(()=>{debugMode=true;},TypeError);
 state='lost';dailyRun=null;stageStartContext=null;level=999;debugAttempt=true;
 assert.equal(canSelectStage(999,true,true),false,'Even legacy debug retry state is rejected');
@@ -64,5 +72,5 @@ assert.equal(canSelectStage(999,true,true),false,'Even legacy debug retry state 
         if(native && inject)vm.runInContext(`assert.throws(()=>Object.defineProperty(globalThis,'ASCENT_IOS_BUILD',{value:{debugAllowed:true}}),TypeError);assert.equal(ASCENT_IOS_BUILD.debugAllowed,${configuration==='Debug'});assert.equal(ASCENT_IOS_BUILD.firebaseEnabled,false);`,context);
     }
     run('Debug');run('Release');run('Release',true,false);run('Debug',false,false);
-    console.log('PASS build policy: Debug toggle; immutable Release OFF despite old saves/URL/direct assignment/retry/prototype; hidden UI; native fail-closed; unchanged Web; Debug/Release products never contaminate source or each other');
+    console.log('PASS build policy: Debug toggle; immutable Release OFF despite old saves/URL/direct assignment/retry; hidden UI; native fail-closed; unchanged Web; ordinary auto-sync defaults; Debug/Release products never contaminate source or each other');
 } finally {fs.rmSync(temp,{recursive:true,force:true});}

@@ -1,7 +1,7 @@
-# Minimal native source integration — 0.4.50
+# Native source integration — 0.4.57
 
-This adapts the existing native JavaScript wrapper to the current game. It does
-not change the Xcode project, signing, team, bundle ID, app metadata, native storage
+This adapts the existing native JavaScript wrapper to the current game. It changes the ordinary native Firebase build mode to auto-sync. It does
+not change signing, team, bundle ID, app metadata, native storage
 namespace, launch artwork or device installation. Native project metadata remains
 0.4.6/build14; this is not a signed native release.
 
@@ -25,20 +25,44 @@ namespace, launch artwork or device installation. Native project metadata remain
   is not proof of connectivity. Epoch tickets prevent a late response or language
   repaint from reviving a connection invalidated by an offline/failure event.
 
+## First use and reconnection
+
+- Ordinary Debug/Release assets and Xcode builds now default to `auto-sync`.
+  Explicit `offline` and `read-only` modes remain available. CI simulator runs
+  continue to override both asset generation and Xcode with `offline`.
+- Both connected modes bundle the anonymous-auth function. Persisted Firebase
+  authentication is restored first. A genuinely new install may create one
+  anonymous user; a saved UID, checkpoint, previous queue owner or identity
+  mismatch cannot silently become a replacement account.
+- The existing native queue accepts fresh clears and profile edits before first
+  authentication, with a null owner. It cannot authenticate or write until startup
+  binds the verified UID. Its original storage key and historical entries remain.
+- Startup retries on online/focus/native-resume, with one flight at a time. It
+  retries SDK/auth restoration and the whole connection sequence, not merely a
+  queue flush. Missing connection never gates local play or saving.
+- A known offline browser skips anonymous creation without consuming the attempt
+  marker. If an actual sign-up request has an uncertain response and no persisted
+  identity is recovered, the durable marker still prevents a second account.
+  This intentionally remains a fail-stop requiring identity/recovery investigation;
+  reconnect is not a promise that every unknown Auth result resolves itself.
+- A deletion marker disables native connection permissions, including if it appears
+  while authentication is restoring. No transfer or deletion operation is added.
+
 ## Restrictions deliberately unchanged
 
-Auto-sync still requires an existing native identity; it does not create a new
-anonymous user. Read-only mode retains its prior one-attempt anonymous-auth policy.
 Native transfer, deletion and legacy Web-queue write APIs remain disabled. These
-are existing trial-native restrictions, not a complete formal product flow;
-changing them requires a separate explicit integration decision. Missing storage,
-UID mismatch or uncertain authentication does not create a replacement UID.
+are existing trial-native restrictions, not a complete formal product flow.
+Missing storage, UID mismatch or uncertain authentication does not create a
+replacement UID. Native storage is independent of the Pages browser namespace;
+this change neither imports Pages saves nor deletes any old native data.
 
 ## Verification
 
-Run native auth, auto-sync and status mocks, native-sdk-packaging.cjs and
+Run native auth, auto-sync and status mocks, build-policy.cjs, native-sdk-packaging.cjs and
 native-entry-formal.cjs; then run `npm run build:ios-assets` with
 `ASCENT_FIREBASE_MODE=offline` and `node tests/ios-assets.cjs --bundle-only`.
+Also generate default auto-sync and explicit read-only bundles and verify their
+resources/CSP with the same bundle-only check, without launching them.
 The entry test executes real esbuild output, substituting only SDK loading with
 in-memory mocks. Bundle-only checks full generated game resources, CSP and source
 transforms without writing to the Xcode project's copied assets. Web integration

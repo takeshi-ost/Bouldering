@@ -145,7 +145,7 @@ class AscentBridgeViewController: CAPBridgeViewController {
             "syncStatusAllowed": syncStatusAllowed,
             "buildNumber": Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "",
             "firebaseMode": firebaseMode, "firebaseEnabled": firebaseEnabled,
-            "firebaseAuthAllowed": firebaseEnabled, "firebaseAnonymousAllowed": readOnlyFirebase, "firebaseReadsAllowed": firebaseEnabled,
+            "firebaseAuthAllowed": firebaseEnabled, "firebaseAnonymousAllowed": firebaseEnabled, "firebaseReadsAllowed": firebaseEnabled,
             "firebaseAutomaticSyncAllowed": automaticSync,
             "audioDiagnosticsEnabled": audioDiagnosticsEnabled]
         if let data = try? JSONSerialization.data(withJSONObject: policy, options: [.sortedKeys]),

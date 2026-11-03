@@ -13,7 +13,7 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
         const p=policy();
         const network=['read-only','auto-sync'].includes(mode) && p?.firebaseMode===mode && p?.firebaseEnabled===true;
         return Object.freeze({network,auth:network && p.firebaseAuthAllowed===true,
-            create:network && mode==='read-only' && p.firebaseAnonymousAllowed===true,read:network && p.firebaseReadsAllowed===true,
+            create:network && p.firebaseAnonymousAllowed===true,read:network && p.firebaseReadsAllowed===true,
             automaticSync:network && mode==='auto-sync' && p.firebaseAutomaticSyncAllowed===true,
             profileWrites:false,scoreWrites:false,pendingScores:false,transfer:false,deletion:false,legacySync:false});
     }
@@ -35,7 +35,7 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
     async function sdk() {
         requirePermission('auth');
         if(config?.projectId!==PROJECT)throw error('native-firebase/config-mismatch');
-        sdkPromise ||= Promise.resolve().then(loadSDK);
+        sdkPromise ||= Promise.resolve().then(loadSDK).catch(e=>{sdkPromise=null;throw e;});
         return sdkPromise;
     }
     function authenticate({createAnonymous=false}={}) {
@@ -49,7 +49,9 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
             auth ||= s.auth.initializeAuth(app,{persistence:s.auth.browserLocalPersistence});
             await s.auth.setPersistence(auth,s.auth.browserLocalPersistence);
             await auth.authStateReady();requirePermission('auth');
-            const known=knownUid() || storage.getItem(IDENTITY_KEY);let user=auth.currentUser;
+            const hinted=knownUid(),saved=storage.getItem(IDENTITY_KEY);
+            if(hinted && saved && hinted!==saved)throw error('native-firebase/identity-mismatch');
+            const known=hinted || saved;let user=auth.currentUser;
             if(user) {
                 if(known && known!==user.uid)throw error('native-firebase/identity-mismatch');
                 report.restored=true;
@@ -57,6 +59,9 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
                 if(known)throw error('native-firebase/identity-restore-required');
                 if(!createAnonymous)throw error('native-firebase/auth-required');
                 requirePermission('create');
+                // A known offline launch has not issued an account request. Leave
+                // the durable attempt marker untouched so reconnect can try once.
+                if(globalThis.navigator?.onLine===false)throw error('auth/network-request-failed');
                 if(storage.getItem(ATTEMPT_KEY)!==null)throw error('native-firebase/creation-already-attempted');
                 // Durable marker before the request: even an uncertain network
                 // result cannot cause repeated anonymous creation after relaunch.
@@ -72,7 +77,7 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
             storage.setItem(IDENTITY_KEY,user.uid);
             report.authenticated=true;report.phase='authenticated';report.lastError='';publish();
             return Object.freeze({uid:user.uid});
-        })().catch(e=>{const safe=fail(e);if(mode==='auto-sync' && safe.code==='auth/network-request-failed')authPromise=null;throw safe;});
+        })().catch(e=>{const safe=fail(e);authPromise=null;throw safe;});
         return authPromise;
     }
     async function database() {

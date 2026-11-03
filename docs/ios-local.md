@@ -1,3 +1,5 @@
+> 現行 0.4.57 は通常 iOS ビルドを auto-sync 既定へ変更しました。新規匿名認証と再接続については [現在の接続仕様](ios-firebase-read-only.md) と [統合状況](NATIVE_INTEGRATION.md) を参照してください。以下は旧ローカル検証段階の記録であり、現在の通信既定や版番号を示しません。
+
 # ASCENT のローカル iOS 版
 
 Firebase の現在の準備・承認済み読取専用テストは [ios-firebase-read-only.md](ios-firebase-read-only.md) を参照。

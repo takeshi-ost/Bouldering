@@ -1,12 +1,12 @@
 'use strict';
-// Build a separate, offline-only bundle. Never modify the published Web sources.
+// Build separate native assets. Offline CI remains an explicit opt-in mode.
 const fs = require('node:fs');
 const path = require('node:path');
 const nativeSource = require('./native-bundle-source.cjs');
 const buildNativeFirebase = require('./build-native-firebase.cjs');
 const root = path.resolve(__dirname, '..');
 const out = path.join(root, 'www');
-const firebaseMode=process.env.ASCENT_FIREBASE_MODE || 'offline';
+const firebaseMode=process.env.ASCENT_FIREBASE_MODE || 'auto-sync';
 if(!['offline','read-only','auto-sync'].includes(firebaseMode))throw Error('Unsupported native Firebase mode');
 fs.rmSync(out, {recursive: true, force: true});
 fs.mkdirSync(path.join(out, 'js'), {recursive: true});

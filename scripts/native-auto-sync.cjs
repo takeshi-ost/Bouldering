@@ -1,8 +1,8 @@
 'use strict';
 const {scoreMetadata,supportedCourseVersion,supportedScoreBoard,scoreMatchesBoard,ONLINE_PROGRESS_VERSION}=require('../js/score-metadata.js');
 const SYNC_KEY='ascent.native-sync.after-enable.v1';
-function createNativeAutoSync({storage,owner,controller,onReport=()=>{},clock=Date.now,courseVersion='v1'}) {
-    let state,flight=null,halted=false;
+function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clock=Date.now,courseVersion='v1',startPaused=false}) {
+    let state,flight=null,halted=false,active=!startPaused && !!owner;
     const stats={boundaryPersisted:false,freshPending:0,freshDelivered:0,profilePending:false,profileNamePreserved:true,syncError:''};
     // Retain old queued profiles without sending/relabeling their legacy progress.
     const currentProfile=()=>!!state?.profile?.value && state.profile.value.progressVersion===ONLINE_PROGRESS_VERSION;
@@ -12,13 +12,23 @@ function createNativeAutoSync({storage,owner,controller,onReport=()=>{},clock=Da
     function commit(next){storage.setItem(SYNC_KEY,JSON.stringify(next));if(storage.getItem(SYNC_KEY)!==JSON.stringify(next))throw Error('native-sync/persistence-failed');state=next;stats.boundaryPersisted=true;notify();}
     try {
         if(!supportedCourseVersion(courseVersion))throw Error('native-sync/invalid-version');
-        if(!owner)throw Error('native-sync/identity-required');
+        if(owner!==null && (typeof owner!=='string' || !owner))throw Error('native-sync/identity-required');
         const old=storage.getItem(SYNC_KEY);
-        if(old!==null){state=JSON.parse(old);if(state.owner!==owner || state.version!==1 || !Number.isSafeInteger(state.sequence) || !Array.isArray(state.events) || typeof state.name!=='string')throw Error('native-sync/invalid-ledger');stats.boundaryPersisted=true;}
+        if(old!==null){state=JSON.parse(old);if((state.owner!==null && (typeof state.owner!=='string' || !state.owner)) || (owner && state.owner && state.owner!==owner) || state.version!==1 || !Number.isSafeInteger(state.sequence) || !Array.isArray(state.events) || typeof state.name!=='string')throw Error('native-sync/invalid-ledger');stats.boundaryPersisted=true;active=active && state.owner===owner;}
         else commit({version:1,owner,activatedAt:clock(),sequence:0,name:'',profile:null,events:[]});
     } catch(e){halted=true;fail(e.message);}
+    // Only the authenticated startup may bind an owner. A first offline session
+    // can retain fresh events in this same ledger without inventing an identity.
+    function activate(uid) {
+        if(halted)return false;
+        try {
+            if(typeof uid!=='string' || !uid || (state.owner && state.owner!==uid))throw Error('native-sync/identity-mismatch');
+            if(!state.owner)commit({...state,owner:uid});
+            active=true;stats.syncError='';notify();return true;
+        }catch(e){halted=true;active=false;fail(e.message);return false;}
+    }
     async function flush() {
-        if(halted || !controller.permissions().automaticSync)return;
+        if(halted || !active || !controller.permissions().automaticSync)return;
         if(flight)return flight;
         flight=(async()=>{
             try {
@@ -59,6 +69,6 @@ function createNativeAutoSync({storage,owner,controller,onReport=()=>{},clock=Da
             void flush();return true;
         }catch(e){halted=true;fail(e.message);return false;}
     }
-    notify();return Object.freeze({queueProfile,profileEdited:(p,changed)=>queueProfile(p,changed),recordClear,flush,pendingForBoard:board=>Array.isArray(state?.events)&&state.events.some(item=>sendable(item) && item.board===board),report:()=>({...stats})});
+    notify();return Object.freeze({activate,ownerUid:()=>{if(halted)throw Error(stats.syncError);return state?.owner||null;},queueProfile,profileEdited:(p,changed)=>queueProfile(p,changed),recordClear,flush,pendingForBoard:board=>Array.isArray(state?.events)&&state.events.some(item=>sendable(item) && item.board===board),report:()=>({...stats})});
 }
 module.exports={createNativeAutoSync,SYNC_KEY};

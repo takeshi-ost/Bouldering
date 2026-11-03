@@ -53,6 +53,28 @@ function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=
  assert.equal(typeof restored.control.runLimitedWriteTest,'undefined');
  const removedMode=fixture({mode:'limited-write-test'});await assert.rejects(removedMode.control.authenticate(),/auth-disabled/);
  const autoPolicy={...readPolicy,firebaseMode:'auto-sync',firebaseAnonymousAllowed:false,firebaseAutomaticSyncAllowed:true};
+ const newPolicy={...autoPolicy,firebaseAnonymousAllowed:true};
+ const newUser=fixture({mode:'auto-sync',policy:newPolicy,allowWrites:true});
+ const [newA,newB]=await Promise.all([newUser.control.authenticate({createAnonymous:true}),newUser.control.authenticate({createAnonymous:true})]);
+ assert.equal(newA.uid,newB.uid);assert.equal(newUser.calls.create,1);
+ await newUser.control.syncAutomaticProfile(newA.uid,input.profile);assert.equal(newUser.calls.write,1);
+ const newRestored=fixture({mode:'auto-sync',policy:newPolicy,data:newUser.data,allowWrites:true});
+ assert.equal((await newRestored.control.authenticate({createAnonymous:true})).uid,newA.uid);assert.equal(newRestored.calls.create,0);
+ const conflicting=fixture({mode:'auto-sync',policy:newPolicy,data:identity(),known:'other-owner'});
+ await assert.rejects(conflicting.control.authenticate({createAnonymous:true}),/identity-mismatch/);assert.equal(conflicting.calls.create,0);
+ const navigatorBefore=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+ try {
+  Object.defineProperty(globalThis,'navigator',{value:{onLine:false},configurable:true});
+  const offlineNew=fixture({mode:'auto-sync',policy:newPolicy});
+  await assert.rejects(offlineNew.control.authenticate({createAnonymous:true}),/network-request-failed/);
+  assert.equal(offlineNew.calls.create,0);assert.equal(offlineNew.data.has(ATTEMPT_KEY),false);
+  globalThis.navigator.onLine=true;
+  await offlineNew.control.authenticate({createAnonymous:true});assert.equal(offlineNew.calls.create,1);
+ } finally {if(navigatorBefore)Object.defineProperty(globalThis,'navigator',navigatorBefore);else delete globalThis.navigator;}
+ const uncertainAuto=fixture({mode:'auto-sync',policy:newPolicy,lostResponse:true});
+ await assert.rejects(uncertainAuto.control.authenticate({createAnonymous:true}));
+ await assert.rejects(uncertainAuto.control.authenticate({createAnonymous:true}),/creation-already-attempted/);
+ assert.equal(uncertainAuto.calls.create,1);
  const auto=fixture({mode:'auto-sync',policy:autoPolicy,data:identity(),allowWrites:true});
  await auto.control.syncAutomaticProfile('existing-test',input.profile);assert.equal(auto.calls.write,1);
  await auto.control.syncAutomaticProfile('existing-test',input.profile);assert.equal(auto.calls.write,1,'Unchanged profile is not rewritten');

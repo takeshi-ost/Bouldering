@@ -1,17 +1,31 @@
 'use strict';
 const assert=require('node:assert/strict');
 const {createNativeAutoSync,SYNC_KEY}=require('../scripts/native-auto-sync.cjs');
-function fixture(data=new Map(),remote=new Map(),courseVersion='v1') {
+function fixture(data=new Map(),remote=new Map(),courseVersion='v1',options={}) {
  const calls={profiles:[],scores:[],writes:0,auth:0};let online=true,lost=false,blockProfile;
  const storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v)};
  const controller={permissions:()=>({automaticSync:true}),authenticate:async o=>{assert.equal(o.createAnonymous,false);calls.auth++;if(!online)throw {code:'auth/network-request-failed'};},
   syncAutomaticProfile:async(uid,p,{nameChanged=false}={})=>{if(!online)throw {code:'firestore/unavailable'};calls.profiles.push(p);if(blockProfile){const block=blockProfile;blockProfile=null;await block;}const name=!nameChanged && remote.has('profile')?remote.get('profile').name:p.name;remote.set('profile',{...p,name});return {written:true,name};},
   syncFreshScore:async(uid,board,s)=>{if(!online)throw {code:'firestore/unavailable'};calls.scores.push({board,score:s});const old=remote.get(board);if(!old || old.moves>s.moves || (old.moves===s.moves && old.timeMs>s.timeMs)){remote.set(board,s);calls.writes++;}if(lost){lost=false;throw {code:'firestore/unavailable'};}return {written:true};}};
- const queue=createNativeAutoSync({storage,owner:'existing-owner',controller,courseVersion,clock:()=>1000});
+ const queue=createNativeAutoSync({storage,owner:'existing-owner',controller,courseVersion,clock:()=>1000,...options});
  return {queue,data,remote,calls,online:v=>online=v,lose:()=>lost=true,block:p=>blockProfile=p};
 }
 const profile={name:'local-private-name',colors:['#123456'],headColor:'#abcdef',progressVersion:'v4',reachedLevel:2,reachedPrototypeLevel:1};
 (async()=>{
+ const unbound=fixture(new Map(),new Map(),'v4',{owner:null,startPaused:true});
+ const freshScore={moves:9,timeMs:500,version:'v4',scoreSpecVersion:'v4'};
+ assert(unbound.queue.recordClear(1,'existing',freshScore));
+ unbound.queue.profileEdited({...profile,name:'Before first connection'},true);await unbound.queue.flush();
+ assert.equal(unbound.calls.auth,0);assert.equal(JSON.parse(unbound.data.get(SYNC_KEY)).owner,null);
+ const unboundRestart=fixture(unbound.data,new Map(),'v4',{owner:null,startPaused:true});
+ assert(unboundRestart.queue.activate('first-owner'));await unboundRestart.queue.flush();
+ assert.equal(unboundRestart.calls.scores.length,1);assert.equal(unboundRestart.remote.get('profile').name,'Before first connection');
+ assert.equal(JSON.parse(unbound.data.get(SYNC_KEY)).owner,'first-owner');
+ const boundBefore=unbound.data.get(SYNC_KEY);
+ assert.equal(unboundRestart.queue.activate('other-owner'),false);assert.equal(unbound.data.get(SYNC_KEY),boundBefore);
+ assert.throws(()=>unboundRestart.queue.ownerUid(),/identity-mismatch/);
+ const damaged=fixture(new Map([[SYNC_KEY,'broken']]),new Map(),'v4',{owner:null,startPaused:true});
+ assert.throws(()=>damaged.queue.ownerUid());assert.equal(damaged.queue.activate('first-owner'),false);assert.equal(damaged.calls.auth,0);
  const oldQueue=JSON.stringify({uid:null,items:[['v1_existing_1',{moves:4,timeMs:500}]]});
  const data=new Map([['ascent.pending-scores.v1',oldQueue],['ascent.records.v1','old best: 4 moves']]);
  const h=fixture(data);assert(h.queue.report().boundaryPersisted);assert.equal(h.queue.report().freshPending,0);assert.equal(h.calls.scores.length,0);
