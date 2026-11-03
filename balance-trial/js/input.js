@@ -47,14 +47,6 @@ function beginTouchPan(touches) {
     // Never turn the remaining finger into a character drag on release.
     ignoreTouches = true;
 }
-canvas.addEventListener('keydown', e => {
-    if (!canScrollStage()) return;
-    const max=HEIGHT-H;
-    const positions={ArrowUp:camera-40,ArrowDown:camera+40,PageUp:camera-H,PageDown:camera+H,Home:cameraTop(),End:max};
-    if (!(e.key in positions)) return;
-    e.preventDefault();endPointer(null,true);inspecting=true;
-    camera=clamp(positions[e.key],cameraTop(),max);
-});
 canvas.addEventListener('wheel', e => {
     if (!canScrollStage() || pan) return;
     e.preventDefault();endPointer(null,true);inspecting=true;
@@ -200,7 +192,6 @@ function showTitleScreen() {
     ui.hud.hidden=true;
     courseMode='existing';
     syncDebugCourseControls();
-    canvas.setAttribute('tabindex', '-1');
     document.getElementById('titleTutorialError').hidden=true;
     beginTitlePreparation();
 }
@@ -225,7 +216,6 @@ ui.showHelp.onclick = () => {
 ui.closeHelp.onclick = () => ui.helpDialog.close();
 ui.helpDialog.addEventListener('cancel',e=>{e.preventDefault();ui.closeHelp.onclick();});
 ui.helpDialog.onclick = e => {if(e.target===ui.helpDialog && ui.helpDialog.open)ui.helpDialog.close();};
-ui.helpDialog.addEventListener('close', () => ui.showHelp.focus());
 
 // Full-screen dialogs use a card; compact dialogs use their own bounds.
 function dismissOutside(dialog,close,card=false) {
@@ -244,12 +234,6 @@ ui.overlay.addEventListener('click',e=>{
     if(ui.overlay.hidden)return;
     if(state==='won')ui.next.onclick();
     else if(e.target===ui.overlay)ui.closeResult.onclick();
-});
-ui.overlay.addEventListener('keydown',e=>{
-    if(state==='won' && (e.key==='Enter' || e.key===' ')) {
-        e.preventDefault();
-        if(!e.repeat && !ui.overlay.hidden)ui.next.onclick();
-    }
 });
 ui.closeStageStart.onclick=closeStageStart;
 ui.stageStartDialog.addEventListener('cancel',e=>{e.preventDefault();closeStageStart();});
@@ -309,7 +293,7 @@ ui.settingsButton.onclick=openSettings;
 ui.mapSettingsButton.onclick=openSettings;
 ui.dailySettingsButton.onclick=openSettings;
 ui.mapEditCharacter.onclick=()=>{if(['map','daily'].includes(state) && settingsOpen)showCharacterEditor();};
-ui.closeSettings.onclick=()=>{hideSettings();if(state==='map')ui.mapSettingsButton.focus({preventScroll:true});else if(state==='daily')ui.dailySettingsButton.focus({preventScroll:true});else canvas.focus();};
+ui.closeSettings.onclick=hideSettings;
 ui.settingsDialog.addEventListener('cancel',e=>{e.preventDefault();ui.closeSettings.onclick();});
 ui.settingsDialog.addEventListener('close',()=>{settingsOpen=false;});
 dismissOutside(ui.settingsDialog,()=>ui.closeSettings.onclick());
@@ -317,7 +301,3 @@ dismissOutside(ui.settingsDialog,()=>ui.closeSettings.onclick());
 // The dialog fills the viewport so tapping the card or its surrounding area continues.
 ui.featureHelpDialog.onclick=dismissStageHelp;
 ui.featureHelpDialog.addEventListener('cancel',e=>{e.preventDefault();dismissStageHelp();});
-
-ui.featureHelpDialog.addEventListener('keydown',e=>{
-    if(e.key==='Enter' || e.key===' ') {e.preventDefault();if(!e.repeat)dismissStageHelp();}
-});

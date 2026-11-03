@@ -43,7 +43,7 @@ function startDummyAd({onComplete=()=>{},onReturn=null}={}) {
     state='ad';ui.dummyAd.hidden=false;
     stopBackgroundMusicForAd();
     ui.adCounter.textContent='10';ui.adComplete.hidden=true;
-    ui.dummyAd.showModal?.();ui.dummyAd.focus();
+    ui.dummyAd.showModal?.();
     requestGameRender();schedulePresentationUpdates();
     return true;
 }
@@ -53,7 +53,7 @@ function advanceDummyAd(now=performance.now()) {
     dummyAd.remaining=remaining;
     if(ui.adCounter.textContent!==String(remaining))ui.adCounter.textContent=String(remaining);
     if(remaining===0 && ui.adComplete.hidden) {
-        ui.adComplete.hidden=false;ui.adComplete.focus();
+        ui.adComplete.hidden=false;
     }
 }
 function completeDummyAd() {
@@ -66,7 +66,6 @@ function completeDummyAd() {
     finally {
         if(ad.onReturn)ad.onReturn();
         else if(ad.wasResultOpen){showResultModal();}
-        else canvas.focus();
         if(state!=='map' || !mapPreparing)finishDummyAdCover();
     }
     requestGameRender();schedulePresentationUpdates();

@@ -91,7 +91,7 @@ function requestLifeStart(launch,{enabled=true,onCancel=null}={}) {
     const previousState=state,wasResultOpen=!!ui.overlay.open;
     hideSettings();hideResultModal();
     lifePrompt={launch,onCancel,previousState,wasResultOpen};state='life-prompt';
-    ui.lifeDialog.hidden=false;ui.lifeDialog.showModal?.();refreshLives();ui.lifeWatchAd.focus();
+    ui.lifeDialog.hidden=false;ui.lifeDialog.showModal?.();refreshLives();
     return false;
 }
 function closeLifePrompt() {
@@ -103,7 +103,6 @@ function cancelLifePrompt() {
     const prompt=closeLifePrompt();if(!prompt)return;
     if(prompt.onCancel)prompt.onCancel();
     else if(prompt.wasResultOpen){showResultModal();}
-    else focusMapLevel();
     refreshLives();
 }
 function restartNormalStage() {

@@ -121,7 +121,7 @@ function startRewardSequence({onGrant=()=>{},onReturn=null}={}) {
     ui.rewardWheel.style.transform=`rotate(${rewardSequence.angle}deg)`;
     ui.rewardStatus.textContent='';ui.rewardResult.hidden=true;
     ui.rewardStop.hidden=false;ui.rewardStop.textContent=gameText("action.tap");
-    ui.rewardDialog.hidden=false;ui.rewardDialog.showModal?.();ui.rewardDialog.focus();
+    ui.rewardDialog.hidden=false;ui.rewardDialog.showModal?.();
     requestGameRender();schedulePresentationUpdates();requestRewardFrame();
     return true;
 }
@@ -173,7 +173,7 @@ function advanceRewardSequence(now=performance.now()) {
         ui.rewardStop.hidden=true;ui.rewardResult.hidden=false;
         ui.rewardResult.innerHTML=rewardResultMarkup(sequence.reward);
         ui.rewardStatus.textContent='';
-        ui.rewardResult.focus();return;
+        return;
     }
     requestRewardFrame();
 }
@@ -184,7 +184,7 @@ function finishRewardSequence() {
     if(sequence.wasTiming)runStartedAt=performance.now()-runElapsedMs;
     try {
         if(sequence.onReturn)sequence.onReturn(sequence.reward);
-        else if(sequence.wasResultOpen)showResultModal();else canvas.focus();
+        else if(sequence.wasResultOpen)showResultModal();
     } finally {
         // Cover the old goal frame until async map images and layout are ready.
         if(state!=='map' || !mapPreparing)finishRewardCover();
@@ -197,9 +197,6 @@ function tapRewardSequence() {
 }
 ui.rewardDialog.addEventListener('click',tapRewardSequence);
 ui.rewardDialog.addEventListener('cancel',e=>e.preventDefault());
-ui.rewardDialog.addEventListener('keydown',e=>{
-    if(e.key==='Enter' || e.key===' '){e.preventDefault();if(!e.repeat)tapRewardSequence();}
-});
 document.addEventListener?.('visibilitychange',()=>{
     ui.rewardDialog.classList.toggle('reward-inactive',!!document.hidden);
     const sequence=rewardSequence;if(!sequence)return;

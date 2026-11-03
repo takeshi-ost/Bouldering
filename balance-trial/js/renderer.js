@@ -679,7 +679,7 @@ function continueGameAnimation(now) {
 function startPresentation() {
     presentationEnabled=true;
     const wake=()=>{requestGameRender();schedulePresentationUpdates();};
-    for(const event of ['mousedown','mouseup','touchstart','touchend','touchcancel','click','keydown','wheel','input','change','close'])
+    for(const event of ['mousedown','mouseup','touchstart','touchend','touchcancel','click','wheel','input','change','close'])
         document.addEventListener?.(event,wake,{capture:true,passive:true});
     for(const event of ['mousemove','touchmove'])document.addEventListener?.(event,()=>{
         if(drag || bodyTap || pan)requestGameRender();

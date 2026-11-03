@@ -226,7 +226,6 @@ for(const [id,setter] of [['soundVolume',setSoundVolume],['musicVolume',setMusic
 syncAudioControls();
 for(const event of ['pointerdown','pointerup','touchstart','touchend','mousedown','mouseup'])
     document.addEventListener?.(event,unlockSound,{capture:true,passive:true});
-document.addEventListener?.('keydown',unlockSound,{capture:true});
 document.addEventListener?.('click',e=>{
     unlockSound();
     const button=e.target.closest?.('button');

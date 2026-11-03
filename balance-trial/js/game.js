@@ -32,8 +32,8 @@ const FEATURE_HELP_KEY='ascent.feature-help.v1';
 function readFeatureHelpSeen() {
     try {
         const saved=JSON.parse(ASCENT_FORMAL_STORAGE?.getItem(FEATURE_HELP_KEY)||'null');
-        return {heart:saved?.heart===true,hazard:saved?.hazard===true};
-    } catch(_) {return {heart:false,hazard:false};}
+        return {wide:saved?.wide===true,heart:saved?.heart===true,hazard:saved?.hazard===true};
+    } catch(_) {return {wide:false,heart:false,hazard:false};}
 }
 let featureHelpSeen=readFeatureHelpSeen();
 let featureHelpOpen=false;
@@ -45,28 +45,40 @@ function hideStageHelp() {
     featureHelpOpen=false;pendingFeatureHelp=[];
     if(ui.featureHelpDialog.open)ui.featureHelpDialog.close?.();
 }
+function stageHasLargeHold() {
+    // Inspect the final playable geometry, not a recipe or a hold-array slot.
+    // The yellow goal is a separate kind; only ordinary wide holds teach this.
+    const starts=new Set(initialGrips),startIds=new Set(initialGrips.map(h=>h?.id).filter(id=>id!=null));
+    return holds.some(h=>h.type==='normal' && h.wide===true && !starts.has(h) && !startIds.has(h.id));
+}
 function showStageHelp() {
-    if(state!=='playing' || featureHelpOpen)return;
+    if(state!=='playing' || featureHelpOpen || (typeof isTutorialRun==='function' && isTutorialRun()))return;
+    if(featureHelpSeen.wide && featureHelpSeen.heart && featureHelpSeen.hazard)return;
     const features=[];
-    if(hearts.length && !featureHelpSeen.heart)features.push('heart');
-    if(holds.some(h=>h.type==='hazard') && !featureHelpSeen.hazard)features.push('hazard');
+    if(!featureHelpSeen.wide && stageHasLargeHold())features.push('wide');
+    if(!featureHelpSeen.heart && hearts.length)features.push('heart');
+    if(!featureHelpSeen.hazard && holds.some(h=>h.type==='hazard'))features.push('hazard');
     if(!features.length)return;
     pendingFeatureHelp=features;featureHelpOpen=true;
     renderStageHelp();
 }
 function renderStageHelp() {
-    const heart=pendingFeatureHelp[0]==='heart';
-    const icon=heart ? `<img class="course-heart-icon" src="${COURSE_HEART_IMAGE_SRC}" width="96" height="96" alt="">` : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
-    ui.featureHelpContent.innerHTML=`<h1 id="featureHelpTitle">${heart?gameText("item.heart"):gameText("hold.hazard")}</h1><div class="feature-help-icon" aria-hidden="true">${icon}</div><p>${heart?gameText("feature.heart"):gameText("feature.hazard")}</p><div class="modal-tap">${gameText("action.tap")}</div>`;
+    const feature=pendingFeatureHelp[0],heart=feature==='heart',wide=feature==='wide';
+    const source=wide?'assets/hold-wide-flat.webp':heart?COURSE_HEART_IMAGE_SRC:'assets/hold-hazard-source.webp';
+    const title=wide?gameText("tutorial.title.wide"):heart?gameText("item.heart"):gameText("hold.hazard");
+    const text=wide?gameText("tutorial.wide"):heart?gameText("feature.heart"):gameText("feature.hazard");
+    const icon=wide?'<img class="feature-wide-image" width="78" height="78" alt="">':heart ? `<img class="course-heart-icon" src="${COURSE_HEART_IMAGE_SRC}" width="96" height="96" alt="">` : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
+    ui.featureHelpContent.innerHTML=`<h1 id="featureHelpTitle"${wide?' lang="ja"':''}>${title}</h1><div class="feature-help-icon" aria-hidden="true">${icon}</div><p${wide?' lang="ja"':''}>${text}</p><div class="modal-tap">${gameText("action.tap")}</div>`;
     const ticket=++featureHelpImageTicket;
     featureHelpImageLoading=true;ui.featureHelpDialog.classList.add?.('explanation-image-loading');
-    requestExplanationImage(heart?COURSE_HEART_IMAGE_SRC:'assets/hold-hazard-source.webp',image=>{
+    requestExplanationImage(source,image=>{
         if(ticket!==featureHelpImageTicket || !featureHelpOpen || state!=='playing')return;
-        if(heart)mountExplanationImage(ui.featureHelpContent.querySelector?.('.course-heart-icon'),image,{className:'course-heart-icon',width:96,height:96});
+        if(wide)mountExplanationImage(ui.featureHelpContent.querySelector?.('.feature-wide-image'),image,{className:'feature-wide-image',width:78,height:78});
+        else if(heart)mountExplanationImage(ui.featureHelpContent.querySelector?.('.course-heart-icon'),image,{className:'course-heart-icon',width:96,height:96});
         else if(image)paintHazardHelpIcon(ui.featureHelpContent.querySelector?.('.feature-hold-image'),image);
         featureHelpImageLoading=false;ui.featureHelpDialog.classList.remove?.('explanation-image-loading');
         if(!ui.featureHelpDialog.open)ui.featureHelpDialog.showModal?.();
-        ui.featureHelpContent.focus?.();requestGameRender();
+        requestGameRender();
     });
 }
 function dismissStageHelp() {
@@ -83,7 +95,6 @@ function dismissStageHelp() {
     requestGameRender();
     // Start the full opening sequence on the next frame, excluding reading time.
     if(cameraIntro)cameraIntro.start=null;
-    canvas.focus();
 }
 // Initialize before lives/profile startup callbacks (also safe in concatenated builds).
 let tutorialRun=null;
@@ -156,7 +167,6 @@ function showResultModal() {
     requestGameRender();
     ui.overlay.hidden=false;
     if(!ui.overlay.open)ui.overlay.showModal?.();
-    (state==='won'?ui.overlay:ui.retry).focus();
 }
 
 

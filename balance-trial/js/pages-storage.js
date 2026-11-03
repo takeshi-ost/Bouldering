@@ -1,5 +1,5 @@
 'use strict';
-globalThis.ASCENT_FORMAL_PAGES=Object.freeze({"release":"0.4.55","commit":"47127a15102cf478ef73184670d0360eba571c62","storagePrefix":"ascent.pages-trial.0.4.12.d6."});
+globalThis.ASCENT_FORMAL_PAGES=Object.freeze({"release":"0.4.56","commit":"2892f6050d264ffd2a9090e09ba6f3af849cf473","storagePrefix":"ascent.pages-trial.0.4.12.d6."});
 'use strict';
 // Continue the existing Pages save in place. This is a key adapter, not a migration.
 (() => {

@@ -61,6 +61,7 @@ function validateTransferFile(value) {
         (d.lives.attemptAt!==undefined && (!Number.isFinite(d.lives.attemptAt) || d.lives.attemptAt<0)) ||
         !transferObject(d.mapRewards) || !transferObject(d.featureHelpSeen) ||
         typeof d.featureHelpSeen.heart!=='boolean' || typeof d.featureHelpSeen.hazard!=='boolean' ||
+        (d.featureHelpSeen.wide!==undefined && typeof d.featureHelpSeen.wide!=='boolean') ||
         typeof d.soundEnabled!=='boolean' || !transferInteger(d.playsSinceAd))fail();
     if(d.audioSettings!==undefined && (!transferObject(d.audioSettings) ||
         typeof d.audioSettings.musicEnabled!=='boolean' || !validAudioVolume(d.audioSettings.musicVolume) || !validAudioVolume(d.audioSettings.soundVolume)))fail();
@@ -169,7 +170,7 @@ function closeTransferDialog() {
     transferState.url=null;transferState.file=null;transferState.readTicket++;
     transferElement('transferDownload').hidden=true;transferElement('transferPreview').hidden=true;
     transferElement('transferImport').hidden=true;transferElement('transferFile').value='';
-    ui.titleTransfer.focus();requestGameRender();
+    requestGameRender();
 }
 ui.titleTransfer.onclick=e=>{
     e?.stopPropagation?.();

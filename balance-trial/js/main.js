@@ -51,7 +51,6 @@ async function beginTitlePreparation() {
     titleReady=true;ui.titleTap.hidden=false;
     ui.titleScreen.setAttribute('aria-disabled','false');
     window.dispatchEvent?.(new Event('ascent-title-ready'));
-    ui.titleScreen.focus({preventScroll:true});
 }
 function enterPreparedMap() {
     if(state!=='choosing' || !titleReady || transferBusy() || transferElement('transferDialog').open)return;
@@ -62,9 +61,8 @@ function enterPreparedMap() {
     ui.levelMap.inert=false;ui.levelMap.removeAttribute?.('aria-hidden');
     ui.wall.classList.toggle('title-open',false);
     ui.wall.classList.toggle('map-open',true);
-    refreshDailyEntry();refreshLives();focusMapLevel();renderMapPlayers();
+    refreshDailyEntry();refreshLives();renderMapPlayers();
 }
 ui.titleScreen.onclick=enterPreparedMap;
-ui.titleScreen.onkeydown=e=>{if(e.target?.closest?.('button,input,a'))return;if(e.key==='Enter' || e.key===' '){e.preventDefault();enterPreparedMap();}};
 showTitleScreen();
 startPresentation();

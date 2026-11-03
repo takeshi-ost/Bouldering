@@ -95,7 +95,7 @@ function prepareMapReveal(onReady=null) {
         ui.levelMap.removeAttribute?.('aria-hidden');
         finishDummyAdCover();finishRewardCover();
         requestGameRender();
-        if(!mapTransition){focusMapLevel();if(onReady)onReady();else resumePendingMapReward();}
+        if(!mapTransition){if(onReady)onReady();else resumePendingMapReward();}
     };
     const images=Array.from(ui.mapNodes.querySelectorAll?.('img')||[]);
     if(!images.length){reveal();return;}
@@ -214,39 +214,16 @@ window.addEventListener('pointermove',event=>{
 });
 window.addEventListener('blur',hideMapPlayerName);
 ui.mapScroll.addEventListener('scroll',hideMapPlayerName,{passive:true});
-ui.mapPlayers.addEventListener('keydown',event=>{
-    const element=event.target.closest?.('.map-opponent');
-    if(!element || !['Enter',' '].includes(event.key))return;
-    event.preventDefault();if(!event.repeat)showMapPlayerName(element,event);
-});
-ui.mapPlayers.addEventListener('keyup',event=>{
-    if(['Enter',' '].includes(event.key))releaseMapPlayerName();
-});
-ui.mapPlayers.addEventListener('focusout',event=>{
-    // pointerdown selects the new icon before the browser transfers focus.
-    const active=mapPlayerNameHold?.element,target=event.relatedTarget;
-    if(!active || (target!==active && !active.contains?.(target))) {
-        hideMapPlayerName(false);
-        // Let Tab finish transferring focus before a queued refresh replaces nodes.
-        if(mapPlayersRefreshPending)setTimeout(()=>{
-            if(mapPlayersRefreshPending)renderMapPlayers();
-        },0);
-    }
-});
 ui.mapPlayers.addEventListener('contextmenu',event=>event.preventDefault());
 function renderMapPlayers() {
-    // Online results and reconnects can arrive during a tap. Keep the live DOM
-    // (including keyboard focus) until the name expires or the gesture ends.
+    // Online results and reconnects can arrive during a tap. Keep the pressed
+    // element attached until the name expires or the gesture ends.
     if(mapPlayerNameHold){mapPlayersRefreshPending=true;return;}
     mapPlayersRefreshPending=false;
-    const focused=document.activeElement;
-    const focusedPlayer=ui.mapPlayers.contains?.(focused)?focused?.closest?.('.map-opponent')?.dataset?.player:null;
     const {first,last}=mapBounds(),width=ui.mapTrack.clientWidth||400;
     const players=layoutMapPlayers(currentMapPlayers(first,last,courseMode));
     ui.mapPlayers.innerHTML=players.map(player=>
-        `<span class="map-marker map-opponent" role="button" tabindex="0" aria-label="${gameText("level-map.renderMapPlayers", {value0: scoreText(player.name)})}" data-player="${scoreText(player.id)}" data-reached-level="${player.reachedLevel}" data-name-side="${player.x>width/2?'left':'right'}" style="left:${player.x}px;top:${player.y}px;z-index:${player.depth}">${scoreAvatar(player)}<span class="map-player-name" aria-hidden="true">${scoreText(player.name)}</span></span>`).join('');
-    if(focusedPlayer)[...ui.mapPlayers.querySelectorAll('.map-opponent')]
-        .find(element=>element.dataset.player===focusedPlayer)?.focus({preventScroll:true});
+        `<span class="map-marker map-opponent" role="button" aria-label="${gameText("level-map.renderMapPlayers", {value0: scoreText(player.name)})}" data-player="${scoreText(player.id)}" data-reached-level="${player.reachedLevel}" data-name-side="${player.x>width/2?'left':'right'}" style="left:${player.x}px;top:${player.y}px;z-index:${player.depth}">${scoreAvatar(player)}<span class="map-player-name" aria-hidden="true">${scoreText(player.name)}</span></span>`).join('');
 }
 function renderLevelMap() {
     // Page/layout changes intentionally dismiss names before rebuilding the map.
@@ -290,10 +267,6 @@ function renderLevelMap() {
     ui.debugControls.hidden = !debugMode;
     renderDebugCourseChoices();
 }
-function focusMapLevel() {
-    const button=ui.mapNodes.querySelector?.(`[data-level="${mapSelected}"]`);
-    button?.focus({preventScroll:true});
-}
 function showLevelMap({target=null,advanceFrom=null,onReady=null}={}) {
     if(typeof interruptTutorialRun==='function')interruptTutorialRun();
     endDebugCourseTrial();
@@ -320,7 +293,6 @@ function showLevelMap({target=null,advanceFrom=null,onReady=null}={}) {
     ui.levelMap.hidden=false;
     ui.mapError.hidden=true;
     ui.restart.disabled=true;
-    canvas.setAttribute('tabindex','-1');
     renderLevelMap();
     const viewportHeight=ui.mapScroll.clientHeight||H;
     ui.mapScroll.scrollTop=Math.max(0,viewportHeight*.2+mapPoint(destination).y-viewportHeight/2);
@@ -337,7 +309,7 @@ function advanceLevelMap(now) {
     } else positionMapMarker({x:from.x+(to.x-from.x)*s,y:from.y+(to.y-from.y)*s});
     if (t===1) {
         mapSelected=mapTransition.to;mapTransition=null;
-        renderLevelMap();focusMapLevel();
+        renderLevelMap();
         openStageStart(mapSelected,false,null,500);
     }
 }
@@ -377,8 +349,7 @@ function hideStageStart() {
 function closeStageStart() {
     const selected=stageStartContext?.n,retry=stageStartContext?.retry;
     hideStageStart();
-    if(retry){showLevelMap({target:selected});return;}
-    if(state==='map')ui.mapNodes.querySelector?.(`[data-level="${selected}"]`)?.focus({preventScroll:true});
+    if(retry)showLevelMap({target:selected});
 }
 function openStageStart(n,debug=false,button=null,delay=0,retry=false) {
     if(!canSelectStage(n,debug,retry))return false;
@@ -432,8 +403,6 @@ function selectStage(n,debug=false,heartsUsed=0,retry=false) {
             restartInput(n,heartsUsed);
             beginLifeAttempt();
             ui.titleScreen.hidden=true;ui.levelMap.hidden=true;
-            canvas.setAttribute('tabindex','0');
-            if(!featureHelpOpen)canvas.focus();
             heartItems-=heartsUsed;saveHeartItems();
             return true;
         } catch (error) {
