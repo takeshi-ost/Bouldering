@@ -1,6 +1,6 @@
 {
-  "release": "0.4.54",
-  "commit": "669e9ec8d0b14d655e4b3bfbf9e3cf83ce24e51f",
+  "release": "0.4.55",
+  "commit": "47127a15102cf478ef73184670d0360eba571c62",
   "dirty": false,
   "storagePrefix": "ascent.pages-trial.0.4.12.d6.",
   "normalVersion": "v4",
@@ -11,11 +11,11 @@
   "sourceFiles": [
     {
       "path": "index.html",
-      "sha256": "6c4d0025f7ad7c314c770d9ca060f63e0938f77a00e5ca09bb1c131a16d386e5"
+      "sha256": "fddddaee20bed8576e6d5e9b7eef9d4a16d33667bd485dcc3f6f9de57d172a62"
     },
     {
       "path": "js/config.js",
-      "sha256": "683089a620681c89ec9b1ee4a70c441332eeda07e2264e30c962a21ae2bd3ee5"
+      "sha256": "ffdfcd612871dd2f3226166ef8e182b415ff32da80ac6f1409615b36a065cea2"
     },
     {
       "path": "js/course-progression-config.js",
@@ -51,7 +51,7 @@
     },
     {
       "path": "js/config.js",
-      "sha256": "683089a620681c89ec9b1ee4a70c441332eeda07e2264e30c962a21ae2bd3ee5"
+      "sha256": "ffdfcd612871dd2f3226166ef8e182b415ff32da80ac6f1409615b36a065cea2"
     },
     {
       "path": "js/explanation-images.js",
@@ -139,7 +139,7 @@
     },
     {
       "path": "js/level-map.js",
-      "sha256": "8d188a832d9218d0cec42a069c6a265bc67cb94eb207bf323a14833b75df5295"
+      "sha256": "85056ea8b21c6c5d01639848f29df703d1ad49e32669dc8b4c61d676499be4a1"
     },
     {
       "path": "js/daily.js",
@@ -502,7 +502,7 @@
     {
       "path": "js/config.js",
       "bytes": 6005,
-      "sha256": "683089a620681c89ec9b1ee4a70c441332eeda07e2264e30c962a21ae2bd3ee5"
+      "sha256": "ffdfcd612871dd2f3226166ef8e182b415ff32da80ac6f1409615b36a065cea2"
     },
     {
       "path": "js/explanation-images.js",
@@ -611,8 +611,8 @@
     },
     {
       "path": "js/level-map.js",
-      "bytes": 24318,
-      "sha256": "e5570a04836ccbb50ba904e9d7ef8a6899448db47ad2001911bd2647543f7ff5"
+      "bytes": 25654,
+      "sha256": "8d454edd83bfe4d6996974e24b5cbada2adca002dfc912d070916d4adb7b5afc"
     },
     {
       "path": "js/daily.js",
@@ -957,12 +957,12 @@
     {
       "path": "js/pages-storage.js",
       "bytes": 1175,
-      "sha256": "93b97d622cb3ab05bb269d3c450938e8345c2cbc9d0029db25514aa12b9e430d"
+      "sha256": "09213c34f569cd30e18517f68adcaed038e87cef3cbfe217066049ca78eeb2ba"
     },
     {
       "path": "index.html",
       "bytes": 39858,
-      "sha256": "c768cd939d7ced79b318a6cffa7f5c1b24518b2696b53064c02a55b8051c0625"
+      "sha256": "859d86848d67fb057ab5c53eec9c45420a628ce419e37b35a7959933eb8117f5"
     },
     {
       "path": ".nojekyll",
@@ -970,7 +970,7 @@
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   ],
-  "totalBytes": 7497204,
+  "totalBytes": 7498540,
   "omitted": [
     "ios",
     "docs",
