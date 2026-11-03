@@ -30,7 +30,7 @@ client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\
      return {docs:[...store.entries()].filter(([key])=>key.startsWith(query[0]+'/'))
       .map(([key,value])=>({id:key.split('/').at(-1),data:()=>value})).sort((a,b)=>a.data().moves-b.data().moves || a.data().timeMs-b.data().timeMs).slice(0,100)};
     }
-    const [,where,limit]=query;assert.equal(limit.limit,6);assert.equal(where.op,'==');
+    const [,where,generation,limit]=query;assert.equal(limit.limit,6);assert.equal(where.op,'==');assert.deepEqual(generation,{field:'progressVersion',op:'==',n:'v4'});
     active++;peak=Math.max(peak,active);await new Promise(r=>setImmediate(r));active--;
     return {docs:[{id:'p'+where.n,data:()=>({name:'Player',reachedLevel:where.n})}]};}
   }

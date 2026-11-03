@@ -27,8 +27,9 @@ service cloud.firestore {
         ])
         && data.keys().hasOnly([
           'name', 'colors', 'headColor',
-          'reachedLevel', 'reachedPrototypeLevel', 'updatedAt'
+          'reachedLevel', 'reachedPrototypeLevel', 'updatedAt', 'progressVersion'
         ])
+        && (!('progressVersion' in data) || data.progressVersion == 'v4')
         && data.name is string
         && data.name.size() >= 1
         && data.name.size() <= 40
@@ -59,9 +60,18 @@ service cloud.firestore {
       allow list: if signedIn()
         && request.query.limit <= 100;
 
-      allow create, update: if activeAccount()
+      allow create: if activeAccount()
         && request.auth.uid == uid
         && validProfile(request.resource.data);
+
+      // Adoption may replace legacy reached levels with the current local save.
+      // Once adopted, old clients must not strip its generation and restore old progress.
+      allow update: if activeAccount()
+        && request.auth.uid == uid
+        && validProfile(request.resource.data)
+        && (!('progressVersion' in resource.data)
+          || ('progressVersion' in request.resource.data
+            && request.resource.data.progressVersion == resource.data.progressVersion));
 
       allow delete: if signedIn() && request.auth.uid == uid;
     }

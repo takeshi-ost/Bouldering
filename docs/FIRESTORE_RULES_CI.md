@@ -22,10 +22,12 @@ Firestore emulator; this is not a network-free job. No Firebase authentication,
 production secrets, service account or OIDC permission is supplied.
 
 The suite accepts only `127.0.0.1:8089` and uses the synthetic `demo-score-legacy`,
-`demo-score-console` and `demo-score-metadata` projects. The CLI also uses a `demo-` ID. Authenticated
+`demo-score-console`, `demo-score-deployed` and `demo-score-metadata` projects. The CLI also uses a `demo-` ID. Authenticated
 contexts are mocks, not real Firebase sign-ins. Full Git history is checked out
 because the legacy Rules fixture comes from public commit `795bc083`, and the
-owner-provided Console snapshot matches public commit `a5ffb19`.
+owner-provided Console snapshot matches public commit `a5ffb19`. The later
+production revision, confirmed by Console readback outside this CI, is the static
+`5812c12` fixture. The new profile generation extension is not deployed by CI.
 See [the snapshot comparison](FIRESTORE_CONSOLE_REVIEW_2026-11-02.md).
 
 ## Scope
@@ -33,6 +35,19 @@ See [the snapshot comparison](FIRESTORE_CONSOLE_REVIEW_2026-11-02.md).
 The tests compare historical, owner-provided Console and current repository Rules, including
 v1–v4 score generations, metadata compatibility, ownership, unauthenticated rejection,
 numeric/timestamp validation, improved-record updates and deletion locks.
+Profile adoption additionally tests optional `progressVersion: 'v4'`, replacing
+the owner profile with the current local reached levels (even when lower), and
+rejecting removal/change of the marker after adoption. Client tests separately
+check that legacy progression is not merged into the current local save. Old unmarked profiles remain writable until adoption.
+The prior deployed Rules reject the new field, so the profile Rules must be
+published before a client that sends it. Score permissions are unchanged.
+
+This is not a server proof of gameplay or progress: an authenticated owner can
+still submit arbitrary in-range reached levels while retaining the v4 marker.
+The guard prevents the known old clients' full-profile writes from dropping the
+marker, not an adversarial client pretending to be current. Existing public
+profile reads and owner deletion remain unchanged. No legacy score documents
+are deleted or promoted to a current-generation ranking.
 They do not verify currently deployed production Rules, real connectivity,
 anonymous-account creation/deletion, a browser, or native SDK integration.
 Passing this job is not authorization to deploy Rules or connect public gameplay.
@@ -46,7 +61,7 @@ Only pushes to this work branch trigger it; main does not need a workflow change
 Actual run status and the tested commit are available in GitHub Actions. The final
 step records the checked Rules SHA-256 and the explicitly excluded verification.
 
-The same job also runs `test:web` (31 focused suites, including mocked online
+The same job also runs `test:web` (32 focused suites, including mocked online
 adapters/queues and save continuation), native authentication/queue/connection
 mocks, and `tests/native-sdk-packaging.cjs`. The SDK test builds the real Firebase
 SDK/control with esbuild into a disposable directory, then executes the offline

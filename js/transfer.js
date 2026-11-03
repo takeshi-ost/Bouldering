@@ -24,6 +24,7 @@ function snapshotTransferData() {
     recoverLives();
     return JSON.parse(JSON.stringify({
         profile:{name:playerName,colors:[...playerColors],headColor:playerHeadColor},
+        progressVersion:ONLINE_PROGRESS_VERSION,
         progress:stageProgress,records:stageRecords,dailyRecords,dailyAttempts,dailyPlayAdState,
         heartItems,lives:{...lives,inProgress:false},mapRewards,featureHelpSeen,soundEnabled,audioSettings:{musicEnabled,musicVolume,soundVolume},playsSinceAd,
         pendingScores:[...onlineScores.pending],localId:playerUuid
@@ -35,6 +36,9 @@ function validateTransferFile(value) {
     if(!transferObject(value) || value.format!=='ascent-transfer' || value.version!==1 ||
         !validTransferIdentity(value.identity) || !transferObject(value.data))fail();
     const d=value.data,p=d.profile;
+    // Do not turn a legacy exported stage reach into current-generation progress.
+    // Reject before authentication/storage changes; the original file stays intact.
+    if(!currentOnlineProgress(d))throw Object.assign(Error(gameText("transfer.progressGeneration")),{code:'ascent/legacy-progress-transfer'});
     if(!transferObject(p) || typeof p.name!=='string' || !normalizedPlayerName(p.name) || Array.from(p.name).length>40 ||
         !Array.isArray(p.colors) || p.colors.length<1 || p.colors.length>8 || !p.colors.every(validBodyColor) || !validBodyColor(p.headColor))fail();
     for(const mode of ['existing','prototype']) {
@@ -198,7 +202,7 @@ transferElement('transferFile').onchange=async e=>{
         transferElement('transferPreview').textContent=gameText("transfer.3", {value0: file.data.profile.name, value1: file.identity.uid, value2: file.data.progress.existing.cleared+1});
         transferElement('transferPreview').hidden=false;transferElement('transferImport').hidden=false;
         transferMessage(gameText("transfer.2"));
-    } catch(_){if(ticket===transferState.readTicket)transferMessage(gameText("transfer"));}
+    } catch(error){if(ticket===transferState.readTicket)transferMessage(gameText(error?.code==='ascent/legacy-progress-transfer'?"transfer.progressGeneration":"transfer"));}
     renderTransferAvailability();
 };
 transferElement('transferImport').onclick=async()=>{

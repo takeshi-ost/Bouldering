@@ -145,6 +145,7 @@ const GAME_TEXT_EN = Object.freeze({
     "rewards.rewardResultMarkup": "Chalk Bag",
     "rewards.rewardResultMarkup.2": "Extra Life",
     "rewards.rewardResultMarkup.3": "Lives are capped at {value0}",
+    "transfer.progressGeneration": "Transfer files from an older progress generation cannot be imported into this version. Your current data has not changed.",
     "transfer": "This is not a valid ASCENT transfer file.",
     "transfer.2": "Check the details, then select “Import This Data.”",
     "transfer.3": "{value0}\nUID {value1}\nStage Reached: {value2}\nThis will replace the game data on this device.",

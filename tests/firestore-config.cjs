@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
 const config=JSON.parse(fs.readFileSync('firebase.emulator.json','utf8'));
 assert.deepEqual(config.emulators.firestore,{host:'127.0.0.1',port:8089});
 assert.equal(config.emulators.ui.enabled,false);
-assert.equal(config.emulators.singleProjectMode,false); // Two independent demo projects in the suite.
+assert.equal(config.emulators.singleProjectMode,false); // Independent demo projects in the historical/current suite.
 assert.equal(config.firestore.rules,'firestore.rules');
 const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
 assert.equal(pkg.dependencies.firebase,'12.11.0');

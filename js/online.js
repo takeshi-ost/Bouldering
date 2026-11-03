@@ -8,17 +8,18 @@ function onlineProfile() {
     const name=Array.from(normalizedPlayerName(playerName)).slice(0,40).join('');
     return {name,colors:[...playerColors],headColor:playerHeadColor,
         reachedLevel:Math.min(1000000,stageProgress.existing.cleared+1),
-        reachedPrototypeLevel:Math.min(1000000,stageProgress.prototype.cleared+1)};
+        reachedPrototypeLevel:Math.min(1000000,stageProgress.prototype.cleared+1),progressVersion:ONLINE_PROGRESS_VERSION};
 }
 function onlineProfileFrom(data) {
-    if(!data || typeof data.name!=='string' || !normalizedPlayerName(data.name) ||
+    if(!data || ('progressVersion' in data && !currentOnlineProgress(data)) || typeof data.name!=='string' || !normalizedPlayerName(data.name) ||
         Array.from(data.name).length>40 || !Array.isArray(data.colors) ||
         data.colors.length<1 || data.colors.length>8 || !data.colors.every(validBodyColor) ||
         !validBodyColor(data.headColor) || ![data.reachedLevel,data.reachedPrototypeLevel]
             .every(n=>Number.isSafeInteger(n) && n>=1 && n<=1000000))return null;
     return {name:normalizedPlayerName(data.name),colors:data.colors.map(c=>c.toLowerCase()),
         headColor:data.headColor.toLowerCase(),reachedLevel:data.reachedLevel,
-        reachedPrototypeLevel:data.reachedPrototypeLevel};
+        reachedPrototypeLevel:data.reachedPrototypeLevel,
+        ...(currentOnlineProgress(data)?{progressVersion:ONLINE_PROGRESS_VERSION}:{})};
 }
 function onlineProfileKey(profile) {return JSON.stringify(profile);}
 function readOnlineCheckpoint() {
@@ -46,9 +47,12 @@ function onlineError(error) {
 }
 function mergeOnlineProfile(local,remote,preferLocal) {
     if(!remote)return local;
-    return {...(preferLocal?local:remote),
-        reachedLevel:Math.max(local.reachedLevel,remote.reachedLevel),
-        reachedPrototypeLevel:Math.max(local.reachedPrototypeLevel,remote.reachedPrototypeLevel)};
+    // A legacy profile can supply appearance, never progress in this generation.
+    // This is applied on every transaction/retry, not only the first login.
+    const sameGeneration=currentOnlineProgress(remote);
+    return {...(preferLocal?local:remote),progressVersion:ONLINE_PROGRESS_VERSION,
+        reachedLevel:Math.max(local.reachedLevel,sameGeneration?remote.reachedLevel:1),
+        reachedPrototypeLevel:Math.max(local.reachedPrototypeLevel,sameGeneration?remote.reachedPrototypeLevel:1)};
 }
 function applyOnlineProfile(profile,keepAppearance=false) {
     if(!keepAppearance) {
@@ -57,8 +61,10 @@ function applyOnlineProfile(profile,keepAppearance=false) {
         updateMapAppearance();
     }
     const before=JSON.stringify(stageProgress);
-    stageProgress.existing.cleared=Math.max(stageProgress.existing.cleared,profile.reachedLevel-1);
-    stageProgress.prototype.cleared=Math.max(stageProgress.prototype.cleared,profile.reachedPrototypeLevel-1);
+    if(currentOnlineProgress(profile)) {
+        stageProgress.existing.cleared=Math.max(stageProgress.existing.cleared,profile.reachedLevel-1);
+        stageProgress.prototype.cleared=Math.max(stageProgress.prototype.cleared,profile.reachedPrototypeLevel-1);
+    }
     try {globalThis.localStorage?.setItem(PROGRESS_KEY,JSON.stringify(stageProgress));}catch(_) {}
     if(before!==JSON.stringify(stageProgress)) {
         if(state==='choosing')prepareTitleMapLayout();
@@ -133,7 +139,7 @@ function onlineMapPlayers(first,last,mode) {
             const counts=new Map();
             page.players=rows.flatMap(row=>{
                 const profile=onlineProfileFrom(row),n=profile?.reachedLevel;
-                if(!profile || typeof row.id!=='string' || row.id===online.uid || n<first || n>last || (counts.get(n)||0)>=5)return [];
+                if(!profile || !currentOnlineProgress(profile) || typeof row.id!=='string' || row.id===online.uid || n<first || n>last || (counts.get(n)||0)>=5)return [];
                 counts.set(n,(counts.get(n)||0)+1);
                 return [{id:row.id,name:profile.name,appearance:{colors:profile.colors,headColor:profile.headColor},reachedLevel:n,isPlayer:false}];
             });

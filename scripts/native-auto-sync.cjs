@@ -1,11 +1,13 @@
 'use strict';
-const {scoreMetadata,supportedCourseVersion,supportedScoreBoard,scoreMatchesBoard}=require('../js/score-metadata.js');
+const {scoreMetadata,supportedCourseVersion,supportedScoreBoard,scoreMatchesBoard,ONLINE_PROGRESS_VERSION}=require('../js/score-metadata.js');
 const SYNC_KEY='ascent.native-sync.after-enable.v1';
 function createNativeAutoSync({storage,owner,controller,onReport=()=>{},clock=Date.now,courseVersion='v1'}) {
     let state,flight=null,halted=false;
     const stats={boundaryPersisted:false,freshPending:0,freshDelivered:0,profilePending:false,profileNamePreserved:true,syncError:''};
+    // Retain old queued profiles without sending/relabeling their legacy progress.
+    const currentProfile=()=>!!state?.profile?.value && state.profile.value.progressVersion===ONLINE_PROGRESS_VERSION;
     const sendable=e=>e && Number.isSafeInteger(e.sequence) && supportedScoreBoard(e.board) && e.board.split('_')[1]==='existing' && e.rankingEligible!==false && e.score?.rankingEligible!==false && scoreMatchesBoard(e.board,e.score) && Number.isSafeInteger(e.score?.moves) && e.score.moves>=1 && e.score.moves<=1000000 && Number.isSafeInteger(e.score.timeMs) && e.score.timeMs>=0 && e.score.timeMs<=604800000;
-    const notify=()=>{const events=Array.isArray(state?.events)?state.events:[];stats.freshPending=events.filter(sendable).length;stats.retainedEvents=events.length-stats.freshPending;stats.profilePending=!!state?.profile;stats.profileNamePreserved=state?.profile?.nameChanged!==true;onReport({...stats});};
+    const notify=()=>{const events=Array.isArray(state?.events)?state.events:[];stats.freshPending=events.filter(sendable).length;stats.retainedEvents=events.length-stats.freshPending;stats.profilePending=currentProfile();stats.retainedProfile=!!state?.profile && !currentProfile();stats.profileNamePreserved=state?.profile?.nameChanged!==true;onReport({...stats});};
     const fail=code=>{stats.syncError=/^[a-z0-9/-]+$/.test(code||'')?code:'native-sync/unavailable';notify();};
     function commit(next){storage.setItem(SYNC_KEY,JSON.stringify(next));if(storage.getItem(SYNC_KEY)!==JSON.stringify(next))throw Error('native-sync/persistence-failed');state=next;stats.boundaryPersisted=true;notify();}
     try {
@@ -21,8 +23,8 @@ function createNativeAutoSync({storage,owner,controller,onReport=()=>{},clock=Da
         flight=(async()=>{
             try {
                 await controller.authenticate({createAnonymous:false});
-                while(state.profile || state.events.length) {
-                    if(state.profile) {
+                while(currentProfile() || state.events.some(sendable)) {
+                    if(currentProfile()) {
                         const item=state.profile;const result=await controller.syncAutomaticProfile(state.owner,item.value,{nameChanged:item.nameChanged===true});
                         if(state.profile?.revision===item.revision)commit({...state,name:typeof result?.name==='string'?result.name:state.name,profile:null});
                     } else {
@@ -32,11 +34,11 @@ function createNativeAutoSync({storage,owner,controller,onReport=()=>{},clock=Da
                 }
                 stats.syncError='';notify();
             } catch(e){fail(e.code || e.message);}
-        })().finally(()=>{flight=null;if(!stats.syncError && (state.profile || state.events.some(sendable)))void flush();});
+        })().finally(()=>{flight=null;if(!stats.syncError && (currentProfile() || state.events.some(sendable)))void flush();});
         return flight;
     }
     function queueProfile(profile,nameChanged=false) {
-        if(halted)return false;
+        if(halted || profile?.progressVersion!==ONLINE_PROGRESS_VERSION)return false;
         try {
             const name=nameChanged || !state.name || state.name==='iOS接続テスト'?profile.name:state.name;
             const explicitName=nameChanged || state.profile?.nameChanged===true;

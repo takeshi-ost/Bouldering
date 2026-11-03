@@ -10,7 +10,7 @@ function fixture(data=new Map(),remote=new Map(),courseVersion='v1') {
  const queue=createNativeAutoSync({storage,owner:'existing-owner',controller,courseVersion,clock:()=>1000});
  return {queue,data,remote,calls,online:v=>online=v,lose:()=>lost=true,block:p=>blockProfile=p};
 }
-const profile={name:'local-private-name',colors:['#123456'],headColor:'#abcdef',reachedLevel:2,reachedPrototypeLevel:1};
+const profile={name:'local-private-name',colors:['#123456'],headColor:'#abcdef',progressVersion:'v4',reachedLevel:2,reachedPrototypeLevel:1};
 (async()=>{
  const oldQueue=JSON.stringify({uid:null,items:[['v1_existing_1',{moves:4,timeMs:500}]]});
  const data=new Map([['ascent.pending-scores.v1',oldQueue],['ascent.records.v1','old best: 4 moves']]);
@@ -57,5 +57,13 @@ const profile={name:'local-private-name',colors:['#123456'],headColor:'#abcdef',
  const presentation=fixture(presentationData,new Map(),'v4');assert.equal(presentation.queue.pendingForBoard('v4_existing_9'),false);assert.equal(presentation.queue.pendingForBoard('v4_existing_10'),false);assert.equal(presentation.queue.pendingForBoard('v3_existing_9'),true);assert.equal(presentation.queue.report().freshPending,1);assert.equal(presentation.queue.report().retainedEvents,4);
  await presentation.queue.flush();assert.equal(presentation.queue.pendingForBoard('v3_existing_9'),false);assert.deepEqual(JSON.parse(presentationData.get(SYNC_KEY)).events,presentationEvents.filter((_,i)=>i!==3));
  const malformed=JSON.stringify({version:1,owner:'existing-owner',sequence:0,name:'Saved',events:{}});const malformedData=new Map([[SYNC_KEY,malformed]]);const blocked=fixture(malformedData,new Map(),'v4');await blocked.queue.flush();assert.equal(malformedData.get(SYNC_KEY),malformed);assert.equal(blocked.calls.scores.length,0);assert.equal(blocked.queue.report().syncError,'native-sync/invalid-ledger');
+ // Retain an old queued profile without relabeling it or blocking current score delivery.
+ const oldProfile={...profile,reachedLevel:900};delete oldProfile.progressVersion;
+ const pendingLegacy={version:1,owner:'existing-owner',activatedAt:42,sequence:2,name:'Saved name',profile:{revision:1,value:oldProfile,nameChanged:false},events:[{sequence:2,board:'v4_existing_1',score:{moves:10,timeMs:20,scoreSpecVersion:'v4'}}]};
+ const pendingData=new Map([[SYNC_KEY,JSON.stringify(pendingLegacy)]]),pending=fixture(pendingData,new Map(),'v4');
+ assert(pending.queue.report().retainedProfile);assert.equal(pending.queue.report().profilePending,false);
+ await pending.queue.flush();assert.equal(pending.calls.profiles.length,0);assert.equal(pending.calls.scores.length,1);assert.deepEqual(JSON.parse(pendingData.get(SYNC_KEY)).profile,pendingLegacy.profile);
+ assert.equal(pending.queue.queueProfile(oldProfile),false);assert.equal(pending.calls.profiles.length,0);
+ pending.queue.queueProfile(profile);await pending.queue.flush();assert.equal(pending.calls.profiles.length,1);assert.equal(pending.calls.profiles[0].reachedLevel,2);assert.equal(pending.calls.profiles[0].progressVersion,'v4');assert.equal(pending.queue.report().retainedProfile,false);
  console.log('PASS automatic queue: persistent activation boundary; historical queues/best never imported; worse fresh result sent; offline/restart recovery; duplicate suppression; real names preserved; v4 mixed-history/assisted exclusions; concurrent profile edits; corrupt storage fail-stop');
 })().catch(e=>{console.error(e);process.exitCode=1;});

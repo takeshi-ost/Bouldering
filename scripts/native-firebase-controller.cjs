@@ -1,5 +1,5 @@
 'use strict';
-const {scoreMetadata,supportedScoreBoard,scoreMatchesBoard}=require('../js/score-metadata.js');
+const {scoreMetadata,supportedScoreBoard,scoreMatchesBoard,ONLINE_PROGRESS_VERSION}=require('../js/score-metadata.js');
 const PROJECT='bouldering-7482d';
 const ATTEMPT_KEY='ascent.native-firebase.auth-attempt.v1';
 const IDENTITY_KEY='ascent.native-firebase.identity-check.v1';
@@ -90,7 +90,7 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
         const f=await database(),field=modeName==='prototype'?'reachedPrototypeLevel':'reachedLevel',rows=[];
         for(let n=first;n<=last;n++) {
             requirePermission('read');report.readQueries++;
-            const snap=await f.getDocsFromServer(f.query(f.collection(db,'players'),f.where(field,'==',n),f.limit(6)));
+            const snap=await f.getDocsFromServer(f.query(f.collection(db,'players'),f.where(field,'==',n),f.where('progressVersion','==',ONLINE_PROGRESS_VERSION),f.limit(6)));
             rows.push(...snap.docs.map(doc=>({...doc.data(),id:doc.id})));
         }
         report.mapDocuments+=rows.length;report.phase='reading';verified(connectionTicket);publish();return rows;
@@ -119,13 +119,14 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
         const connectionTicket=connectionEpoch();
         requirePermission('automaticSync');
         const user=await authenticate();if(user.uid!==owner)throw error('native-firebase/identity-mismatch');
-        if(!validProfile(profile))throw error('native-firebase/invalid-profile');
+        if(!validProfile(profile) || profile.progressVersion!==ONLINE_PROGRESS_VERSION)throw error('native-firebase/invalid-profile');
         const f=await database(),ref=f.doc(db,'players',owner);
         const result=await f.runTransaction(db,async t=>{
             const snapshot=await t.get(ref),remote=snapshot.exists()?snapshot.data():null;
-            if(remote && !validProfile(remote))throw error('native-firebase/invalid-remote-profile');
-            const next={name:remote && !nameChanged?remote.name:profile.name,colors:[...profile.colors],headColor:profile.headColor,
-                reachedLevel:Math.max(profile.reachedLevel,remote?.reachedLevel||1),reachedPrototypeLevel:Math.max(profile.reachedPrototypeLevel,remote?.reachedPrototypeLevel||1)};
+            if(remote && (!validProfile(remote) || (remote.progressVersion!==undefined && remote.progressVersion!==ONLINE_PROGRESS_VERSION)))throw error('native-firebase/invalid-remote-profile');
+            const sameProgress=remote?.progressVersion===ONLINE_PROGRESS_VERSION;
+            const next={progressVersion:ONLINE_PROGRESS_VERSION,name:remote && !nameChanged?remote.name:profile.name,colors:[...profile.colors],headColor:profile.headColor,
+                reachedLevel:Math.max(profile.reachedLevel,sameProgress?remote.reachedLevel:1),reachedPrototypeLevel:Math.max(profile.reachedPrototypeLevel,sameProgress?remote.reachedPrototypeLevel:1)};
             if(remote && Object.entries(next).every(([k,v])=>JSON.stringify(remote[k])===JSON.stringify(v)))return {written:false,name:next.name};
             requirePermission('automaticSync');if(auth.currentUser?.uid!==owner)throw error('native-firebase/identity-mismatch');
             t.set(ref,{...next,updatedAt:f.serverTimestamp()});return {written:true,name:next.name};

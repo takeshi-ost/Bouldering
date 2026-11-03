@@ -49,7 +49,24 @@ const scope={localStorage:storage,crypto:require('node:crypto').webcrypto};
  // Destination's unrelated data and existing game save survive rejected files/auth.
  currentUid='destination-uid';online.uid=currentUid;online.dirty=false;
  storage.setItem(PROGRESS_KEY,JSON.stringify({existing:{cleared:1},prototype:{cleared:0}}));
- const original=JSON.stringify(data);failAuth=true;
+ const original=JSON.stringify(data);
+ assert.equal(exported.data.progressVersion,'v4');
+ for(const version of [undefined,null,'v1','v3','v5']) {
+  const old=JSON.parse(JSON.stringify(exported));if(version===undefined)delete old.data.progressVersion;else old.data.progressVersion=version;
+  await assert.rejects(importTransferFile(old),error=>error.code==='ascent/legacy-progress-transfer');
+  assert.equal(JSON.stringify(data),original);assert.equal(currentUid,'destination-uid');assert.equal(online.uid,'destination-uid');
+ }
+ const missingGeneration=JSON.parse(JSON.stringify(exported));delete missingGeneration.data.progressVersion;
+ transferElement('transferDialog').open=true;
+ for(const language of ['ja','en']) {
+  GAME_TEXT_LANGUAGE=language;
+  await transferElement('transferFile').onchange({target:{files:[{size:10,text:async()=>JSON.stringify(missingGeneration)}]}});
+  assert.equal(transferElement('transferStatus').textContent,gameText('transfer.progressGeneration'));
+  assert.equal(transferState.file,null);assert(transferElement('transferImport').hidden);
+  assert.equal(JSON.stringify(data),original);assert.equal(currentUid,'destination-uid');
+ }
+ GAME_TEXT_LANGUAGE='ja';transferElement('transferDialog').open=false;
+ failAuth=true;
  await assert.rejects(importTransferFile(exported),/mismatch/);failAuth=false;
  assert.equal(JSON.stringify(data),original);assert.equal(currentUid,'destination-uid');assert.equal(online.uid,'destination-uid');
  const wrongUid=JSON.parse(JSON.stringify(exported));wrongUid.identity.uid='wrong-uid';

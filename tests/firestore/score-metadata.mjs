@@ -9,8 +9,11 @@ const host=process.env.FIRESTORE_EMULATOR_HOST;
 if(host!=='127.0.0.1:8089')throw Error('Requires local emulator FIRESTORE_EMULATOR_HOST=127.0.0.1:8089; refusing all other targets');
 const toolRequire=createRequire(process.env.ASCENT_EMULATOR_TOOLS?path.resolve(process.env.ASCENT_EMULATOR_TOOLS,'package.json'):import.meta.url);
 const {initializeTestEnvironment,assertSucceeds,assertFails}=toolRequire('@firebase/rules-unit-testing');
-const {doc,setDoc,getDoc,getDocs,deleteDoc,collection,collectionGroup,query,limit,serverTimestamp,Timestamp}=toolRequire('firebase/firestore');
+const {doc,setDoc,getDoc,getDocs,deleteDoc,collection,collectionGroup,query,where,limit,serverTimestamp,Timestamp}=toolRequire('firebase/firestore');
 const current=fs.readFileSync('firestore.rules','utf8');
+// Parent verified this exact revision against Console after the approved deployment.
+// This remains a static fixture, not a live production read in this test.
+const deployed=execFileSync('git',['show','5812c12296f2f722b848be60ef94976c7f30ea11:firestore.rules'],{encoding:'utf8'});
 const legacy=execFileSync('git',['show','795bc08378f029b2e537f70b5c3a00d84219fd9f:firestore.rules'],{encoding:'utf8'});
 // Exact (LF + final LF) public-history copy of the owner's 2026-11-02 Console
 // paste. This is a user-supplied snapshot, not an authenticated live Rules read.
@@ -26,16 +29,31 @@ const extended=consoleSnapshot
             || (data.scoreSpecVersion == 'v2' && board.matches('^v2_.*$'))
             || (data.scoreSpecVersion == 'v3' && board.matches('^v3_.*$'))
             || (data.scoreSpecVersion == 'v4' && board.matches('^v4_.*$')))`);
-assert.equal(current,extended,'Unexpected change outside reviewed generation extension');
-console.log('PASS owner Console snapshot hash and exact minimal Rules diff');
-// Three isolated demo projects; never a production project or production token.
+assert.equal(deployed,extended,'Unexpected change outside reviewed score generation extension');
+const progressExtended=deployed
+ .replace("&& data.keys().hasOnly([\n          'name', 'colors', 'headColor',\n          'reachedLevel', 'reachedPrototypeLevel', 'updatedAt'\n        ])", "&& data.keys().hasOnly([\n          'name', 'colors', 'headColor',\n          'reachedLevel', 'reachedPrototypeLevel', 'updatedAt', 'progressVersion'\n        ])\n        && (!('progressVersion' in data) || data.progressVersion == 'v4')")
+ .replace("      allow create, update: if activeAccount()\n        && request.auth.uid == uid\n        && validProfile(request.resource.data);", `      allow create: if activeAccount()
+        && request.auth.uid == uid
+        && validProfile(request.resource.data);
+
+      // Adoption may replace legacy reached levels with the current local save.
+      // Once adopted, old clients must not strip its generation and restore old progress.
+      allow update: if activeAccount()
+        && request.auth.uid == uid
+        && validProfile(request.resource.data)
+        && (!('progressVersion' in resource.data)
+          || ('progressVersion' in request.resource.data
+            && request.resource.data.progressVersion == resource.data.progressVersion));`);
+assert.equal(current,progressExtended,'Unexpected change outside reviewed profile generation extension');
+console.log('PASS owner Console snapshot hash, deployed snapshot, and exact minimal Rules diffs');
+// Four isolated demo projects; never a production project or production token.
 const environments=[];
 let assertions=0;
 const pass=async p=>{await assertSucceeds(p);assertions++;};
 const deny=async p=>{await assertFails(p);assertions++;};
 try {
- for(const [label,rules] of [['legacy',legacy],['console',consoleSnapshot],['metadata',current]]) {
-  const hasMetadata=label!=='legacy';
+ for(const [label,rules] of [['legacy',legacy],['console',consoleSnapshot],['deployed',deployed],['metadata',current]]) {
+  const hasMetadata=label!=='legacy',hasGenerations=label==='metadata'||label==='deployed';
   const env=await initializeTestEnvironment({projectId:`demo-score-${label}`,firestore:{host:'127.0.0.1',port:8089,rules}});
   environments.push(env);
   const owner=env.authenticatedContext('mock-owner').firestore();
@@ -79,8 +97,8 @@ try {
   for(const board of ['v1_daily_1','v5_existing_1','v4_prototype_1','trial-d7-offset10_existing_1','v2_prototype_1','v3_prototype_1','v1_existing_0'])await deny(setDoc(doc(owner,`stageScores/${board}/entries/mock-owner`),old()));
   // v2 is isolated from legacy v1 and metadata cannot claim another generation.
   const v2Path='stageScores/v2_existing_200/entries/mock-owner';
-  await (label==='metadata'?pass:deny)(setDoc(doc(owner,v2Path),{...old(),...metadata,scoreSpecVersion:'v2'}));
-  if(label==='metadata') {
+  await (hasGenerations?pass:deny)(setDoc(doc(owner,v2Path),{...old(),...metadata,scoreSpecVersion:'v2'}));
+  if(hasGenerations) {
    await deny(setDoc(doc(owner,v2Path),{...old(),moves:1,...metadata}));
    await deny(setDoc(doc(owner,path()),{...old(),...metadata,scoreSpecVersion:'v2'}));
    await pass(setDoc(doc(owner,'stageScores/v2_existing_201/entries/mock-owner'),{...old(),scoreSpecVersion:null}));
@@ -88,16 +106,16 @@ try {
    await deny(setDoc(doc(other,'stageScores/v2_existing_202/entries/mock-owner'),{...old(),...metadata,scoreSpecVersion:'v2'}));
   }
   const v3Path='stageScores/v3_existing_200/entries/mock-owner';
-  await (label==='metadata'?pass:deny)(setDoc(doc(owner,v3Path),{...old(),...metadata,scoreSpecVersion:'v3'}));
-  if(label==='metadata') {
+  await (hasGenerations?pass:deny)(setDoc(doc(owner,v3Path),{...old(),...metadata,scoreSpecVersion:'v3'}));
+  if(hasGenerations) {
    for(const wrong of ['v1','v2'])await deny(setDoc(doc(owner,v3Path),{...old(),moves:1,...metadata,scoreSpecVersion:wrong}));
    await deny(setDoc(doc(owner,v2Path),{...old(),moves:1,...metadata,scoreSpecVersion:'v3'}));
    await pass(setDoc(doc(owner,'stageScores/v3_existing_201/entries/mock-owner'),{...old(),scoreSpecVersion:null}));
    await deny(setDoc(doc(other,'stageScores/v3_existing_202/entries/mock-owner'),{...old(),...metadata,scoreSpecVersion:'v3'}));
   }
   const v4Path='stageScores/v4_existing_200/entries/mock-owner';
-  await (label==='metadata'?pass:deny)(setDoc(doc(owner,v4Path),{...old(),...metadata,scoreSpecVersion:'v4'}));
-  if(label==='metadata') {
+  await (hasGenerations?pass:deny)(setDoc(doc(owner,v4Path),{...old(),...metadata,scoreSpecVersion:'v4'}));
+  if(hasGenerations) {
    for(const wrong of ['v1','v2','v3','trial-d7-offset10'])await deny(setDoc(doc(owner,v4Path),{...old(),moves:1,...metadata,scoreSpecVersion:wrong}));
    await deny(setDoc(doc(owner,v3Path),{...old(),moves:1,...metadata,scoreSpecVersion:'v4'}));
    await pass(setDoc(doc(owner,'stageScores/v4_existing_201/entries/mock-owner'),{...old(),scoreSpecVersion:null}));
@@ -114,6 +132,29 @@ try {
   await deny(setDoc(doc(owner,profilePath),{...profile(),unexpected:true}));
   await deny(setDoc(doc(owner,profilePath),{...profile(),colors:['not-a-color']}));
   await deny(setDoc(doc(owner,profilePath),{...profile(),reachedLevel:0}));
+  // Unversioned old profiles remain valid until this UID adopts the current save.
+  await pass(setDoc(doc(owner,profilePath),{...profile(),reachedLevel:31,reachedPrototypeLevel:81}));
+  await (label==='metadata'?pass:deny)(setDoc(doc(owner,profilePath),{...profile(),progressVersion:'v4',reachedLevel:21}));
+  if(label==='metadata') {
+   const adopted=()=>({...profile(),progressVersion:'v4',reachedLevel:21});
+   const snapshot=await getDoc(doc(owner,profilePath));
+   assert.equal(snapshot.data().reachedLevel,21);assert.equal(snapshot.data().reachedPrototypeLevel,1);assertions+=2;
+   // Current-generation profile sync/edits work; an old full replacement cannot undo adoption.
+   await pass(setDoc(doc(owner,profilePath),{...adopted(),reachedLevel:22,name:'Current name'}));
+   await pass(getDocs(query(collection(owner,'players'),where('reachedLevel','==',22),where('progressVersion','==','v4'),limit(6))));
+   await deny(setDoc(doc(owner,profilePath),{...profile(),reachedLevel:99}));
+   for(const version of [null,'v1','v3','v5',4,true,''])
+    await deny(setDoc(doc(owner,profilePath),{...adopted(),progressVersion:version}));
+   await deny(setDoc(doc(other,profilePath),adopted()));
+   await deny(setDoc(doc(guest,profilePath),adopted()));
+   // Current-generation creates have the same auth, shape and timestamp bounds.
+   const fresh=env.authenticatedContext('mock-fresh').firestore(),freshPath='players/mock-fresh';
+   await pass(setDoc(doc(fresh,freshPath),adopted()));
+   await deny(setDoc(doc(fresh,freshPath),{...adopted(),reachedLevel:0}));
+   await deny(setDoc(doc(fresh,freshPath),{...adopted(),updatedAt:Timestamp.fromMillis(1)}));
+   const oldCreate=env.authenticatedContext('mock-legacy-fresh').firestore();
+   await pass(setDoc(doc(oldCreate,'players/mock-legacy-fresh'),profile()));
+  }
   const readablePath=path();await pass(setDoc(doc(owner,readablePath),old()));
   await pass(getDoc(doc(other,readablePath)));
   await deny(getDoc(doc(guest,readablePath)));
@@ -152,6 +193,7 @@ try {
   await deny(setDoc(doc(owner,lockPath),{requestedAt:serverTimestamp()}));
   await deny(deleteDoc(doc(owner,lockPath)));
   await deny(setDoc(doc(owner,profilePath),profile()));
+  if(label==='metadata')await deny(setDoc(doc(owner,profilePath),{...profile(),progressVersion:'v4'}));
   await deny(setDoc(doc(owner,path()),old()));
   await deny(setDoc(doc(owner,updatePath),{...old(),moves:10}));
   await pass(deleteDoc(doc(owner,readablePath)));

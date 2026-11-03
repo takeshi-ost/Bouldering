@@ -145,6 +145,7 @@ const GAME_TEXT_JA = Object.freeze({
     "rewards.rewardResultMarkup": "チョークバッグ",
     "rewards.rewardResultMarkup.2": "ライフアップ",
     "rewards.rewardResultMarkup.3": "ライフは上限{value0}です",
+    "transfer.progressGeneration": "旧版の引き継ぎファイルは、この版には読み込めません。現在のデータは変更していません。",
     "transfer": "ASCENTの引き継ぎファイルとして読み込めません。",
     "transfer.2": "内容を確認して「このデータを読み込む」を押してください。",
     "transfer.3": "{value0}\nUID {value1}\n到達ステージ {value2}\nこの端末のゲームデータを置き換えます。",

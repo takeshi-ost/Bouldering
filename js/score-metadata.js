@@ -1,4 +1,8 @@
 "use strict";
+// Progress adoption is separate from score/course revisions. Do not increment
+// this for a balance change: same-generation devices keep their progress sync.
+const ONLINE_PROGRESS_VERSION='v4';
+function currentOnlineProgress(profile) {return profile?.progressVersion===ONLINE_PROGRESS_VERSION;}
 // Explicit generations: retired prototype scores remain valid historical data only.
 function supportedCourseVersion(version) {return version==='v1' || version==='v2' || version==='v3' || version==='v4';}
 // Local history is broader than upload eligibility. Trial provenance never
@@ -34,4 +38,4 @@ function currentDailyScoreMetadata() {
     return currentScoreMetadata(typeof DAILY_COURSE_VERSION==='string'?DAILY_COURSE_VERSION:
         typeof COURSE_VERSION==='string'?COURSE_VERSION:null);
 }
-if(typeof module!=='undefined' && module.exports)module.exports={scoreMetadata,currentScoreMetadata,currentDailyScoreMetadata,supportedCourseVersion,historicalCourseVersion,supportedScoreBoard,scoreMatchesBoard};
+if(typeof module!=='undefined' && module.exports)module.exports={ONLINE_PROGRESS_VERSION,currentOnlineProgress,scoreMetadata,currentScoreMetadata,currentDailyScoreMetadata,supportedCourseVersion,historicalCourseVersion,supportedScoreBoard,scoreMatchesBoard};

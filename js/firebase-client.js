@@ -126,11 +126,12 @@ async function bootFirebase() {
                 const field='reachedLevel',rows=[];
                 let next=first;
                 // Six includes our own profile, leaving up to five opponents at each level.
-                // Four concurrent queries, once per page/minute, with single-field indexes.
+                // Four concurrent queries, once per page/minute. Filter the generation
+                // on the server so legacy profiles cannot occupy the six-result limit.
                 await Promise.all(Array.from({length:Math.min(4,last-first+1)},async()=>{
                     while(next<=last) {
                         const n=next++;
-                        const query=dbSDK.query(dbSDK.collection(db,'players'),dbSDK.where(field,'==',n),dbSDK.limit(6));
+                        const query=dbSDK.query(dbSDK.collection(db,'players'),dbSDK.where(field,'==',n),dbSDK.where('progressVersion','==',ONLINE_PROGRESS_VERSION),dbSDK.limit(6));
                         const snapshot=await dbSDK.getDocs(query);
                         rows.push(...snapshot.docs.map(doc=>({...doc.data(),id:doc.id})));
                     }

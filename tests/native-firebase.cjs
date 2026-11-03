@@ -4,7 +4,7 @@ const {createNativeFirebaseController,ATTEMPT_KEY,IDENTITY_KEY}=require('../scri
 const readPolicy={firebaseMode:'read-only',firebaseEnabled:true,firebaseAuthAllowed:true,firebaseAnonymousAllowed:true,firebaseReadsAllowed:true};
 function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=false,failPersistence=false,lostResponse=false,known=null,loadGate=null,allowWrites=false,remote=new Map(),lostCommit=false,connectionEpoch=()=>0}={}) {
  let activePolicy={...policy},user=data.get('mock-auth')?{uid:data.get('mock-auth')}:null;
- const calls={load:0,app:0,auth:0,create:0,read:0,write:0,transactions:0};const reports=[];
+ const calls={load:0,app:0,auth:0,create:0,read:0,write:0,transactions:0,queries:[]};const reports=[];
  const storage={getItem:k=>{if(failStorage)throw Error('storage');return data.get(k)??null;},setItem:(k,v)=>{if(failStorage)throw Error('storage');data.set(k,v);},removeItem:k=>data.delete(k)};
  const sdk={app:{getApps:()=>[],initializeApp(){calls.app++;return {};},getApp:()=>({})},
   auth:{browserLocalPersistence:{type:'LOCAL'},initializeAuth(app,options){calls.auth++;assert(options.persistence);return {get currentUser(){return user;},authStateReady:async()=>{}};},
@@ -12,7 +12,7 @@ function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=
    signInAnonymously:async()=>{calls.create++;if(lostResponse)throw {code:'auth/network-request-failed',message:'private request URL must not leak'};user={uid:'mock-native-identity'};data.set('mock-auth',user.uid);return {user};}},
   firestore:{getFirestore:()=>({}),doc:(db,...p)=>typeof db==='string'?[db,...p].join('/'):p.join('/'),collection:(db,...p)=>p.join('/'),where:(...x)=>x,orderBy:x=>x,limit:x=>x,query:(...x)=>x,
    getDocFromServer:async key=>{calls.read++;return {exists:()=>remote.has(key),data:()=>remote.get(key)};},
-   getDocsFromServer:async q=>{calls.read++;return {docs:[...remote].filter(([key])=>key.startsWith(q[0]+'/')).map(([key,value])=>({id:key.split('/').at(-1),data:()=>value}))};},
+   getDocsFromServer:async q=>{calls.read++;calls.queries.push(q);return {docs:[...remote].filter(([key,value])=>key.startsWith(q[0]+'/') && q.filter(x=>Array.isArray(x) && x[1]==='==').every(([field,,n])=>value[field]===n)).map(([key,value])=>({id:key.split('/').at(-1),data:()=>value}))};},
    serverTimestamp:()=>({server:true}),async runTransaction(db,fn){
     if(!allowWrites)throw Error('write forbidden');calls.transactions++;const pending=[];
     const result=await fn({get:async key=>({exists:()=>remote.has(key),data:()=>remote.get(key)}),set:(key,value)=>pending.push([key,value])});
@@ -49,7 +49,7 @@ function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=
  const noCreation=fixture({policy:{...readPolicy,firebaseAnonymousAllowed:false}});await assert.rejects(noCreation.control.authenticate({createAnonymous:true}),/create-disabled/);assert.equal(noCreation.calls.create,0);
  let release;const pending=new Promise(r=>release=r);const revoked=fixture({loadGate:pending});const attempt=revoked.control.authenticate({createAnonymous:true});await Promise.resolve();revoked.revoke();release();await assert.rejects(attempt,/auth-disabled/);assert.equal(revoked.calls.app,0);
  const identity=()=>new Map([['mock-auth','existing-test'],[IDENTITY_KEY,'existing-test'],[ATTEMPT_KEY,'completed']]);
- const input={profile:{name:'iOS接続テスト',colors:['#123456'],headColor:'#abcdef',reachedLevel:2,reachedPrototypeLevel:1}};
+ const input={profile:{name:'iOS接続テスト',colors:['#123456'],headColor:'#abcdef',progressVersion:'v4',reachedLevel:2,reachedPrototypeLevel:1}};
  assert.equal(typeof restored.control.runLimitedWriteTest,'undefined');
  const removedMode=fixture({mode:'limited-write-test'});await assert.rejects(removedMode.control.authenticate(),/auth-disabled/);
  const autoPolicy={...readPolicy,firebaseMode:'auto-sync',firebaseAnonymousAllowed:false,firebaseAutomaticSyncAllowed:true};
@@ -84,6 +84,25 @@ function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=
  let chosen=await generations.control.syncAutomaticProfile('existing-test',{...input.profile,name:'iOS接続テスト'});
  assert.equal(chosen.name,'Real saved name');assert.equal(generations.remote.get('players/existing-test').name,'Real saved name');
  chosen=await generations.control.syncAutomaticProfile('existing-test',{...input.profile,name:'Explicit edit'},{nameChanged:true});assert.equal(chosen.name,'Explicit edit');
+ // Old progress is not reintroduced during a fresh profile/score sync. Names retain native policy.
+ const legacyProfile={...input.profile,name:'Legacy name',reachedLevel:900,reachedPrototypeLevel:800};delete legacyProfile.progressVersion;
+ generations.remote.set('players/existing-test',legacyProfile);
+ await assert.rejects(generations.control.syncAutomaticProfile('existing-test',legacyProfile),/invalid-profile/);
+ await generations.control.syncAutomaticProfile('existing-test',input.profile);
+ let adopted=generations.remote.get('players/existing-test');
+ assert.equal(adopted.progressVersion,'v4');assert.equal(adopted.reachedLevel,2);assert.equal(adopted.reachedPrototypeLevel,1);assert.equal(adopted.name,'Legacy name');
+ generations.remote.set('players/existing-test',{...adopted,reachedLevel:31,reachedPrototypeLevel:7});
+ await generations.control.syncAutomaticProfile('existing-test',input.profile);
+ adopted=generations.remote.get('players/existing-test');assert.equal(adopted.reachedLevel,31);assert.equal(adopted.reachedPrototypeLevel,7);
+ await generations.control.syncFreshScore('existing-test','v4_existing_4',{moves:10,timeMs:200,scoreSpecVersion:'v4'});
+ await generations.control.syncAutomaticProfile('existing-test',{...input.profile,reachedLevel:3});
+ assert.equal(generations.remote.get('players/existing-test').reachedLevel,31,'Same-generation max retained after new score');
+ generations.remote.set('players/legacy-other',{...legacyProfile,reachedLevel:2});
+ generations.remote.set('players/current-other',{...input.profile,reachedLevel:2});
+ const mapPlayers=await generations.control.players(2,2,'existing');assert.deepEqual(mapPlayers.map(x=>x.id),['current-other']);
+ assert.deepEqual(generations.calls.queries.at(-1),['players',['reachedLevel','==',2],['progressVersion','==','v4'],6]);
+ generations.remote.set('players/existing-test',{...input.profile,progressVersion:'v5'});
+ await assert.rejects(generations.control.syncAutomaticProfile('existing-test',input.profile),/invalid-remote-profile/);
  let epoch=2,unblock;const gate=new Promise(r=>unblock=r);const stale=fixture({data:identity(),loadGate:gate,connectionEpoch:()=>epoch});
  const reading=stale.control.getProfile('existing-test');epoch=3;unblock();await reading;assert.equal(stale.control.report().connectionEpoch,2,'Request carries its starting epoch, not completion epoch');
  await stale.control.getProfile('existing-test');assert.equal(stale.control.report().connectionEpoch,3);
