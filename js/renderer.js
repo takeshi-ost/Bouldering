@@ -69,7 +69,7 @@ function holdTintIndex(h) {
     hash=Math.imul(hash^(hash>>>16),0x45d9f3b);
     return ((hash^(hash>>>16))>>>0)%HOLD_TINT_RGB.length;
 }
-function createHoldTintAtlases(image,tints=HOLD_TINT_RGB) {
+function createHoldTintAtlases(image,tints=HOLD_TINT_RGB,requireVisible=false) {
     return tints.map(tint=>{
         const atlas=document.createElement('canvas');
         atlas.width=image.naturalWidth;
@@ -80,9 +80,12 @@ function createHoldTintAtlases(image,tints=HOLD_TINT_RGB) {
         try {pixels=paint.getImageData(0,0,atlas.width,atlas.height);}
         catch(error) {
             // Standalone file URLs may block pixel readback; retain playable original artwork.
-            if(error.name==='SecurityError')return image;
+            if(error.name==='SecurityError')return requireVisible?null:image;
             throw error;
         }
+        // A completed image can still yield an empty readback on a mobile
+        // decoder. Never permanently cache a transparent hazard as "drawn".
+        if(requireVisible && !pixels.data.some((value,i)=>i%4===3 && value>0))return null;
         for(let i=0;i<pixels.data.length;i+=4) {
             const tone=holdToneRGB(pixels.data[i],pixels.data[i+1],pixels.data[i+2]);
             for(let c=0;c<3;c++)pixels.data[i+c]=multiplyHoldChannel(tone[c],tint[c]);
@@ -102,19 +105,50 @@ function drawWideHoldSprite(h) {
     return true;
 }
 
-function drawHazardSpriteTo(paint,x,y,size,image=hazardHoldImage) {
-    if(!image?.complete || !image.naturalWidth)return false;
-    hazardHoldTintAtlas ??= createHoldTintAtlases(image,[HAZARD_HOLD_TINT_RGB])[0];
-    paintHazardAtlasTo(paint,x,y,size,hazardHoldTintAtlas);
-    return true;
+const hazardImageDecodeStates=new WeakMap();
+let hazardHoldTintSource=null;
+function hazardImageReady(image,alreadyDecoded=false) {
+    if(!image?.complete || !image.naturalWidth || !image.naturalHeight)return false;
+    if(alreadyDecoded || typeof image.decode!=='function') {
+        hazardImageDecodeStates.set(image,'ready');return true;
+    }
+    const status=hazardImageDecodeStates.get(image);
+    if(status==='ready')return true;
+    if(status)return false;
+    hazardImageDecodeStates.set(image,'pending');
+    // Decode explicitly before creating the long-lived Canvas cache. Keep the
+    // vector marker visible until this exact source is ready for Canvas use.
+    try {Promise.resolve(image.decode()).then(()=>{
+        hazardImageDecodeStates.set(image,'ready');requestGameRender();
+    },()=>{hazardImageDecodeStates.set(image,'failed');requestGameRender();});}
+    catch(_){hazardImageDecodeStates.set(image,'failed');}
+    return false;
+}
+function drawHazardSpriteTo(paint,x,y,size,image=hazardHoldImage,alreadyDecoded=false) {
+    if(!hazardImageReady(image,alreadyDecoded))return false;
+    try {
+        if(hazardHoldTintSource!==image || !hazardHoldTintAtlas) {
+            const atlas=createHoldTintAtlases(image,[HAZARD_HOLD_TINT_RGB],true)[0];
+            if(!atlas)return false;
+            hazardHoldTintAtlas=atlas;hazardHoldTintSource=image;
+        }
+        paintHazardAtlasTo(paint,x,y,size,hazardHoldTintAtlas);
+        return true;
+    } catch(_) {
+        // Canvas may still reject a source after decode resolves. Keep the
+        // vector fallback and allow a later draw to rebuild, never block help.
+        hazardHoldTintAtlas=null;hazardHoldTintSource=null;
+        return false;
+    }
 }
 function paintHazardAtlasTo(paint,x,y,size,atlas) {
     paint.save();
-    paint.translate(x,y);
-    // Shape five points right in the source; rotate its sharp corner upward.
-    paint.rotate(-Math.PI/2);
-    paint.drawImage(atlas,-size/2,-size/2,size,size);
-    paint.restore();
+    try {
+        paint.translate(x,y);
+        // Shape five points right in the source; rotate its sharp corner upward.
+        paint.rotate(-Math.PI/2);
+        paint.drawImage(atlas,-size/2,-size/2,size,size);
+    } finally {paint.restore();}
 }
 function drawHazardHoldSprite(h) {
     return drawHazardSpriteTo(ctx,h.x,h.y,21.6);
@@ -122,9 +156,11 @@ function drawHazardHoldSprite(h) {
 function paintHazardHelpIcon(canvas,image=hazardHoldImage) {
     // Help waits for a decoded source; never attach a late paint listener.
     if(!canvas || !image?.complete || !image.naturalWidth)return false;
-    const paint=canvas.getContext('2d');
-    paint.clearRect(0,0,canvas.width,canvas.height);
-    return drawHazardSpriteTo(paint,canvas.width/2,canvas.height/2,canvas.width,image);
+    try {
+        const paint=canvas.getContext('2d');
+        paint.clearRect(0,0,canvas.width,canvas.height);
+        return drawHazardSpriteTo(paint,canvas.width/2,canvas.height/2,canvas.width,image,true);
+    } catch(_) {return false;} // The explanation remains dismissible text.
 }
 
 function createMetallicGoalAtlas(image=holdShapesImage) {

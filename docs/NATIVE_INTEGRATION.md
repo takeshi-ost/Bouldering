@@ -1,9 +1,14 @@
-# Native source integration — 0.4.57
+# Native source integration — 0.4.58
 
 This adapts the existing native JavaScript wrapper to the current game. It changes the ordinary native Firebase build mode to auto-sync. It does
 not change signing, team, bundle ID, app metadata, native storage
-namespace, launch artwork or device installation. Native project metadata remains
+namespace or device installation. Native project metadata remains
 0.4.6/build14; this is not a signed native release.
+
+Source 0.4.58 additionally restores the previously approved AppIcon and native
+launch artwork omitted from the integration. See [ios-branding.md](ios-branding.md)
+for exact image hashes and verification limits. Native project identity and
+version/build settings remain unchanged.
 
 ## Integrated behavior
 

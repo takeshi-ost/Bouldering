@@ -4,6 +4,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
+// Native branding lives outside www. Include it in every bundle/build check so
+// a valid-looking Capacitor template cannot silently replace the approved art.
+require('./ios-branding.cjs');
 const nativeSource = require('../scripts/native-bundle-source.cjs');
 const bundle = path.join(root, 'www');
 const read = name => fs.readFileSync(path.join(bundle, name), 'utf8');

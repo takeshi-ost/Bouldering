@@ -53,8 +53,10 @@ old documents, logs and metadata are left unchanged. The native project remains
 public-baseline 0.4.6/build14, not a new native release. Current game-to-native
 source adapters and the queue support formal course generations; see
 [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) for remaining limits. Later private
-native work is retained separately; signing, identity and optional launch artwork
-are not imported.
+native work is retained separately; signing and identity are not imported. The
+approved AppIcon and launch artwork were subsequently restored in source 0.4.58;
+see [ios-branding.md](ios-branding.md). This changes resources only, not the native
+identity or build metadata.
 
 `firestore.rules` is an additive draft for v4. Its v1–v4 suite passed 129
 assertions in the GitHub demo emulator (see [CI scope](FIRESTORE_RULES_CI.md)).
