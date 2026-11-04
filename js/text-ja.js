@@ -241,7 +241,7 @@ const GAME_TEXT_JA = Object.freeze({
     "help.rules.heading": "ルール",
     "help.rules.goal": "手足4本がホールドに固定された状態で、黄色いゴールを両手でつかむとクリアです。",
     "help.rules.stamina": "1ムーブごとにスタミナを消費し、0になる前にゴールできれば登頂成功です。",
-    "help.rules.lives": "登頂に失敗するとライフが一つ減り、ライフがなくなると回復するまであそぶことができません。",
+    "help.rules.lives": "ステージマップでは、登頂に失敗するとライフが一つ減り、ライフがなくなると回復するまであそぶことができません。",
     "help.rules.tutorial": "",
     "help.controls.heading": "そうさ方法",
     "help.controls.move": "画面をスワイプして体を動かします。2本の手足で支え、残りの2本は近くのホールドへ自動で移ります。",

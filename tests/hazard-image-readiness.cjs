@@ -10,7 +10,7 @@ class Image {
 }
 const document={createElement(){atlasCreates++;let source;
  return {width:0,height:0,getContext(){return {drawImage(image){source=image;if(source.drawError)throw Error('Canvas draw failure');},getImageData(){if(source.readError)throw Object.assign(Error('readback'),{name:source.readError});return {data:new Uint8ClampedArray([100,100,100,source.visible?255:0])};},putImageData(){}};}};}};
-const c=vm.createContext({Image,document,ctx,requestGameRender(){wakeups++;},Math,Promise});
+const c=vm.createContext({Image,document,ctx,requestStageArtworkRender(){wakeups++;},Math,Promise});
 const run=s=>vm.runInContext(s,c),flush=async()=>{for(let i=0;i<4;i++)await Promise.resolve();};
 run(section);
 (async()=>{

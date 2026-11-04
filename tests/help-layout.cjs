@@ -19,7 +19,7 @@ for(const [before,after,section] of [
  assert.equal(second.attrs.class,undefined,'No image-column styling on full-width paragraph');
 }
 assert.equal(b.run('GAME_TEXT_JA["help.controls.move"]'),'画面をスワイプして体を動かします。2本の手足で支え、残りの2本は近くのホールドへ自動で移ります。');
-assert.equal(b.run('GAME_TEXT_JA["help.rules.lives"]'),'登頂に失敗するとライフが一つ減り、ライフがなくなると回復するまであそぶことができません。');
+assert.equal(b.run('GAME_TEXT_JA["help.rules.lives"]'),'ステージマップでは、登頂に失敗するとライフが一つ減り、ライフがなくなると回復するまであそぶことができません。');
 for(const [key,section] of [['help.map.select','helpMap'],['help.daily.select','helpDaily'],['help.editor.customize','helpEditor']]){
  const copy=byKey(key),row=copy.parent;assert.equal(row.attrs.class,'help-illustrated-row');assert.equal(row.parent.attrs['aria-labelledby'],section);assert.equal(row.parent.children[1],row,'New picture is at the first paragraph, immediately after its section heading');
 }

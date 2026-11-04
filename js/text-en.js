@@ -270,7 +270,7 @@ const GAME_TEXT_EN = Object.freeze({
     "help.rules.heading": "Rules",
     "help.rules.goal": "Grab the yellow goal with both hands while all four limbs are fixed on holds to clear the stage.",
     "help.rules.stamina": "Each move uses stamina. Reach the goal before it drops to 0 to complete the climb.",
-    "help.rules.lives": "Failing a climb costs one life. If you run out of lives, you cannot play until they recover.",
+    "help.rules.lives": "On the Stage Map, failing a climb costs one life. If you run out of lives, you cannot play until they recover.",
     "help.rules.tutorial": "",
     "help.controls.heading": "Controls",
     "help.controls.move": "Swipe the screen to move your body. Two limbs support you while the other two automatically move to nearby holds.",

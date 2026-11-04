@@ -1,4 +1,4 @@
-# Current game integration — shared game 0.5.0
+# Current game integration — shared game 0.5.1
 
 Pages now builds and deploys this shared branch through Actions. See
 [shared release workflow](SHARED_RELEASE_WORKFLOW.md) for current publication,
@@ -55,7 +55,7 @@ short-heart cap and low-score exclusivity remain unchanged. No rebalance.
 
 Private policy/support drafts, local release identity settings and private commit
 ancestry are not introduced. Existing public `balance-trial/`, native project,
-old documents, logs and metadata are left unchanged. The native source metadata is now 0.5.0/build15 in both configurations; the
+old documents, logs and metadata are left unchanged. The native source metadata is now 0.5.1/build15 in both configurations; the
 installed iPhone remains game 0.4.61 with native metadata 0.4.6/build14. Current game-to-native
 source adapters and the queue support formal course generations; see
 [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) for remaining limits. Later private

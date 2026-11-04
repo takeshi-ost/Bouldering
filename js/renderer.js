@@ -14,7 +14,7 @@ function drawWallBackground() {
 
 
 const floorExtensionImage=typeof Image==='function'?new Image():null;
-if(floorExtensionImage){floorExtensionImage.src='assets/gym-floor-extended.png';floorExtensionImage.addEventListener?.('load',()=>{if(typeof requestGameRender==='function')requestGameRender();});}
+if(floorExtensionImage){floorExtensionImage.src='assets/gym-floor-extended.png';floorExtensionImage.addEventListener?.('load',requestStageArtworkRender);}
 const gymFloorImage=typeof Image==='function'?new Image():null;
 if(gymFloorImage)gymFloorImage.src='assets/gym-floor.webp';
 function drawGymFloor() {
@@ -119,8 +119,8 @@ function hazardImageReady(image,alreadyDecoded=false) {
     // Decode explicitly before creating the long-lived Canvas cache. Keep the
     // vector marker visible until this exact source is ready for Canvas use.
     try {Promise.resolve(image.decode()).then(()=>{
-        hazardImageDecodeStates.set(image,'ready');requestGameRender();
-    },()=>{hazardImageDecodeStates.set(image,'failed');requestGameRender();});}
+        hazardImageDecodeStates.set(image,'ready');requestStageArtworkRender();
+    },()=>{hazardImageDecodeStates.set(image,'failed');requestStageArtworkRender();});}
     catch(_){hazardImageDecodeStates.set(image,'failed');}
     return false;
 }
@@ -605,7 +605,7 @@ function drawJaggedHold(x,y,r,fill,stroke) {
 // The same image, including the digit, is shared by pickups and explanations.
 const courseHeartImage=typeof Image==='function'?new Image():null;
 if(courseHeartImage) {
-    courseHeartImage.onload=()=>requestGameRender();
+    courseHeartImage.onload=requestStageArtworkRender;
     courseHeartImage.src=COURSE_HEART_IMAGE_SRC;
 }
 function drawCourseHeart(heart) {
@@ -636,6 +636,13 @@ function drawStageIntro() {
 // Bootstrap life hooks can run before presentation initialization.
 var presentationEnabled=false;
 let gameFrame=null,presentationTimer=null,presentationStateKey='',lastStagePaintKey='';
+let stageArtworkRevision=0,lastStageArtworkRevision=-1,lastStagePaintTime=0,lastStageFrameTime=0;
+function requestStageArtworkRender() {
+    // Pausing animation must not freeze an unloaded/undecoded placeholder.
+    // Asset completion permits one static repaint, then returns to idle.
+    stageArtworkRevision++;
+    requestGameRender();
+}
 function requestGameRender() {
     if(typeof queueBackgroundMusicScene==='function')queueBackgroundMusicScene();
     if(!presentationEnabled || document.hidden)return;
@@ -736,7 +743,7 @@ function startPresentation() {
     window.addEventListener('blur',requestGameRender);
     window.visualViewport?.addEventListener('resize',requestGameRender);
     for(const image of [gameWallImage,gymFloorImage,holdShapesImage,wideHoldImage,hazardHoldImage])
-        image?.addEventListener?.('load',requestGameRender);
+        image?.addEventListener?.('load',requestStageArtworkRender);
     wake();
 }
 
@@ -751,10 +758,14 @@ function draw(now = 0) {
         return;
     }
     const paintKey=lifeAttemptId+':'+state;
-    if(presentationEnabled && presentationBlocked() && lastStagePaintKey===paintKey) {
+    const blocked=presentationBlocked(),sameStage=lastStagePaintKey===paintKey;
+    if(presentationEnabled && blocked && sameStage && lastStageArtworkRevision===stageArtworkRevision) {
         updateGoalEffects();return;
     }
-    if(!presentationBlocked())advanceCameraIntro(now);
+    // An artwork-only repaint preserves the paused camera and animation pose.
+    const paintTime=blocked && sameStage?lastStagePaintTime:performance.now();
+    if(blocked && sameStage)now=lastStageFrameTime;
+    if(!blocked)advanceCameraIntro(now);
     if(characterAnimation?.kind==='fall')camera=characterAnimation.camera;
 
     const desired = clamp(
@@ -768,7 +779,7 @@ function draw(now = 0) {
         !cameraIntro &&
         !drag &&
         !bodyTap &&
-        !inspecting && !settingsOpen &&
+        !inspecting && !blocked &&
         state === 'playing'
     ) {
         camera = Math.abs(desired-camera)<.05 ? desired :
@@ -1047,7 +1058,7 @@ function draw(now = 0) {
         drawCourseHeart(heart);
     }
 
-    const visual=characterPose(performance.now());
+    const visual=characterPose(paintTime);
     ctx.save();
     if(visual.pivot) {
         ctx.translate(visual.pivot.x,visual.pivot.y);
@@ -1057,7 +1068,7 @@ function draw(now = 0) {
     ctx.lineCap = 'round';
 
     const animationTime =
-        performance.now() / 1000;
+        paintTime / 1000;
 
     visual.contacts.forEach((grip, i) => {
         const moving =
@@ -1098,7 +1109,7 @@ function draw(now = 0) {
     });
 
     ctx.save();
-    ctx.translate(hazardShakeOffset(performance.now()),0);
+    ctx.translate(hazardShakeOffset(paintTime),0);
     const left =
         visual.body.x -
         TORSO.width / 2;
@@ -1163,7 +1174,7 @@ function draw(now = 0) {
     ctx.restore();
     drawDebugHoldNumbers();
     drawAnchorRings(now);
-    drawHeartPopups(performance.now());
+    drawHeartPopups(paintTime);
     ctx.restore();
     if(pan?.edge && pan.scrolling && canScrollStage()) {
         ctx.fillStyle=RENDER_CONFIG.safeAreaColor;
@@ -1171,6 +1182,7 @@ function draw(now = 0) {
     }
     drawStageIntro();
     lastStagePaintKey=paintKey;
+    lastStageArtworkRevision=stageArtworkRevision;lastStagePaintTime=paintTime;lastStageFrameTime=now;
 
     updateGoalEffects();
     continueGameAnimation(now);

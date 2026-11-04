@@ -27,7 +27,7 @@ historical; Pages now uses the Actions artifact from the shared branch.
 The initial shared publication was the deployment companion to game release **0.4.61**, based
 on iPhone source `4f49d775fd2837dfbebd10b8ec6069a9c3e8e28a`; that publication changed no shared
 gameplay source and did not increment the same release again. Shared source is now
-**0.5.0**, including the [profile status update](profile-sync-status-050.md). The installed
+**0.5.1**, including the [profile status update](profile-sync-status-050.md). The installed
 iPhone remains at the 0.4.61 commit until a separately requested update.
 
 ## Necessary platform differences
