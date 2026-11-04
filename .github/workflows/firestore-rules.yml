@@ -46,6 +46,8 @@ jobs:
       - name: Run native auth, queue and connection mocks
         run: |
           node tests/native-firebase.cjs
+          node tests/native-deletion-controller.cjs
+          node tests/native-account-deletion.cjs
           node tests/native-auto-sync.cjs
           node tests/native-sync-status.cjs
           node tests/build-policy.cjs
@@ -76,7 +78,7 @@ jobs:
             echo "Rules SHA-256: $(sha256sum firestore.rules | cut -d ' ' -f 1)"
             echo 'Checks: legacy/current score permissions, v1–v4 board metadata, ownership, validation, improvements and deletion locks.'
             echo 'Also checks: Web integration/online mocks; native v4 auth/queue/connection mocks, emitted startup and full offline game bundle.'
-            echo 'Native limitations: no Xcode/signing/device verification in this job; new-user registration is mocked; transfer and deletion restrictions remain.'
+            echo 'Native limitations: no Xcode/signing/device verification in this job; new-user registration is mocked; transfer remains disabled; deletion uses synthetic mocks only.'
             echo 'Not checked: deployed production Rules, production connectivity, real anonymous-auth lifecycle, browser or native app.'
             echo 'No Firebase login, deploy, production credentials, Pages deploy, or repository writes.'
           } >> "$GITHUB_STEP_SUMMARY"
