@@ -24,7 +24,7 @@ playerName='最初の名前';playerColors=['#112233','#abcdef'];playerHeadColor=
 const local=onlineProfile();await startOnline(adapter);
 assert(online.ready);assert.deepEqual(remote,local,'First auth migrates local appearance and progress');
 assert.equal(ui.playerUuid.textContent,'UID test-owner');assert.equal(JSON.parse(data[ONLINE_PROFILE_KEY]).uid,'test-owner');
-assert.equal(online.status,'オンラインに保存済み');
+assert.equal(online.status,'プロフィール同期済み');
 // Simulate a clean reload with the same authenticated identity: restore server data.
 online.ready=false;remote={...remote,name:'クラウド',colors:['#556677'],reachedLevel:10};await startOnline(adapter);
 assert.equal(playerName,'クラウド');assert.deepEqual(playerColors,['#556677']);assert.equal(stageProgress.existing.cleared,9);

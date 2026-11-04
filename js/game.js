@@ -65,7 +65,7 @@ function showStageHelp() {
 function stageHelpCopy(feature=pendingFeatureHelp[0]) {
     const heart=feature==='heart',wide=feature==='wide';
     return {
-        title:wide?gameText("tutorial.title.wide"):heart?gameText("item.heart"):gameText("hold.hazard"),
+        title:wide?gameText("tutorial.title.wide"):heart?gameText("feature.title.heart"):gameText("hold.hazard"),
         text:wide?gameText("tutorial.wide"):heart?gameText("feature.heart"):gameText("feature.hazard")
     };
 }

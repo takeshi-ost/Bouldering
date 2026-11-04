@@ -469,6 +469,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 .stage-start-info dd { margin:0; font-size:14px; line-height:20px; font-weight:800; white-space:nowrap; font-variant-numeric:tabular-nums; }
 @media (max-width:350px) { .stage-start-info { padding-left:6px; } .stage-start-info dd { font-size:12px; } }
 #stageStartButton { display:block; width:100%; min-height:44px; margin-top:0; font-size:15px; }
+#stageStartButton,#dailyStartButton { height:auto; min-height:48px; font-size:24px; line-height:1.25; font-weight:900; -webkit-text-stroke:2px #fff; paint-order:stroke fill; }
 
 .stage-heart-items { margin:0 0 14px; padding:12px 10px 8px; border-radius:12px; background:#eee9df; }
 .stage-heart-controls { display:flex; align-items:center; justify-content:center; gap:6px; font-size:20px; line-height:1; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
@@ -621,7 +622,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 
 #overlay .result-tip { margin:16px 0 18px; text-align:left; }
 #overlay .result-tip[hidden] { display:none; }
-#overlay .result-tip p { margin:0; color:#395343; font-size:13px; line-height:1.6; overflow-wrap:anywhere; }
+#overlay .result-tip p { margin:0; color:#395343; font-size:16px; line-height:1.6; overflow-wrap:anywhere; }
 
 /* The stage wall moves from its bottom to its top once over five minutes. */
 .title-wallpaper { position:absolute; inset:0 0 auto; height:300%; pointer-events:none;

@@ -13,10 +13,10 @@ assert.equal(GAME_TEXT_LANGUAGE,'ja');assert.equal(ui.languageChoice.value,'ja')
 map();setOnlineStatus(gameText('firebase-client.bootFirebase'));ui.mapSettingsButton.onclick();
 let before=snapshot();ui.languageChoice.value='en';ui.languageChoice.onchange();
 assert.equal(GAME_TEXT_LANGUAGE,'en');assert.equal(data[LANGUAGE_KEY],'en');assert.equal(state,'map');assert(settingsOpen);assert.equal(snapshot(),before);
-assert.equal(online.status,'Offline (playing on this device)');assert.equal(ui.playerUuid.textContent,'UID Not connected');
+assert.equal(online.status,'Profile not synced (offline; playing on this device)');assert.equal(ui.playerUuid.textContent,'UID Not connected');
 assert.equal(ui.mapInventory['aria-label'],'Chalk Bags owned: 5');assert.equal(gameText('leaderboard.stageLeaderboardMarkup',{value6:1,value0:1}),'1 move');
 assert.equal(GAMEPLAY_TIPS[1],'Tap your body to undo one move!');assert(ui.mapNodes.innerHTML.includes('Ready to play'));
-ui.languageChoice.value='ja';ui.languageChoice.onchange();assert.equal(online.status,'オフライン（端末内でプレイ）');assert.equal(ui.playerUuid.textContent,'UID 未接続');assert.equal(snapshot(),before);
+ui.languageChoice.value='ja';ui.languageChoice.onchange();assert.equal(online.status,'プロフィール未同期（オフライン・端末内でプレイ）');assert.equal(ui.playerUuid.textContent,'UID 未接続');assert.equal(snapshot(),before);
 assert.equal(setGameLanguage('xx'),false);assert.equal(GAME_TEXT_LANGUAGE,'ja');
 transferState.busy=true;ui.languageChoice.value='en';ui.languageChoice.onchange();assert.equal(ui.languageChoice.value,'ja');assert.equal(GAME_TEXT_LANGUAGE,'ja');transferState.busy=false;
 ui.closeSettings.onclick();showDailyCalendar();chooseDailyDate(localToday());

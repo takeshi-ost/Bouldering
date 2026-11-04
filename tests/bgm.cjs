@@ -45,22 +45,22 @@ const tick=()=>new Promise(r=>setImmediate(r));
 
  // Stage restarts begin at zero with a true five-second linear fade; pause retains fade progress.
  h.run("let state='playing';startStageBackgroundMusic();");await tick();
- h.run("assert.equal(bgmPlayback.track,'stage');assert.equal(bgmPlayback.offset,0);assert.equal(bgmPlayback.source.loopEnd,1+3704399/44100);assert.equal(JSON.stringify(bgmPlayback.gain.gain.sets),JSON.stringify([[0,0]]));assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.42,5]]));");
+ h.run("assert.equal(bgmPlayback.track,'stage');assert.equal(bgmPlayback.offset,0);assert.equal(bgmPlayback.source.loopEnd,1+3704399/44100);assert.equal(JSON.stringify(bgmPlayback.gain.gain.sets),JSON.stringify([[0,0]]));assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.75,5]]));");
  h.run('soundContext.currentTime=2;');h.emit('blur');h.emit('focus');await tick();
- h.run('assert.equal(bgmPlayback.offset,2);assert.equal(bgmPlayback.gain.gain.sets[0][0],.42*2/5);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.42,5]]));');
+ h.run('assert.equal(bgmPlayback.offset,2);assert.equal(bgmPlayback.gain.gain.sets[0][0],.75*2/5);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.75,5]]));');
  const stageVoice=h.run('bgmPlayback.source');
  h.run("state='won';queueBackgroundMusicScene();");await tick();assert.equal(h.run('bgmPlayback.source'),stageVoice);
  h.run("state='lost';queueBackgroundMusicScene();");await tick();assert.equal(h.run('bgmPlayback.source'),stageVoice);
- h.run('startStageBackgroundMusic();assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.42,7]]));');
+ h.run('startStageBackgroundMusic();assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.75,7]]));');
  h.run("state='map';queueBackgroundMusicScene();");await tick();h.run("assert.equal(bgmPlayback.track,'main');assert.equal(bgmPlayback.offset,0);");
  // Ads suppress all music, including delayed unlock/focus/decode callbacks, until the cover is gone.
  h.run("state='ad';stopBackgroundMusicForAd();assert.equal(bgmPlayback,null);unlockSound();");h.emit('focus');await tick();h.run('assert.equal(bgmPlayback,null);');
  h.run("state='playing';startStageBackgroundMusic();queueBackgroundMusicScene();");await tick();h.run('assert.equal(bgmPlayback,null);');
  h.run('resumeBackgroundMusicAfterAd();assert.equal(bgmPlayback,null);');await tick();
- h.run("assert.equal(bgmPlayback.track,'stage');assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.sets),JSON.stringify([[0,2]]));assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.42,3]]));");
+ h.run("assert.equal(bgmPlayback.track,'stage');assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.sets),JSON.stringify([[0,2]]));assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.75,3]]));");
  h.run("state='ad';stopBackgroundMusicForAd();state='won';resumeBackgroundMusicAfterAd();state='reward';queueBackgroundMusicScene();");await tick();
- h.run("assert.equal(bgmPlayback.track,'main');assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.42,3]]));");
- h.run("state='ad';stopBackgroundMusicForAd();setMusicEnabled(false);state='map';resumeBackgroundMusicAfterAd();");await tick();h.run('assert.equal(bgmPlayback,null);setMusicEnabled(true);assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.42,3]]));');
+ h.run("assert.equal(bgmPlayback.track,'main');assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.60,3]]));");
+ h.run("state='ad';stopBackgroundMusicForAd();setMusicEnabled(false);state='map';resumeBackgroundMusicAfterAd();");await tick();h.run('assert.equal(bgmPlayback,null);setMusicEnabled(true);assert.equal(bgmPlayback.offset,0);assert.equal(JSON.stringify(bgmPlayback.gain.gain.ramps),JSON.stringify([[.60,3]]));');
  // A stage download finishing during an ad stays silent, then starts the correct scene at zero.
  const late=fixture();late.emit('pointerdown');late.run("let state='playing';startStageBackgroundMusic();state='ad';stopBackgroundMusicForAd();");late.release();await tick();late.run('assert.equal(bgmPlayback,null);');
  late.run("state='daily';resumeBackgroundMusicAfterAd();");await tick();late.run("assert.equal(bgmPlayback.track,'main');assert.equal(bgmPlayback.offset,0);assert.equal(bgmFadeSeconds,1);");

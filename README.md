@@ -1,4 +1,4 @@
-> **Web/iOS shared game source 0.4.61.** Web is published from this branch by Pages Actions; iOS updates use a separately reviewed commit and signed build.
+> **Web/iOS shared game source 0.5.0.** Web is published from this branch by Pages Actions; iOS updates use a separately reviewed commit and signed build. Native source metadata is 0.5.0/build 15; this does not update an installed iPhone.
 > Use `npm run test:web` and `npm run build:web -- /absolute/new-output-directory`.
 > See [shared release workflow](docs/SHARED_RELEASE_WORKFLOW.md) for publication and Web-to-iOS updates, and [current integration](docs/FORMAL_INTEGRATION.md) for save/Firebase behavior. Older design notes below are historical, not the current generator specification.
 

@@ -1,4 +1,4 @@
-# Current game integration — shared game 0.4.61
+# Current game integration — shared game 0.5.0
 
 Pages now builds and deploys this shared branch through Actions. See
 [shared release workflow](SHARED_RELEASE_WORKFLOW.md) for current publication,
@@ -55,14 +55,14 @@ short-heart cap and low-score exclusivity remain unchanged. No rebalance.
 
 Private policy/support drafts, local release identity settings and private commit
 ancestry are not introduced. Existing public `balance-trial/`, native project,
-old documents, logs and metadata are left unchanged. The native project remains
-public-baseline 0.4.6/build14, not a new native release. Current game-to-native
+old documents, logs and metadata are left unchanged. The native source metadata is now 0.5.0/build15 in both configurations; the
+installed iPhone remains game 0.4.61 with native metadata 0.4.6/build14. Current game-to-native
 source adapters and the queue support formal course generations; see
 [NATIVE_INTEGRATION.md](NATIVE_INTEGRATION.md) for remaining limits. Later private
 native work is retained separately; signing and identity are not imported. The
 approved AppIcon and launch artwork were subsequently restored in source 0.4.58;
-see [ios-branding.md](ios-branding.md). This changes resources only, not the native
-identity or build metadata.
+see [ios-branding.md](ios-branding.md). That artwork update changed resources only. The later 0.5.0 metadata alignment
+does not change the app identity or update an installed device.
 
 `firestore.rules` is an additive draft for v4. Its v1–v4 suite passed 129
 assertions in the GitHub demo emulator (see [CI scope](FIRESTORE_RULES_CI.md)).
@@ -77,6 +77,6 @@ It is not the entire legacy/native test aggregate. Browser/device/audio and
 actual Firebase access remain unperformed; current native scope is documented
 separately and is not a signed/Xcode-compiled release.
 
-Current focused result: **31/31 Web suites passed**, alongside the native checks
+Historical initial focused result: **31/31 Web suites passed**, alongside the native checks
 listed above. The initial Web-only integration result is retained separately:
 [verification/web-integration-0.4.47.json](verification/web-integration-0.4.47.json).

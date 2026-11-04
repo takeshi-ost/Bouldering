@@ -2,8 +2,10 @@
 // Separate from SE voices: screen changes select tracks without render/audio polling.
 // One second of cyclic audio at each end keeps encoder padding outside the loop.
 const BACKGROUND_MUSIC={
-    main:{src:'assets/audio/bgm-loop.mp3?v=30c3fda2ce8a',volume:.42,loopStart:1,loopSeconds:64},
-    stage:{src:'assets/audio/bgm-stage-loop.mp3?v=21690a060444',volume:.42,loopStart:1,loopSeconds:3704399/44100}
+    // Fixed track balance is before the unchanged 0–1 user music volume bus.
+    // Decoded RMS levels match within 0.1 dB; peaks retain mixing headroom.
+    main:{src:'assets/audio/bgm-loop.mp3?v=30c3fda2ce8a',volume:.60,loopStart:1,loopSeconds:64},
+    stage:{src:'assets/audio/bgm-stage-loop.mp3?v=21690a060444',volume:.75,loopStart:1,loopSeconds:3704399/44100}
 };
 const bgmCache=new Map();
 let bgmTrack='main',bgmPlayback=null,bgmOffset=0,bgmFadeSeconds=.03,bgmFadeElapsed=0;

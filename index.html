@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=af8e27458e28">
+    <link rel="stylesheet" href="styles.css?v=29652558e0cc">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=8adae9aa1630" defer></script>
-    <script src="js/text-ja.js?v=a5bcb80d05a8" defer></script>
-    <script src="js/text-en.js?v=9f692f86b63f" defer></script>
+    <script src="js/text-ja.js?v=da6b71ac6f95" defer></script>
+    <script src="js/text-en.js?v=0b468323486e" defer></script>
     <script src="js/text-dev-ja.js?v=f2435dbb1cf2" defer></script>
     <script src="js/text.js?v=c7df5d2ebf70" defer></script>
     <script src="js/score-metadata.js?v=ad0e02f921ca" defer></script>
-    <script src="js/config.js?v=5c756f4ade90" defer></script>
+    <script src="js/config.js?v=beb0d45728d9" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=3438658870e1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -21,11 +21,11 @@
     <script src="js/difficulty-config.js?v=7f4b057f8319" defer></script>
     <script src="js/viewport.js?v=b5ffb9620615" defer></script>
     <script src="js/audio.js?v=993cf413c7fa" defer></script>
-    <script src="js/bgm.js?v=c96d77ab4e58" defer></script>
+    <script src="js/bgm.js?v=f62ff99b237f" defer></script>
     <script src="js/utils.js?v=d73670fd1f8d" defer></script>
     <script src="js/difficulty.js?v=c750680f755f" defer></script>
     <script src="js/stage.js?v=1c768a6ef803" defer></script>
-    <script src="js/game.js?v=ccdb02bfc176" defer></script>
+    <script src="js/game.js?v=417cd058f72c" defer></script>
     <script src="js/route.js?v=850c0b3b7c69" defer></script>
     <script src="js/course.js?v=15b72884cb1e" defer></script>
     <script src="js/hazards.js?v=94e27f98abbb" defer></script>
@@ -282,8 +282,6 @@
             <div class="help-heading"><h2 id="settingsTitle" data-i18n="ui.settingsTitle"></h2><button id="closeSettings" class="modal-close" aria-label="" data-i18n-aria-label="ui.closeSettings.aria-label">✕</button></div>
             <div id="settingsConnectionStatus" class="settings-row settings-connection"><span data-i18n="settings.connection"></span><strong id="settingsConnectionValue" role="status" aria-live="polite"></strong></div>
             <div id="settingsVersion" class="settings-row settings-version"><span data-i18n="settings.appVersion"></span><strong id="settingsVersionValue"></strong></div>
-            <p id="onlineStatus" class="online-status" role="status" data-i18n="online"></p>
-            <p id="onlineScoreStatus" class="online-status" role="status" hidden></p>
             <label id="mapSettingsLanguage" class="settings-row" for="languageChoice"><span data-i18n="ui.mapSettingsControls.label.span.2"></span><select id="languageChoice"><option value="ja" data-i18n="ui.languageChoice.option"></option><option value="en" data-i18n="ui.languageChoice.option.2"></option></select></label>
             <div class="settings-row audio-settings-row">
                 <label class="audio-toggle" for="musicEnabled"><span data-i18n="audio.music"></span><input id="musicEnabled" type="checkbox" checked></label>
@@ -311,6 +309,8 @@
                 <label class="settings-row" for="debugHoldNumbers"><span data-i18n="ui.stageDebugDisplay.label.span.2"></span><input id="debugHoldNumbers" type="checkbox" checked></label>
                 <label class="settings-row" for="debugCourseInfo"><span data-i18n="ui.stageDebugDisplay.label.span.3"></span><input id="debugCourseInfo" type="checkbox" checked></label>
             </div>
+            <p id="onlineStatus" class="online-status" role="status" data-i18n="online"></p>
+            <p id="onlineScoreStatus" class="online-status" role="status" hidden></p>
         </dialog>
         <dialog id="deleteUserDialog" class="settings-dialog" aria-labelledby="deleteUserTitle">
             <h2 id="deleteUserTitle" data-i18n="ui.debugDeleteUser"></h2>

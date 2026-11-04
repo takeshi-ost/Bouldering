@@ -13,12 +13,13 @@ assert.deepEqual(runtime('0.3.14'),{appVersion:'0.3.14',buildNumber:null,platfor
 const sourceConfig=fs.readFileSync('js/config.js','utf8'),project=fs.readFileSync('ios/App/App.xcodeproj/project.pbxproj','utf8');
 const actualVersion=sourceConfig.match(/const RELEASE_VERSION = '([^']+)'/)[1];
 const actualSpec=sourceConfig.match(/const COURSE_VERSION = '([^']+)'/)[1];
-assert.match(actualVersion,/^0\.4\.[0-9]+$/);assert.equal(actualSpec,'v4');
+assert.match(actualVersion,/^\d+\.\d+\.\d+$/);assert.equal(actualSpec,'v4');
 assert.equal(JSON.parse(fs.readFileSync('package.json','utf8')).version,actualVersion);
 assert.equal(JSON.parse(fs.readFileSync('package-lock.json','utf8')).version,actualVersion);
 const nativeBuilds=[...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map(m=>m[1]);assert.equal(nativeBuilds.length,2);assert.equal(nativeBuilds[0],nativeBuilds[1]);assert.match(nativeBuilds[0],/^[0-9]+$/);
-// This adoption targets Web; native binary identity remains the last approved release.
-assert.deepEqual([...project.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map(m=>m[1]),['0.4.6','0.4.6']);assert.deepEqual(nativeBuilds,['14','14']);
+// Source metadata is aligned for the next native build; this does not update the installed app.
+assert.deepEqual([...project.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map(m=>m[1]),[actualVersion,actualVersion]);assert.deepEqual(nativeBuilds,['15','15']);
+assert.deepEqual(runtime(actualVersion,nativeBuilds[0],actualSpec),{appVersion:actualVersion,buildNumber:'15',platform:'iOS',scoreSpecVersion:actualSpec});
 // Existing native v1 provenance is tested without claiming a v4 native build.
 assert.deepEqual(runtime('0.4.6','14','v1'),{appVersion:'0.4.6',buildNumber:'14',platform:'iOS',scoreSpecVersion:'v1'});
 assert.deepEqual(runtime(actualVersion,undefined,actualSpec),{appVersion:actualVersion,buildNumber:null,platform:'Web',scoreSpecVersion:actualSpec});
@@ -63,5 +64,5 @@ assert.deepEqual(scoreMetadata({version:'v1'}),{appVersion:null,buildNumber:null
  await vm.runInContext("online.ready=true;online.adapter={saveScore:async(uid,board,score)=>{webSent.push(score);return score;}};flushOnlineScores()",webAfter);
  assert.deepEqual(scoreMetadata(webSent[0]),runtime('0.3.14'));
  assert.equal(JSON.parse(webData.get('ascent.pending-scores.v1')).items.length,0);
- console.log('PASS score provenance: Web unknown build; unchanged native0.4.6/build14 v1 provenance; current Web v4 normal / v3 Daily generation with legacy v1 provenance; offline upgrade preserves original metadata; old queues stay unknown; historical queue untouched');
+ console.log('PASS score provenance: Web unknown build; aligned native source version/build15; historical native0.4.6/build14 v1 provenance; current Web v4 normal / v3 Daily generation with legacy v1 provenance; offline upgrade preserves original metadata; old queues stay unknown; historical queue untouched');
 })().catch(e=>{console.error(e);process.exitCode=1;});

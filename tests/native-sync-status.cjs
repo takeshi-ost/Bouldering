@@ -32,7 +32,7 @@ const nativeHTML=nativeSettingsLayout(html);
 const dialog=text=>text.match(/<dialog id="settingsDialog"[\s\S]*?<\/dialog>/)[0];
 const webDialog=dialog(html),nativeDialog=dialog(nativeHTML);
 const nodes=['onlineStatus','onlineScoreStatus'].map(id=>webDialog.match(new RegExp('<p\\b[^>]*id="'+id+'"[^>]*>[\\s\\S]*?<\\/p>'))[0]);
-assert(webDialog.indexOf('id="onlineStatus"')<webDialog.indexOf('id="mapSettingsLanguage"'),'Ordinary Web status location stays unchanged');
+assert(webDialog.indexOf('id="onlineStatus"')>webDialog.indexOf('id="stageDebugDisplay"'),'Web profile sync follows all context/debug controls, matching native');
 assert(nativeDialog.indexOf('id="onlineStatus"')>nativeDialog.indexOf('id="stageDebugDisplay"'),'Native diagnostics follow all context/debug controls');
 assert(nativeDialog.endsWith(nodes.join('\n            ')+'\n        </dialog>'));
 for(const node of nodes)assert.equal(nativeDialog.split(node).length,2,'Preserve attributes and exactly one copy of each diagnostic');
