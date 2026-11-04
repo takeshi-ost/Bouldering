@@ -2,7 +2,7 @@
 const {scoreMetadata,supportedCourseVersion,supportedScoreBoard,scoreMatchesBoard,ONLINE_PROGRESS_VERSION}=require('../js/score-metadata.js');
 const SYNC_KEY='ascent.native-sync.after-enable.v1';
 function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clock=Date.now,courseVersion='v1',startPaused=false}) {
-    let state,flight=null,halted=false,active=!startPaused && !!owner;
+    let state,flight=null,halted=false,stopped=false,active=!startPaused && !!owner;
     const stats={boundaryPersisted:false,freshPending:0,freshDelivered:0,profilePending:false,profileNamePreserved:true,syncError:''};
     // Retain old queued profiles without sending/relabeling their legacy progress.
     const currentProfile=()=>!!state?.profile?.value && state.profile.value.progressVersion===ONLINE_PROGRESS_VERSION;
@@ -20,7 +20,7 @@ function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clo
     // Only the authenticated startup may bind an owner. A first offline session
     // can retain fresh events in this same ledger without inventing an identity.
     function activate(uid) {
-        if(halted)return false;
+        if(halted || stopped)return false;
         try {
             if(typeof uid!=='string' || !uid || (state.owner && state.owner!==uid))throw Error('native-sync/identity-mismatch');
             if(!state.owner)commit({...state,owner:uid});
@@ -28,18 +28,18 @@ function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clo
         }catch(e){halted=true;active=false;fail(e.message);return false;}
     }
     async function flush() {
-        if(halted || !active || !controller.permissions().automaticSync)return;
+        if(halted || stopped || !active || !controller.permissions().automaticSync)return;
         if(flight)return flight;
         flight=(async()=>{
             try {
                 await controller.authenticate({createAnonymous:false});
-                while(currentProfile() || state.events.some(sendable)) {
+                while(!stopped && controller.permissions().automaticSync && (currentProfile() || state.events.some(sendable))) {
                     if(currentProfile()) {
                         const item=state.profile;const result=await controller.syncAutomaticProfile(state.owner,item.value,{nameChanged:item.nameChanged===true});
-                        if(state.profile?.revision===item.revision)commit({...state,name:typeof result?.name==='string'?result.name:state.name,profile:null});
+                        if(!stopped && state.profile?.revision===item.revision)commit({...state,name:typeof result?.name==='string'?result.name:state.name,profile:null});
                     } else {
                         const item=state.events.find(sendable);if(!item)break;await controller.syncFreshScore(state.owner,item.board,item.score);
-                        if(state.events.includes(item)){commit({...state,events:state.events.filter(e=>e!==item)});stats.freshDelivered++;}
+                        if(!stopped && state.events.includes(item)){commit({...state,events:state.events.filter(e=>e!==item)});stats.freshDelivered++;}
                     }
                 }
                 stats.syncError='';notify();
@@ -48,7 +48,7 @@ function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clo
         return flight;
     }
     function queueProfile(profile,nameChanged=false) {
-        if(halted || profile?.progressVersion!==ONLINE_PROGRESS_VERSION)return false;
+        if(halted || stopped || profile?.progressVersion!==ONLINE_PROGRESS_VERSION)return false;
         try {
             const name=nameChanged || !state.name || state.name==='iOS接続テスト'?profile.name:state.name;
             const explicitName=nameChanged || state.profile?.nameChanged===true;
@@ -58,7 +58,7 @@ function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clo
         }catch(e){halted=true;fail(e.message);return false;}
     }
     function recordClear(stage,mode,candidate) {
-        if(halted)return false;
+        if(halted || stopped)return false;
         if(!Number.isSafeInteger(stage) || stage<1 || stage>999999 || mode!=='existing' || candidate?.rankingEligible===false || candidate?.version!==courseVersion || !scoreMatchesBoard(`${courseVersion}_${mode}_${stage}`,candidate) || !Number.isSafeInteger(candidate.moves) || candidate.moves<1 || candidate.moves>1000000 || !Number.isSafeInteger(candidate.timeMs) || candidate.timeMs<0 || candidate.timeMs>604800000)return false;
         try {
             if(state.events.length>=10000)throw Error('native-sync/queue-full');
@@ -69,6 +69,12 @@ function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clo
             void flush();return true;
         }catch(e){halted=true;fail(e.message);return false;}
     }
-    notify();return Object.freeze({activate,ownerUid:()=>{if(halted)throw Error(stats.syncError);return state?.owner||null;},queueProfile,profileEdited:(p,changed)=>queueProfile(p,changed),recordClear,flush,pendingForBoard:board=>Array.isArray(state?.events)&&state.events.some(item=>sendable(item) && item.board===board),report:()=>({...stats})});
+    async function stop({timeoutMs=30000}={}) {
+        stopped=true;active=false;if(!flight)return;
+        let timer;
+        try {await Promise.race([flight,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Object.assign(Error('native-sync/drain-timeout'),{code:'native-sync/drain-timeout'})),timeoutMs);})]);}
+        finally {clearTimeout(timer);}
+    }
+    notify();return Object.freeze({activate,stop,ownerUid:()=>{if(halted)throw Error(stats.syncError);return state?.owner||null;},queueProfile,profileEdited:(p,changed)=>queueProfile(p,changed),recordClear,flush,pendingForBoard:board=>Array.isArray(state?.events)&&state.events.some(item=>sendable(item) && item.board===board),report:()=>({...stats})});
 }
 module.exports={createNativeAutoSync,SYNC_KEY};

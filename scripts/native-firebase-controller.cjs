@@ -3,21 +3,38 @@ const {scoreMetadata,supportedScoreBoard,scoreMatchesBoard,ONLINE_PROGRESS_VERSI
 const PROJECT='bouldering-7482d';
 const ATTEMPT_KEY='ascent.native-firebase.auth-attempt.v1';
 const IDENTITY_KEY='ascent.native-firebase.identity-check.v1';
+const DELETION_KEY='ascent.native-firebase.deletion.v1';
+const ACCOUNT_DELETION_KEY='ascent.account-deletion.v1';
 function createNativeFirebaseController({policy,mode,config,loadSDK,storage,knownUid=()=>null,onReport=()=>{},connectionEpoch=()=>globalThis.ASCENT_SETTINGS_CONNECTION?.ticket()}) {
-    let sdkPromise,authPromise,app,auth,db;
+    let sdkPromise,authPromise,app,auth,db,deletionFlight,deletionAcknowledgedUid;
     const report={phase:'offline',authenticated:false,restored:false,createdThisRun:0,sameIdentity:false,readQueries:0,mapDocuments:0,scoreDocuments:0,blockedWrites:0,writesIssued:0,lastError:'',connectionSuccesses:0};
     function verified(ticket){report.connectionSuccesses++;report.connectionEpoch=ticket;report.lastError='';}
     const publish=()=>onReport(Object.freeze({...report}));
     const error=code=>Object.assign(new Error(code),{code});
+    function deletionState() {
+        const raw=storage?.getItem(DELETION_KEY);
+        if(raw==null)return null;
+        let marker;try {marker=JSON.parse(raw);}catch(_) {}
+        if(!marker || typeof marker.uid!=='string' || !marker.uid || !['pending','auth-deleting','done'].includes(marker.phase))throw error('native-firebase/invalid-deletion-state');
+        return Object.freeze({...marker});
+    }
+    function deletionBlocked() {
+        try {return storage?.getItem(DELETION_KEY)!=null || storage?.getItem(ACCOUNT_DELETION_KEY)!=null;}catch(_) {return true;}
+    }
+    function persistDeletion(uid,phase) {
+        const value=JSON.stringify({uid,phase});
+        try {storage.setItem(DELETION_KEY,value);if(storage.getItem(DELETION_KEY)!==value)throw Error();}
+        catch(_) {throw error('native-firebase/persistence-unavailable');}
+    }
     function permissions() {
         const p=policy();
         const network=['read-only','auto-sync'].includes(mode) && p?.firebaseMode===mode && p?.firebaseEnabled===true;
         return Object.freeze({network,auth:network && p.firebaseAuthAllowed===true,
-            create:network && p.firebaseAnonymousAllowed===true,read:network && p.firebaseReadsAllowed===true,
-            automaticSync:network && mode==='auto-sync' && p.firebaseAutomaticSyncAllowed===true,
-            profileWrites:false,scoreWrites:false,pendingScores:false,transfer:false,deletion:false,legacySync:false});
+            create:network && p.firebaseAnonymousAllowed===true && !deletionBlocked(),read:network && p.firebaseReadsAllowed===true,
+            automaticSync:network && mode==='auto-sync' && p.firebaseAutomaticSyncAllowed===true && !deletionBlocked(),
+            profileWrites:false,scoreWrites:false,pendingScores:false,transfer:false,deletion:network && mode==='auto-sync' && p.firebaseAuthAllowed===true && p.firebaseReadsAllowed===true && p.firebaseAutomaticSyncAllowed===true,legacySync:false});
     }
-    function requirePermission(name) {if(!permissions()[name])throw error('native-firebase/'+name+'-disabled');}
+    function requirePermission(name) {if(!permissions()[name])throw error('native-firebase/'+name.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())+'-disabled');}
     function fail(e) {
         let code=e?.code||'';
         if(['permission-denied','unauthenticated','unavailable','failed-precondition','resource-exhausted','deadline-exceeded','aborted','cancelled','invalid-argument'].includes(code))code='firestore/'+code;
@@ -153,13 +170,113 @@ function createNativeFirebaseController({policy,mode,config,loadSDK,storage,know
         });
         if(result.written){report.writesIssued++;report.freshScoreWrites=(report.freshScoreWrites||0)+1;}verified(connectionTicket);report.phase='synced';publish();return result;
     }
+    async function deletionUser(uid) {
+        requirePermission('deletion');
+        if(typeof uid!=='string' || !uid)throw error('native-firebase/identity-mismatch');
+        const marker=deletionState();
+        if(marker && marker.uid!==uid)throw error('native-firebase/identity-mismatch');
+        const user=await authenticate();
+        requirePermission('deletion');
+        if(user.uid!==uid || auth.currentUser?.uid!==uid)throw error('native-firebase/identity-mismatch');
+        return user;
+    }
+    async function lockDeletion(uid) {
+        requirePermission('deletion');
+        const existing=deletionState();
+        if(existing && existing.uid!==uid)throw error('native-firebase/identity-mismatch');
+        if(existing?.phase==='done')return;
+        if(existing?.phase==='auth-deleting' && (await restoreDeletion())?.phase==='done')return;
+        await deletionUser(uid);
+        // Commit the retry marker before the first destructive request. This
+        // also disables automatic writes in this controller immediately.
+        const marker=deletionState();
+        if(!marker)persistDeletion(uid,'pending');
+        const f=await database(),ref=f.doc(db,'accountDeletionLocks',uid);
+        await f.runTransaction(db,async t=>{
+            const snap=await t.get(ref);
+            requirePermission('deletion');
+            if(auth.currentUser?.uid!==uid)throw error('native-firebase/identity-mismatch');
+            if(!snap.exists())t.set(ref,{requestedAt:f.serverTimestamp()});
+        });
+    }
+    async function restoreDeletion() {
+        requirePermission('deletion');
+        let marker=deletionState();
+        if(!marker) {
+            let shared;try {shared=JSON.parse(storage.getItem(ACCOUNT_DELETION_KEY)||'null');}catch(_) {}
+            if(!shared)return null;
+            if(typeof shared.uid!=='string' || !shared.uid || !['pending','done'].includes(shared.phase))throw error('native-firebase/invalid-deletion-state');
+            // Shared pending can precede the native journal during interruption.
+            // Shared done alone is not proof that native authentication was deleted.
+            await deletionUser(shared.uid);persistDeletion(shared.uid,'pending');marker=deletionState();
+        }
+        if(marker.phase==='done')return {uid:marker.uid,phase:'done'};
+        // Only an acknowledged deleteUser response proves auth deletion. The
+        // SDK also signs out on invalidated tokens, so missing auth after a
+        // process restart must never be mistaken for a successful deletion.
+        if(marker.phase==='auth-deleting' && deletionAcknowledgedUid===marker.uid) {
+            persistDeletion(marker.uid,'done');authPromise=null;
+            report.authenticated=false;report.phase='deleted';report.lastError='';publish();
+            return {uid:marker.uid,phase:'done'};
+        }
+        try {await deletionUser(marker.uid);}
+        catch(e) {
+            if(marker.phase==='auth-deleting' && !auth?.currentUser)throw error('native-firebase/deletion-auth-unconfirmed');
+            throw e;
+        }
+        return {uid:marker.uid,phase:'pending'};
+    }
+    function deleteAccount(uid,onProgress) {
+        if(deletionFlight)return deletionFlight.uid===uid?deletionFlight.promise:Promise.reject(error('native-firebase/identity-mismatch'));
+        const promise=(async()=>{
+            requirePermission('deletion');
+            const marker=deletionState();
+            if(marker && marker.uid!==uid)throw error('native-firebase/identity-mismatch');
+            if(marker?.phase==='done')return;
+            if(marker?.phase==='auth-deleting' && (await restoreDeletion())?.phase==='done')return;
+            await lockDeletion(uid);
+            const s=await sdk(),f=await database();
+            let cursor=null,removed=0;
+            // Include legacy generations without owner metadata. Bound each
+            // public collection-group scan and delete only exact score paths.
+            while(true) {
+                await deletionUser(uid);
+                const options=[f.limit(100)];if(cursor)options.push(f.startAfter(cursor));
+                const page=await f.getDocsFromServer(f.query(f.collectionGroup(db,'entries'),...options));
+                const own=page.docs.filter(doc=>/^stageScores\/[^/]+\/entries\/[^/]+$/.test(doc.ref.path) && doc.id===uid);
+                if(own.length) {
+                    await deletionUser(uid);
+                    const batch=f.writeBatch(db);own.forEach(doc=>batch.delete(doc.ref));await batch.commit();removed+=own.length;
+                }
+                onProgress?.(removed);
+                if(page.docs.length<100)break;
+                cursor=page.docs.at(-1);
+            }
+            await deletionUser(uid);await f.deleteDoc(f.doc(db,'players',uid));
+            // Authentication is last; failures leave the UID and retry journal
+            // intact. Server lock remains permanently to prevent stale writers.
+            persistDeletion(uid,'auth-deleting');await deletionUser(uid);
+            await s.auth.deleteUser(auth.currentUser);deletionAcknowledgedUid=uid;authPromise=null;
+            persistDeletion(uid,'done');
+            report.authenticated=false;report.phase='deleted';report.lastError='';publish();
+        })().catch(e=>{throw fail(e);}).finally(()=>{deletionFlight=null;});
+        deletionFlight={uid,promise};return promise;
+    }
+    function resetDeletion() {
+        if(deletionState()?.phase!=='done' || auth?.currentUser)throw error('native-firebase/deletion-incomplete');
+        // Remove the journal last so a failed local reset can be retried safely.
+        for(const key of [IDENTITY_KEY,ATTEMPT_KEY,ACCOUNT_DELETION_KEY,DELETION_KEY]) {
+            storage.removeItem(key);if(storage.getItem(key)!==null)throw error('native-firebase/persistence-unavailable');
+        }
+        authPromise=null;
+    }
     const deny=()=>{report.blockedWrites++;publish();return Promise.reject(error('native-firebase/write-disabled'));};
     const safePlayers=(...args)=>players(...args).catch(e=>{throw fail(e);});
     const safeScores=(...args)=>scores(...args).catch(e=>{throw fail(e);});
     const safeProfile=(...args)=>getProfile(...args).catch(e=>{throw fail(e);});
     const adapter=Object.freeze({authenticate:()=>authenticate(),players:safePlayers,scores:safeScores,sync:deny,saveScore:deny,
-        prepareTransferIdentity:deny,importTransferIdentity:deny,lockDeletion:deny,deleteAccount:deny});
+        prepareTransferIdentity:deny,importTransferIdentity:deny,lockDeletion:uid=>lockDeletion(uid).catch(e=>{throw fail(e);}),deleteAccount,restoreDeletion});
     publish();
-    return Object.freeze({permissions,authenticate,syncAutomaticProfile:(...a)=>syncAutomaticProfile(...a).catch(e=>{throw fail(e);}),syncFreshScore:(...a)=>syncFreshScore(...a).catch(e=>{throw fail(e);}),players:safePlayers,scores:safeScores,getProfile:safeProfile,adapter:()=>adapter,report:()=>Object.freeze({...report})});
+    return Object.freeze({permissions,authenticate,deletionState,resetDeletion,syncAutomaticProfile:(...a)=>syncAutomaticProfile(...a).catch(e=>{throw fail(e);}),syncFreshScore:(...a)=>syncFreshScore(...a).catch(e=>{throw fail(e);}),players:safePlayers,scores:safeScores,getProfile:safeProfile,adapter:()=>adapter,report:()=>Object.freeze({...report})});
 }
-module.exports={createNativeFirebaseController,ATTEMPT_KEY,IDENTITY_KEY};
+module.exports={createNativeFirebaseController,ATTEMPT_KEY,IDENTITY_KEY,DELETION_KEY};

@@ -28,7 +28,7 @@ function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=
  const offline=fixture({mode:'offline'});
  await assert.rejects(offline.control.authenticate({createAnonymous:true}),/auth-disabled/);
  await assert.rejects(offline.control.players(1,1,'existing'),/read-disabled/);
- for(const name of ['sync','saveScore','prepareTransferIdentity','importTransferIdentity','lockDeletion','deleteAccount'])await assert.rejects(offline.control.adapter()[name](),/write-disabled/);
+ for(const name of ['sync','saveScore','prepareTransferIdentity','importTransferIdentity'])await assert.rejects(offline.control.adapter()[name](),/write-disabled/);
  assert.equal(offline.calls.load,0);assert.equal(offline.calls.create,0);assert.equal(offline.calls.write,0);
  const unavailable=fixture({failStorage:true});await assert.rejects(unavailable.control.authenticate({createAnonymous:true}),/persistence-unavailable/);assert.equal(unavailable.calls.load,0);
  const badPersistence=fixture({failPersistence:true});await assert.rejects(badPersistence.control.authenticate({createAnonymous:true}));assert.equal(badPersistence.calls.create,0);
@@ -38,7 +38,7 @@ function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=
  await first.control.players(1,1,'existing');await first.control.scores(a.uid,'v1_existing_1');assert(first.calls.read>0);assert.equal(first.calls.write,0);
  assert.equal(data.get('ascent.pending-scores.v1'),'keep-queued-scores');assert.equal(data.get('ascent.progress.v1'),'keep-progress');
  const restored=fixture({data});const second=await restored.control.authenticate({createAnonymous:true});assert.equal(second.uid,a.uid);assert.equal(restored.calls.create,0);assert(restored.control.report().sameIdentity);
- for(const name of ['sync','saveScore','prepareTransferIdentity','importTransferIdentity','lockDeletion','deleteAccount'])await assert.rejects(restored.control.adapter()[name](),/write-disabled/);
+ for(const name of ['sync','saveScore','prepareTransferIdentity','importTransferIdentity'])await assert.rejects(restored.control.adapter()[name](),/write-disabled/);
  assert.equal(restored.calls.write,0);assert.equal(data.get('ascent.pending-scores.v1'),'keep-queued-scores');
  assert(!JSON.stringify([...first.reports,...restored.reports]).includes(a.uid),'Report never exposes identity');
  const lost=fixture({lostResponse:true});await assert.rejects(lost.control.authenticate({createAnonymous:true}));await assert.rejects(lost.control.authenticate({createAnonymous:true}));assert.equal(lost.calls.create,1);
@@ -128,7 +128,7 @@ function fixture({mode='read-only',policy=readPolicy,data=new Map(),failStorage=
  let epoch=2,unblock;const gate=new Promise(r=>unblock=r);const stale=fixture({data:identity(),loadGate:gate,connectionEpoch:()=>epoch});
  const reading=stale.control.getProfile('existing-test');epoch=3;unblock();await reading;assert.equal(stale.control.report().connectionEpoch,2,'Request carries its starting epoch, not completion epoch');
  await stale.control.getProfile('existing-test');assert.equal(stale.control.report().connectionEpoch,3);
- assert.equal(generations.control.permissions().create,false);assert.equal(generations.control.permissions().transfer,false);assert.equal(generations.control.permissions().deletion,false);
- console.log('PASS native Firebase mock: dormant offline SDK; separate auth/read gates; persistence fail-stop; durable one-attempt creation; restored identity; every write/transfer/delete denied; queues preserved; reports sanitized');
+ assert.equal(generations.control.permissions().create,false);assert.equal(generations.control.permissions().transfer,false);assert.equal(generations.control.permissions().deletion,true);
+ console.log('PASS native Firebase mock: dormant offline SDK; separate auth/read gates; persistence fail-stop; durable one-attempt creation; restored identity; legacy writes/transfer denied; read-only/offline deletion disabled; queues preserved; reports sanitized');
  console.log('PASS automatic writes: own identity only; unchanged profile and worse score skipped; better score saved; limited test API removed');
 })().catch(e=>{console.error(e);process.exitCode=1;});

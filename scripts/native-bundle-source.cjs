@@ -88,9 +88,29 @@ else {recoverLives();saveLives();}`,`if(globalThis.ASCENT_NATIVE_RESUME?.ready!=
         source=replaceOnce(source,'function commitTransferFile(file) {',"function commitTransferFile(file) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().transfer!==true)throw Error('native-firebase/transfer-disabled');");
     }
     if(name==='account-deletion.js') {
-        for(const anchor of ['async function restoreDeletionSession(adapter) {','async function deleteCurrentAccount() {','function clearLocalGameData() {']) {
-            source=replaceOnce(source,anchor,anchor+"\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().deletion!==true)return;");
-        }
+        source=replaceOnce(source,"error?.code==='auth/requires-recent-login'?","['auth/requires-recent-login','native-firebase/deletion-auth-unconfirmed'].includes(error?.code)?");
+        source=replaceOnce(source,'function markAccountDeletion(uid,phase) {',`function markAccountDeletion(uid,phase) {
+    globalThis.ASCENT_NATIVE_ACCOUNT_DELETION?.persistMarker(uid,phase);`);
+        source=replaceOnce(source,"button.disabled=!online.uid || !online.adapter?.deleteAccount || accountDeletion.busy;", "button.disabled=globalThis.ASCENT_NATIVE_FIREBASE?.permissions().deletion!==true || !online.uid || !online.adapter?.deleteAccount || accountDeletion.busy;");
+        source=replaceOnce(source,'async function restoreDeletionSession(adapter) {',`async function restoreDeletionSession(adapter) {
+    if(globalThis.ASCENT_NATIVE_ACCOUNT_DELETION)return globalThis.ASCENT_NATIVE_ACCOUNT_DELETION.restore();
+    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().deletion!==true)return;`);
+        source=replaceOnce(source,'async function deleteCurrentAccount() {',`async function deleteCurrentAccount() {
+    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().deletion!==true)return;`);
+        source=replaceOnce(source,"    accountDeletion.busy=true;markAccountDeletion(uid,'pending');online.ready=false;",`    try {markAccountDeletion(uid,'pending');}
+    catch(error){deleteUserElement('deleteUserStatus').textContent=gameText("account-deletion.deleteCurrentAccount");return;}
+    accountDeletion.busy=true;online.ready=false;`);
+        source=replaceOnce(source,'        await online.adapter.lockDeletion(uid);',`        await globalThis.ASCENT_NATIVE_ACCOUNT_DELETION?.beforeDelete();
+        await online.adapter.lockDeletion(uid);`);
+        source=replaceOnce(source,'function clearLocalGameData() {',`function clearLocalGameData() {
+    globalThis.ASCENT_NATIVE_ACCOUNT_DELETION?.clearLocal();`);
+        source=replaceOnce(source,'    for(const key of keys)globalThis.localStorage?.removeItem(key);',`    for(const key of keys){
+        globalThis.localStorage?.removeItem(key);
+        if(globalThis.localStorage?.getItem(key)!==null)throw Error('Local game reset was not persisted');
+    }`);
+        source=replaceOnce(source,'try {clearLocalGameData();globalThis.localStorage?.removeItem(ACCOUNT_DELETION_KEY);}',`try {clearLocalGameData();
+        if(globalThis.ASCENT_NATIVE_ACCOUNT_DELETION)globalThis.ASCENT_NATIVE_ACCOUNT_DELETION.startNewUser();
+        else globalThis.localStorage?.removeItem(ACCOUNT_DELETION_KEY);}`);
     }
     if (name === 'audio.js') {
         source = replaceOnce(source, 'const resumed=soundContext.resume();',

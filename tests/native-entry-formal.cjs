@@ -12,6 +12,7 @@ const settle=async()=>{for(let i=0;i<250;i++)await Promise.resolve();};
 const ledger=(owner=null)=>({version:1,owner,activatedAt:123,sequence:0,name:'',profile:null,events:[]});
 async function boot({mode='read-only',enabled=true,uid='owner',known='owner',identity=known,checkpoint=known,scoresOwner=known,missingStorage=false,deleting=false,legacyProgress=false,storageData,initialLedger,online=true,sdkGate,authGate,failLoads=0,failReads=0,signInBehavior,localProfile=profile}={}){
  const data=storageData||new Map([['ascent.pending-scores.v1','unchanged legacy queue'],['ascent.records.v1','unchanged legacy bests']]);
+ if(deleting)data.set('ascent.account-deletion.v1',JSON.stringify({uid:'owner',phase:'pending'}));
  if(!storageData && identity)data.set(KEY,identity);
  if(initialLedger!==undefined)data.set(SYNC_KEY,typeof initialLedger==='string'?initialLedger:JSON.stringify(initialLedger));
  let user=uid?{uid}:null,epoch=7,currentProfile={...localProfile};
@@ -27,7 +28,8 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
   firestore:{getFirestore:()=>({}),doc:(db,...p)=>(typeof db==='string'?[db,...p]:p).join('/'),collection:(db,...p)=>p.join('/'),where:(...args)=>args,orderBy:(...args)=>args,limit:n=>n,query:(...args)=>args,serverTimestamp:()=>({mock:true}),getDocFromServer:async key=>{beforeRead(key);return snap(key);},getDocsFromServer:async query=>{beforeRead(query[0]);return {docs:[]};},runTransaction:async(db,action)=>{calls.transactions++;const pending=[];const result=await action({get:async key=>snap(key),set:(k,v)=>pending.push([k,v])});for(const [k,v]of pending){calls.writes.push(k);remote.set(k,v);}return result;}}
  };
  const reports=[],listeners=new Map(),policy={configuration:'Debug',syncStatusAllowed:true,firebaseMode:mode,firebaseEnabled:enabled,firebaseAuthAllowed:true,firebaseAnonymousAllowed:true,firebaseReadsAllowed:true,firebaseAutomaticSyncAllowed:true};
- const env={COURSE_VERSION:'v4',DAILY_COURSE_VERSION:'v3',ASCENT_IOS_BUILD:policy,ASCENT_SETTINGS_CONNECTION:{ticket:()=>epoch,success:n=>calls.success.push(n),failure(){}},document:{getElementById:()=>null},window:{addEventListener:(name,handler)=>{if(!listeners.has(name))listeners.set(name,[]);listeners.get(name).push(handler);}},navigator:{onLine:online},console:{warn(){}},online:{ready:false},onlineScores:{owner:scoresOwner},readOnlineCheckpoint:()=>checkpoint?{uid:checkpoint}:null,accountDeletion:{marker:deleting?{uid:'owner',phase:'pending'}:null},scoreBoardKey:(n,mode)=>'v4_'+mode+'_'+n,setOnlineStatus(){},renderTransferAvailability(){},renderMapPlayers(){},onlineProfile:()=>({...currentProfile,colors:[...currentProfile.colors]}),webkit:{messageHandlers:{ascentFirebaseReport:{postMessage:r=>reports.push(r)}}},__loadMockSDK:async()=>{calls.loads++;if(sdkGate)await sdkGate.promise;if(failLoads-->0)throw Error('SDK import unavailable');return sdk;},fetch(){throw Error('No live traffic permitted');}};
+ const deleteStatus={};
+ const env={gameText:key=>key,deleteUserElement:()=>deleteStatus,COURSE_VERSION:'v4',DAILY_COURSE_VERSION:'v3',ASCENT_IOS_BUILD:policy,ASCENT_SETTINGS_CONNECTION:{ticket:()=>epoch,success:n=>calls.success.push(n),failure(){}},document:{getElementById:()=>null},window:{addEventListener:(name,handler)=>{if(!listeners.has(name))listeners.set(name,[]);listeners.get(name).push(handler);}},navigator:{onLine:online},console:{warn(){}},online:{ready:false},onlineScores:{owner:scoresOwner},readOnlineCheckpoint:()=>checkpoint?{uid:checkpoint}:null,accountDeletion:{marker:JSON.parse(data.get('ascent.account-deletion.v1')||'null')},scoreBoardKey:(n,mode)=>'v4_'+mode+'_'+n,setOnlineStatus(){},updateDeleteUserButton(){},showDeleteUserDialog(){calls.dialogs=(calls.dialogs||0)+1;},markAccountDeletion(uid,phase){storage.setItem('ascent.account-deletion.v1',JSON.stringify({uid,phase}));env.accountDeletion.marker={uid,phase};},clearLocalGameData(){env.ASCENT_NATIVE_ACCOUNT_DELETION.clearLocal();},renderTransferAvailability(){},renderMapPlayers(){},onlineProfile:()=>({...currentProfile,colors:[...currentProfile.colors]}),webkit:{messageHandlers:{ascentFirebaseReport:{postMessage:r=>reports.push(r)}}},__loadMockSDK:async()=>{calls.loads++;if(sdkGate)await sdkGate.promise;if(failLoads-->0)throw Error('SDK import unavailable');return sdk;},fetch(){throw Error('No live traffic permitted');}};
  if(missingStorage)Object.defineProperty(env,'localStorage',{get(){throw Error('Storage denied');}});else env.localStorage=storage;
  vm.runInNewContext(emitted[mode],env);
  await settle();
@@ -38,7 +40,8 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
  for(const mode of ['read-only','auto-sync']){const f=await boot({mode,missingStorage:true});assert.equal(f.calls.loads,0);assert.equal(f.calls.creates,0);assert.equal(f.env.online.ready,false);assert.equal(f.calls.writes.length,0);}
  const fresh=await boot({uid:null,known:null});assert.equal(fresh.calls.creates,1);assert.equal(fresh.env.online.uid,'new-owner');assert(fresh.calls.reads.includes('stageScores/v4_existing_1/entries'));assert.equal(fresh.calls.writes.length,0);
  const restored=await boot();assert.equal(restored.calls.creates,0);assert.equal(restored.env.online.uid,'owner');assert(restored.calls.reads.includes('stageScores/v4_existing_1/entries'));assert(!restored.calls.reads.some(x=>x.includes('v1_existing')));assert(restored.calls.success.includes(7));assert.equal(restored.calls.writes.length,0);
- for(const method of ['deleteAccount','lockDeletion','prepareTransferIdentity','importTransferIdentity','saveScore','sync'])await assert.rejects(restored.env.ASCENT_NATIVE_FIREBASE.adapter()[method](),/write-disabled/);
+ for(const method of ['prepareTransferIdentity','importTransferIdentity','saveScore','sync'])await assert.rejects(restored.env.ASCENT_NATIVE_FIREBASE.adapter()[method](),/write-disabled/);
+ for(const method of ['deleteAccount','lockDeletion'])await assert.rejects(restored.env.ASCENT_NATIVE_FIREBASE.adapter()[method](),/deletion-disabled/);
  const mismatch=await boot({uid:'other',known:'owner'});assert.equal(mismatch.env.online.ready,false);assert.equal(mismatch.calls.creates,0);assert.equal(mismatch.calls.reads.length,0);assert.equal(mismatch.data.get(KEY),'owner');
  const deleting=await boot({deleting:true});assert.equal(deleting.calls.loads,0);assert.equal(deleting.calls.creates,0);
  const noIdentity=await boot({mode:'auto-sync',uid:null,known:null});assert.equal(noIdentity.calls.creates,1);assert.equal(noIdentity.env.online.uid,'new-owner');assert.equal(noIdentity.env.online.ready,true);assert.equal(noIdentity.remote.get('players/new-owner').name,profile.name);assert.equal(noIdentity.remote.get('players/new-owner').progressVersion,'v4');assert.equal(noIdentity.data.get(KEY),'new-owner');assert.equal(JSON.parse(noIdentity.data.get(SYNC_KEY)).owner,'new-owner');
@@ -123,21 +126,39 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
  // Deletion blocks initial bootstrap and reconnects, including when it becomes
  // pending during an in-flight auth restore. Queued data remains unactivated.
  const deletingAuto=await boot({mode:'auto-sync',uid:null,known:null,deleting:true});
- assert.equal(deletingAuto.calls.loads,0);assert.equal(deletingAuto.calls.creates,0);
- deletingAuto.dispatch('online','focus','ascent-native-resume');await settle();assert.equal(deletingAuto.calls.loads,0);assert.equal(deletingAuto.calls.writes.length,0);
+ assert.equal(deletingAuto.calls.loads,1);assert.equal(deletingAuto.calls.creates,0);
+ deletingAuto.dispatch('online','focus','ascent-native-resume');await settle();assert.equal(deletingAuto.calls.loads,1);assert.equal(deletingAuto.calls.writes.length,0);
  const deletionGate=deferred(),deletionRace=await boot({mode:'auto-sync',uid:null,known:null,authGate:deletionGate});
  assert.equal(deletionRace.env.ASCENT_NATIVE_SYNC.recordClear(6,'existing',score),true);
- deletionRace.env.accountDeletion.marker={uid:'owner',phase:'pending'};deletionGate.resolve();await settle();
+ deletionRace.env.markAccountDeletion('owner','pending');deletionGate.resolve();await settle();
  assert.equal(deletionRace.calls.creates,0);assert.equal(deletionRace.env.online.ready,false);assert.equal(deletionRace.calls.reads.length,0);assert.equal(deletionRace.calls.writes.length,0);assert.equal(JSON.parse(deletionRace.data.get(SYNC_KEY)).owner,null);
  const deletionAuthCalls=deletionRace.calls.authReady;
- deletionRace.dispatch('online','focus','ascent-native-resume');await settle();assert.equal(deletionRace.calls.authReady,deletionAuthCalls);assert.equal(deletionRace.calls.writes.length,0);assert.equal(JSON.parse(deletionRace.data.get(SYNC_KEY)).events.length,1);
+ deletionRace.dispatch('online','focus','ascent-native-resume');await settle();assert(deletionRace.calls.authReady>=deletionAuthCalls);assert.equal(deletionRace.calls.writes.length,0);assert.equal(JSON.parse(deletionRace.data.get(SYNC_KEY)).events.length,1);
 
  const issuedGate=deferred(),issuedDeletion=await boot({mode:'auto-sync',uid:null,known:null,signInBehavior:async({setUser})=>{await issuedGate.promise;setUser('issued-owner');return {user:{uid:'issued-owner'}};}});
  assert.equal(issuedDeletion.calls.creates,1);assert.equal(issuedDeletion.env.ASCENT_NATIVE_SYNC.recordClear(8,'existing',score),true);
- issuedDeletion.env.accountDeletion.marker={uid:'issued-owner',phase:'pending'};issuedGate.resolve();await settle();
+ issuedDeletion.env.markAccountDeletion('issued-owner','pending');issuedGate.resolve();await settle();
  assert.equal(issuedDeletion.env.online.ready,false);assert.equal(issuedDeletion.calls.reads.length,0);assert.equal(issuedDeletion.calls.writes.length,0);assert.equal(JSON.parse(issuedDeletion.data.get(SYNC_KEY)).owner,null);
  issuedDeletion.dispatch('online','focus','ascent-native-resume');await settle();assert.equal(issuedDeletion.calls.creates,1);assert.equal(issuedDeletion.calls.writes.length,0);assert.equal(JSON.parse(issuedDeletion.data.get(SYNC_KEY)).events.length,1);
 
+ // Missing auth is not deletion proof: token invalidation may also sign out.
+ const ambiguousData=new Map([[KEY,'owner'],[ATTEMPT_KEY,'completed'],['ascent.account-deletion.v1',JSON.stringify({uid:'owner',phase:'pending'})],['ascent.native-firebase.deletion.v1',JSON.stringify({uid:'owner',phase:'auth-deleting'})]]);
+ const ambiguous=await boot({mode:'auto-sync',uid:null,storageData:ambiguousData});
+ assert.equal(ambiguous.calls.creates,0);assert.equal(ambiguous.calls.writes.length,0);
+ assert.equal(ambiguous.env.accountDeletion.marker.phase,'pending');
+ assert.equal(ambiguous.env.deleteUserElement().textContent,'account-deletion.deleteCurrentAccount.2');
+ assert.throws(()=>ambiguous.env.ASCENT_NATIVE_ACCOUNT_DELETION.startNewUser(),/deletion-incomplete/);
+ // Durable done state dominates a stale shared pending marker without importing
+ // auth or creating a user. The explicit reset removes all identity boundaries.
+ const completedData=new Map([[KEY,'owner'],[ATTEMPT_KEY,'completed'],[SYNC_KEY,JSON.stringify(ledger('owner'))],['ascent.native-resume.v1','old receipt'],
+  ['ascent.account-deletion.v1',JSON.stringify({uid:'owner',phase:'pending'})],['ascent.native-firebase.deletion.v1',JSON.stringify({uid:'owner',phase:'done'})]]);
+ const completed=await boot({mode:'auto-sync',uid:null,storageData:completedData});
+ assert.equal(completed.calls.loads,0);assert.equal(completed.calls.creates,0);assert.equal(completed.env.online.ready,false);assert.equal(completed.env.accountDeletion.marker.phase,'done');assert.equal(completed.env.online.uid,null);assert(completed.calls.dialogs>0);
+ assert(!completedData.has(SYNC_KEY));assert(!completedData.has('ascent.native-resume.v1'));
+ completed.env.ASCENT_NATIVE_ACCOUNT_DELETION.startNewUser();
+ for(const key of [KEY,ATTEMPT_KEY,'ascent.account-deletion.v1','ascent.native-firebase.deletion.v1'])assert(!completedData.has(key));
+ const freshAfterDeletion=await boot({mode:'auto-sync',uid:null,known:null,storageData:completedData});
+ assert.equal(freshAfterDeletion.calls.creates,1);assert.equal(freshAfterDeletion.env.online.uid,'new-owner');assert.equal(freshAfterDeletion.env.online.ready,true);
  // An uncertain anonymous request is never repeated, even across reload. A
  // subsequently restored SDK user may finish startup with that same identity.
  const uncertain=await boot({mode:'auto-sync',uid:null,known:null,signInBehavior:async()=>{throw {code:'auth/network-request-failed'};}});

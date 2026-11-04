@@ -45,6 +45,17 @@ const profile={name:'local-private-name',colors:['#123456'],headColor:'#abcdef',
  const better=fixture(new Map(),new Map([['v1_existing_5',{moves:7,timeMs:1000}]]));better.queue.recordClear(5,'existing',{moves:12,timeMs:4000,version:'v1'});await better.queue.flush();assert.equal(better.calls.writes,0);assert.equal(better.queue.report().freshPending,0);
  const concurrent=fixture();let release;concurrent.block(new Promise(r=>release=r));concurrent.queue.queueProfile(profile);await new Promise(r=>setImmediate(r));
  concurrent.queue.queueProfile({...profile,colors:['#445566']});release();await concurrent.queue.flush();assert.equal(concurrent.calls.profiles.length,2);assert.deepEqual(concurrent.remote.get('profile').colors,['#445566']);
+ // Deletion must quiesce a current write without persisting its late result or
+ // draining another score/profile. Old callbacks cannot recreate a cleared ledger.
+ const deleting=fixture();let finishDeleteWrite;
+ deleting.block(new Promise(r=>finishDeleteWrite=r));deleting.queue.queueProfile(profile);
+ await new Promise(r=>setImmediate(r));
+ deleting.queue.recordClear(1,'existing',{moves:20,timeMs:4000,version:'v1'});
+ await assert.rejects(deleting.queue.stop({timeoutMs:1}),/drain-timeout/);
+ const stopping=deleting.queue.stop(),beforeStop=deleting.data.get(SYNC_KEY);
+ assert.equal(deleting.queue.queueProfile(profile),false);assert.equal(deleting.queue.activate('existing-owner'),false);
+ finishDeleteWrite();await stopping;assert.equal(deleting.data.get(SYNC_KEY),beforeStop);assert.equal(deleting.calls.scores.length,0);
+ deleting.data.delete(SYNC_KEY);await deleting.queue.flush();assert.equal(deleting.data.has(SYNC_KEY),false);
  const invalid=new Map([[SYNC_KEY,'{"version":1}']]);const safe=fixture(invalid);await safe.queue.flush();assert(safe.queue.report().syncError);assert.equal(safe.calls.scores.length,0);assert.equal(invalid.get(SYNC_KEY),'{"version":1}');
  // Upgrade keeps old queue bytes/provenance and skips retained-only events.
  const entries=[{sequence:1,board:'v1_existing_1',score:{moves:8,timeMs:10}},

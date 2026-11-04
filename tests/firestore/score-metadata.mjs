@@ -9,7 +9,7 @@ const host=process.env.FIRESTORE_EMULATOR_HOST;
 if(host!=='127.0.0.1:8089')throw Error('Requires local emulator FIRESTORE_EMULATOR_HOST=127.0.0.1:8089; refusing all other targets');
 const toolRequire=createRequire(process.env.ASCENT_EMULATOR_TOOLS?path.resolve(process.env.ASCENT_EMULATOR_TOOLS,'package.json'):import.meta.url);
 const {initializeTestEnvironment,assertSucceeds,assertFails}=toolRequire('@firebase/rules-unit-testing');
-const {doc,setDoc,getDoc,getDocs,deleteDoc,collection,collectionGroup,query,where,limit,serverTimestamp,Timestamp}=toolRequire('firebase/firestore');
+const {doc,setDoc,getDoc,getDocs,deleteDoc,collection,collectionGroup,query,where,limit,serverTimestamp,Timestamp,runTransaction}=toolRequire('firebase/firestore');
 const current=fs.readFileSync('firestore.rules','utf8');
 // Parent verified this exact revision against Console after the approved deployment.
 // This remains a static fixture, not a live production read in this test.
@@ -186,7 +186,34 @@ try {
   await deny(setDoc(doc(guest,lockPath),{requestedAt:serverTimestamp()}));
   await deny(setDoc(doc(owner,lockPath),{requestedAt:serverTimestamp(),unexpected:true}));
   await deny(setDoc(doc(owner,lockPath),{requestedAt:Timestamp.fromMillis(1)}));
+  // Hold real client transactions after their reads, before commit. A deletion
+  // lock created in that gap must reject both stale profile and score writes,
+  // even though neither transaction reads the lock document itself.
+  const staleWrites=[];
+  if(label==='metadata') {
+   for(const [target,patch] of [[profilePath,{name:'Stale sync name'}],[updatePath,{moves:10}]]) {
+    let readReady,release;
+    const ready=new Promise(resolve=>{readReady=resolve;});
+    const held=new Promise(resolve=>{release=resolve;});
+    let before;
+    const transaction=runTransaction(owner,async tx=>{
+     const ref=doc(owner,target),snapshot=await tx.get(ref);
+     before=snapshot.data();readReady();
+     await held;
+     tx.set(ref,{...before,...patch,updatedAt:serverTimestamp()});
+    });
+    // Surface early transaction errors rather than hanging on the read gate.
+    await Promise.race([ready,transaction]);
+    staleWrites.push({transaction,release,target,before});
+   }
+  }
   await pass(setDoc(doc(owner,lockPath),{requestedAt:serverTimestamp()}));
+  for(const stale of staleWrites) {
+   stale.release();
+   await deny(stale.transaction);
+   assert.deepEqual((await getDoc(doc(owner,stale.target))).data(),stale.before);
+   assertions++;
+  }
   await pass(getDoc(doc(owner,lockPath)));
   await deny(getDoc(doc(other,lockPath)));
   await deny(getDocs(query(collection(owner,'accountDeletionLocks'),limit(1))));

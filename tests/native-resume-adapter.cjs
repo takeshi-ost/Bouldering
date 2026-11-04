@@ -43,6 +43,10 @@ f=fixture({data,token:'recovery-C'});assert.equal(data.get(ITEMS_KEY),'10');asse
  assert.equal(api.endAttempt(()=>{actions++;return api.endAttempt(()=>42);}),false);assert.equal(actions,1);assert.equal(ends,1);
  fail=false;assert(api.retry());assert.equal(actions,1);assert.equal(ends,1);assert.equal(completes,2);assert(api.ready);
 }
+// Deletion drops pending continuations and prevents stale resume retries.
+f=fixture();f.broken(true);f.api.beginAttempt(3,f.action);f.api.suspend();f.broken(false);
+assert.equal(f.api.retry(),false);assert.equal(f.api.beginAttempt(3,f.action),false);
+assert.equal(f.api.endAttempt(f.action),false);assert.equal(f.actions(),0);
 // Serialized factories, rather than module globals, work in a browser script.
 const context=vm.createContext({localStorage:{getItem:()=>null,setItem(){}},webkit:{messageHandlers:{ascentResume:{postMessage(){}}}}});
 vm.runInContext(`(${installNativeResume.toString()})(${createNativeResumeStore.toString()});`,context);

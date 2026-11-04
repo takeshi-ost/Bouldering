@@ -10,6 +10,7 @@ try {
   const sdk=fs.readFileSync(path.join(out,'vendor/firebase-sdk.js'),'utf8');
   const controller=fs.readFileSync(path.join(out,'js/native-firebase-control.js'),'utf8');
   assert(sdk.length>100000,'Real Firebase SDK must have been bundled by esbuild');
+  assert(!/deleteUser:/.test(sdk),'Offline SDK excludes account deletion');
   assert(!/import\s*\(\s*['"]https?:/.test(sdk));
   assert(!/apiKey\s*:|config = \{/.test(controller),'Offline bundle must not include connection configuration');
   const run=spawnSync(process.execPath,['tests/native-firebase-bundle.cjs'],{
@@ -21,6 +22,7 @@ try {
     require('../scripts/build-native-firebase.cjs')(root,out,mode);
     const connectedSdk=fs.readFileSync(path.join(out,'vendor/firebase-sdk.js'),'utf8');
     assert.match(connectedSdk,/signInAnonymously:/,mode+' must ship the actual anonymous sign-in SDK function');
+    assert.equal(/deleteUser:/.test(connectedSdk),mode==='auto-sync','Deletion SDK ships only with auto-sync');
     const connectedController=fs.readFileSync(path.join(out,'js/native-firebase-control.js'),'utf8');
     assert.match(connectedController,/createAnonymous: true/);
   }

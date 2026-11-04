@@ -14,16 +14,17 @@ module.exports=function buildNativeFirebase(root,out,mode) {
     const writes=mode==='auto-sync';
     const sdk=`
 import {initializeApp,getApps,getApp} from 'firebase/app';
-import {initializeAuth,browserLocalPersistence,setPersistence${mode!=='offline'?',signInAnonymously':''}} from 'firebase/auth';
-import {getFirestore,doc,collection,getDocFromServer,getDocsFromServer,query,where,orderBy,limit${writes?',runTransaction,serverTimestamp':''}} from 'firebase/firestore';
+import {initializeAuth,browserLocalPersistence,setPersistence${mode!=='offline'?',signInAnonymously':''}${writes?',deleteUser':''}} from 'firebase/auth';
+import {getFirestore,doc,collection,getDocFromServer,getDocsFromServer,query,where,orderBy,limit${writes?',runTransaction,serverTimestamp,collectionGroup,startAfter,writeBatch,deleteDoc':''}} from 'firebase/firestore';
 export const app={initializeApp,getApps,getApp};
-export const auth={initializeAuth,browserLocalPersistence,setPersistence${mode!=='offline'?',signInAnonymously':''}};
-export const firestore={getFirestore,doc,collection,getDocFromServer,getDocsFromServer,query,where,orderBy,limit${writes?',runTransaction,serverTimestamp':''}};`;
+export const auth={initializeAuth,browserLocalPersistence,setPersistence${mode!=='offline'?',signInAnonymously':''}${writes?',deleteUser':''}};
+export const firestore={getFirestore,doc,collection,getDocFromServer,getDocsFromServer,query,where,orderBy,limit${writes?',runTransaction,serverTimestamp,collectionGroup,startAfter,writeBatch,deleteDoc':''}};`;
     esbuild.buildSync({stdin:{contents:sdk,resolveDir:root},bundle:true,format:'esm',platform:'browser',target:'ios15',minify:true,
         outfile:path.join(out,'vendor/firebase-sdk.js'),logLevel:'silent',legalComments:'eof'});
     const entry=`
 const {createNativeFirebaseController}=require('./scripts/native-firebase-controller.cjs');
 const {createNativeAutoSync}=require('./scripts/native-auto-sync.cjs');
+const {createNativeAccountDeletion}=require('./scripts/native-account-deletion.cjs');
 const {createNativeSyncStatus}=require('./scripts/native-sync-status.cjs');
 const mode=${JSON.stringify(mode)},config=${JSON.stringify(config)||'undefined'};
 const courseVersion=typeof COURSE_VERSION==='string'?COURSE_VERSION:'v1';
@@ -38,7 +39,7 @@ function publish(report,stats=sync?.report()||{}){
  const safe={...report,...stats,pendingUnchanged:pendingValue()===baseline};
  globalThis.webkit?.messageHandlers?.ascentFirebaseReport?.postMessage(safe);
 }
-const controller=createNativeFirebaseController({mode,config,policy:()=>typeof accountDeletion!=='undefined' && accountDeletion.marker?{...globalThis.ASCENT_IOS_BUILD,firebaseEnabled:false}:globalThis.ASCENT_IOS_BUILD,
+const controller=createNativeFirebaseController({mode,config,policy:()=>globalThis.ASCENT_IOS_BUILD,
  storage,loadSDK:()=>import('../vendor/firebase-sdk.js'),
  connectionEpoch:()=>globalThis.ASCENT_SETTINGS_CONNECTION?.ticket(),
  knownUid:()=>{
@@ -47,6 +48,14 @@ const controller=createNativeFirebaseController({mode,config,policy:()=>typeof a
   return known[0]||null;
  },onReport:publish});
 Object.defineProperty(globalThis,'ASCENT_NATIVE_FIREBASE',{value:controller,writable:false,configurable:false});
+const deletion=createNativeAccountDeletion({controller,storage,sync:()=>sync,resume:()=>globalThis.ASCENT_NATIVE_RESUME,game:{
+ marker:()=>typeof accountDeletion==='undefined'?null:accountDeletion.marker,
+ mark:(uid,phase)=>markAccountDeletion(uid,phase),ready:value=>{online.ready=value;},
+ uid:value=>{online.uid=value;},adapter:value=>{online.adapter=value;},
+ show:()=>showDeleteUserDialog(),updateButton:()=>updateDeleteUserButton(),
+ clearGame:()=>clearLocalGameData(),failed:error=>{const message=gameText(error?.code==='native-firebase/deletion-auth-unconfirmed'?'account-deletion.deleteCurrentAccount.2':'account-deletion.restoreDeletionSession');deleteUserElement('deleteUserStatus').textContent=message;setOnlineStatus(message);console.warn('Native deletion:',error?.code || error?.message);}
+}});
+Object.defineProperty(globalThis,'ASCENT_NATIVE_ACCOUNT_DELETION',{value:deletion,writable:false,configurable:false});
 if(controller.permissions().automaticSync){
  let owner=null;try{owner=storage?.getItem('ascent.native-firebase.identity-check.v1')||null;}catch(_){}
  sync=createNativeAutoSync({storage,owner,controller,courseVersion,startPaused:true,onReport:stats=>publish(controller.report(),stats)});
@@ -54,15 +63,17 @@ if(controller.permissions().automaticSync){
 }
 let connectionFlight=null;
 function connectNative(){
- if(!controller.permissions().network || connectionFlight)return connectionFlight;
+ if(connectionFlight)return connectionFlight;
+ if(!controller.permissions().network && !deletion.hasMarker())return;
  connectionFlight=(async()=>{
  try {
-  if(accountDeletion.marker)throw {code:'native-firebase/deletion-pending'};
+  if(await deletion.restore())return;
   sync?.ownerUid(); // Fail before authentication if an existing ledger is invalid.
   const user=await controller.authenticate({createAnonymous:true});
   if(accountDeletion.marker)throw {code:'native-firebase/deletion-pending'};
   if(sync && !sync.activate(user.uid))throw {code:sync.report().syncError};
   online.uid=user.uid;online.adapter=controller.adapter();online.ready=true;
+  updateDeleteUserButton();
   setOnlineStatus(mode==='auto-sync'?'オンライン同期 / Online sync':'オンライン（読み取り専用） / Read-only online');
   renderTransferAvailability();renderMapPlayers();
   if(sync){sync.queueProfile(onlineProfile());await sync.flush();}
@@ -73,7 +84,7 @@ function connectNative(){
  })().finally(()=>{connectionFlight=null;});
  return connectionFlight;
 }
-if(controller.permissions().network){
+if(controller.permissions().network || deletion.hasMarker()){
  for(const event of ['online','focus','ascent-native-resume'])window.addEventListener(event,()=>{void connectNative();});
  void connectNative();
 }`;

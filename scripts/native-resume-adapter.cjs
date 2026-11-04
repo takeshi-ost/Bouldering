@@ -3,7 +3,7 @@
 // Self-contained for packaging beside the durable store before classic scripts.
 function installNativeResume(createStore,host=globalThis) {
     const token=typeof host.ASCENT_IOS_RESUME?.id==='string'?host.ASCENT_IOS_RESUME.id:null;
-    let store,hooks=null,pending=null,bootFailed=false,ready=false,serial=0,ending=false;
+    let store,hooks=null,pending=null,bootFailed=false,ready=false,serial=0,ending=false,suspended=false;
     function report(kind){const locale=hooks?.language?.();host.webkit?.messageHandlers?.ascentResume?.postMessage({kind,id:token,...(locale==='ja'||locale==='en'?{locale}:{})});}
     function boot() {
         store=createStore({storage:host.localStorage});
@@ -22,6 +22,9 @@ function installNativeResume(createStore,host=globalThis) {
     const api={
         get ready(){return ready;},
         configure(value){hooks=value;},
+        // Account deletion owns the next reload. Never replay old continuations
+        // or recreate a cleared receipt while its completion dialog is open.
+        suspend(){suspended=true;ready=false;pending=null;hooks?.pause();},
         beginAttempt(spent,continuation) {
             if(!ready || !hooks)return false;
             const snapshot={...hooks.snapshot(spent),id:host.crypto?.randomUUID?.() || `native-${Date.now()}-${++serial}-${Math.random()}`};
@@ -42,6 +45,7 @@ function installNativeResume(createStore,host=globalThis) {
             return transact(()=>store.endAttempt(),execute);
         },
         retry() {
+            if(suspended)return false;
             if(bootFailed) {
                 try {boot();}catch(_){return blocked();}
                 // Resource globals may have been read before the failed replay.
