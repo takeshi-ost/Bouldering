@@ -1,5 +1,5 @@
 'use strict';
-const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const read=p=>fs.readFileSync(p,'utf8');
 function helpDocument(html){
  const help=html.match(/<dialog id="helpDialog"[\s\S]*?<\/dialog>/)[0],nodes=[],stack=[];
@@ -45,24 +45,53 @@ const expected=[
  'マップとデイリーの設定から開き、プレイヤー名と配色を変えられます。スライダーでボディを1〜8段に分け、頭や各段をタップして色を選びます。「おまかせ」で配色と段数をランダムに変更できます。',
  'プレイヤー名は10文字まで入力できます。「決定」で保存し、「戻る」で変更を取り消します。見た目を変えても、登る力やスタミナは変わりません。'
 ];
-const digest=blocks=>crypto.createHash('sha256').update(JSON.stringify(blocks)).digest('hex');
-function previousEnglishBlocks(blocks){
- const previous=blocks.map(b=>b.replace(/^(Hold|Large Hold|Pointed Hold|Heart|Chalk Bag)\n/,'$1: '));
- previous.splice(4,2,previous[4]+' '+previous[5]);return previous; // Only paragraph/name formatting changed.
-}
+// Independently reviewed English rendering of the same current Japanese blocks.
+// Keep this literal fixture separate from the catalog so copy/order drift fails.
+const expectedEnglish=[
+ 'ASCENT is a bouldering game where you guide a climber to the goal. Choose your holds and try to reach the top in fewer moves.',
+ 'Grab the yellow goal with both hands while all four limbs are fixed on holds to clear the stage.',
+ 'Each move uses stamina. Reach the goal before it drops to 0 to complete the climb.',
+ 'Failing a climb costs one life. If you run out of lives, you cannot play until they recover.',
+ 'Swipe the screen to move your body. Two limbs support you while the other two automatically move to nearby holds.',
+ 'Release where all four limbs can reach holds to complete one move. Release where they cannot reach, and you return to your previous position.',
+ 'Your feet cannot be placed higher than your hands.',
+ 'Tap your body briefly to undo only your last move.',
+ 'Swipe with two fingers, or along the left or right edge of the screen, to scroll the wall up and down.',
+ 'Hold\nSupports one hand or foot.',
+ 'Large Hold\nCan support both hands or both feet. A hand and a foot cannot share it.',
+ 'Pointed Hold\nA small pointed hold. Completing a move with a new grip on it costs 1 extra stamina.',
+ 'Goal Hold\nGrab the goal with both hands to reach the summit.',
+ 'Stamina +2\nTouch it with your body on the course to restore 2 stamina.',
+ 'In this mode, clear the stages on the map in order.',
+ 'On the screen before a stage starts, increasing the number of Chalk Bags used adds 1 stamina per bag. Used bags are consumed, and their bonus does not carry over to a retry.',
+ 'Clearing a stage unlocks the next one, and cleared stages can be replayed as often as you like.',
+ 'Open the calendar from the airship on the map and take on the challenge for that day.\nNo lives are used, and Chalk Bags cannot be used.',
+ 'Open Settings with the gear icon at the top right. You can turn music and sound effects on or off, adjust their volume, and change the language.\nDepending on where you open Settings, options such as “Give Up” and “Title Screen” are available.',
+ 'Open it from the map or Daily settings to change your name and colors. Use the slider to divide the body into 1–8 sections, then tap the head or a section to choose its color. “Randomize” changes the colors and number of sections at random.',
+ 'Your name can contain up to 10 characters. Select “Confirm” to save, or “Back” to discard your changes. Appearance does not change your climbing ability or stamina.'
+];
+const omittedKeys=['help.rules.tutorial','help.holds.chalkLabel','help.holds.chalk','help.map.records','help.map.rewards','help.map.lives','help.daily.attempts','help.daily.rewards','help.settings.navigation'];
 function test(){
  const b=boot();assert.deepEqual(b.blocks(),expected,'Visible authored JA text/order/punctuation/newlines must match without old extra paragraphs');
  const trial=b.doc.getElementById('helpTrialNote');assert(trial.hidden);
+ assert.equal(expected.length,21);assert.equal(expectedEnglish.length,21);
+ for(const catalog of ['GAME_TEXT_JA','GAME_TEXT_EN']){
+  const empty=Array.from(b.run('Object.keys('+catalog+').filter(key=>key.startsWith("help.") && '+catalog+'[key]==="")'));
+  assert.deepEqual(empty.sort(),[...omittedKeys].sort(),'Current omitted help blocks must match in '+catalog);
+ }
  for(const language of ['en','ja','en','ja']){
   b.run('setGameLanguage('+JSON.stringify(language)+')');assert(trial.hidden,'Changing language must not reveal formal trial note');
-  if(language==='ja')assert.deepEqual(b.blocks(),expected);
-  else assert.equal(digest(previousEnglishBlocks(b.blocks())),'71e7bfa2d1f48fee5825d687bf6007aa813f8907564f112158090c6de8f54e33','English wording/order must match 0.4.34 after reversing only paragraph/name formatting');
+  assert.deepEqual(b.blocks(),language==='ja'?expected:expectedEnglish,'Exact current '+language+' wording, order, punctuation and paragraph boundaries');
+  assert.equal(b.doc.documentElement.lang,language);
+  if(language==='en')assert(b.blocks().every(block=>!/[\u3040-\u30ff\u3400-\u9fff]/.test(block)),'English help contains no Japanese prose');
  }
- trial.hidden=false;b.run('setGameLanguage("en");setGameLanguage("ja");');assert.equal(trial.hidden,false,'Changing language must not hide an active trial notice');
+ trial.hidden=false;b.run('setGameLanguage("en");');assert.equal(trial.hidden,false,'Changing language must not hide an active trial notice');
+ assert.deepEqual(b.blocks(),[...expectedEnglish,'This trial is offline. Records are saved in this browser separately from the regular game. Online ranking submissions and data transfers are disabled. Ads use a test screen.']);
+ b.run('setGameLanguage("ja");');assert.equal(trial.hidden,false);
  assert.deepEqual(b.blocks(),[...expected,b.run('GAME_TEXT_JA["help.trialNote"]')]);
  const css=read('styles.css');assert(css.includes('.help-scroll p { white-space:pre-line; }'));assert(css.includes('html[lang="ja"] .help-scroll .help-item-gap { margin-top:16px; }'));
  assert.equal(b.run('GAME_TEXT_JA["help.rules.stamina"]'),expected[2]);
- console.log('PASS owner help copy: exact 21 JA body blocks, punctuation/line breaks, omitted old JA details, goal/stamina labels, JA/EN/JA visibility, unchanged English wording after formatting normalization, preserved footer trial-note gate and paragraph spacing (no browser rendering)');
+ console.log('PASS owner help copy: exact independent 21-block JA/EN fixtures, punctuation/line breaks/order, matching nine omitted entries, goal/stamina labels, repeated locale switches, no extra English rules, preserved footer trial-note gate and paragraph spacing (no browser rendering)');
 }
 if(require.main===module)test();
-module.exports={boot,digest};
+module.exports={boot};

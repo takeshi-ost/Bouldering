@@ -8,7 +8,7 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const events={};const window={addEventListener(k,f){events[k]=f;},devicePixelRatio:1};function requestAnimationFrame(){}
 `;
-const data={},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
+const data={'ascent.language.v1':'ja'},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
 const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
 Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 (async()=>{try {

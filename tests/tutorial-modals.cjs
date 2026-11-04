@@ -35,12 +35,12 @@ assert.equal(gearSvg,settingsSvg.replace('<svg ','<svg xmlns="http://www.w3.org/
 assert(gearSvg.includes('viewBox="0 0 24 24"'));
 assert(!/<(?:script|image)|https?:\/\/(?!www\.w3\.org\/2000\/svg)/.test(gearSvg));
 const files=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>m[1]);
-function boot(data=new Map(),{blocked=false,readBlocked=blocked,writeBlocked=blocked,missingStorage=false,imageClass=null,audioClass=null}={}){
+function boot(data=new Map(),{blocked=false,readBlocked=blocked,writeBlocked=blocked,missingStorage=false,imageClass=null,audioClass=null,locale='ja-JP'}={}){
  const operations=[],elements={},windowEvents={},documentEvents={},timers=new Map(),frames=[];let nextTimer=0,captureFrames=false,clock=1000;
  const node=id=>elements[id]||={id,style:{setProperty(){}},classList:{values:new Set(),toggle(k,v){if(v)this.values.add(k);else this.values.delete(k);},add(k){this.values.add(k);},remove(k){this.values.delete(k);},contains(k){return this.values.has(k);}},querySelector(selector){return node(id+selector);},replaceWith(next){elements[id]=next;next.isConnected=true;},events:{},listeners:{},hidden:false,open:false,value:'',focus(){document.activeElement=this;},blur(){},setAttribute(k,v){this[k]=v;},removeAttribute(k){delete this[k];},addEventListener(k,f){(this.listeners[k]||=[]).push(f);this.events[k]=e=>this.listeners[k].forEach(fn=>fn(e));},showModal(){this.showCount=(this.showCount||0)+1;this.open=true;},close(){this.closeCount=(this.closeCount||0)+1;this.open=false;},contains(){return true;},getContext(){return new Proxy({},{get:(o,k)=>o[k]||(()=>{})});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};
  const document={getElementById:node,documentElement:{},addEventListener(k,f){(documentEvents[k]||=[]).push(f);},querySelectorAll(){return [];}};
  const storage={getItem(k){operations.push(['get',k]);if(readBlocked)throw Error('blocked storage');return data.get(k)??null;},setItem(k,v){operations.push(['set',k]);if(writeBlocked)throw Error('blocked storage');data.set(k,String(v));},removeItem(k){operations.push(['remove',k]);if(writeBlocked)throw Error('blocked storage');data.delete(k);},get length(){return data.size;},key:i=>[...data.keys()][i]??null};
- const context=vm.createContext({AudioContext:audioClass||undefined,Image:imageClass||undefined,document,localStorage:missingStorage?undefined:storage,console,performance:{now:()=>clock},Date,Math,assert,URL,Uint8Array,TextEncoder,TextDecoder,atob,setTimeout(fn,delay=0){timers.set(++nextTimer,{fn,at:clock+delay});return nextTimer;},clearTimeout(id){timers.delete(id);},requestAnimationFrame(fn){if(captureFrames)frames.push(fn);return 0;},window:{devicePixelRatio:1,addEventListener(k,f){(windowEvents[k]||=[]).push(f);}}});
+ const context=vm.createContext({navigator:{language:locale,languages:[locale]},AudioContext:audioClass||undefined,Image:imageClass||undefined,document,localStorage:missingStorage?undefined:storage,console,performance:{now:()=>clock},Date,Math,assert,URL,Uint8Array,TextEncoder,TextDecoder,atob,setTimeout(fn,delay=0){timers.set(++nextTimer,{fn,at:clock+delay});return nextTimer;},clearTimeout(id){timers.delete(id);},requestAnimationFrame(fn){if(captureFrames)frames.push(fn);return 0;},window:{devicePixelRatio:1,addEventListener(k,f){(windowEvents[k]||=[]).push(f);}}});
  for(const file of files)vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),context,{filename:file});
  // These synchronous lifecycle cases stub readiness; the separate controlled-Image
  // suite exercises real asynchronous loading/decoding, retries and stale results.
@@ -69,6 +69,17 @@ const pages=[
   "くわしい操作やルールの説明は歯車アイコンで開くメニューから見ることができます"
  ]
 ];
+// Reviewed against the five Japanese instructions above, independently of the
+// runtime catalog. Preserve both exact texts rather than using gameText as its
+// own expected value or retaining the former Japanese-only English fallback.
+const englishPages=[
+ ['Welcome to ASCENT!','Swipe the screen to move, then release your finger to choose your holds'],
+ ['Welcome to ASCENT!','Two of your limbs move freely. Your feet cannot be placed higher than your hands'],
+ ['Welcome to ASCENT!','Grab the goal with both hands before your stamina runs out to reach the summit'],
+ ['Tutorial Complete','To finish, both feet must also be fixed on holds'],
+ ['Tutorial Complete','Detailed controls and rules are available in the menu opened with the gear icon']
+];
+const localizedPages={ja:pages,en:englishPages};
 const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');assert(/\.feature-help-icon\s*\{[^}]*height:\s*78px/.test(css));assert(/\.tutorial-dialog \.card p\s*\{[^}]*white-space:pre-wrap/.test(css));assert(html.includes('id="tutorialImageSlot"'));assert(/id="tutorialDialog"[^>]*class="overlay feature-help tutorial-dialog"/.test(html));assert(/\.feature-help \.card h1\s*\{[^}]*font-size:18px/.test(css));assert(/\.feature-help \.card p\s*\{[^}]*font-size:16px/.test(css));assert(!/<div[^>]*id="tutorialImageSlot"[^>]*\shidden(?:[ =>])/.test(html));
 assert(/\.tutorial-dialog \.feature-help-icon img\s*\{[^}]*width:100%;[^}]*height:100%;[^}]*object-fit:contain;/.test(css));
 assert(/\.feature-help-icon\s*\{[^}]*place-items:center;/.test(css));
@@ -91,21 +102,22 @@ function start(b,{completeIntro=true}={}){
  b.run('advanceCameraIntro(performance.now());tutorialReadyToPlay();tutorialTrigger("start");');
  assert.equal(b.run('tutorialRun.queue.length'),2,'start boundary must enqueue exactly once');
 }
-function page(b,n){assert.equal(b.node('tutorialDialog').open,true);assert.equal(b.run('tutorialInstructionsOpen()'),true);assert.equal(b.node('tutorialTitle').textContent,pages[n-1][0]);assert.equal(b.node('tutorialText').textContent,pages[n-1][1]);assert.equal(b.node('tutorialTitle').lang,'ja');assert.equal(b.node('tutorialText').lang,'ja');assert.equal(b.node('tutorialImage').hidden,!pageArtwork[n-1]);assert.equal(b.node('tutorialImage').src,pageArtwork[n-1]);assert.equal(b.run('featureHelpOpen'),true);assert.equal(b.node('tutorialDialog').events.keydown,undefined);}
+function page(b,n){const language=b.run('GAME_TEXT_LANGUAGE'),expected=localizedPages[language][n-1];assert.equal(b.node('tutorialDialog').open,true);assert.equal(b.run('tutorialInstructionsOpen()'),true);assert.equal(b.node('tutorialTitle').textContent,expected[0]);assert.equal(b.node('tutorialText').textContent,expected[1]);assert.equal(b.node('tutorialTitle').lang,language);assert.equal(b.node('tutorialText').lang,language);assert.equal(b.node('tutorialImage').hidden,!pageArtwork[n-1]);assert.equal(b.node('tutorialImage').src,pageArtwork[n-1]);assert.equal(b.run('featureHelpOpen'),true);assert.equal(b.node('tutorialDialog').events.keydown,undefined);}
 function settleTransition(b){while(b.run('!!tutorialRun?.transition'))b.fireTimer(b.run('tutorialRun.transitionTimer'));}
 function tap(b,settle=true){const e=event();b.node('tutorialContinue').onclick(e);assert(e.stopped,'button tap must not bubble and advance twice');if(settle)settleTransition(b);}
 function intros(b){for(let n=1;n<=3;n++){page(b,n);tap(b);}assert.equal(b.run('tutorialInstructionsOpen()'),false);assert.equal(b.run('cameraIntro'),null);assert.notEqual(b.run('runStartedAt'),null);}
 function play(b,index,cancel=false){b.run(`camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);var targetForModalTest=route[${index}];down({clientX:body.x,clientY:body.y-camera});move({clientX:targetForModalTest.x,clientY:targetForModalTest.y-camera});release(${cancel});`);}
 function completed(b,reason){assert.equal(b.run('isTutorialRun()'),false);assert.equal(b.run('tutorialPending()'),false);assert.equal(b.run('AscentTutorialState.snapshot().reason'),reason);assert.equal(b.run('state'),'map');assert.equal(b.run('stageStartContext?.n'),1);assert(b.node('stageStartDialog').open);assert(!b.node('tutorialDialog').open);assert.equal(b.run('stageRecords.existing[0]'),undefined);}
 function runModalTests(){
-// Both language selections deliberately show the same authored Japanese copy.
+// Both selections show their own reviewed copy and matching language metadata.
 for(const language of ['ja','en']){
  const b=boot(new Map([['ascent.language.v1',language],['ascent.tutorial-stage0.v1',JSON.stringify({version:1,status:'pending',reason:'test-language'})]]));assert.equal(b.run('GAME_TEXT_LANGUAGE'),language);const resources=snapshot(b);start(b);
  assert.equal(b.run('TUTORIAL_CONFIG.steps.length'),5);
  assert.equal(b.run('JSON.stringify(TUTORIAL_CONFIG.steps.filter(s=>s.image).map(s=>s.id))'),'["intro-welcome","intro-movement","intro-goal","goal-fixed","goal-finish"]');
  const bodyKeys=['tutorial.intro.welcome','tutorial.intro.movement','tutorial.intro.goal','tutorial.goal.fixed','tutorial.goal.finish'];
- for(const [i,key] of bodyKeys.entries()){assert.equal(b.run('Object.hasOwn(GAME_TEXT_EN,'+JSON.stringify(key)+')'),true);assert.equal(b.run('GAME_TEXT_EN['+JSON.stringify(key)+']'),pages[i][1]);}
- assert.equal(b.run('GAME_TEXT_EN["tutorial.title.complete"]'),pages[3][0]);assert.equal(b.run('GAME_TEXT_EN["tutorial.title.play"]'),pages[0][0]);page(b,1);
+ const catalog=language==='ja'?'GAME_TEXT_JA':'GAME_TEXT_EN',expected=localizedPages[language];
+ for(const [i,key] of bodyKeys.entries()){assert.equal(b.run('Object.hasOwn('+catalog+','+JSON.stringify(key)+')'),true);assert.equal(b.run(catalog+'['+JSON.stringify(key)+']'),expected[i][1]);}
+ assert.equal(b.run(catalog+'["tutorial.title.complete"]'),expected[3][0]);assert.equal(b.run(catalog+'["tutorial.title.play"]'),expected[0][0]);page(b,1);
  const initial=b.run('JSON.stringify({body,grips,stamina,moveCount,runElapsedMs})'),closeCount=b.node('tutorialDialog').closeCount||0;
  for(let n=1;n<=3;n++){
   page(b,n);b.advance(30000);b.run('cameraIntro=null;down({clientX:body.x,clientY:body.y-camera});move({clientX:body.x+40,clientY:body.y-camera-40});release();');
@@ -201,7 +213,7 @@ assert(/prefers-reduced-motion:reduce[^}]*tutorial-page-closing \.card[^}]*trans
  const again=boot(b.data);start(again);page(again,1);tap(again);page(again,2);again.node('tutorialDialog').events.close(event());page(again,2);assert.equal(again.run('isTutorialRun()'),true,'queued old close must not interrupt reopened/current dialog');again.node('tutorialDialog').close();again.node('tutorialDialog').events.close(event());assert.equal(again.run('isTutorialRun()'),false);assert.equal(again.run('tutorialPending()'),true);assert.equal(again.run('state'),'choosing');start(again);page(again,1);
  const old=boot(new Map([['ascent.player-uuid.v1','0']]));assert.equal(old.run('tutorialPending()'),false);old.run('titleReady=true;');old.node('titleScreen').onclick();assert.equal(old.run('isTutorialRun()'),false);assert.equal(old.node('tutorialDialog').open,false);
 }
-console.log('PASS five exact revised JA tutorial pages, language fallback, scroll-complete boundary, close/reopen visual queues with uninterrupted input/time pause, transition interruption/repeat protection, committed explicit-ID HAND once across Undo, valid goal before completion, native clear/exhaustion, pointer advance/native cancel, interruption/reload/existing skip');
+console.log('PASS five exact JA/EN tutorial pages and language metadata, scroll-complete boundary, close/reopen visual queues with uninterrupted input/time pause, transition interruption/repeat protection, committed explicit-ID HAND once across Undo, valid goal before completion, native clear/exhaustion, pointer advance/native cancel, interruption/reload/existing skip');
 
 }
 if(require.main===module)runModalTests();

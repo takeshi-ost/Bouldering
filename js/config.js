@@ -4,10 +4,10 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.4.59';
+const RELEASE_VERSION = '0.4.60';
 const GAMEPLAY_TIP_KEYS = [
-    'tips.scroll', 'tips.undo', 'tips.reach', 'tips.wideHold',
-    'tips.goal', 'tips.heart', 'tips.sideways', 'tips.appearance'
+    'tips.scroll', 'tips.undo', 'tips.reach',
+    'tips.goal', 'tips.heart', 'tips.cancel', 'tips.appearance'
 ];
 const GAMEPLAY_TIPS = GAMEPLAY_TIP_KEYS.map(key=>gameText(key));
 // Bump whenever generation/gameplay changes make stage scores incomparable.

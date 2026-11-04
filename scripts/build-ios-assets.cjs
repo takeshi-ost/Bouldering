@@ -5,6 +5,8 @@ const path = require('node:path');
 const nativeSource = require('./native-bundle-source.cjs');
 const buildNativeFirebase = require('./build-native-firebase.cjs');
 const nativeSettingsLayout = require('./native-settings-layout.cjs');
+const {createNativeResumeStore}=require('./native-resume-store.cjs');
+const {installNativeResume}=require('./native-resume-adapter.cjs');
 const root = path.resolve(__dirname, '..');
 const out = path.join(root, 'www');
 const firebaseMode=process.env.ASCENT_FIREBASE_MODE || 'auto-sync';
@@ -24,6 +26,10 @@ if ([...html.matchAll(firebaseTag)].length !== 1) {
     throw new Error('Expected one Firebase bootstrap tag; refusing an unverified native build');
 }
 html = html.replace(firebaseTag, firebaseMode==='offline'?'<script src="js/native-offline.js" defer></script>':'');
+fs.writeFileSync(path.join(out,'js/native-resume-preboot.js'),`'use strict';\n(${installNativeResume.toString()})(${createNativeResumeStore.toString()});\n`);
+fs.copyFileSync(path.join(root,'scripts/native-resume-runtime.js'),path.join(out,'js/native-resume-runtime.js'));
+html = html.replace('    <!-- classic scripts','    <script src="js/native-resume-preboot.js" defer></script>\n    <!-- classic scripts');
+html = html.replace(/(<script src="js\/main\.js[^"]*" defer><\/script>)/,'<script src="js/native-resume-runtime.js" defer></script>\n    $1');
 html = html.replace('    <!-- classic scripts', '    <script src="js/native-audio-fetch.js" defer></script>\n    <!-- classic scripts');
 fs.copyFileSync(path.join(root, 'scripts/native-audio-fetch.js'), path.join(out, 'js/native-audio-fetch.js'));
 fs.copyFileSync(path.join(root, 'scripts/native-audio-lifecycle.js'), path.join(out, 'js/native-audio-lifecycle.js'));

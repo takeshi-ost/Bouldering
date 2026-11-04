@@ -3,11 +3,11 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const root=path.resolve(__dirname,'..'),{buildPagesFormal}=require('../scripts/build-pages-formal.cjs');
 const prefix='ascent.pages-trial.0.4.12.d6.';
 function build(){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ascent-formal-minimal-'));return {dir,...buildPagesFormal({outputDir:dir,allowDirty:true})};}
-function boot(dir,data){
+function boot(dir,data,{language='en-US'}={}){
  const elements={},operations=[];let created=0;
  const node=id=>elements[id]||={id,style:{setProperty(){}},classList:{toggle(){},add(){},remove(){}},events:{},hidden:false,open:false,value:'',focus(){},setAttribute(k,v){this[k]=v;},removeAttribute(k){delete this[k];},addEventListener(k,f){this.events[k]=f;},showModal(){this.open=true;},close(){this.open=false;},appendChild(){},append(){},contains(){return true;},getContext(){return new Proxy({},{get:(o,k)=>o[k]||(()=>{})});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};
  const storage={getItem(k){operations.push(['get',k]);return data.get(k)??null;},setItem(k,v){operations.push(['set',k]);data.set(k,String(v));},removeItem(k){operations.push(['remove',k]);data.delete(k);},key:i=>[...data.keys()][i]??null,get length(){return data.size;}};
- const context=vm.createContext({localStorage:storage,document:{getElementById:node,createElement:()=>node('new'+(++created)),documentElement:{},addEventListener(){}},window:{devicePixelRatio:1,addEventListener(){}},console,performance,crypto:crypto.webcrypto,URL,Uint8Array,TextEncoder,TextDecoder,atob,setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){},fetch(url){throw Error('Unexpected network during local startup: '+url);}});
+ const context=vm.createContext({navigator:{language},localStorage:storage,document:{getElementById:node,createElement:()=>node('new'+(++created)),documentElement:{},addEventListener(){}},window:{devicePixelRatio:1,addEventListener(){}},console,performance,crypto:crypto.webcrypto,URL,Uint8Array,TextEncoder,TextDecoder,atob,setTimeout:()=>0,clearTimeout(){},requestAnimationFrame(){},fetch(url){throw Error('Unexpected network during local startup: '+url);}});
  const html=fs.readFileSync(path.join(dir,'index.html'),'utf8'),scripts=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>m[1]);
  for(const file of scripts)vm.runInContext(fs.readFileSync(path.join(dir,file),'utf8'),context,{filename:file});
  return {context,operations,data,run:code=>vm.runInContext(code,context)};
@@ -58,4 +58,22 @@ test('thin facade is initially inert, avoids duplicate prefix and limits cleanup
  assert.equal(s.getItem('ascent.progress.v1'),'trial');assert.equal(s.physicalKey(prefix+'ascent.progress.v1'),prefix+'ascent.progress.v1');
  s.setItem(prefix+'ascent.progress.v1','updated');assert.equal(data.get(prefix+'ascent.progress.v1'),'updated');assert(!data.has(prefix+prefix+'ascent.progress.v1'));
  s.clear();assert.deepEqual([...data],[['ascent.progress.v1','raw'],['other','safe']]);
+});
+
+test('initial language uses only current Pages namespace and persists before Stage0',()=>{
+ const {dir}=build();try{
+  for(const [language,expected] of [['ja-JP','ja'],['en-US','en'],['fr-FR','en']]) {
+   const data=new Map([['ascent.language.v1',expected==='ja'?'en':'ja']]),b=boot(dir,data,{language});
+   assert.equal(b.run('GAME_TEXT_LANGUAGE'),expected);assert.equal(b.run('tutorialPending()'),true);
+   assert.equal(data.get(prefix+'ascent.language.v1'),expected);
+   assert.equal(data.get('ascent.language.v1'),expected==='ja'?'en':'ja','Other namespace must not be rewritten');
+   assert(b.operations.every(([,key])=>key.startsWith(prefix)));
+   const next=boot(dir,data,{language:expected==='ja'?'en-US':'ja-JP'});
+   assert.equal(next.run('GAME_TEXT_LANGUAGE'),expected,'Saved choice wins after interruption and OS change');
+   assert.equal(next.run('tutorialPending()'),true);
+  }
+  const existing=new Map([[prefix+'ascent.progress.v1',JSON.stringify({existing:{cleared:9},prototype:{cleared:0}})]]);
+  const b=boot(dir,existing,{language:'en-US'});assert.equal(b.run('GAME_TEXT_LANGUAGE'),'ja');
+  assert.equal(b.run('stageProgress.existing.cleared'),9);assert(!existing.has(prefix+'ascent.language.v1'));
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

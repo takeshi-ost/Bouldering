@@ -62,13 +62,31 @@ function showStageHelp() {
     pendingFeatureHelp=features;featureHelpOpen=true;
     renderStageHelp();
 }
+function stageHelpCopy(feature=pendingFeatureHelp[0]) {
+    const heart=feature==='heart',wide=feature==='wide';
+    return {
+        title:wide?gameText("tutorial.title.wide"):heart?gameText("item.heart"):gameText("hold.hazard"),
+        text:wide?gameText("tutorial.wide"):heart?gameText("feature.heart"):gameText("feature.hazard")
+    };
+}
+function refreshStageHelpLanguage() {
+    if(!featureHelpOpen || !pendingFeatureHelp.length)return;
+    const copy=stageHelpCopy(),content=ui.featureHelpContent;
+    content.lang=GAME_TEXT_LANGUAGE;
+    for(const [selector,text] of [['#featureHelpTitle',copy.title],['p',copy.text],['.modal-tap',gameText("action.tap")]]) {
+        const node=content.querySelector?.(selector);
+        if(node)node.textContent=text;
+    }
+    // Text only: preserve the loaded illustration, input shield and queued
+    // acknowledgment, including while image decode is still pending.
+}
 function renderStageHelp() {
     const feature=pendingFeatureHelp[0],heart=feature==='heart',wide=feature==='wide';
     const source=wide?'assets/hold-wide-flat.webp':heart?COURSE_HEART_IMAGE_SRC:'assets/hold-hazard-source.webp';
-    const title=wide?gameText("tutorial.title.wide"):heart?gameText("item.heart"):gameText("hold.hazard");
-    const text=wide?gameText("tutorial.wide"):heart?gameText("feature.heart"):gameText("feature.hazard");
+    const {title,text}=stageHelpCopy(feature);
+    ui.featureHelpContent.lang=GAME_TEXT_LANGUAGE;
     const icon=wide?'<img class="feature-wide-image" width="78" height="78" alt="">':heart ? `<img class="course-heart-icon" src="${COURSE_HEART_IMAGE_SRC}" width="96" height="96" alt="">` : '<canvas class="feature-hold-image" width="128" height="128" aria-hidden="true"></canvas>';
-    ui.featureHelpContent.innerHTML=`<h1 id="featureHelpTitle"${wide?' lang="ja"':''}>${title}</h1><div class="feature-help-icon" aria-hidden="true">${icon}</div><p${wide?' lang="ja"':''}>${text}</p><div class="modal-tap">${gameText("action.tap")}</div>`;
+    ui.featureHelpContent.innerHTML=`<h1 id="featureHelpTitle">${title}</h1><div class="feature-help-icon" aria-hidden="true">${icon}</div><p>${text}</p><div class="modal-tap">${gameText("action.tap")}</div>`;
     const ticket=++featureHelpImageTicket;
     featureHelpImageLoading=true;ui.featureHelpDialog.classList.add?.('explanation-image-loading');
     requestExplanationImage(source,image=>{

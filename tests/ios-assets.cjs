@@ -8,9 +8,19 @@ const root = path.resolve(__dirname, '..');
 // a valid-looking Capacitor template cannot silently replace the approved art.
 require('./ios-branding.cjs');
 const nativeSource = require('../scripts/native-bundle-source.cjs');
+require('./native-resume-store.cjs');
+require('./native-resume-adapter.cjs');
+require('./native-resume-game.cjs');
 const bundle = path.join(root, 'www');
 const read = name => fs.readFileSync(path.join(bundle, name), 'utf8');
 const html = read('index.html');
+const {createNativeResumeStore}=require('../scripts/native-resume-store.cjs');
+const {installNativeResume}=require('../scripts/native-resume-adapter.cjs');
+assert.equal(read('js/native-resume-preboot.js'),`'use strict';\n(${installNativeResume.toString()})(${createNativeResumeStore.toString()});\n`);
+assert.equal(read('js/native-resume-runtime.js'),fs.readFileSync(path.join(root,'scripts/native-resume-runtime.js'),'utf8'));
+assert(html.indexOf('js/native-resume-preboot.js')<html.indexOf('js/tutorial-state.js'),'Recovery must run before saved-resource reads');
+assert(html.indexOf('js/native-resume-runtime.js')>html.indexOf('js/tutorial.js'),'Runtime sees all game definitions');
+assert(html.indexOf('js/native-resume-runtime.js')<html.indexOf('js/main.js'),'Runtime binds before title bootstrap');
 const nativeSettings=html.match(/<dialog id="settingsDialog"[\s\S]*?<\/dialog>/)?.[0];
 assert(nativeSettings);
 for(const [before,after] of [['settingsConnectionStatus','settingsVersion'],['settingsVersion','mapSettingsLanguage'],['stageDebugDisplay','onlineStatus'],['onlineStatus','onlineScoreStatus']])
@@ -85,6 +95,7 @@ for (const relative of nativeDirectories) {
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-offline.js'), 'utf8'), read('js/native-offline.js'));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-audio-fetch.js'), 'utf8'), read('js/native-audio-fetch.js'));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-audio-lifecycle.js'), 'utf8'), read('js/native-audio-lifecycle.js'));
+    for(const name of ['native-resume-preboot','native-resume-runtime'])assert.equal(fs.readFileSync(path.join(nativePublic,'js/'+name+'.js'),'utf8'),read('js/'+name+'.js'));
     if(relative.startsWith('build/')) {
         assert.equal(fs.readFileSync(path.join(root,builtApp,'ascent-build-configuration.txt'),'utf8').trim(),configuration);
         const expected=configuration==='Release'?read('js/game.js').replace('let debugMode = false;','const debugMode = false;'):read('js/game.js');

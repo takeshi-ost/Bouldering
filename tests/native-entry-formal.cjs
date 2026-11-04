@@ -150,12 +150,15 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
  uncertainReload.setUser('eventually-restored');uncertainReload.dispatch('online','focus','ascent-native-resume');await settle();
  assert.equal(uncertainReload.calls.creates,0);assert.equal(uncertainReload.env.online.uid,'eventually-restored');assert.equal(uncertainReload.env.online.ready,true);assert.equal(uncertainReload.data.get(KEY),'eventually-restored');assert(uncertainReload.remote.has('stageScores/v4_existing_7/entries/eventually-restored'));
  // Native wrapping cannot change Daily identity or reset the game's assistance latch.
- for(const name of ['config.js','daily.js','game.js','score-metadata.js']){const source=fs.readFileSync(path.join(root,'js',name),'utf8');assert.equal(nativeSource(name,source),source,name+' remains byte-identical');}
+ for(const name of ['config.js','daily.js','score-metadata.js']){const source=fs.readFileSync(path.join(root,'js',name),'utf8');assert.equal(nativeSource(name,source),source,name+' remains byte-identical');}
  const level=nativeSource('level-map.js',fs.readFileSync(path.join(root,'js/level-map.js'),'utf8'));
  assert.match(level,/if\(rankingAttemptEligible\(\)\)\s*\{[\s\S]*?ASCENT_NATIVE_SYNC\?\.recordClear\(level,courseMode,candidate\)/,'Native clear hook remains behind assistance eligibility gate');
  // Execute the transformed clear boundary: assisted local best is retained, never sent.
  const clearFunction=level.slice(level.indexOf('function recordStageClear()'),level.indexOf('function unlockedLevel()'));
  const game=fs.readFileSync(path.join(root,'js/game.js'),'utf8');
+ const wrappedGame=nativeSource('game.js',game);
+ const stripResumeGuards=s=>s.replace(/\n    if\(globalThis\.ASCENT_NATIVE_RESUME[^\n]+/g,'').replace('function finish(...args) {\n    const commit=()=>nativeResume_finish(...args);\n    return globalThis.ASCENT_NATIVE_RESUME ? globalThis.ASCENT_NATIVE_RESUME.endAttempt(commit) : commit();\n}\nfunction nativeResume_finish(', 'function finish(');
+ assert.equal(stripResumeGuards(wrappedGame),game,'Native game changes are limited to receipt/input gates; generation, Daily identity and assistance latch remain unchanged');
  const eligibility=game.match(/function rankingAttemptEligible\(\)\{[^}]+\}/)[0];
  const sent=[],gameEnv={level:2,dailyRun:null,debugAttempt:false,rankingAssistanceUsed:true,activeDebugCourse:()=>false,moveCount:6,runElapsedMs:2000,COURSE_VERSION:'v4',courseMode:'existing',stageRecords:{existing:{}},stageProgress:{existing:{cleared:0}},clearStars:()=>3,routeExpectedMoves:()=>6,currentScoreMetadata:()=>({scoreSpecVersion:'v4'}),historicalCourseVersion:()=>true,compareStageScores:(a,b)=>a.moves-b.moves,ASCENT_NATIVE_SYNC:{recordClear:(...args)=>sent.push(args)},queueOnlineScore(){},queueOnlineProfileSave(){},recordDailyClear(){gameEnv.dailyRecorded=true;},PROGRESS_KEY:'p',RECORDS_KEY:'r'};
  vm.createContext(gameEnv);vm.runInContext(eligibility+'\n'+clearFunction+'\nrecordStageClear();',gameEnv);

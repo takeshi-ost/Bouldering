@@ -129,15 +129,22 @@ new Function('assert',env+source+`
 reset(1);debugAttempt=true;
 const originalRandom=Math.random;
 try {
- assert.equal(GAMEPLAY_TIPS.length,8);
- for(let i=0;i<GAMEPLAY_TIPS.length;i++) {
-  Math.random=()=>(i+.5)/GAMEPLAY_TIPS.length;
-  finish(false);
-  assert.equal(ui.resultTitle.textContent,'登頂失敗…');
-  assert(!ui.resultTip.hidden);
-  assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
-  updateUI();assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
+ assert.equal(GAMEPLAY_TIPS.length,7);
+ for(const language of ['ja','en'])for(const won of [false,true]) {
+  setGameLanguage(language);
+  for(let i=0;i<GAMEPLAY_TIPS.length;i++) {
+   Math.random=()=>(i+.5)/GAMEPLAY_TIPS.length;
+   finish(won);
+   assert.equal(ui.resultTitle.textContent,gameText(won?'result.success':'result.failure'));
+   assert(!ui.resultTip.hidden);
+   assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
+   updateUI();assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
+   setGameLanguage(language==='ja'?'en':'ja');
+   assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i],'Language change preserves selected Tip');
+   setGameLanguage(language);
+  }
  }
+ setGameLanguage('ja');
  dailyRun={...dailyProfile('2026-10-17'),returnCourse:'existing'};finish(false);assert(!ui.resultTip.hidden);
  assert(!ui.next.hidden,'Daily failure restores the calendar button');assert.equal(ui.next.textContent,'カレンダーにもどる');assert.equal(ui.overlay.events.keydown,undefined);
  assert(!ui.retry.hidden && !ui.closeResult.hidden);

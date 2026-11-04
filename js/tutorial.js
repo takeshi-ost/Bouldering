@@ -1,13 +1,29 @@
 'use strict';
-// Owner-approved pages. English intentionally uses the same Japanese copy;
-// mark its language explicitly rather than inventing an unapproved translation.
+// Resolve authored copy when displayed, so pending/queued pages follow the
+// current language rather than the language selected during script loading.
 const TUTORIAL_CONFIG={version:'10',steps:[
-    {id:'intro-welcome',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.welcome"),image:'assets/tutorial-swipe-78-v1.png'},
-    {id:'intro-movement',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.movement"),image:'assets/tutorial-feet-limit-78-v2.png'},
-    {id:'intro-goal',when:{event:'start'},language:'ja',title:gameText("tutorial.title.play"),text:gameText("tutorial.intro.goal"),image:'assets/tutorial-goal-hands-78-v2.png'},
-    {id:'goal-fixed',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.complete"),text:gameText("tutorial.goal.fixed"),image:'assets/tutorial-goal-feet-78-v2.png'},
-    {id:'goal-finish',when:{event:'goal'},language:'ja',title:gameText("tutorial.title.complete"),text:gameText("tutorial.goal.finish"),image:'assets/settings-gear.svg'}
+    {id:'intro-welcome',when:{event:'start'},titleKey:'tutorial.title.play',textKey:'tutorial.intro.welcome',image:'assets/tutorial-swipe-78-v1.png'},
+    {id:'intro-movement',when:{event:'start'},titleKey:'tutorial.title.play',textKey:'tutorial.intro.movement',image:'assets/tutorial-feet-limit-78-v2.png'},
+    {id:'intro-goal',when:{event:'start'},titleKey:'tutorial.title.play',textKey:'tutorial.intro.goal',image:'assets/tutorial-goal-hands-78-v2.png'},
+    {id:'goal-fixed',when:{event:'goal'},titleKey:'tutorial.title.complete',textKey:'tutorial.goal.fixed',image:'assets/tutorial-goal-feet-78-v2.png'},
+    {id:'goal-finish',when:{event:'goal'},titleKey:'tutorial.title.complete',textKey:'tutorial.goal.finish',image:'assets/settings-gear.svg'}
 ]};
+function tutorialStepText(step,field) {
+    const key=step[field+'Key'];
+    return typeof key==='string'?gameText(key):typeof step[field]==='string'?step[field]:'';
+}
+// Presentation-only refresh: retain the decoded image, pending image request,
+// transition, queue, input shield and paused timer, and never replay a cue.
+function refreshTutorialExplanationLanguage() {
+    const step=tutorialRun?.explanation;
+    if(!step)return;
+    for(const [id,field] of [['tutorialTitle','title'],['tutorialText','text']]) {
+        const element=document.getElementById(id),value=tutorialStepText(step,field);
+        element.textContent=value;element.hidden=!value;
+        element.setAttribute('lang',step.language||GAME_TEXT_LANGUAGE);
+    }
+    document.getElementById('tutorialImage').alt=tutorialStepText(step,'alt');
+}
 function isTutorialRun(){return tutorialRun!==null;}
 function tutorialPending(){return globalThis.AscentTutorialState?.pending()===true;}
 function tutorialInstructionsOpen(){return !!tutorialRun?.explanation;}
@@ -83,7 +99,8 @@ function finishTutorialRun(won) {
     return true;
 }
 // Steps are data: {id,when:{event:'start'|'move'|'hold'|'goal',count?,hold?},
-// title?,text?,image?,alt?}. A hold trigger uses an explicit generated hold ID.
+// titleKey?,textKey?,altKey?,image?}, or literal title/text/alt and language.
+// A hold trigger uses an explicit generated hold ID.
 // No content means no modal. Text uses textContent, never HTML injection.
 function tutorialTrigger(event) {
     if(!isTutorialRun() || state!=='playing')return;
@@ -100,7 +117,7 @@ function tutorialTrigger(event) {
         }
         if(event==='goal' && (!bothHandsOnGoal(grips) || grips.length!==4 || !grips.every((h,i)=>h && limbReachable(body,h,i))))continue;
         if(!['start','move','hold','goal'].includes(event))continue;
-        const hasText=[step.title,step.text].some(value=>typeof value==='string' && value.trim());
+        const hasText=['title','text'].some(field=>tutorialStepText(step,field).trim());
         const validImage=typeof step.image==='string' && /^assets\/[a-zA-Z0-9/_-]+\.(png|webp|svg|jpg|jpeg)$/.test(step.image);
         if(!hasText && !validImage)continue;
         tutorialRun.seen.add(step.id);tutorialRun.queue.push({...step,image:validImage?step.image:null});
@@ -116,11 +133,8 @@ function showNextTutorialExplanation(whenReady=null) {
         tutorialRun.paused=true;
     }
     featureHelpOpen=true;
-    const title=document.getElementById('tutorialTitle'),text=document.getElementById('tutorialText'),picture=document.getElementById('tutorialImage');
-    title.textContent=step.title||'';title.hidden=!step.title;
-    text.textContent=step.text||'';text.hidden=!step.text;
-    const language=step.language||GAME_TEXT_LANGUAGE;
-    title.setAttribute('lang',language);text.setAttribute('lang',language);
+    refreshTutorialExplanationLanguage();
+    const picture=document.getElementById('tutorialImage');
     const run=tutorialRun,ticket=++run.imageTicket;
     run.imageLoading=true;
     const dialog=document.getElementById('tutorialDialog');
@@ -129,7 +143,7 @@ function showNextTutorialExplanation(whenReady=null) {
     document.getElementById('tutorialContent').setAttribute('aria-busy','true');
     requestExplanationImage(step.image,image=>{
         if(tutorialRun!==run || run.imageTicket!==ticket || state!=='playing')return;
-        mountExplanationImage(picture,image,{id:'tutorialImage',alt:step.alt||''});
+        mountExplanationImage(picture,image,{id:'tutorialImage',alt:tutorialStepText(step,'alt')});
         run.imageLoading=false;
         dialog.classList.remove('explanation-image-loading');
         if(!dialog.open)dialog.showModal?.();

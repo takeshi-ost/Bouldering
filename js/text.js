@@ -1,11 +1,56 @@
 "use strict";
 const LANGUAGE_KEY = 'ascent.language.v1';
 const GAME_TEXT_LOCALES = Object.freeze({ja: GAME_TEXT_JA, en: GAME_TEXT_EN});
+// A session choice still works if storage is blocked/full. Keep its durability
+// separate from the chosen language; a failed write cannot promise a reload.
+let GAME_TEXT_LANGUAGE_PERSISTED = false;
+function persistGameLanguage(language) {
+    try {
+        const storage = globalThis.localStorage;
+        if (!storage) return false;
+        storage.setItem(LANGUAGE_KEY, language);
+        return storage.getItem(LANGUAGE_KEY) === language;
+    } catch (_) { return false; }
+}
+function initialDeviceGameLanguage() {
+    let primary = '';
+    try {
+        const native = globalThis.ASCENT_IOS_BUILD;
+        if (native && Object.hasOwn(native, 'preferredLanguage')) {
+            // Native metadata is installed at document start. WKWebView's
+            // navigator locale (and the separate resume-alert locale) need not
+            // reflect the user's primary iOS language.
+            primary = native.preferredLanguage;
+        } else {
+            const browser = globalThis.navigator;
+            primary = typeof browser?.language === 'string' && browser.language.trim()
+                ? browser.language : browser?.languages?.[0];
+        }
+    } catch (_) { /* An unavailable locale takes the non-Japanese default. */ }
+    // Only the primary language counts. A lower-priority Japanese entry must
+    // not override English/French/etc.; tolerate case and legacy separators.
+    return typeof primary === 'string' && /^ja(?:-|$)/i.test(primary.trim().replace(/_/g, '-')) ? 'ja' : 'en';
+}
 function readGameLanguage() {
     try {
         const language = globalThis.localStorage?.getItem(LANGUAGE_KEY);
-        if (Object.hasOwn(GAME_TEXT_LOCALES, language)) return language;
-    } catch (_) { /* Keep the session preference when device storage is unavailable. */ }
+        if (Object.hasOwn(GAME_TEXT_LOCALES, language)) {
+            GAME_TEXT_LANGUAGE_PERSISTED = true;
+            return language;
+        }
+    } catch (_) {
+        // The saved choice is unknown. Do not overwrite it or infer first use.
+        return 'ja';
+    }
+    // This evidence is captured before any default save, including this one.
+    // A saved pending tutorial is an existing player, not a fresh installation.
+    if (globalThis.AscentTutorialState?.snapshot?.().firstUse === true) {
+        const language = initialDeviceGameLanguage();
+        GAME_TEXT_LANGUAGE_PERSISTED = persistGameLanguage(language);
+        return language;
+    }
+    // Preserve the historical default for existing/unknown users with no valid
+    // selection, including interrupted tutorials and corrupt saved markers.
     return 'ja';
 }
 let GAME_TEXT_LANGUAGE = readGameLanguage();
@@ -46,7 +91,7 @@ function setGameLanguage(language) {
     if (!Object.hasOwn(GAME_TEXT_LOCALES, language)) return false;
     const previous = GAME_TEXT_LANGUAGE;
     GAME_TEXT_LANGUAGE = language;
-    try { globalThis.localStorage?.setItem(LANGUAGE_KEY, language); } catch (_) {}
+    GAME_TEXT_LANGUAGE_PERSISTED = persistGameLanguage(language);
     if (typeof document !== 'undefined' && document.querySelectorAll) applyGameText(document);
     if (previous !== language && typeof refreshGameLanguage === 'function') refreshGameLanguage(previous);
     return true;

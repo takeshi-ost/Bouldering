@@ -3,7 +3,7 @@ const source=[...fs.readFileSync('index.html','utf8').matchAll(/<script src="([^
 const scoreFixture=require('./helpers/score-fixtures.cjs').scoreFixture;
 const env=`const expectedScore=${scoreFixture.toString()};const elements={};const document={getElementById(id){return elements[id]||={style:{},classList:{toggle(){}},focus(){},setAttribute(){},removeAttribute(){},events:{},addEventListener(k,f){this.events[k]=f;},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(){return function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};let reloads=0;const window={addEventListener(){},devicePixelRatio:1,location:{reload(){reloads++;}}};function requestAnimationFrame(){};`;
 const data={anotherApp:'keep'},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v,removeItem:k=>delete data[k]};
-const scope={localStorage:storage,crypto:require('node:crypto').webcrypto};
+const scope={localStorage:storage,navigator:{language:'ja-JP'},crypto:require('node:crypto').webcrypto};
 (async()=>{
  await new Function('assert','data','storage','globalThis',env+source+`;return (async()=>{
  let currentUid='source-uid',prepared=0,syncs=0,authentications=0,failAuth=false;

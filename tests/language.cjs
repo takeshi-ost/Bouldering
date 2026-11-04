@@ -5,7 +5,7 @@ const elements={};const document={documentElement:{},getElementById(id){return e
 const window={devicePixelRatio:1,addEventListener(){}};function requestAnimationFrame(){}
 `;
 const data={'other.app':'keep'},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v,removeItem:k=>delete data[k]};
-const scope={localStorage:storage};
+const scope={localStorage:storage,navigator:{language:'ja-JP'}};
 new Function('assert','data','globalThis',env+source+`
 const snapshot=()=>JSON.stringify({playerName,playerColors,playerHeadColor,stageProgress,stageRecords,dailyRecords,dailyAttempts,heartItems,lives,playsSinceAd,dailyPlayAdState,level,moveCount,stamina,runElapsedMs,runStartedAt,body,grips,undoSnapshot});
 const map=()=>{cancelMapReveal();state='map';ui.titleScreen.hidden=true;ui.levelMap.hidden=false;settingsOpen=false;renderLevelMap();};
@@ -15,7 +15,7 @@ let before=snapshot();ui.languageChoice.value='en';ui.languageChoice.onchange();
 assert.equal(GAME_TEXT_LANGUAGE,'en');assert.equal(data[LANGUAGE_KEY],'en');assert.equal(state,'map');assert(settingsOpen);assert.equal(snapshot(),before);
 assert.equal(online.status,'Offline (playing on this device)');assert.equal(ui.playerUuid.textContent,'UID Not connected');
 assert.equal(ui.mapInventory['aria-label'],'Chalk Bags owned: 5');assert.equal(gameText('leaderboard.stageLeaderboardMarkup',{value6:1,value0:1}),'1 move');
-assert.equal(GAMEPLAY_TIPS[1],'Tap your back to undo one move!');assert(ui.mapNodes.innerHTML.includes('Ready to play'));
+assert.equal(GAMEPLAY_TIPS[1],'Tap your body to undo one move!');assert(ui.mapNodes.innerHTML.includes('Ready to play'));
 ui.languageChoice.value='ja';ui.languageChoice.onchange();assert.equal(online.status,'オフライン（端末内でプレイ）');assert.equal(ui.playerUuid.textContent,'UID 未接続');assert.equal(snapshot(),before);
 assert.equal(setGameLanguage('xx'),false);assert.equal(GAME_TEXT_LANGUAGE,'ja');
 transferState.busy=true;ui.languageChoice.value='en';ui.languageChoice.onchange();assert.equal(ui.languageChoice.value,'ja');assert.equal(GAME_TEXT_LANGUAGE,'ja');transferState.busy=false;
@@ -36,7 +36,7 @@ console.log('PASS language: live map/daily settings, retained modal/date/month, 
 `)(assert,data,scope);
 // Saved language is applied before configuration/initial screen strings are created.
 const bootstrap=['text-ja','text-en','text-dev-ja','text','config'].map(f=>fs.readFileSync('js/'+f+'.js','utf8')).join('\n');
-assert.equal(new Function('globalThis',bootstrap+';return GAMEPLAY_TIPS[1];')(scope),'Tap your back to undo one move!');
+assert.equal(new Function('globalThis',bootstrap+';return GAMEPLAY_TIPS[1];')(scope),'Tap your body to undo one move!');
 const blocked={localStorage:{getItem(){throw Error('blocked');},setItem(){throw Error('quota');}}};
 const blockedResult=new Function('globalThis',bootstrap+`;const initial=GAME_TEXT_LANGUAGE;setGameLanguage('en');return [initial,GAME_TEXT_LANGUAGE,gameText('ui.settingsTitle')];`)(blocked);
 assert.deepEqual(blockedResult,['ja','en','Settings']);

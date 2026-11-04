@@ -31,7 +31,12 @@ assert(css.includes('.help-dialog .help-hold-list { list-style:none; padding-lef
 assert(css.includes('.help-hold-list strong { display:block; font-weight:700; }'));
 for(const language of ['en','ja','en','ja']){
  b.run('setGameLanguage('+JSON.stringify(language)+')');
- assert.equal(byKey('help.rules.lives').hidden,language==='en','Do not invent new English rules prose');
+ assert.equal(byKey('help.rules.lives').hidden,false,'The current lives explanation is present in both languages');
+ assert.equal(byKey('help.controls.feet').parent.hidden,false,'Keep the foot-height illustration row in both languages');
+ assert.equal(byKey('help.map.chalk').hidden,false);assert.equal(byKey('help.map.unlock').hidden,false);
+ for(const key of ['help.rules.tutorial','help.map.records','help.map.rewards','help.map.lives','help.daily.attempts','help.daily.rewards','help.settings.navigation'])assert.equal(byKey(key).hidden,true,'Removed help remains hidden in '+language+': '+key);
+ const goal=byKey('help.holds.goal').parent.parent.parent;assert.equal(goal.tag,'li');assert.equal(goal.hidden,false,'Goal hold remains in both languages');
+ assert.equal(byKey('help.holds.chalk').parent.hidden,true,'The old chalk item remains omitted in both languages');
  assert.equal(byKey('help.controls.commit').hidden,false);
  for(const kind of ['normal','wide','hazard','goal','heart','chalk']){
   const label=byKey('help.holds.'+kind+'Label');assert.equal(label.tag,'strong');

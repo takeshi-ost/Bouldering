@@ -1,5 +1,5 @@
 "use strict";
-// Active debug tools and account-maintenance copy; excluded from player translation review.
+// Japanese source for active debug tools and account maintenance; English counterparts are in text-en.js.
 const GAME_DEV_TEXT_JA = Object.freeze({
     "account-deletion": "ユーザーデータの削除を待っています",
     "account-deletion.2": "端末の保存データを初期化できませんでした。",

@@ -13,7 +13,7 @@
         'ascent.sound-enabled.v1','ascent.music-settings.v1','ascent.sound-volume.v1','ascent.language.v1',
         'ascent.account-deletion.v1'
     ];
-    let record,persisted=false;
+    let record,persisted=false,firstUse=false;
     function save() {
         try {
             if(!globalThis.localStorage)return persisted=false;
@@ -36,16 +36,17 @@
             persisted=true;
         } else {
             const existing=legacyKeys.some(key=>storage.getItem(key)!==null);
+            firstUse=!existing;
             record={version:1,status:existing?'skipped':'pending',reason:existing?'legacy-save':'new-player'};
             save();
         }
     } catch(_) {
         // No reliable first-use evidence: do not interrupt an existing player.
-        record={version:1,status:'skipped',reason:'storage-unavailable'};
+        firstUse=false;record={version:1,status:'skipped',reason:'storage-unavailable'};
     }
     const api=Object.freeze({KEY,
         pending:()=>record.status==='pending',
-        snapshot:()=>Object.freeze({...record,persisted}),
+        snapshot:()=>Object.freeze({...record,persisted,firstUse}),
         complete(won) {
             if(record.status!=='pending')return false;
             record={version:1,status:'completed',reason:won?'cleared':'failed'};

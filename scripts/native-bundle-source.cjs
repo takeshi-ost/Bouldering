@@ -4,7 +4,55 @@ function replaceOnce(source, before, after) {
     if (source.split(before).length !== 2) throw Error('Native source anchor changed: '+before.slice(0,60));
     return source.replace(before, after);
 }
+function wrapNativeEnd(source,name) {
+    return replaceOnce(source,'function '+name+'(',
+        'function '+name+'(...args) {\n    const commit=()=>nativeResume_'+name+'(...args);\n    return globalThis.ASCENT_NATIVE_RESUME ? globalThis.ASCENT_NATIVE_RESUME.endAttempt(commit) : commit();\n}\nfunction nativeResume_'+name+'(');
+}
 module.exports = function nativeSource(name, source) {
+    if(name==='level-map.js') {
+        source=replaceOnce(source,'function saveHeartItems() {',"function saveHeartItems() {\n    if(globalThis.ASCENT_NATIVE_RESUME?.ready===false)return;");
+        const before=`            restartInput(n,heartsUsed);
+            beginLifeAttempt();
+            ui.titleScreen.hidden=true;ui.levelMap.hidden=true;
+            heartItems-=heartsUsed;saveHeartItems();
+            return true;`;
+        const after=`            const commit=()=>{
+                try {
+                    restartInput(n,heartsUsed);
+                    beginLifeAttempt();
+                    ui.titleScreen.hidden=true;ui.levelMap.hidden=true;
+                    heartItems-=heartsUsed;saveHeartItems();
+                    return true;
+                } catch(error) {
+                    showLevelMap({target:n});
+                    ui.mapError.textContent=gameText("level-map.selectStage");ui.mapError.hidden=false;
+                    console.error(error);return false;
+                }
+            };
+            return globalThis.ASCENT_NATIVE_RESUME ? globalThis.ASCENT_NATIVE_RESUME.beginAttempt(heartsUsed,commit) : commit();`;
+        source=replaceOnce(source,before,after);
+        source=wrapNativeEnd(source,'showLevelMap');
+    }
+    if(name==='lives.js') {
+        source=replaceOnce(source,'function saveLives() {',"function saveLives() {\n    if(globalThis.ASCENT_NATIVE_RESUME?.ready===false)return;");
+        source=replaceOnce(source,'function recoverLives(now=Date.now()) {',"function recoverLives(now=Date.now()) {\n    if(globalThis.ASCENT_NATIVE_RESUME?.ready===false)return;");
+        source=replaceOnce(source,`if(lives.inProgress){lives.inProgress=false;consumeLife(lives.attemptAt);}
+else {recoverLives();saveLives();}`,`if(globalThis.ASCENT_NATIVE_RESUME?.ready!==false) {
+    if(lives.inProgress){lives.inProgress=false;consumeLife(lives.attemptAt);}
+    else {recoverLives();saveLives();}
+}`);
+    }
+    if(name==='game.js') {
+        source=wrapNativeEnd(source,'finish');
+        for(const signature of ['function down(e) {','function move(e) {','function release(cancel = false) {','function advanceCameraIntro(now) {','function canUndoMove() {'])
+            source=replaceOnce(source,signature,signature+"\n    if(globalThis.ASCENT_NATIVE_RESUME?.ready===false)return;");
+    }
+    if(name==='input.js') {
+        source=replaceOnce(source,"function canScrollStage() { return","function canScrollStage() { if(globalThis.ASCENT_NATIVE_RESUME?.ready===false)return false;return");
+        for(const name of ['returnFromStage','showTitleScreen'])source=wrapNativeEnd(source,name);
+    }
+    if(name==='renderer.js')source=replaceOnce(source,'function draw(now = 0) {',
+        'function draw(now = 0) {\n    if(globalThis.ASCENT_NATIVE_RESUME?.ready===false){gameFrame=null;return;}');
     if(name==='online.js') {
         source=replaceOnce(source,"    document.getElementById('onlineStatus').textContent=message;", "    const nativeStatus=document.getElementById('onlineStatus');nativeStatus.hidden=true;nativeStatus.textContent='';globalThis.ASCENT_NATIVE_SYNC_STATUS?.refresh();");
         source=replaceOnce(source,'function queueOnlineProfileSave() {',"function queueOnlineProfileSave() {\n    if(globalThis.ASCENT_NATIVE_SYNC){globalThis.ASCENT_NATIVE_SYNC.queueProfile(onlineProfile());return;}");

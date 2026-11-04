@@ -1,0 +1,18 @@
+# iOS long-background restart (0.4.60)
+
+The iOS app reloads its local WebView and opens the normal title screen after at least 300 seconds in the background. `sceneWillResignActive` alone (for example a notification or temporary system interruption) does not start this interval. A shorter background stay retains the existing in-memory game. Web/Pages behavior is unchanged.
+
+For an unfinished normal attempt, a native-only receipt is saved before starting the course or spending chalk. A qualifying restart clears that attempt's pending life charge and restores the spent chalk. It does not grant an extra life: the current saved life count and recovery clock remain intact. No resources are refunded for a completed normal win/failure, Daily or STAGE 0. Debug map attempts retain their existing no-life-charge behavior; any chalk they actually spend is returned if interrupted.
+
+The receipt uses the existing `ascent.heart-items.v1` and `ascent.lives.v1` keys plus `ascent.native-resume.v1`. Recovery writes an absolute, verified projection before marking its UUID complete. Repeating the current recovery UUID, losing the native acknowledgement, or restarting partway through the refund cannot add the same chalk again. The native side persists one outstanding UUID until the new document acknowledges successful recovery. Ordinary crashes/restarts without a qualifying background interval keep the previous unfinished-attempt policy.
+
+An ending receipt remains durable until its outcome has run and cleanup is verified. If a normal outcome is interrupted before its saved life attempt is settled, long-background recovery still treats it as unfinished. If that life attempt has already settled, recovery preserves the completed outcome and does not refund its chalk. Cleanup retries never replay the outcome or rewards. A debug attempt has no life settlement marker; if its final cleanup is interrupted, chalk is conservatively returned once, while debug outcomes remain outside the formal leaderboard.
+
+Saved progress, rewards, Daily state, appearance, identity, best scores and online queues are not cleared or rewritten by recovery. An unfinished test ad is not treated as completed; previously saved ad rewards remain saved. After a reload, existing title/map/reward behavior resumes normally. An interrupted first-run tutorial remains pending and can restart after the title is tapped.
+
+If receipt storage cannot be read or verified, the app blocks interaction and offers a localized, user-triggered retry. It never silently substitutes an empty save or repeats a refund against an unexpected balance. A failed preboot recovery reloads only after the durable data is ready, so partially initialized resource globals cannot overwrite it. A failed start/end preparation retains its exact continuation, pauses the run clock and rendering, and retries it once successfully. Failed post-outcome cleanup retries cleanup only. User-triggered reload remains a fallback if JavaScript itself is unresponsive; there is no automatic reload loop.
+
+Verification is divided deliberately:
+- Node tests exercise the production store, adapter, transformed game scripts and bundled file ordering, including storage failures and recovery replay.
+- `tests/ios-resume-lifecycle.cjs` statically checks the native bridge and executes its document-start script. Where Swift is installed, it also executes the Foundation-only production policy with `tests/ios-resume-native-policy.swift`.
+- The existing macOS simulator CI entry now includes that policy check. Xcode compilation and real WKWebView/background/alert/audio behavior still need that environment or an iPhone; Node tests do not establish those results.

@@ -44,3 +44,9 @@ assert.match(runner,/SIMCTL_CHILD_ASCENT_RUNTIME_SMOKE=1/);
 assert.match(runner,/time.monotonic\(\)\+150/);
 assert.match(runner,/r.get\('ok'\) is True/);
 console.log('PASS simulator CI: public-only standard macOS, offline unsigned builds; temporary Debug/simulator-only harness; isolated fresh simulator; no product hooks/secrets/deploy/device/artifact upload');
+// The existing macOS validation step also executes the Foundation-only native
+// recovery policy with Swift, before building either simulator configuration.
+require('./ios-resume-lifecycle.cjs');
+
+// Verify the document-start locale bridge without opening a network connection.
+require('./ios-initial-language.cjs');

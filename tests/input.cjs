@@ -169,7 +169,7 @@ if(nativeTest) {
  // The post-enable hook receives the current run, before historical-best and
  // old-queue comparisons can discard it. No production score is fabricated.
  online.ready=false;hideStageStart();reset(1);dailyRun=null;debugAttempt=false;
- stageRecords.existing[1]={moves:4,timeMs:500,version:'v1',stars:3};
+ stageRecords.existing[1]={moves:4,timeMs:500,version:COURSE_VERSION,stars:3};
  globalThis.ASCENT_IOS_BUILD=Object.freeze({configuration:'Release',debugAllowed:false,buildNumber:'8'});
  moveCount=15;runElapsedMs=8000;let fresh,editFlag;
  globalThis.ASCENT_NATIVE_SYNC={recordClear:(n,mode,score)=>fresh={n,mode,...score},queueProfile(){},profileEdited:(p,changed)=>editFlag=changed};
