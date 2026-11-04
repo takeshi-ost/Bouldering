@@ -1,6 +1,6 @@
-> **Web 0.4.47 — current formal development integration (not published).**
+> **Web/iOS shared game source 0.4.61.** Web is published from this branch by Pages Actions; iOS updates use a separately reviewed commit and signed build.
 > Use `npm run test:web` and `npm run build:web -- /absolute/new-output-directory`.
-> See [current integration](docs/FORMAL_INTEGRATION.md) for the single build, existing save/Firebase behavior and verification limits. Older design notes below are historical, not the current generator specification.
+> See [shared release workflow](docs/SHARED_RELEASE_WORKFLOW.md) for publication and Web-to-iOS updates, and [current integration](docs/FORMAL_INTEGRATION.md) for save/Firebase behavior. Older design notes below are historical, not the current generator specification.
 
 # ASCENT
 

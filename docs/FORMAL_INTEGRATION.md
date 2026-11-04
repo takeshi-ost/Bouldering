@@ -1,4 +1,10 @@
-# Current game integration — Web 0.4.50 (game deployment pending)
+# Current game integration — shared game 0.4.61
+
+Pages now builds and deploys this shared branch through Actions. See
+[shared release workflow](SHARED_RELEASE_WORKFLOW.md) for current publication,
+Web-to-iOS steps, platform differences and verification limits. Historical native
+verification notes below describe their original checkpoints, not the current
+iPhone installation result.
 
 The current game is the formal development baseline. Use the existing GitHub
 repository and Firebase project `bouldering-7482d`; no second service environment.
@@ -17,7 +23,7 @@ Use the built output for Pages (the existing `/balance-trial/` path and root URL
 can remain unchanged). Raw source `index.html` is a development input, not the
 Pages deployment artifact: the builder adds the existing storage key adapter.
 The branch push, Pages release, and Firebase Rules deployment are separate actions.
-No automated publish workflow is added by this change.
+The current `pages.yml` workflow packages and publishes the same committed source.
 
 ## Existing save and online behavior
 
