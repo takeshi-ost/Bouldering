@@ -41,7 +41,20 @@
         const image=node('tutorialImage');
         ensure(image&&!image.hidden&&image.complete&&image.naturalWidth>0,'tutorial-art-not-decoded');
         ensure(node('tutorialTitle').textContent.length>0&&node('tutorialText').textContent.length>0,'tutorial-copy-empty');
-        ensure(node('tutorialTitle').lang==='ja','tutorial-copy-language');
+        const step=tutorialRun.explanation,selectedLanguage=GAME_TEXT_LANGUAGE;
+        const beforePose=pose(),beforeResources=resources();
+        ensure(selectedLanguage==='ja'||selectedLanguage==='en','tutorial-selected-language');
+        // Exercise both real translations on every page, then restore the
+        // device-selected language. A Japanese-only assertion hid this path.
+        for(const language of ['ja','en']){
+            setGameLanguage(language);
+            ensure(node('tutorialTitle').lang===language&&node('tutorialText').lang===language,'tutorial-copy-language');
+            ensure(node('tutorialTitle').textContent===GAME_TEXT_LOCALES[language][step.titleKey],'tutorial-title-translation');
+            ensure(node('tutorialText').textContent===GAME_TEXT_LOCALES[language][step.textKey],'tutorial-text-translation');
+        }
+        setGameLanguage(selectedLanguage);
+        ensure(GAME_TEXT_LANGUAGE===selectedLanguage&&node('tutorialTitle').lang===selectedLanguage,'tutorial-language-restore');
+        ensure(tutorialRun.explanation===step&&pose()===beforePose&&resources()===beforeResources,'tutorial-language-mutated-gameplay');
     }
     async function tapPage(id){await readyPage(id);node('tutorialContinue').click();}
     try {
@@ -49,6 +62,11 @@
         await wait(()=>typeof titleReady!=='undefined'&&titleReady&&typeof state!=='undefined'&&state==='choosing','title-not-ready',20000);
         ensure(globalThis.ASCENT_IOS_BUILD?.firebaseEnabled!==true,'not-offline-build');
         ensure(tutorialPending(),'fresh-simulator-required');
+        const preferredLanguage=globalThis.ASCENT_IOS_BUILD?.preferredLanguage;
+        ensure(typeof preferredLanguage==='string','native-language-metadata-missing');
+        const expectedLanguage=/^ja(?:-|$)/i.test(preferredLanguage.trim().replace(/_/g,'-'))?'ja':'en';
+        ensure(GAME_TEXT_LANGUAGE===expectedLanguage,'native-initial-language-selection');
+        ensure(localStorage.getItem('ascent.language.v1')===expectedLanguage,'native-initial-language-persistence');
         ensure(canvas.width>0&&canvas.height>0,'canvas-empty');
         const unloaded=[...document.images].filter(img=>!img.hidden&&img.getClientRects().length&&img.getAttribute('src')&&(!img.complete||!img.naturalWidth));
         ensure(unloaded.length===0,'visible-title-asset-unloaded');
@@ -70,7 +88,7 @@
         ensure(pose()===frozen,'transition-mutated-gameplay');
         await readyPage('intro-movement');await tapPage('intro-movement');await readyPage('intro-goal');await tapPage('intro-goal');
         await wait(()=>!tutorialInstructionsOpen()&&!featureHelpOpen,'intro-not-dismissed');
-        checks.push('three-decoded-intro-pages-pause-repeat-guard');
+        checks.push('three-decoded-intro-pages-pause-repeat-guard','native-initial-language-and-ja-en-page-translations');
         phase='settings';
         node('settingsButton').click();await wait(()=>node('settingsDialog').open&&settingsOpen,'settings-not-open');
         const settingsPose=pose();

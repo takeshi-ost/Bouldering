@@ -13,7 +13,9 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){}
 `;
-const data={},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
+// Date/star-label assertions below intentionally cover a saved Japanese choice.
+// First-run device language is covered separately; Tips still cover both locales.
+const data={'ascent.language.v1':'ja'},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
 const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
 Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {
