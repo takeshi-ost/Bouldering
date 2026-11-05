@@ -19,19 +19,35 @@ const window={devicePixelRatio:1,addEventListener(){}};function requestAnimation
 new Function('assert',env+source+`
 for(const stage of [7,10,16]){
  reset(stage);cameraIntro=null;hideStageHelp();settingsOpen=false;state='playing';
- const expected=holds.filter(h=>h.type==='hazard');assert.equal(expected.length,2);
- assert.deepEqual(expected.map(h=>h.id).sort((a,b)=>a-b),[...activeCourseGeneration.report.spikes.selectedIds].sort((a,b)=>a-b));
+ const expected=holds.filter(h=>h.type==='hazard'),spikes=activeCourseGeneration.report.spikes;
+ const recipe=CourseProgression.recipe(CourseProgression.resolveStage(stage));
+ // Count is the configured fraction of unused normal holds, not a fixed quota.
+ assert.equal(recipe.spikePercent,10,'These real stage fixtures must exercise spike rendering');
+ assert.equal(activeCourseGeneration.recipe.spikePercent,recipe.spikePercent);
+ assert.equal(spikes.percent,recipe.spikePercent);assert.equal(spikes.rounding,'floor');
+ assert.equal(spikes.denominator,'unused-normal-holds');
+ assert.equal(spikes.candidateCount,spikes.candidates.length);
+ assert.equal(spikes.count,Math.floor(spikes.candidateCount*recipe.spikePercent/100));
+ assert(spikes.count>0,'The fixed generated fixture must contain hazards');
+ assert.equal(expected.length,spikes.count);
+ assert.deepEqual(spikes.selectedIds,spikes.candidates.slice(0,spikes.count).map(h=>h.id));
+ assert.deepEqual(expected.map(h=>h.id).sort((a,b)=>a-b),[...spikes.selectedIds].sort((a,b)=>a-b));
+ assert.equal(spikes.referenceHazardCost,0);assert(spikes.referenceContactsUnchanged);
+ const geometry=()=>JSON.stringify({holds,route,hearts,initialGrips}),before=geometry();
  // Unloaded/failed images must retain an obvious vector marker, not disappear.
  hazardHoldImage.complete=false;hazardHoldImage.naturalWidth=0;
  const vector=[],nativeJagged=drawJaggedHold;drawJaggedHold=(...args)=>{vector.push(args);nativeJagged(...args);};
  draw();drawJaggedHold=nativeJagged;
- for(const h of expected)assert(vector.some(([x,y,r,fill])=>x===h.x&&y===h.y&&fill==='#9442be'));
+ const markers=vector.filter(([, , ,fill])=>fill==='#9442be');
+ assert.equal(markers.length,expected.length,'Each generated hazard gets exactly one vector marker');
+ for(const h of expected)assert.equal(markers.filter(([x,y])=>x===h.x&&y===h.y).length,1);
+ assert.equal(geometry(),before,'Vector rendering must not mutate generated geometry');
  // A completed real-size source uses the game atlas for every visible hazard.
  hazardHoldImage.complete=true;hazardHoldImage.naturalWidth=hazardHoldImage.naturalHeight=128;
  calls.length=0;draw();assert(hazardHoldTintAtlas);assert.equal(hazardHoldTintAtlas.width,128);assert.equal(hazardHoldTintAtlas.height,128);
  const sprites=calls.filter(c=>c.image===hazardHoldTintAtlas&&c.args[2]===21.6&&c.args[3]===21.6);
  assert.equal(sprites.length,expected.length);
- assert.equal(holds.filter(h=>h.type==='hazard').length,2,'Rendering must not mutate generated hazards');
+ assert.equal(geometry(),before,'Sprite rendering must not mutate generated geometry');
 }
 console.log('PASS actual STAGE7/10/16 hazard generation -> full game draw, loaded sprite and failed/loading image vector fallback (controlled Canvas/Image, not iOS pixel QA)');
 `)(assert);

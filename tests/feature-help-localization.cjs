@@ -3,13 +3,15 @@ const assert=require('node:assert/strict');
 const {boot}=require('./tutorial-modals.cjs');
 const b=boot();
 b.run(`
- reset(3);hearts=[{}];holds.push({type:'hazard'});
+ // Real Stage 5 has an ordinary wide hold under coupled-route generation.
+ reset(5);hearts=[{}];holds.push({type:'hazard'});
  featureHelpSeen={wide:false,heart:false,hazard:false};
  globalThis.imageRequests=[];globalThis.cues=[];
  requestExplanationImage=(src,ready)=>imageRequests.push({src,ready});
  playSound=name=>cues.push(name);
  showStageHelp();
 `);
+assert.equal(b.run('stageHasLargeHold()'),true,'The real Stage 5 fixture must contain an ordinary wide hold');
 const state=()=>b.run('JSON.stringify({state,featureHelpSeen,pendingFeatureHelp,featureHelpImageTicket,featureHelpImageLoading,cameraIntro,runElapsedMs,runStartedAt,stamina,moveCount,heartItems,lives,stageRecords,dailyRecords,playsSinceAd})');
 assert.equal(b.run('JSON.stringify(pendingFeatureHelp)'),JSON.stringify(['wide','heart','hazard']));
 assert.equal(b.node('featureHelpContent').lang,'ja');

@@ -2,6 +2,9 @@
 // English copy aligned with the Japanese player and maintenance catalogs.
 // Placeholder names and intentionally empty help blocks match the Japanese source.
 const GAME_TEXT_EN = Object.freeze({
+    "course-preparation.loading": "Preparing course…",
+    "course-preparation.retry": "Retry preparation",
+    "course-preparation.error": "Could not prepare the course. Please retry or close and reopen.",
     "online-scores.pendingBlocked": "Pending records are protected. Sync has been stopped.",
     "formal.ranking.localOnly": "This run used the route display. Progress is saved, but this record is not submitted to rankings.",
     "formal.seed.label": "DEBUG SEED offset",

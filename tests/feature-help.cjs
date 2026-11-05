@@ -66,7 +66,11 @@ new Function('assert','storage','data',env+source+`
 data[FEATURE_HELP_KEY]=JSON.stringify({heart:true,hazard:true});featureHelpSeen=readFeatureHelpSeen();
 assert.deepEqual(featureHelpSeen,{wide:false,heart:true,hazard:true});
 reset(1);holds=holds.map(h=>({...h,wide:false}));assert.equal(stageHasLargeHold(),false);showStageHelp();assert(!featureHelpOpen);
-reset(3);assert(stageHasLargeHold(),'Final generated stage 3 contains a real ordinary wide hold');
+// Stage 5 / seed 15 remains a positive fixture after coupled-route generation.
+// Stage 3 no longer has an ordinary wide hold in its final playable geometry.
+const normalWideStage=5;
+reset(normalWideStage);assert(stageHasLargeHold(),'Final generated stage 5 contains a real ordinary wide hold');
+assert.deepEqual(holds.filter(h=>h.type==='normal' && h.wide===true && !initialGrips.some(s=>s.id===h.id)).map(h=>h.id),[18]);
 assert.equal(generatedCourse.holds,holds);
 const resources=()=>JSON.stringify({stamina,moveCount,heartItems,lives,playsSinceAd,stageRecords,dailyRecords});
 const before=resources();showStageHelp();assert.deepEqual(pendingFeatureHelp,['wide']);
@@ -74,7 +78,7 @@ assert(ui.featureHelpContent.innerHTML.includes(gameText('tutorial.title.wide'))
 assert(ui.featureHelpContent.innerHTML.includes(gameText('tutorial.wide')));
 assert(ui.featureHelpContent.innerHTML.includes('feature-wide-image'));
 assert(!featureHelpSeen.wide);dismissStageHelp();assert(readFeatureHelpSeen().wide);assert.equal(resources(),before);
-reset(3);showStageHelp();assert(!featureHelpOpen,'Acknowledged wide is not repeated');
+reset(normalWideStage);showStageHelp();assert(!featureHelpOpen,'Acknowledged wide is not repeated');
 // Reordering and cloning starting contacts must not change their exclusion.
 const actualHolds=holds,actualStarts=initialGrips;
 const start={id:700,type:'normal',wide:true},goal={id:701,type:'goal',wide:true};
@@ -102,12 +106,14 @@ dismissStageHelp();assert.deepEqual(pendingFeatureHelp,['hazard']);
 ui.featureHelpDialog.events.cancel({preventDefault(){}});dismissStageHelp();assert.deepEqual(cues,['move','move','move']);
 assert.equal(resources(),queuedResources);assert.equal(cameraIntro.start,null);assert.equal(runTimeMs(),0);
 // Daily uses the same final-hold detection and the same durable acknowledgment.
-dailyRun={date:'2026-10-18',...dailyProfile('2026-10-18')};reset(1);
+const dailyWideDate='2026-11-05';
+dailyRun={date:dailyWideDate,...dailyProfile(dailyWideDate)};reset(1);
 assert.equal(stageHasLargeHold(),holds.some(h=>h.type==='normal' && h.wide===true && !initialGrips.some(s=>s.id===h.id)));
 assert(stageHasLargeHold(),'Fixed real Daily fixture must contain an ordinary wide hold');
+assert.deepEqual(holds.filter(h=>h.type==='normal' && h.wide===true && !initialGrips.some(s=>s.id===h.id)).map(h=>h.id),[21]);
 showStageHelp();assert(!featureHelpOpen,'Normal acknowledgment applies to Daily');
 featureHelpSeen.wide=false;showStageHelp();assert.deepEqual(pendingFeatureHelp,['wide']);dismissStageHelp();
-dailyRun=null;reset(3);showStageHelp();assert(!featureHelpOpen,'Daily acknowledgment applies to normal');
+dailyRun=null;reset(normalWideStage);showStageHelp();assert(!featureHelpOpen,'Daily acknowledgment applies to normal');
 // Debug trial retains its existing snapshot semantics and does not write durable state.
 featureHelpSeen.wide=false;debugHelpBefore={...featureHelpSeen};debugAttempt=true;
 const persisted=data[FEATURE_HELP_KEY];showStageHelp();dismissStageHelp();assert(featureHelpSeen.wide);

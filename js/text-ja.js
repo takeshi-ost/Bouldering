@@ -1,6 +1,9 @@
 "use strict";
 // Player-facing Japanese copy, including accessibility and recoverable errors.
 const GAME_TEXT_JA = Object.freeze({
+    "course-preparation.loading": "コースを準備中…",
+    "course-preparation.retry": "準備をやり直す",
+    "course-preparation.error": "コースを準備できませんでした。やり直すか、閉じて開き直してください。",
     "online-scores.pendingBlocked": "未送信記録を保護しています。通信を停止しました。",
     "formal.ranking.localOnly": "パス表示を使用した記録です。進行は保存されますが、ランキングには送信されません。",
     "formal.seed.label": "DEBUG SEED 補正値",

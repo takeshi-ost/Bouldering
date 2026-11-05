@@ -7,10 +7,9 @@ const coursePreparationJobs=new Set();
 function coursePreparationInteractive(){return typeof globalThis.document?.baseURI==='string';}
 function coursePreparationError(code,message=code) {const error=new Error(message);error.code=code;return error;}
 function coursePreparationText(kind) {
-    const english=typeof GAME_TEXT_LANGUAGE!=='undefined' && GAME_TEXT_LANGUAGE==='en';
-    return kind==='loading'?(english?'Preparing course…':'コースを準備中…'):
-        kind==='retry'?(english?'Retry preparation':'準備をやり直す'):
-        (english?'Could not prepare the course. Please retry or close and reopen.':'コースを準備できませんでした。やり直すか、閉じて開き直してください。');
+    if(kind==='loading')return gameText("course-preparation.loading");
+    if(kind==='retry')return gameText("course-preparation.retry");
+    return gameText("course-preparation.error");
 }
 function coursePreparationPortableSignature() {
     return JSON.stringify(adoptedCourseCacheInputs(),(_key,value)=>typeof value==='function'?String(value):value);
