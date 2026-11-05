@@ -1,5 +1,5 @@
 'use strict';
-globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"c8e3e449a246b0d895a15fa8ca86784f4f7e7eafadaa39a468ffee0af148ded9","sources":[{"path":"js/text-ja.js","sha256":"e6c72738624f5436fcb135e68beb0ac0c9996b940a7e47cecf969d01ce3310f2"},{"path":"js/text-en.js","sha256":"cb2a0389805574a2628e104efbce4df6bb56b2aaba3842b58bfee0b820ae002e"},{"path":"js/text-dev-ja.js","sha256":"f2435dbb1cf2883b9053501178fcc631b37d66695e00f0ba3388864c125b5e4e"},{"path":"js/config.js","sha256":"826c73c307887a259fc39c0c5709e9f7ec88e24d469c26f8f955846c06224269"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"0505974081d03e89c9e54230d8e653aa6c682496cfa89d83cc42e45176dad5a0"},{"path":"js/finger-route.js","sha256":"a59d8095a1f6ccfc88544151340b3545a93a8c33188d69f29e0c11c8c47a5ada"},{"path":"js/game.js","sha256":"85f8203ae53d008288d73f990fa26217e9f665ce80b3c500d03a6a5f9541c90e"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"46b2c6008b5c24c0ad4f4f0c6cb2544cc05f76a42907e7497d44c0fd4de0f8a0"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"28c32c56d4b3bf2296d5e59263d4f1b76d336c6551aac8f56ed3b27bc335f633"},{"path":"js/course-adoption.js","sha256":"0b2ce692907958d1481a87d0f214fae8da9aa45c104ed5c52e4c64b0be58cac2"},{"path":"js/tutorial-course.js","sha256":"8a20e522866c3ec52d7f862f862a1b2e959ca634e18ad3785783932cb36af032"},{"path":"js/course-preparation.js","sha256":"8412e0a7b1966b13626627089824750877eaf0a1a8f5ae2778e07595a398812d"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"2af229de9ba06e2c42552e09165926395b42580cd2253d8f5c9450e8b888009c"},{"path":"scripts/build-course-worker.cjs","sha256":"4bfb04ed4c3ce0cb640299bab8ad28386961f0072a941093da5c111686740c3a"}]});
+globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"43c8efff3a8dbc8f25f8c3b703e9ca0c0fbc830f743ad55d06722b7e01defc16","sources":[{"path":"js/text-ja.js","sha256":"e6c72738624f5436fcb135e68beb0ac0c9996b940a7e47cecf969d01ce3310f2"},{"path":"js/text-en.js","sha256":"cb2a0389805574a2628e104efbce4df6bb56b2aaba3842b58bfee0b820ae002e"},{"path":"js/text-dev-ja.js","sha256":"f2435dbb1cf2883b9053501178fcc631b37d66695e00f0ba3388864c125b5e4e"},{"path":"js/config.js","sha256":"826c73c307887a259fc39c0c5709e9f7ec88e24d469c26f8f955846c06224269"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"0505974081d03e89c9e54230d8e653aa6c682496cfa89d83cc42e45176dad5a0"},{"path":"js/finger-route.js","sha256":"8c445b6db553cfb99534a38c93dc09f261cce73c94c7ead0c7bbb683ae2542ba"},{"path":"js/game.js","sha256":"85f8203ae53d008288d73f990fa26217e9f665ce80b3c500d03a6a5f9541c90e"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"46b2c6008b5c24c0ad4f4f0c6cb2544cc05f76a42907e7497d44c0fd4de0f8a0"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"8d9e6e1124ed0a54482d6dc5510d84b3a8df2e5062a67ea89023d5748f22a67e"},{"path":"js/course-adoption.js","sha256":"503b31e4b3ac9e2e6e257ae67727e48b25665c0d7e17cf49e5a703db6e45fa7b"},{"path":"js/tutorial-course.js","sha256":"8a20e522866c3ec52d7f862f862a1b2e959ca634e18ad3785783932cb36af032"},{"path":"js/course-preparation.js","sha256":"8412e0a7b1966b13626627089824750877eaf0a1a8f5ae2778e07595a398812d"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"2af229de9ba06e2c42552e09165926395b42580cd2253d8f5c9450e8b888009c"},{"path":"scripts/build-course-worker.cjs","sha256":"4bfb04ed4c3ce0cb640299bab8ad28386961f0072a941093da5c111686740c3a"}]});
 globalThis.ASCENT_COURSE_WORKER=true;
 let debugAttempt=false;
 function isTutorialRun(){return tutorialRun!==null;}
@@ -1811,8 +1811,14 @@ function fingerPartialSearchBounded(guide,{start=null,stance=null,limit=18000,ma
 // Fast searches only change exploration order. Every edge still passes the same
 // physics, reach, one/ten-sample, acceptance and stop checks. A failed prepass
 // always falls back to the original full beam and its original bounds.
+let fingerRouteSearchStrategy='hybrid';
+function withFingerRouteSearchStrategy(strategy,operation) {
+    if(strategy!=='hybrid'&&strategy!=='canonical')throw new RangeError('Unknown finger route search strategy');
+    const previous=fingerRouteSearchStrategy;fingerRouteSearchStrategy=strategy;
+    try{return operation();}finally{fingerRouteSearchStrategy=previous;}
+}
 function fingerPartialSearch(guide,options={}) {
-    if(options.beamWidth===1)return fingerPartialSearchBounded(guide,{...options,greedy:false});
+    if(fingerRouteSearchStrategy==='canonical'||options.beamWidth===1)return fingerPartialSearchBounded(guide,{...options,greedy:false});
     const maxMoves=options.maxMoves??45,phases=[];
     const quick=()=>fingerPartialSearchBounded(guide,{...options,greedy:false,beamWidth:1,
         limit:Math.min(options.limit??18000,Math.max(3000,maxMoves*150))});
@@ -1831,8 +1837,18 @@ function fingerSolveRoute(guide,maxMoves=40) {
     const goal=holds.find(h=>h.type==='goal');if(!goal)return null;
     const targets=[...guide,{x:goal.x,y:goal.y+70}],options={maxMoves,
         needsTraverse:requiresLegacyTraverse(),stop:(p,stance)=>bothHandsOnGoal(stance)};
-    const result=fingerPartialSearch(targets,{...options,preferGreedy:true,limit:Math.max(18000,maxMoves*1200)});
-    densityStats.fingerSearch={...result,path:undefined};
+    let result;
+    if(fingerRouteSearchStrategy==='canonical') {
+        // Source witnesses determine native pruning before sections are joined.
+        // Preserve the original narrow/full goal sequence for that scoped phase.
+        const quick=fingerPartialSearch(targets,{...options,beamWidth:1,limit:Math.max(3000,maxMoves*150)});
+        result=quick.found?quick:fingerPartialSearch(targets,{...options,limit:Math.max(18000,maxMoves*1200)});
+        densityStats.fingerSearch={...result,path:undefined,quickTransitions:quick.transitions,
+            quickFound:quick.found,totalTransitions:quick.transitions+(result===quick?0:result.transitions)};
+    }else{
+        result=fingerPartialSearch(targets,{...options,preferGreedy:true,limit:Math.max(18000,maxMoves*1200)});
+        densityStats.fingerSearch={...result,path:undefined};
+    }
     return result.found?result.path:null;
 }
 function fingerSolveCostRoute(guide,maxMoves=40,config=ROUTE_COST_SEARCH_CONFIG,options={}) {
@@ -4234,6 +4250,15 @@ function labRepairBranchJoin(points,sectionReports,mandatory,sourceSection,seam,
  return {kind:'single-retained-scatter-translation',trigger:'previously-rejected-mandatory-collision',candidatePolicy:'integer-grid-minimum-displacement-then-id-dy-dx',maxDisplacement:16,minSpacing:24,spacingScope:'moved-hold-against-entire-merged-input',candidates:candidates.length,conflict:{ids:[pair.a.id,pair.b.id],beforeDistance:pair.distance},moves:[{id:h.id,...origin,ownedBounds,sourceRegion,from,to,dx,dy,displacement}],allInputIdsPreserved:true,featureCoordinatesUnchanged:true};
 }
 
+// Mixed switchback-to-straight joins need the canonical source witnesses:
+// choosing a faster source path can prune contacts needed by the merged solve.
+// Keep the hybrid search for the final join and every other recipe family.
+function labGenerateCompositeSourceSkeleton(config,sourceConfig){
+ if(config.composition==='pair'&&config.type==='switchback'&&config.secondType==='straight'&&
+    typeof withFingerRouteSearchStrategy==='function'&&typeof fingerAimEnabled==='function'&&fingerAimEnabled())
+  return withFingerRouteSearchStrategy('canonical',()=>labGenerateSkeleton(sourceConfig));
+ return labGenerateSkeleton(sourceConfig);
+}
 function labGenerateCompositeSkeleton(config){
  labSkeletonReport=null;
  if(config.composition!=='pair'||!['middle','long'].includes(config.length)||!['straight','meander','branch','contrast','switchback'].includes(config.type)||!['straight','meander','branch','contrast','switchback'].includes(config.secondType)||!Number.isInteger(config.seed)||config.seed<0||config.seed>4294967295)throw Error('Composition requires two sections and middle or long length.');
@@ -4244,7 +4269,7 @@ function labGenerateCompositeSkeleton(config){
   labColumnSideSearch=()=>({found:false,reason:'not-run-in-section-source'});
   for(let i=0;i<2;i++){
    const seed=(config.seed^(i?0x7F4A7C15:0x243F6A88))>>>0,c={type:types[i],length:sectionLength,seed};courseSeed=()=>seed;
-   let report;try{report=labGenerateSkeleton(c);}catch(e){if(!(e instanceof CourseGeometryRejection))throw e;throw new CourseGeometryRejection(`Section ${i+1} (${types[i]}): ${e.message}`,{cause:e});}
+   let report;try{report=labGenerateCompositeSourceSkeleton(config,c);}catch(e){if(!(e instanceof CourseGeometryRejection))throw e;throw new CourseGeometryRejection(`Section ${i+1} (${types[i]}): ${e.message}`,{cause:e});}
    sections.push({type:types[i],seed,height:HEIGHT,report:JSON.parse(JSON.stringify(report)),holds:holds.map(h=>({...h})),route:route.map(p=>({...p,grips:p.grips?[...p.grips]:undefined})),initialIds:initialGrips.map(h=>h.id),density:JSON.parse(JSON.stringify(densityStats))});
   }
   labCreateOriginalLayout=saved.labCreateOriginalLayout;labColumnSideSearch=saved.labColumnSideSearch;courseSeed=()=>config.seed;
@@ -4739,7 +4764,7 @@ function adoptedCourseCacheInputs() {
     // lower-level physics and solver helpers, before a hit can skip validation.
     const inputs=[ADOPTED_COURSE_CACHE_VERSION,COURSE_VERSION,DAILY_COURSE_VERSION,
         LAB_SKELETON_VERSION,FINGER_AIM_MODEL,COUPLED_BODY_MODEL,COUPLED_BODY_CONFIG,
-        fingerAimEnabled(),coupledBodyEnabled(),fingerInputIdentity(),fingerAimGain(),W,H,R,MAX_HEIGHT,STAGE_SAFE_WIDTH,
+        fingerAimEnabled(),coupledBodyEnabled(),fingerRouteSearchStrategy,fingerInputIdentity(),fingerAimGain(),W,H,R,MAX_HEIGHT,STAGE_SAFE_WIDTH,
         TORSO,LIMB_LENGTHS,limbs,POSE_CONFIG,HIGH_FOOT_REACH_RATIO,HOLD_SPACING,
         STAGE_CONFIG,DIFFICULTY_CONFIG,DIFFICULTY_RULES,COURSE_TYPES,HOLD_CONFIG,
         DENSITY_CONFIG,HEART_CONFIG,HAZARD_CONFIG,INPUT_CONFIG,CAMERA_CONFIG,
@@ -4755,7 +4780,7 @@ function adoptedCourseCacheInputs() {
         fingerGestureStep,fingerGestureReplay,coupledBodyEnabled,coupledInputPath,coupledSupportGeometry,
         coupledBodyStep,coupledGestureReplay,fingerRouteInitial,fingerRouteAction,fingerResampledAction,
         fingerRouteSampleStable,fingerRouteEntry,fingerRouteTraceMask,fingerRouteTouchesHeart,fingerReplayRoute,
-        fingerSamePairRoute,fingerRouteCandidates,fingerRouteProgress,fingerPartialSearchBounded,fingerPartialSearch,fingerSolveRoute,
+        fingerSamePairRoute,fingerRouteCandidates,fingerRouteProgress,withFingerRouteSearchStrategy,fingerPartialSearchBounded,fingerPartialSearch,fingerSolveRoute,
         fingerSolveCostRoute,fingerOptimizeRoute,fingerValidateDragReference,fingerFindCourseHeartMove,fingerFindHazardMove,
         requiresLegacyTraverse,solveRoute,replayRoute,optimizeRoute,prepareStage,
         samePairRoute,pruneUnusedHolds,updateStageDensity,assignWideHolds,hasHazardFallbackCandidates,
@@ -4766,7 +4791,7 @@ function adoptedCourseCacheInputs() {
         labPrepareSpikes,labStraightDirection,labCreateOriginalLayout,labReplayPartial,labPartialSearch,
         labColumnPartialSearch,labColumnNaturalScatter,labColumnSideSearch,labColumnOffsets,labGenerateBranchSkeleton,
         labContrastGuideCenter,labContrastSpreadMetrics,labContrastProtectedSample,labGenerateContrastSkeleton,labCompositeOriginalLayout,
-        labRepairBranchJoin,labGenerateCompositeSkeleton,labSwitchbackSearch,labCreateSwitchbackLayout,labSwitchbackPathFeatures,
+        labRepairBranchJoin,labGenerateCompositeSourceSkeleton,labGenerateCompositeSkeleton,labSwitchbackSearch,labCreateSwitchbackLayout,labSwitchbackPathFeatures,
         labBuildSwitchbackWitness,labValidateRecoveryDragReference,labAssertRecoveryDragReference,labRecoverSwitchbackWitness,labSwitchbackCompositeGeometry,
         labSolveCompositeSwitchbacks,labCompositeSwitchbackFeatures,labGenerateSwitchbackSkeleton,labGenerateSkeleton,labPrepareHearts,
         labHeartStaminaAdjustment,labPrepareStaminaAdjustment,generateCourseFromRecipe,courseSeed,cameraTop,

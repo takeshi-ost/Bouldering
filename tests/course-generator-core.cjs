@@ -27,6 +27,22 @@ function expectedV6(config){
 // Normalize only these reviewed exact edits for this historical source identity
 // assertion; the native behavior parity cases below still execute unchanged.
 function withoutFingerHooks(text){
+ // Normalize only the exact reviewed source policy. Any widened guard, altered
+ // source call, or unrelated generator change must still fail frozen parity.
+ const sourcePolicy=`// Mixed switchback-to-straight joins need the canonical source witnesses:
+// choosing a faster source path can prune contacts needed by the merged solve.
+// Keep the hybrid search for the final join and every other recipe family.
+function labGenerateCompositeSourceSkeleton(config,sourceConfig){
+ if(config.composition==='pair'&&config.type==='switchback'&&config.secondType==='straight'&&
+    typeof withFingerRouteSearchStrategy==='function'&&typeof fingerAimEnabled==='function'&&fingerAimEnabled())
+  return withFingerRouteSearchStrategy('canonical',()=>labGenerateSkeleton(sourceConfig));
+ return labGenerateSkeleton(sourceConfig);
+}
+`;
+ const sourceCall='report=labGenerateCompositeSourceSkeleton(config,c);';
+ assert.equal(text.split(sourcePolicy).length,2,'exact reviewed composite source policy');
+ assert.equal(text.split(sourceCall).length,2,'exact reviewed composite source dispatch');
+ text=text.replace(sourcePolicy,'').replace(sourceCall,'report=labGenerateSkeleton(c);');
  for(const [before,after] of [
   [" if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerReplayRoute(path,{partial:true});\n",''],
   [" if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerPartialSearch(guide,{start,stance,limit,maxMoves,stop,forwardOnly});\n",''],

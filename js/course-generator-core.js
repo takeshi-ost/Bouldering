@@ -409,6 +409,15 @@ function labRepairBranchJoin(points,sectionReports,mandatory,sourceSection,seam,
  return {kind:'single-retained-scatter-translation',trigger:'previously-rejected-mandatory-collision',candidatePolicy:'integer-grid-minimum-displacement-then-id-dy-dx',maxDisplacement:16,minSpacing:24,spacingScope:'moved-hold-against-entire-merged-input',candidates:candidates.length,conflict:{ids:[pair.a.id,pair.b.id],beforeDistance:pair.distance},moves:[{id:h.id,...origin,ownedBounds,sourceRegion,from,to,dx,dy,displacement}],allInputIdsPreserved:true,featureCoordinatesUnchanged:true};
 }
 
+// Mixed switchback-to-straight joins need the canonical source witnesses:
+// choosing a faster source path can prune contacts needed by the merged solve.
+// Keep the hybrid search for the final join and every other recipe family.
+function labGenerateCompositeSourceSkeleton(config,sourceConfig){
+ if(config.composition==='pair'&&config.type==='switchback'&&config.secondType==='straight'&&
+    typeof withFingerRouteSearchStrategy==='function'&&typeof fingerAimEnabled==='function'&&fingerAimEnabled())
+  return withFingerRouteSearchStrategy('canonical',()=>labGenerateSkeleton(sourceConfig));
+ return labGenerateSkeleton(sourceConfig);
+}
 function labGenerateCompositeSkeleton(config){
  labSkeletonReport=null;
  if(config.composition!=='pair'||!['middle','long'].includes(config.length)||!['straight','meander','branch','contrast','switchback'].includes(config.type)||!['straight','meander','branch','contrast','switchback'].includes(config.secondType)||!Number.isInteger(config.seed)||config.seed<0||config.seed>4294967295)throw Error('Composition requires two sections and middle or long length.');
@@ -419,7 +428,7 @@ function labGenerateCompositeSkeleton(config){
   labColumnSideSearch=()=>({found:false,reason:'not-run-in-section-source'});
   for(let i=0;i<2;i++){
    const seed=(config.seed^(i?0x7F4A7C15:0x243F6A88))>>>0,c={type:types[i],length:sectionLength,seed};courseSeed=()=>seed;
-   let report;try{report=labGenerateSkeleton(c);}catch(e){if(!(e instanceof CourseGeometryRejection))throw e;throw new CourseGeometryRejection(`Section ${i+1} (${types[i]}): ${e.message}`,{cause:e});}
+   let report;try{report=labGenerateCompositeSourceSkeleton(config,c);}catch(e){if(!(e instanceof CourseGeometryRejection))throw e;throw new CourseGeometryRejection(`Section ${i+1} (${types[i]}): ${e.message}`,{cause:e});}
    sections.push({type:types[i],seed,height:HEIGHT,report:JSON.parse(JSON.stringify(report)),holds:holds.map(h=>({...h})),route:route.map(p=>({...p,grips:p.grips?[...p.grips]:undefined})),initialIds:initialGrips.map(h=>h.id),density:JSON.parse(JSON.stringify(densityStats))});
   }
   labCreateOriginalLayout=saved.labCreateOriginalLayout;labColumnSideSearch=saved.labColumnSideSearch;courseSeed=()=>config.seed;

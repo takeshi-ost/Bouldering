@@ -149,8 +149,14 @@ function fingerPartialSearchBounded(guide,{start=null,stance=null,limit=18000,ma
 // Fast searches only change exploration order. Every edge still passes the same
 // physics, reach, one/ten-sample, acceptance and stop checks. A failed prepass
 // always falls back to the original full beam and its original bounds.
+let fingerRouteSearchStrategy='hybrid';
+function withFingerRouteSearchStrategy(strategy,operation) {
+    if(strategy!=='hybrid'&&strategy!=='canonical')throw new RangeError('Unknown finger route search strategy');
+    const previous=fingerRouteSearchStrategy;fingerRouteSearchStrategy=strategy;
+    try{return operation();}finally{fingerRouteSearchStrategy=previous;}
+}
 function fingerPartialSearch(guide,options={}) {
-    if(options.beamWidth===1)return fingerPartialSearchBounded(guide,{...options,greedy:false});
+    if(fingerRouteSearchStrategy==='canonical'||options.beamWidth===1)return fingerPartialSearchBounded(guide,{...options,greedy:false});
     const maxMoves=options.maxMoves??45,phases=[];
     const quick=()=>fingerPartialSearchBounded(guide,{...options,greedy:false,beamWidth:1,
         limit:Math.min(options.limit??18000,Math.max(3000,maxMoves*150))});
@@ -169,8 +175,18 @@ function fingerSolveRoute(guide,maxMoves=40) {
     const goal=holds.find(h=>h.type==='goal');if(!goal)return null;
     const targets=[...guide,{x:goal.x,y:goal.y+70}],options={maxMoves,
         needsTraverse:requiresLegacyTraverse(),stop:(p,stance)=>bothHandsOnGoal(stance)};
-    const result=fingerPartialSearch(targets,{...options,preferGreedy:true,limit:Math.max(18000,maxMoves*1200)});
-    densityStats.fingerSearch={...result,path:undefined};
+    let result;
+    if(fingerRouteSearchStrategy==='canonical') {
+        // Source witnesses determine native pruning before sections are joined.
+        // Preserve the original narrow/full goal sequence for that scoped phase.
+        const quick=fingerPartialSearch(targets,{...options,beamWidth:1,limit:Math.max(3000,maxMoves*150)});
+        result=quick.found?quick:fingerPartialSearch(targets,{...options,limit:Math.max(18000,maxMoves*1200)});
+        densityStats.fingerSearch={...result,path:undefined,quickTransitions:quick.transitions,
+            quickFound:quick.found,totalTransitions:quick.transitions+(result===quick?0:result.transitions)};
+    }else{
+        result=fingerPartialSearch(targets,{...options,preferGreedy:true,limit:Math.max(18000,maxMoves*1200)});
+        densityStats.fingerSearch={...result,path:undefined};
+    }
     return result.found?result.path:null;
 }
 function fingerSolveCostRoute(guide,maxMoves=40,config=ROUTE_COST_SEARCH_CONFIG,options={}) {
