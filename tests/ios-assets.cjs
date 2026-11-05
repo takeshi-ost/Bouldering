@@ -4,13 +4,30 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
+const flags = new Set(process.argv.slice(2));
+for (const flag of flags) assert(['--built', '--bundle-only', '--release', '--artifact-only'].includes(flag), 'Unknown iOS asset option: '+flag);
+const artifactOnly = flags.has('--artifact-only');
+assert(!artifactOnly || (flags.has('--bundle-only') && !flags.has('--built') && !flags.has('--release')),
+    '--artifact-only requires --bundle-only and cannot replace a built-app verification');
+
 // Native branding lives outside www. Include it in every bundle/build check so
 // a valid-looking Capacitor template cannot silently replace the approved art.
 require('./ios-branding.cjs');
 const nativeSource = require('../scripts/native-bundle-source.cjs');
-require('./native-resume-store.cjs');
-require('./native-resume-adapter.cjs');
-require('./native-resume-game.cjs');
+const builtVerification = process.argv.includes('--built');
+// These suites execute source, not the compiled application's copied assets.
+// Simulator CI runs them in the default copy check before both builds. Linux
+// CI runs all three explicitly before both --bundle-only --artifact-only checks.
+// --built verifies every shipped JS file below instead of repeating cold VMs.
+if (!builtVerification && !artifactOnly) {
+    require('./native-resume-store.cjs');
+    require('./native-resume-adapter.cjs');
+    require('./native-resume-game.cjs');
+} else if (artifactOnly) {
+    console.log('SKIP --artifact-only duplicate source-only suites: native-resume-store.cjs, native-resume-adapter.cjs, native-resume-game.cjs. CI runs all three explicitly before both bundle-only checks. All bundle content checks still run below.');
+} else {
+    console.log('SKIP --built duplicate source-only suites: native-resume-store.cjs, native-resume-adapter.cjs, native-resume-game.cjs. Run node tests/ios-assets.cjs first; CI enforces this prerequisite. Built JS bytes are verified below.');
+}
 const bundle = path.join(root, 'www');
 const read = name => fs.readFileSync(path.join(bundle, name), 'utf8');
 const html = read('index.html');
@@ -83,7 +100,11 @@ for (const entry of fs.readdirSync(path.join(root, 'assets'), {recursive: true, 
 const nativeDirectories = process.argv.includes('--bundle-only')?[]:['ios/App/App/public'];
 const configuration=process.argv.includes('--release')?'Release':'Debug';
 const builtApp=`build/DerivedData/Build/Products/${configuration}-iphonesimulator/App.app`;
-if (process.argv.includes('--built')) nativeDirectories.push(`${builtApp}/public`);
+if (builtVerification) nativeDirectories.push(`${builtApp}/public`);
+const bundledJavaScript=fs.readdirSync(bundle,{recursive:true,withFileTypes:true})
+    .filter(entry=>entry.isFile() && entry.name.endsWith('.js'))
+    .map(entry=>path.relative(bundle,path.join(entry.parentPath,entry.name))).sort();
+assert(bundledJavaScript.includes(path.join('js','game.js')));
 for (const relative of nativeDirectories) {
     const nativePublic = path.join(root, relative);
     assert(fs.existsSync(nativePublic), `Missing native bundle: ${relative}`);
@@ -96,6 +117,14 @@ for (const relative of nativeDirectories) {
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-audio-fetch.js'), 'utf8'), read('js/native-audio-fetch.js'));
     assert.equal(fs.readFileSync(path.join(nativePublic, 'js/native-audio-lifecycle.js'), 'utf8'), read('js/native-audio-lifecycle.js'));
     for(const name of ['native-resume-preboot','native-resume-runtime'])assert.equal(fs.readFileSync(path.join(nativePublic,'js/'+name+'.js'),'utf8'),read('js/'+name+'.js'));
+    // Include all classic modules, native adapters, vendor files and workers,
+    // including scripts loaded indirectly rather than listed in index.html.
+    for(const file of bundledJavaScript) {
+        let expected=fs.readFileSync(path.join(bundle,file));
+        if(relative.startsWith('build/') && configuration==='Release' && file===path.join('js','game.js'))
+            expected=Buffer.from(expected.toString('utf8').replace('let debugMode = false;','const debugMode = false;'));
+        assert.deepEqual(fs.readFileSync(path.join(nativePublic,file)),expected,`Changed native JavaScript: ${relative}/${file}`);
+    }
     if(relative.startsWith('build/')) {
         assert.equal(fs.readFileSync(path.join(root,builtApp,'ascent-build-configuration.txt'),'utf8').trim(),configuration);
         const expected=configuration==='Release'?read('js/game.js').replace('let debugMode = false;','const debugMode = false;'):read('js/game.js');

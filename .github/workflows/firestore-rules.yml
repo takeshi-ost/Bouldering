@@ -37,14 +37,93 @@ jobs:
           java-version: '21'
       - name: Install locked test dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Validate demo-only configuration
+      - name: Validate demo-only configuration and complete CI partition
         run: node tests/firestore-config.cjs
       - name: Run score Rules against local demo databases
         run: npm run test:rules
-      - name: Run Web integration and online-adapter mocks
-        run: npm run test:web
+      - name: Record Rules verification scope
+        if: always()
+        env:
+          TEST_RESULT: ${{ job.status }}
+        run: |
+          {
+            echo '## Firestore Rules — local demo emulator only'
+            echo "Commit: $GITHUB_SHA"
+            echo "Result: $TEST_RESULT"
+            echo "Rules SHA-256: $(sha256sum firestore.rules | cut -d ' ' -f 1)"
+            echo 'Checks: legacy/current score permissions, v1–v4 board metadata, ownership, validation, improvements and deletion locks.'
+            echo 'Web shards and coupled/native checks run in separate jobs; this result does not cover them.'
+            echo 'Not checked: deployed production Rules, production connectivity, real anonymous-auth lifecycle, browser or native app.'
+            echo 'No Firebase login, deploy, production credentials, Pages deploy, or repository writes.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        shard: ['1/2', '2/2']
+    env:
+      CI: 'true'
+    steps:
+      - name: Check out this commit without retained credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '24.22.1'
+          package-manager-cache: false
+      - name: Install locked test dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate demo-only configuration and complete CI partition
+        run: node tests/firestore-config.cjs
+      - name: Run this Web integration and online-adapter mock shard
+        run: npm run test:web -- --shard '${{ matrix.shard }}'
+      - name: Record Web shard verification scope
+        if: always()
+        env:
+          TEST_RESULT: ${{ job.status }}
+          TEST_SHARD: ${{ matrix.shard }}
+        run: |
+          {
+            echo "## Web integration shard $TEST_SHARD"
+            echo "Commit: $GITHUB_SHA"
+            echo "Result: $TEST_RESULT"
+            echo 'Scope: only the selected Web shard; both shards are required for complete Web integration coverage.'
+            echo 'Exact selected suites and results are logged by the runner; each file keeps its 180-second timeout.'
+            echo 'Rules and coupled/native checks run in separate jobs; this result does not cover them.'
+            echo 'No browser/device/audio verification, live Firebase calls, production credentials, deployment, artifact upload or repository writes.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  coupled-native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+    steps:
+      - name: Check out this commit without retained credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '24.22.1'
+          package-manager-cache: false
+      - name: Install locked test dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validate demo-only configuration and complete CI partition
+        run: node tests/firestore-config.cjs
       - name: Verify production coupled controls and exact replay
         run: npm run test:coupled
+      - name: Verify responsive preparation and actual Stage 1 worker parity
+        run: |
+          node tests/coupled-course-preparation.cjs
+          node tests/coupled-course-worker.cjs --real
       - name: Run native auth, queue and connection mocks
         run: |
           node tests/native-firebase.cjs
@@ -57,30 +136,35 @@ jobs:
         run: |
           node tests/native-sdk-packaging.cjs
           node tests/native-entry-formal.cjs
+      - name: Verify all source native recovery behavior once before both bundles
+        run: |
+          node tests/native-resume-store.cjs
+          node tests/native-resume-adapter.cjs
+          node tests/native-resume-game.cjs
       - name: Build and validate complete offline native game bundle
         env:
           ASCENT_FIREBASE_MODE: offline
         run: |
           npm run build:ios-assets
-          node tests/ios-assets.cjs --bundle-only
+          node tests/ios-assets.cjs --bundle-only --artifact-only
       - name: Package default online native assets without launching Firebase
         run: |
           npm run build:ios-assets
           node -e "require('assert/strict').equal(require('./www/native-firebase-mode.json').mode,'auto-sync')"
-          node tests/ios-assets.cjs --bundle-only
-      - name: Record verification scope
+          node tests/ios-assets.cjs --bundle-only --artifact-only
+      - name: Record coupled and native verification scope
         if: always()
         env:
           TEST_RESULT: ${{ job.status }}
         run: |
           {
-            echo '## Firestore Rules — local demo emulator only'
+            echo '## Coupled controls and native source/bundles'
             echo "Commit: $GITHUB_SHA"
             echo "Result: $TEST_RESULT"
-            echo "Rules SHA-256: $(sha256sum firestore.rules | cut -d ' ' -f 1)"
-            echo 'Checks: legacy/current score permissions, v1–v4 board metadata, ownership, validation, improvements and deletion locks.'
-            echo 'Also checks: Web integration/online mocks; native v4 auth/queue/connection mocks, emitted startup and full offline game bundle.'
+            echo 'Checks: coupled controls/replay; responsive preparation and real Stage 1 worker/direct graph parity; native v4 auth/queue/connection and emitted startup mocks.'
+            echo 'All three source recovery suites run once; both offline and auto-sync bundles retain every bundle artifact check.'
+            echo 'Rules and Web shards run in separate jobs; this result does not cover them.'
             echo 'Native limitations: no Xcode/signing/device verification in this job; new-user registration is mocked; transfer remains disabled; deletion uses synthetic mocks only.'
             echo 'Not checked: deployed production Rules, production connectivity, real anonymous-auth lifecycle, browser or native app.'
-            echo 'No Firebase login, deploy, production credentials, Pages deploy, or repository writes.'
+            echo 'No Firebase login, deploy, production credentials, Pages deploy, artifact upload or repository writes.'
           } >> "$GITHUB_STEP_SUMMARY"

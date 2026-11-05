@@ -6,7 +6,11 @@ Run the complete population (stages 0–401 and 32 actual Daily dates covering a
 
     npm run test:population
 
-For two bounded-concurrency shards:
+For two automatically balanced shards (even/odd stages and 16 Daily dates each), with immediate JSONL and compressed snapshots:
+
+    ASCENT_POPULATION_BATCH_TAG=final node tests/helpers/coupled-production-batch.cjs
+
+The batch runner launches exactly two test children and forwards SIGINT to both. Freeze gameplay source before starting. For manually specified two bounded-concurrency shards:
 
     ASCENT_POPULATION_STAGES=0-200 ASCENT_POPULATION_DATES=none ASCENT_POPULATION_TAG=full-low node tests/coupled-production-population.cjs
     ASCENT_POPULATION_STAGES=201-401 ASCENT_POPULATION_DATES=representative ASCENT_POPULATION_TAG=full-high node tests/coupled-production-population.cjs
@@ -26,7 +30,7 @@ The parity helper requires matching production source digests. Historical runs b
 
 ## What is checked
 
-Every case uses actual `reset`, exact explicit action/contact/support/trace replay, a second actual reset to establish deterministic generation, preserved sampled recipe and bounded +1 geometry retries, and actual live one- and ten-sample play to a won state. It also compares final stamina and pickup count with independent trace/resource calculation.
+Every case uses actual `reset`, exact explicit action/contact/support/trace replay, a second actual cold reset to establish deterministic generation (clearing the validated-course cache before each cold reset when available), a third warm reset with exact fingerprint/fresh-object assertions when that cache exists, preserved sampled recipe and bounded +1 geometry retries, and actual live one- and ten-sample play to a won state. It also compares final stamina and pickup count with independent trace/resource calculation.
 
 The bare generator reference may deliberately miss optional hearts while the final initial stamina is reduced. Such a reference is reported separately, not declared winnable by substituting its larger internal validation budget. The complete playable plan uses each generated heart's explicit witness at its recorded reference stance, then cancels that detour: production cancellation restores body/contacts without charging a move while keeping swept pickups. The test then resumes the original committed route. It checks actual budget availability before every action and exact end resources. Tutorial stage0 uses its authored real extra-stamina budget.
 

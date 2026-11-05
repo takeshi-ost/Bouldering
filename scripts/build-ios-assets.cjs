@@ -8,6 +8,9 @@ const nativeSettingsLayout = require('./native-settings-layout.cjs');
 const {createNativeResumeStore}=require('./native-resume-store.cjs');
 const {installNativeResume}=require('./native-resume-adapter.cjs');
 const root = path.resolve(__dirname, '..');
+const workerBuild=require('./build-course-worker.cjs').buildCourseWorker();
+for(const [file,source]of Object.entries(workerBuild.output))
+    if(fs.readFileSync(path.join(root,file),'utf8')!==source)throw Error('Rebuild course worker before packaging: '+file);
 const out = path.join(root, 'www');
 const firebaseMode=process.env.ASCENT_FIREBASE_MODE || 'auto-sync';
 if(!['offline','read-only','auto-sync'].includes(firebaseMode))throw Error('Unsupported native Firebase mode');
@@ -40,7 +43,7 @@ html = html.replace('</head>','    <script src="js/native-firebase-control.js" d
 // Local media fetch stays available. Only explicitly enabled Firebase hosts may
 // connect; external scripts, frames and form submissions always stay blocked.
 const connections=firebaseMode!=='offline'?" https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com":'';
-const policy = "default-src 'self'; script-src 'self'; connect-src 'self'"+connections+"; " +
+const policy = "default-src 'self'; script-src 'self'; worker-src 'self'; connect-src 'self'"+connections+"; " +
     "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; " +
     "media-src 'self' data: blob:; font-src 'self' data:; " +
     "object-src 'none'; frame-src 'none'; form-action 'none'; base-uri 'none'";

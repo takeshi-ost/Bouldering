@@ -6,7 +6,139 @@ const COURSE_STAMINA_CONFIG = {version:'1', rules:'0:3'};
 // The core already bounds each search; this cap also bounds the outer retry.
 const COURSE_RETRY_CONFIG = Object.freeze({version:'1',maxAttempts:32});
 let activeCourseGeneration = null;
+// Session-only validated geometry. No storage, account, reward or live run state.
+// Bump this schema when adding generation inputs or changing the snapshot shape.
+const ADOPTED_COURSE_CACHE_VERSION='1';
+const ADOPTED_COURSE_CACHE_CAPACITY=12;
+const adoptedCourseCache=new Map();
+const adoptedCourseFunctionIds=new WeakMap();
+let adoptedCourseNextFunctionId=1;
+let adoptedCourseLastSignature=null;
+function clearAdoptedCourseCache(){
+    adoptedCourseCache.clear();
+    if(typeof stagePreviewCache!=='undefined')stagePreviewCache.clear();
+}
+function refreshAdoptedCourseCacheDependencies(){
+    const signature=adoptedCourseCacheSignature();
+    if(signature!==adoptedCourseLastSignature){
+        clearAdoptedCourseCache();adoptedCourseLastSignature=signature;
+    }
+    return signature;
+}
+function adoptedCourseClone(value,seen=new Map()) {
+    if(!value||typeof value!=='object')return value;
+    if(seen.has(value))return seen.get(value);
+    const copy=Array.isArray(value)?[]:{};seen.set(value,copy);
+    for(const key of Object.keys(value))copy[key]=adoptedCourseClone(value[key],seen);
+    return copy;
+}
+function freezeAdoptedCourse(value,seen=new Set()) {
+    if(!value||typeof value!=='object'||seen.has(value))return value;
+    seen.add(value);Object.values(value).forEach(item=>freezeAdoptedCourse(item,seen));
+    return Object.freeze(value);
+}
+function adoptedCourseCacheInputs() {
+    // Historical baseline fixtures intentionally omit the new input modules.
+    // Keep their uncached generation path unchanged, including injected hooks.
+    if(typeof fingerAimEnabled!=='function'||!fingerAimEnabled()||
+        typeof coupledBodyEnabled!=='function'||!coupledBodyEnabled())return null;
+    // Reference identities invalidate hot-swapped test/diagnostic hooks, including
+    // lower-level physics and solver helpers, before a hit can skip validation.
+    const inputs=[ADOPTED_COURSE_CACHE_VERSION,COURSE_VERSION,DAILY_COURSE_VERSION,
+        LAB_SKELETON_VERSION,FINGER_AIM_MODEL,COUPLED_BODY_MODEL,COUPLED_BODY_CONFIG,
+        fingerAimEnabled(),coupledBodyEnabled(),fingerInputIdentity(),fingerAimGain(),W,H,R,MAX_HEIGHT,STAGE_SAFE_WIDTH,
+        TORSO,LIMB_LENGTHS,limbs,POSE_CONFIG,HIGH_FOOT_REACH_RATIO,HOLD_SPACING,
+        STAGE_CONFIG,DIFFICULTY_CONFIG,DIFFICULTY_RULES,COURSE_TYPES,HOLD_CONFIG,
+        DENSITY_CONFIG,HEART_CONFIG,HAZARD_CONFIG,INPUT_CONFIG,CAMERA_CONFIG,
+        COURSE_GENERATION_CONFIG,ROUTE_COST_SEARCH_CONFIG,ROUTE_OPTIMIZATION_CONFIG,
+        CourseProgressionConfig,CourseDistributionConfig,COURSE_STAMINA_CONFIG,
+        COURSE_RETRY_CONFIG,CourseProgression,CourseDistribution,LabStaminaSettings,
+        mulberry32,gripAim,isTraverse,insideStartTriangle,weightedItemId,
+        difficultyRule,courseTypeDefinitions,courseTypeRule,courseTypeLabel,weightedCourseType,
+        validateCourseDistribution,stageDistribution,dailyDistribution,generationTypeForScore,courseTypeForStage,
+        difficultyForStage,makeStageCourse,stageLengthRule,courseLengthLabel,stageLayout,
+        resolvedCourseLengthInfo,stageLengthInfo,createStageGenerator,fingerAimEnabled,fingerAimGain,
+        withFingerAimDisabled,fingerInputIdentity,fingerAimTarget,fingerAction,validFingerAction,
+        fingerGestureStep,fingerGestureReplay,coupledBodyEnabled,coupledInputPath,coupledSupportGeometry,
+        coupledBodyStep,coupledGestureReplay,fingerRouteInitial,fingerRouteAction,fingerResampledAction,
+        fingerRouteSampleStable,fingerRouteEntry,fingerRouteTraceMask,fingerRouteTouchesHeart,fingerReplayRoute,
+        fingerSamePairRoute,fingerRouteCandidates,fingerRouteProgress,fingerPartialSearchBounded,fingerPartialSearch,fingerSolveRoute,
+        fingerSolveCostRoute,fingerOptimizeRoute,fingerValidateDragReference,fingerFindCourseHeartMove,fingerFindHazardMove,
+        requiresLegacyTraverse,solveRoute,replayRoute,optimizeRoute,prepareStage,
+        samePairRoute,pruneUnusedHolds,updateStageDensity,assignWideHolds,hasHazardFallbackCandidates,
+        reserveDenseCandidates,solveCostRoute,validateRouteBudget,bitCount,coursePickupMask,
+        routeResources,chooseCourseIntent,findCourseHeartMove,recipeHearts,bindCourseRecipe,
+        snapshotCourse,restoreCourse,applyRouteHazards,classifyCourse,finalizeCourseGeneration,
+        finalizeConvertedCourse,findHazardMove,addHazardHolds,convertDenseHazards,classifyNativeCourseGeometryRejection,
+        labPrepareSpikes,labStraightDirection,labCreateOriginalLayout,labReplayPartial,labPartialSearch,
+        labColumnPartialSearch,labColumnNaturalScatter,labColumnSideSearch,labColumnOffsets,labGenerateBranchSkeleton,
+        labContrastGuideCenter,labContrastSpreadMetrics,labContrastProtectedSample,labGenerateContrastSkeleton,labCompositeOriginalLayout,
+        labRepairBranchJoin,labGenerateCompositeSkeleton,labSwitchbackSearch,labCreateSwitchbackLayout,labSwitchbackPathFeatures,
+        labBuildSwitchbackWitness,labValidateRecoveryDragReference,labAssertRecoveryDragReference,labRecoverSwitchbackWitness,labSwitchbackCompositeGeometry,
+        labSolveCompositeSwitchbacks,labCompositeSwitchbackFeatures,labGenerateSwitchbackSkeleton,labGenerateSkeleton,labPrepareHearts,
+        labHeartStaminaAdjustment,labPrepareStaminaAdjustment,generateCourseFromRecipe,courseSeed,cameraTop,
+        limbReachable,supportMotionFraction,supportPairReach,movingLimbHasForwardHold,goalSupportDistance,
+        selectAnchor,canShareHold,attachMoving,stageStamina,newHazardContacts,
+        routeHazardCosts,routeMoveCost,routeConsumption,routeExpectedMoves,routeStamina,
+        createHearts,makeRouteHearts,torsoTouchesHeart,limbRoot,bothHandsOnGoal,
+        sameContacts,isSupportPair,supportsReachable,
+        adoptedCourseCacheInputs,adoptedCourseRequest,adoptedCourseSnapshot,
+        adoptedCourseCacheKey,cacheAdoptedCourseSnapshot,restoreAdoptedCourseCache,
+        adoptedCourseClone,freezeAdoptedCourse,prepareAdoptedCourse,
+        coursePreparationIdentity,coursePreparationRuntimeConfig,validatePreparedCourse,assertPreparedCourse,
+    ];
+    return inputs;
+}
+function adoptedCourseCacheSignature() {
+    const inputs=adoptedCourseCacheInputs();
+    if(inputs===null)return null;
+    return JSON.stringify(inputs,(_key,value)=>{
+        if(typeof value!=='function')return value;
+        if(!adoptedCourseFunctionIds.has(value))adoptedCourseFunctionIds.set(value,adoptedCourseNextFunctionId++);
+        return {courseFunction:adoptedCourseFunctionIds.get(value)};
+    });
+}
+// Shared, state-free identity used by previews, the worker and launch leases.
+function adoptedCourseRequest(n,profile=null) {
+    const resolved=profile?CourseProgression.resolveDaily(profile.date):CourseProgression.resolveStage(n);
+    const typeId=profile?.typeId??courseTypeForStage(n);
+    return {level:n,difficulty:courseTypeRule(typeId).generationDifficulty,courseTypeId:typeId,
+        mode:'existing',date:profile?.date??null,resolved,
+        sampled:{...CourseProgression.recipe(resolved),stage:profile?1:n,staminaRules:COURSE_STAMINA_CONFIG.rules}};
+}
+function adoptedCourseCacheKey(request,signature=refreshAdoptedCourseCacheDependencies()) {
+    return signature===null?null:JSON.stringify([signature,request.resolved,request.sampled,
+        request.level,request.difficulty,request.courseTypeId,request.mode,request.date]);
+}
+function adoptedCourseSnapshot() {
+    return {holds,route,HEIGHT,initialGrips,densityStats,generatedCourse,
+        activeCourseGeneration,labSkeletonReport,labHeartsCache,labStaminaCache};
+}
+function cacheAdoptedCourseSnapshot(key,snapshot) {
+    if(key===null)return;
+    adoptedCourseCache.delete(key);
+    if(adoptedCourseCache.size>=ADOPTED_COURSE_CACHE_CAPACITY)
+        adoptedCourseCache.delete(adoptedCourseCache.keys().next().value);
+    adoptedCourseCache.set(key,snapshot);
+}
+let adoptedCourseLaunchLease=null;
+function restoreAdoptedCourseCache(snapshot) {
+    // Clone the whole graph so shared holds/report nodes remain shared within
+    // this generation, but never with another run or the frozen cache entry.
+    const fresh=adoptedCourseClone(snapshot);
+    ({holds,route,HEIGHT,initialGrips,densityStats,generatedCourse,
+        activeCourseGeneration,labSkeletonReport,labHeartsCache,labStaminaCache}=fresh);
+    Object.freeze(activeCourseGeneration.recipe);Object.freeze(activeCourseGeneration.retry);
+    if(generatedCourse)generatedCourse.holds=holds;
+}
+
 function prepareAdoptedCourse() {
+    if(adoptedCourseLaunchLease) {
+        assertPreparedCourse(adoptedCourseLaunchLease,level,dailyRun);
+        restoreAdoptedCourseCache(adoptedCourseLaunchLease.snapshot);
+        if(dailyRun)dailyRun.seed=adoptedCourseLaunchLease.request.resolved.seed;
+        return;
+    }
     const resolved=dailyRun?CourseProgression.resolveDaily(dailyRun.date):CourseProgression.resolveStage(level);
     // Sample exactly once. Never let a rejected placement resample its score,
     // length, profiles/composition, heart caps, spikes or stamina bonus rules.
@@ -20,6 +152,16 @@ function prepareAdoptedCourse() {
             activeCourseGeneration,labSkeletonReport,labHeartsCache,labStaminaCache}=previous);
     };
     try {
+        const signature=refreshAdoptedCourseCacheDependencies();
+        const cacheKey=signature===null?null:JSON.stringify([signature,resolved,sampled,
+            identity.level,identity.difficulty,identity.courseTypeId,courseMode,dailyRun?.date??null]);
+        if(cacheKey!==null&&adoptedCourseCache.has(cacheKey)) {
+            const snapshot=adoptedCourseCache.get(cacheKey);
+            restoreAdoptedCourseCache(snapshot);
+            adoptedCourseCache.delete(cacheKey);adoptedCourseCache.set(cacheKey,snapshot);
+            if(dailyRun)dailyRun.seed=resolved.seed;
+            return;
+        }
         let failure;
         for(let attempt=0;attempt<COURSE_RETRY_CONFIG.maxAttempts;attempt++) {
             restorePrevious();
@@ -55,6 +197,12 @@ function prepareAdoptedCourse() {
             if(generatedCourse)Object.assign(generatedCourse,{level:identity.level,difficulty:identity.difficulty,
                 typeId:identity.courseTypeId,holds,seed:resolved.seed,geometrySeed,
                 generationRetryVersion:retry.version,mode:'existing',generationScore:resolved.score});
+            // Capture only after every validation/postprocess succeeds. Live
+            // hearts and resources are deliberately left to the normal reset.
+            if(cacheKey!==null) {
+                const snapshot=freezeAdoptedCourse(adoptedCourseClone(adoptedCourseSnapshot()));
+                cacheAdoptedCourseSnapshot(cacheKey,snapshot);
+            }
             if(dailyRun)dailyRun.seed=resolved.seed;
             return;
         }

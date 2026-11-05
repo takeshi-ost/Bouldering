@@ -94,6 +94,10 @@ let dailySelectedDate=null;
 let dailyCalendarToday=null;
 let dailyEntryToday=null;
 let dailyReturnCourse='existing';
+let dailyPreparation=null;
+function cancelDailyPreparation() {
+    dailyPreparation?.job?.cancel();dailyPreparation=null;
+}
 function refreshDailyEntry() {
     const today=localToday();
     ui.openDaily.classList.toggle('is-unfinished',!dailyRecords[today]);
@@ -184,6 +188,29 @@ function renderDailyStart() {
     ui.dailyClearStars.textContent=record?'⭐️'.repeat(record.stars):'';
     ui.dailyClearStars.setAttribute('aria-label',record?gameText("score.stars", {value0: record.stars}):'');
     ui.dailyClearStats.textContent=record?formatStageRecord(record):'';
+    if(coursePreparationInteractive())renderDailyPreparation(profile,record);
+}
+function renderDailyPreparation(profile,record) {
+    if(!profile || record){cancelDailyPreparation();setCoursePreparationStatus('dailyPreparationStatus','');return;}
+    if(dailyPreparation?.date!==profile.date)beginDailyPreparation(profile);
+    const context=dailyPreparation;
+    ui.dailyStartButton.disabled=!context?.prepared && !context?.error;
+    setCoursePreparationStatus('dailyPreparationStatus',context?.error?coursePreparationText('error')+' '+coursePreparationText('retry'):
+        context?.prepared?'':coursePreparationText('loading'));
+}
+function beginDailyPreparation(profile) {
+    cancelDailyPreparation();
+    const context={date:profile.date,job:prepareCourseAsync(profile.referenceStage,profile),prepared:null,error:null};
+    dailyPreparation=context;
+    const current=()=>dailyPreparation===context && state==='daily' && dailySelectedDate===profile.date && !dailyRecords[profile.date];
+    context.job.promise.then(lease=>{
+        if(!current()){lease.cancel();return;}
+        context.prepared=lease;renderDailyStart();requestGameRender();
+        if(context.launchWhenReady && !settingsOpen)selectDailyDate(profile.date);
+    },error=>{
+        if(!current() || error.code==='COURSE_PREPARATION_CANCELLED')return;
+        context.error=error;renderDailyStart();requestGameRender();
+    });
 }
 function chooseDailyDate(key) {
     if(state!=='daily' || settingsOpen || !validDailyDate(key) || key.slice(0,7)!==dailyMonth || key>localToday())return false;
@@ -229,7 +256,7 @@ function showDailyCalendar({openFromMap=false}={}) {
     ui.restart.disabled=true;
     renderDailyCalendar();
     const pending=Object.keys(dailyRecords).sort().find(date=>dailyRecords[date].rewardStatus==='pending');
-    if(pending)startDailyClearReward(pending);
+    if(pending){cancelDailyPreparation();startDailyClearReward(pending);}
 }
 function reportDailyGenerationError(error) {
     showDailyCalendar();
@@ -238,12 +265,17 @@ function reportDailyGenerationError(error) {
     console.error(error);
     return false;
 }
-function launchDailyAttempt(profile,attempt) {
+function launchDailyAttempt(profile,attempt,prepared=null) {
     if(dailyRecords[profile.date]){showDailyCalendar();return false;}
     try {
+        if(coursePreparationInteractive()) {
+            if(state!=='daily' || dailySelectedDate!==profile.date || dailyPreparation?.prepared!==prepared)
+                throw coursePreparationError('COURSE_PREPARATION_STALE');
+            assertPreparedCourse(prepared,profile.referenceStage,profile);
+        }
         dailyRun={...profile,returnCourse:dailyReturnCourse,attempt};
         courseMode='existing';debugAttempt=false;
-        restartInput(profile.referenceStage);
+        launchPreparedCourseInput(prepared,profile.referenceStage,0,profile);
         dailyAttempts[profile.date]=attempt;saveDailyAttempts();
         dailyPlayAdState={plays:(dailyPlayAdState.plays+1)%2,adPaid:false};saveDailyPlayAdState();
         return true;
@@ -253,12 +285,20 @@ function selectDailyDate(key) {
     if(state!=='daily' || settingsOpen || !validDailyDate(key) || key>localToday() || dailyRecords[key])return false;
     try {
         const profile=dailyProfile(key);
+        const prepared=dailyPreparation?.date===key?dailyPreparation.prepared:null;
+        if(coursePreparationInteractive() && !prepared) {
+            if(dailySelectedDate!==key){dailySelectedDate=key;dailyMonth=key.slice(0,7);}
+            if(dailyPreparation?.date!==key || dailyPreparation.error)beginDailyPreparation(profile);
+            dailyPreparation.launchWhenReady=true;
+            renderDailyStart();return true;
+        }
+        if(prepared)assertPreparedCourse(prepared,profile.referenceStage,profile);
         const attempt=(dailyAttempts[key]||0)+1;
         if(dailyPlayAdState.plays===1 && !dailyPlayAdState.adPaid)
             return startDummyAd({onComplete:()=>{
                 dailyPlayAdState.adPaid=true;saveDailyPlayAdState();
-            },onReturn:()=>launchDailyAttempt(profile,attempt)});
-        return launchDailyAttempt(profile,attempt);
+            },onReturn:()=>launchDailyAttempt(profile,attempt,prepared)});
+        return launchDailyAttempt(profile,attempt,prepared);
     } catch(error) {return reportDailyGenerationError(error);}
 }
 function continueDailyResult(retry=false) {

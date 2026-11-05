@@ -2,6 +2,7 @@
 // Preserve 0.5.1 service/save boundaries while changing only climbing mechanics.
 const fs=require('node:fs'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const baseline={
+  "js/appearance.js": "ba9e13d0cb98d33fac172377b8a424417c69ed14cfe6e1cc5ff01360ce99ec2c",
   "js/firebase-client.js": "ec72992009810056c41edd4fa6a6273f0fd34e02b61f09d64d1266f3d223c7a6",
   "js/online.js": "5dbe4738c12d064f3e3c26d04107508487cf65263f2cf05d0151f6c09f26ee5b",
   "js/online-scores.js": "ed4c420f25370bdc555abdc56f1b283029e443ee5d411f3a1e6f575a8a49c57b",
@@ -25,11 +26,39 @@ const baseline={
   "firestore.rules": "afabe280a59efdd8b569a70107cb8d5739dc3a90462ff45ad98ba2f62fcb0260",
   "capacitor.config.json": "241eed1591ea9bbdd698d973ec9fe74802e186512f0c4f10b3de9377fb548863"
 };
-for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),hash,'0.5.1 boundary '+file);
+// Reviewed preparation-only exceptions. Original service baselines remain above.
+// Map: dialog readiness and guarded launch lease; Daily: readiness before the
+// existing ad/attempt transaction. Builders: current same-origin worker asset,
+// Character editor: cancel pending Daily work on navigation. Builders add
+// provenance and worker-src 'self'. No persistence/service adapter was changed.
+const preparationExceptions={
+  "js/appearance.js": "97d112b38c0ee3a1bc78abb78a932aadd2f6141b8b07ba719fbbc35b29cbdbb8",
+  "js/level-map.js": "f7609d5cca825e39ca9ba4e5eedc88b24448c410f16c5a4bee542f8e6daf3323",
+  "js/daily.js": "7585efffc8e284c26cc54c0d8b680d3f4a4e2ae84c84dc89294827ea00c2f291",
+  "scripts/build-ios-assets.cjs": "3654c6984d382d562f60c8819e915e80ae3551a587e0490c5c0401a377c8d8e2",
+  "scripts/build-pages-formal.cjs": "0d821629436ae809db7f7d44689167acc961f5d128d064a92cc746c3a4f184f0"
+};
+for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation '+file);
+const map=fs.readFileSync('js/level-map.js','utf8');
+assert.equal(crypto.createHash('sha256').update(map.slice(0,map.indexOf('let stageStartContext='))).digest('hex'),'bcd613a8c17fd53a4691055ee206bf2a8a043bbefad5cc325bd93589483eff40','Map records, rewards, inventory and navigation before the dialog remain byte-identical');
+const launch=`            restartInput(n,heartsUsed);
+            beginLifeAttempt();
+            ui.titleScreen.hidden=true;ui.levelMap.hidden=true;
+            heartItems-=heartsUsed;saveHeartItems();
+            return true;`;
+assert.equal(map.split(launch).length,2,'Native launch transformer retains its exact transaction anchor');
+assert(require('../scripts/native-bundle-source.cjs')('level-map.js',map).includes('ASCENT_NATIVE_RESUME.beginAttempt(heartsUsed,commit)'));
+const daily=fs.readFileSync('js/daily.js','utf8');
+assert(daily.includes(`        dailyAttempts[profile.date]=attempt;saveDailyAttempts();
+        dailyPlayAdState={plays:(dailyPlayAdState.plays+1)%2,adPaid:false};saveDailyPlayAdState();`),'Daily resource transaction unchanged');
+assert(daily.includes(`        if(dailyPlayAdState.plays===1 && !dailyPlayAdState.adPaid)
+            return startDummyAd({onComplete:()=>{
+                dailyPlayAdState.adPaid=true;saveDailyPlayAdState();
+            },onReturn:()=>launchDailyAttempt(profile,attempt,prepared)});`),'Daily ad timing unchanged after preparation');
 for(const file of ['js/finger-aim.js','js/finger-route.js','js/game.js','js/course.js','js/course-generator-core.js']){
  const s=fs.readFileSync(file,'utf8');assert(!/ASCENT_FINGER_TRIAL|prepareFrozenFingerTrialCourse|currentFingerTrialReport|memoryStorage|build-coupled-trial/.test(s),'No isolated-trial runtime '+file);
 }
 const html=fs.readFileSync('index.html','utf8');assert(html.includes('js/finger-aim.js'));assert(html.includes('js/finger-route.js'));assert(html.includes('js/firebase-client.js'));assert(!html.includes('coupled-trial'));
 const cfg=fs.readFileSync('js/config.js','utf8');assert(cfg.includes("const COURSE_VERSION = 'v4'"));assert(cfg.includes("const DAILY_COURSE_VERSION = 'v3'"));
 assert(!fs.readFileSync('.github/workflows/pages.yml','utf8').includes('coupled-production-integration'));
-console.log('PASS coupled production boundary: unchanged 0.5.1 online, saves, ads, audio, Rules and native adapters; no trial runtime; no deployment trigger or reset');
+console.log('PASS coupled production boundary: unchanged 0.5.1 online, saves, ads, audio, Rules and native adapters; reviewed geometry-preparation UI/build exceptions; no trial runtime; no deployment trigger or reset');

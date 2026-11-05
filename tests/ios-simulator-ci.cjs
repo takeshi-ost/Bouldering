@@ -18,6 +18,19 @@ assert.match(source,/for configuration in Debug Release/);
 assert.match(source,/-destination 'generic\/platform=iOS Simulator'/);
 assert.match(source,/CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=/);
 assert.match(source,/node tests\/ios-assets\.cjs --built/);
+// --built intentionally skips source-only recovery suites. The copy check must
+// run the complete default verifier first, before both Debug and Release checks.
+const fullAssetChecks=[...source.matchAll(/^\s+node tests\/ios-assets\.cjs\s*$/gm)];
+assert.equal(fullAssetChecks.length,1,'Run the full source/bundle suite once before compilation');
+const copyAssetCheck=source.match(/^\s+\.\/node_modules\/\.bin\/cap copy ios\s*$/m);
+const configurationLoop=source.match(/^\s+for configuration in Debug Release; do\n([\s\S]*?)^\s+done\s*$/m);
+assert(copyAssetCheck && configurationLoop,'Native copy and both build configurations are required');
+assert(copyAssetCheck.index<fullAssetChecks[0].index && fullAssetChecks[0].index<configurationLoop.index,
+    'Full source/bundle validation must follow native copy and precede both builds');
+assert.match(configurationLoop[1],/node tests\/ios-assets\.cjs --built "\$\{flags\[@\]\}"/,
+    'Every build configuration must verify its actual copied JavaScript');
+assert.match(configurationLoop[1],/if \[ "\$configuration" = Release \]; then flags\+=\(--release\); fi/,
+    'Release artifact verification must select the Release debug-mutability exception');
 assert.match(source,/git diff --exit-code/);
 assert.match(source,/node scripts\/prepare-ios-runtime-smoke\.cjs --apply/);
 assert.match(source,/git restore -- ios\/App\/App\/SceneDelegate\.swift/);
@@ -35,6 +48,24 @@ assert.match(script,/native-initial-language-selection/);
 assert.match(script,/native-initial-language-persistence/);
 assert.match(script,/setGameLanguage\(selectedLanguage\)/);
 assert.match(script,/tutorial-language-mutated-gameplay/);
+// Keep the real WebKit Worker flow in the instrumented smoke. These static
+// requirements do not substitute for executing it in the disposable simulator.
+for(const marker of [
+    'same-origin-capacitor-worker-bootstrap',
+    'cold-worker-pending-ui-timer-heartbeat',
+    'pending-worker-close-terminates-without-resource-spend',
+    'cancelled-worker-remains-inert-after-reopen',
+    'stage1-genuine-worker-result-ready',
+    'ready-start-spends-selected-items-and-begins-life-once',
+    'normal-stage1-coupled-action-through-dom-input',
+    'normal-stage1-return-settles-one-life-without-stale-worker'
+])assert(script.includes("'"+marker+"'"),'Missing real WebKit worker smoke check: '+marker);
+assert.match(script,/new NativeWorker\(url,options\)/,'Observe the actual platform Worker instead of a synthetic implementation');
+assert.match(script,/clearAdoptedCourseCache\(\);/);
+assert.match(script,/adoptedCourseCache\.size===0&&stagePreviewCache\.size===0/,'Cold worker smoke must clear both geometry and preview caches');
+assert.match(script,/responses\[0\]\.snapshot===readyJob\.snapshot/,'Ready geometry must come from the real worker response');
+assert.match(script,/deadline=started\+90000/);
+assert.match(script,/setTimeout\(\(\)=>finish\(false,'overall-timeout'\),90000\)/,'Keep the existing smoke timeout');
 const result=instrument(native,harness,script);
 assert.equal(result.split('installAscentRuntimeSmoke()').length,3);
 assert(result.includes(Buffer.from(script).toString('base64')));

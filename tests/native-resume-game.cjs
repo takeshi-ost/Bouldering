@@ -4,6 +4,7 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const nativeSource=require('../scripts/native-bundle-source.cjs');
+const serviceInput=require('./helpers/coupled-service-input.cjs');
 const {createNativeResumeStore,RESUME_KEY,ITEMS_KEY,LIVES_KEY}=require('../scripts/native-resume-store.cjs');
 const {installNativeResume}=require('../scripts/native-resume-adapter.cjs');
 const {createNativeAutoSync,SYNC_KEY}=require('../scripts/native-auto-sync.cjs');
@@ -60,9 +61,14 @@ function boot(data=initial(),{token=null,fault=null,now=wallTime}={}) {
         if(file==='js/main.js')vm.runInContext(runtime,context,{filename:'native-resume-runtime.js'});
         vm.runInContext(nativeSource(path.basename(file),fs.readFileSync(path.join(root,file),'utf8')),context,{filename:file});
     }
-    // Deterministic early geometry for flow checks, matching existing lifecycle
-    // fixtures. Course-generator correctness is covered by its own tests.
-    run('CourseProgressionConfig.stageSegments=[{fromStage:1,toStage:100,fromScore:1,toScore:1}];CourseProgressionConfig.daily.minScore=CourseProgressionConfig.daily.maxScore=1;');
+    // Explicit short/straight/no-feature recipe fixture for recovery flow checks.
+    // Score 1 alone still samples middle/pair courses (e.g. Stage 11, seed 21).
+    // Every fresh VM runs the real generator; broad geometry/distribution and
+    // all-stage reachability belong to the independent population gates.
+    run(`CourseProgressionConfig.stageSegments=[{fromStage:1,toStage:100,fromScore:1,toScore:1}];
+        CourseProgressionConfig.daily.minScore=CourseProgressionConfig.daily.maxScore=1;
+        CourseDistributionConfig.tables.length.rows=[{score:0,weights:[1,0,0]},{score:100,weights:[1,0,0]}];`);
+    run(serviceInput);
     return {data,storage,operations,messages,node,run,setFault:f=>{fail=f;},clearFault:()=>{fail=null;},reloads:()=>reloads,now:()=>wallNow,
         advance(ms){clock+=ms;wallNow+=ms;},emitWindow(name){for(const fn of windowEvents[name]||[])fn({});},
         emitDocument(name){for(const fn of documentEvents[name]||[])fn({});}};
@@ -105,7 +111,8 @@ function completeAd(b) {b.advance(10000);b.run('advanceDummyAd(performance.now()
 // Actual start spends selected chalk, writes an active receipt, then a long
 // background boot refunds once before classic eager life/chalk saves execute.
 {
-    const b=boot();normal(b);const before=saved(b),attempt=receipt(b).attempt;
+    const b=boot();normal(b);b.run('servicePlayStep(1);assert.equal(state,"playing");');
+    const before=saved(b),attempt=receipt(b).attempt;
     assert.equal(attempt.spent,3);assert.equal(attempt.itemsBefore,20);assert.equal(attempt.chargeLife,true);
     b.advance(300000);const resumed=boot(b.data,{token:'long-a'});
     assert.equal(resumed.run('state'),'choosing');assert.equal(resumed.run('heartItems'),20);
@@ -232,6 +239,50 @@ for(const mode of ['before','after']) {
     assert.equal(b.run('level'),1);
     assert.equal(receipt(b).attempt.id,firstId);assert.equal(b.run('ASCENT_NATIVE_RESUME.retry()'),true);assert.equal(b.run('heartItems'),17);
 }
+// A native begin-write retry retains its prepared geometry lease. If that
+// lease becomes stale, cancelled or superseded by navigation while blocked, its deferred continuation
+// must reject before reset/debit and durably clean up the unused receipt.
+// One real preview supplies immutable geometry for all six fault scenarios.
+{
+    const b=boot();
+    b.run(`showLevelMap();cancelMapReveal();mapPreparing=false;mapTransition=null;
+        stagePreview(1);
+        globalThis.nativeResumePreparedFixture=(()=>{
+            const request=coursePreparationIdentity(1),signature=refreshAdoptedCourseCacheDependencies();
+            const snapshot=adoptedCourseCache.get(adoptedCourseCacheKey(request,signature));
+            assert(snapshot && Object.isFrozen(snapshot));
+            return {request,signature,snapshot};
+        })();`);
+    const staminaRules=b.run('COURSE_STAMINA_CONFIG.rules');
+    for(const invalidation of ['configuration','cancelled','navigation'])for(const blockedCleanup of [false,true]) {
+        b.run(`cancelMapReveal();mapPreparing=false;mapTransition=null;
+            globalThis.nativeResumePreparedLease={...globalThis.nativeResumePreparedFixture,cancelled:false};
+            assertPreparedCourse(globalThis.nativeResumePreparedLease,1);`);
+        const resources=snapshot(b),before=saved(b),items=b.data.get(ITEMS_KEY),lives=b.data.get(LIVES_KEY);
+        oneShotReceiptFailure(b);
+        assert.equal(b.run('selectStage(1,false,3,false,globalThis.nativeResumePreparedLease)'),false);
+        assert.equal(b.run('ASCENT_NATIVE_RESUME.ready'),false);assert.equal(snapshot(b),resources);
+        if(invalidation==='configuration')b.run('COURSE_STAMINA_CONFIG.rules="0:4";');
+        else if(invalidation==='cancelled')b.run('globalThis.nativeResumePreparedLease.cancelled=true;');
+        else b.run('hideStageStart();'); // Invalidate navigation even if the visible map is unchanged.
+        if(blockedCleanup)oneShotCleanupFailure(b);else b.clearFault();
+        assert.equal(b.run('ASCENT_NATIVE_RESUME.retry()'),true);
+        assert.equal(snapshot(b),resources,'Invalid deferred lease cannot reset the game or spend resources');
+        assert.equal(b.data.get(ITEMS_KEY),items);assert.equal(b.data.get(LIVES_KEY),lives);assert.deepEqual(saved(b),before);
+        assert.equal(receipt(b).attempt,null);
+        if(blockedCleanup) {
+            assert.equal(b.run('ASCENT_NATIVE_RESUME.ready'),false);assert(receipt(b).ended);
+            b.clearFault();assert.equal(b.run('ASCENT_NATIVE_RESUME.retry()'),true);
+        }
+        assert.equal(b.run('ASCENT_NATIVE_RESUME.ready'),true);assert.equal(b.run('state'),'map');
+        assert.equal(receipt(b).attempt,null);assert.equal(receipt(b).ended,null);
+        assert.equal(snapshot(b),resources);assert.equal(b.data.get(ITEMS_KEY),items);assert.equal(b.data.get(LIVES_KEY),lives);
+        assert.deepEqual(saved(b),before);
+        const settled=JSON.stringify([...b.data]);assert.equal(b.run('ASCENT_NATIVE_RESUME.retry()'),true);
+        assert.equal(JSON.stringify([...b.data]),settled,'Completed stale-lease cleanup cannot repeat');
+        b.run('COURSE_STAMINA_CONFIG.rules='+JSON.stringify(staminaRules)+';');
+    }
+}
 // End write failure freezes movement/timing without settling loss or clear.
 // Retry completes exactly that outcome; a second retry cannot duplicate it.
 for(const won of [true,false])for(const mode of ['before','after','readback']) {
@@ -241,7 +292,14 @@ for(const won of [true,false])for(const mode of ['before','after','readback']) {
     b.run(`finish(${!won});`); // A queued opposite result cannot replace the first pending outcome.
     assert.equal(b.run('lives.count'),lifeBefore);assert.equal(b.run('lives.inProgress'),true);assert.equal(b.run('heartItems'),17);assert.deepEqual(saved(b),before);
     assert.equal(b.run('runStartedAt'),null);const elapsed=b.run('runElapsedMs');
-    b.run('down({clientX:body.x,clientY:body.y-camera});move({clientX:300,clientY:0});release();draw(performance.now());');
+    const frozen=b.run('JSON.stringify({body,grips,stamina,moveCount,camera,drag,runStartedAt,runElapsedMs})');
+    // The same explicit route action that can move an active run must be fenced
+    // while recovery is blocked, including preview, commit and render state.
+    b.run(`assert(validFingerAction(route[1].action));assert.equal(route[1].action.bodyMotion,COUPLED_BODY_MODEL);
+        down({clientX:123,clientY:330});assert.equal(drag,null);
+        for(const p of route[1].action.points)move({clientX:123+p.dx,clientY:330+p.dy});
+        release();draw(performance.now());`);
+    assert.equal(b.run('JSON.stringify({body,grips,stamina,moveCount,camera,drag,runStartedAt,runElapsedMs})'),frozen);
     assert.equal(b.run('moveCount'),moves);b.advance(5000);b.clearFault();assert.equal(b.run('ASCENT_NATIVE_RESUME.retry()'),true);
     assert.equal(b.run('state'),won?'won':'lost');assert.equal(b.run('lives.count'),lifeBefore-(won?0:1));assert.equal(b.run('runElapsedMs'),elapsed);
     assert.equal(receipt(b).attempt,null);const after=saved(b);b.run('ASCENT_NATIVE_RESUME.retry();');assert.deepEqual(saved(b),after);
@@ -318,4 +376,4 @@ for(const action of ['showLevelMap()','showTitleScreen()','returnFromStage()']) 
     const recovered=boot(blocked.data,{token:'boot-failure'});assert.equal(recovered.run('heartItems'),20);assert.equal(recovered.run('lives.count'),3);
     assert.equal(recovered.run('ASCENT_NATIVE_RESUME.ready'),true);assert.equal(recovered.run('state'),'choosing');
 }
-console.log('PASS native resume game: actual native-transformed classic boot, chalk/life long recovery, duplicate/new-attempt and ordinary-crash semantics, retained clear/failure/rewards/queues, normal/life/Daily ads and debt, Daily/tutorial/debug isolation, begin/end/cleanup storage fences and cross-reload recovery, exact retry without replaying outcomes, explicit debug-ending ambiguity, gameplay/timer pause, blocked preboot replay');
+console.log('PASS native resume game: actual native-transformed classic boot with explicit short recipe fixture and coupled finger action, chalk/life long recovery, duplicate/new-attempt and ordinary-crash semantics, retained clear/failure/rewards/queues, normal/life/Daily ads and debt, Daily/tutorial/debug isolation, begin/end/cleanup storage fences and cross-reload recovery, stale/cancelled prepared-lease cleanup without debit, exact retry without replaying outcomes, explicit debug-ending ambiguity, gameplay/timer pause, blocked preboot replay');

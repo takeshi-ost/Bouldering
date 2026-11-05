@@ -150,6 +150,7 @@ let editorMapReturn=null;
 function showCharacterEditor() {
     if(!['map','daily'].includes(state) || mapPreparing || stageStartContext || mapTransition)return false;
     editorMapReturn=state==='daily'?{daily:true}:{page:mapPage,selected:mapSelected,scrollTop:ui.mapScroll.scrollTop};
+    if(typeof cancelDailyPreparation==='function')cancelDailyPreparation();
     cancelMapReveal();
     closeEditorPalette();
     hideSettings();ui.dailyCalendar.hidden=true;ui.levelMap.hidden=true;ui.wall.classList.toggle('map-open',false);

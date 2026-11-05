@@ -313,14 +313,16 @@ function advanceLevelMap(now) {
         openStageStart(mapSelected,false,null,500);
     }
 }
-let stageStartContext=null,stageStartTimer=null;
+let stageStartContext=null,stageStartTimer=null,stagePreparationNavigation=0;
 function renderStageHeartItems() {
     const context=stageStartContext;if(!context)return;
     ui.stageHeartValue.textContent=String(context.hearts).padStart(2,'0');
     ui.stageHeartCount.setAttribute('aria-label',gameText("level-map.renderStageHeartItems.2", {value0: context.hearts}));
     ui.stageHeartCount.disabled=context.hearts===heartItems;
     ui.stageHeartReset.disabled=context.hearts===0;
-    ui.stageStartStamina.textContent=previewStaminaText(context.n,context.mode).replace('❤️','');
+    ui.stageStartStamina.textContent=coursePreparationInteractive()
+        ? context.prepared?String(context.prepared.snapshot.activeCourseGeneration.initialStamina).padStart(2,'0'):'—'
+        : previewStaminaText(context.n,context.mode).replace('❤️','');
     ui.stageStartStamina.setAttribute('aria-label',gameText("level-map.renderStageHeartItems", {value0: ui.stageStartStamina.textContent}));
 }
 function setStageHeartItems(value) {
@@ -338,7 +340,12 @@ function canSelectStage(n,debug=false,retry=false) {
         Number.isSafeInteger(n) && n>=1 && n<Number.MAX_SAFE_INTEGER &&
         (debug?debugMode:n<=unlockedLevel());
 }
-function hideStageStart() {
+function hideStageStart(keepPrepared=false) {
+    if(!keepPrepared) {
+        stagePreparationNavigation++;
+        stageStartContext?.preparation?.cancel();
+        cancelDailyPreparation();
+    }
     if(stageStartTimer!==null)clearTimeout(stageStartTimer);
     stageStartTimer=null;
     stageStartContext?.button?.classList.toggle('is-tapped',false);
@@ -360,7 +367,7 @@ function openStageStart(n,debug=false,button=null,delay=0,retry=false) {
     }
     if(debug)ui.debugStage.blur?.();
     if(retry)hideResultModal();
-    const context={n,debug,mode:courseMode,button,hearts:0,retry};
+    const context={n,debug,mode:courseMode,button,hearts:0,retry,preparation:null,prepared:null,error:null};
     stageStartContext=context;
     const show=()=>{
         stageStartTimer=null;
@@ -373,9 +380,11 @@ function openStageStart(n,debug=false,button=null,delay=0,retry=false) {
         refreshLives();
         ui.stageStartDifficulty.textContent=courseTypeLabel(courseTypeForStage(n));
         ui.stageStartLength.textContent=courseLengthLabel(stageLengthInfo(n).category);
-        ui.stageStartButton.disabled=false;
+        ui.stageStartButton.disabled=coursePreparationInteractive();
+        setCoursePreparationStatus('stagePreparationStatus','');
         ui.stageStartDialog.showModal?.();
         requestGameRender();
+        if(coursePreparationInteractive())prepareStageStart(context);
     };
     if(button || delay>0) {
         button?.classList.toggle('is-tapped',true);
@@ -383,20 +392,52 @@ function openStageStart(n,debug=false,button=null,delay=0,retry=false) {
     } else show();
     return true;
 }
+function prepareStageStart(context) {
+    context.preparation?.cancel();context.prepared=null;context.error=null;
+    ui.stageStartButton.disabled=true;
+    setCoursePreparationStatus('stagePreparationStatus',coursePreparationText('loading'));
+    const job=prepareCourseAsync(context.n);context.preparation=job;
+    const current=()=>stageStartContext===context && context.preparation===job &&
+        state===(context.retry?'lost':'map') && courseMode===context.mode;
+    job.promise.then(lease=>{
+        if(!current()){lease.cancel();return;}
+        context.prepared=lease;renderStageHeartItems();ui.stageStartButton.disabled=false;
+        setCoursePreparationStatus('stagePreparationStatus','');requestGameRender();
+    },error=>{
+        if(!current() || error.code==='COURSE_PREPARATION_CANCELLED')return;
+        context.error=error;ui.stageStartButton.disabled=false;
+        setCoursePreparationStatus('stagePreparationStatus',coursePreparationText('error')+' '+coursePreparationText('retry'));
+        requestGameRender();
+    });
+}
 ui.stageStartButton.onclick=()=>{
     const context=stageStartContext;
     if(!context || !ui.stageStartDialog.open || ui.stageStartButton.disabled)return;
+    if(coursePreparationInteractive() && !context.prepared){prepareStageStart(context);return;}
     playSound('launch');
     ui.stageStartButton.disabled=true;
-    hideStageStart();
-    if(context.mode===courseMode)selectStage(context.n,context.debug,context.hearts,context.retry);
+    hideStageStart(true);
+    if(context.mode===courseMode)selectStage(context.n,context.debug,context.hearts,context.retry,context.prepared);
 };
-function selectStage(n,debug=false,heartsUsed=0,retry=false) {
+function selectStage(n,debug=false,heartsUsed=0,retry=false,prepared=null) {
     if(!canSelectStage(n,debug,retry) || !Number.isSafeInteger(heartsUsed) || heartsUsed<0 || heartsUsed>heartItems)return false;
+    if(coursePreparationInteractive() && !prepared)return openStageStart(n,debug,null,0,retry);
+    // Keep the exact launch transaction below for the native transformer. Its
+    // deferred callback also passes this guard before reset or any resources.
+    const navigation=stagePreparationNavigation;
+    const restartInput=(stage,bonus)=>{
+        if(prepared && (navigation!==stagePreparationNavigation || !canSelectStage(n,debug,retry)))throw coursePreparationError('COURSE_PREPARATION_STALE');
+        return launchPreparedCourseInput(prepared,stage,bonus);
+    };
     // Dismiss the numeric keyboard before generating and opening the stage.
     if(debug)ui.debugStage.blur?.();
     const launch=()=>{
         if(heartsUsed>heartItems)return false;
+        if(prepared) {
+            try {assertPreparedCourse(prepared,n);}catch(error){
+                ui.mapError.textContent=coursePreparationText('error');ui.mapError.hidden=false;return false;
+            }
+        }
         cancelMapReveal();
         try {
             debugAttempt=debug;

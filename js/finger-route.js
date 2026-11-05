@@ -106,7 +106,7 @@ function fingerRouteProgress(guide,p) {
     guide.forEach((q,i)=>{const d=distance(p,q);if(d<best){best=d;index=i;}});
     return index*100-best;
 }
-function fingerPartialSearch(guide,{start=null,stance=null,limit=18000,maxMoves=45,stop,forwardOnly=false,accept=()=>true,beamWidth=12,needsTraverse=false}={}) {
+function fingerPartialSearchBounded(guide,{start=null,stance=null,limit=18000,maxMoves=45,stop,forwardOnly=false,accept=()=>true,beamWidth=12,needsTraverse=false,greedy=false}={}) {
     const origin=start||guide[0],first=stance||fingerRouteInitial();
     let transitions=0,expanded=0,best=null;
     const report=(path,found)=>({path,transitions,expanded,limit,maxMoves,beamWidth,
@@ -118,7 +118,12 @@ function fingerPartialSearch(guide,{start=null,stance=null,limit=18000,maxMoves=
         const next=[];
         for(const node of beam) {
             expanded++;
-            for(const action of fingerRouteCandidates(node.p,guide,{wide:true})) {
+            let advances=0;
+            const candidates=fingerRouteCandidates(node.p,guide,{wide:true});
+            const ordered=greedy?candidates.map(action=>({action,score:fingerRouteProgress(guide,{
+                x:node.p.x+action.points.at(-1).dx,y:node.p.y+action.points.at(-1).dy})}))
+                .sort((a,b)=>b.score-a.score).map(entry=>entry.action):candidates;
+            for(const action of ordered) {
                 if(transitions>=limit)break;transitions++;
                 const move=fingerGestureReplay(node.p,node.stance,action);
                 if(!move?.valid)continue;
@@ -134,24 +139,38 @@ function fingerPartialSearch(guide,{start=null,stance=null,limit=18000,maxMoves=
                 if(traversed&&stop(p,move.stance,path))return report(path,true);
                 // Winning ends the game; never continue moving beyond it.
                 if(!move.won)next.push(entry);
+                if(greedy&&entry.score>node.score+10&&++advances>=3)break;
             }
         }
         next.sort((a,b)=>b.score-a.score);beam=next.slice(0,beamWidth);if(!beam.length)break;
     }
     return report(best?.path||null,false);
 }
+// Fast searches only change exploration order. Every edge still passes the same
+// physics, reach, one/ten-sample, acceptance and stop checks. A failed prepass
+// always falls back to the original full beam and its original bounds.
+function fingerPartialSearch(guide,options={}) {
+    if(options.beamWidth===1)return fingerPartialSearchBounded(guide,{...options,greedy:false});
+    const maxMoves=options.maxMoves??45,phases=[];
+    const quick=()=>fingerPartialSearchBounded(guide,{...options,greedy:false,beamWidth:1,
+        limit:Math.min(options.limit??18000,Math.max(3000,maxMoves*150))});
+    const greedy=()=>fingerPartialSearchBounded(guide,{...options,greedy:true,beamWidth:3,
+        limit:Math.min(options.limit??18000,2400)});
+    const report=result=>({...result,
+        prepasses:phases.map(({name,result:r})=>({name,found:r.found,transitions:r.transitions})),
+        totalTransitions:phases.reduce((n,p)=>n+p.result.transitions,0)});
+    for(const [name,search] of (options.preferGreedy?[['greedy',greedy],['narrow',quick]]:[['narrow',quick],['greedy',greedy]])) {
+        const result=search();phases.push({name,result});if(result.found)return report(result);
+    }
+    const result=fingerPartialSearchBounded(guide,{...options,greedy:false});phases.push({name:'full',result});return report(result);
+}
 function fingerSolveRoute(guide,maxMoves=40) {
     if(holds.some(h=>h.type==='hazard'))return fingerSolveCostRoute(guide,maxMoves);
     const goal=holds.find(h=>h.type==='goal');if(!goal)return null;
     const targets=[...guide,{x:goal.x,y:goal.y+70}],options={maxMoves,
         needsTraverse:requiresLegacyTraverse(),stop:(p,stance)=>bothHandsOnGoal(stance)};
-    // A deterministic narrow search often finds a complete legal witness without
-    // expanding eleven alternative stances per depth. On failure retain the full
-    // original search and its bounds. Every edge uses identical live validation.
-    const quick=fingerPartialSearch(targets,{...options,beamWidth:1,limit:Math.max(3000,maxMoves*150)});
-    const result=quick.found?quick:fingerPartialSearch(targets,{...options,limit:Math.max(18000,maxMoves*1200)});
-    densityStats.fingerSearch={...result,path:undefined,quickTransitions:quick.transitions,
-        quickFound:quick.found,totalTransitions:quick.transitions+(result===quick?0:result.transitions)};
+    const result=fingerPartialSearch(targets,{...options,preferGreedy:true,limit:Math.max(18000,maxMoves*1200)});
+    densityStats.fingerSearch={...result,path:undefined};
     return result.found?result.path:null;
 }
 function fingerSolveCostRoute(guide,maxMoves=40,config=ROUTE_COST_SEARCH_CONFIG,options={}) {

@@ -3,9 +3,8 @@
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const nativeSource=require('../scripts/native-bundle-source.cjs');
-const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>{
- const s=fs.readFileSync(path.join(root,m[1]),'utf8');return process.env.ASCENT_NATIVE_TEST==='1'?nativeSource(path.basename(m[1]),s):s;
-}).join('\n');
+const rawEntries=Object.freeze([...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>Object.freeze({file:m[1],source:fs.readFileSync(path.join(root,m[1]),'utf8')})));
+const source=rawEntries.map(({file,source})=>process.env.ASCENT_NATIVE_TEST==='1'?nativeSource(path.basename(file),source):source).join('\n');
 const env=`
 let clock=10000;const performance={now:()=>clock};let testRect={left:0,top:0,width:400,height:700};
 const elements={};const document={getElementById(id){return elements[id]||={style:{setProperty(){}},classList:{toggle(){}},focus(){},setAttribute(){},removeAttribute(){},events:{},addEventListener(name,fn){this.events[name]=fn;},showModal(){this.open=true},close(){this.open=false},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){}}})},getBoundingClientRect(){return testRect}}}};
@@ -61,4 +60,7 @@ const reconstructed={HEIGHT:2100,origin:{x:297.7,y:340.6},gripIds:[43,45,47,48],
 
 assert.equal(globalThis.ASCENT_FINGER_TRIAL,undefined);assert(fingerAimEnabled());assert(coupledBodyEnabled());
 `+script)(require('node:assert/strict'),failures,{},emitResult);};
-module.exports.productionDigest=require('node:crypto').createHash('sha256').update([...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n')).digest('hex');
+module.exports.rawEntries=rawEntries;
+module.exports.productionDigest=require('node:crypto').createHash('sha256').update(rawEntries.map(e=>e.source).join('\n')).digest('hex');
+module.exports.sourceManifest=rawEntries.map(({file,source})=>({file,sha256:require('node:crypto').createHash('sha256').update(source).digest('hex')}));
+module.exports.loadedSource=source;

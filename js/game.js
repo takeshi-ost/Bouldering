@@ -1,8 +1,9 @@
 "use strict";
 // DOM、ゲーム状態、移動・吸着・勝敗の処理。
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const ui = Object.fromEntries([
+const COURSE_WORKER_MODE = globalThis.ASCENT_COURSE_WORKER === true;
+const canvas = COURSE_WORKER_MODE ? null : document.getElementById("game");
+const ctx = COURSE_WORKER_MODE ? null : canvas.getContext("2d");
+const ui = COURSE_WORKER_MODE ? null : Object.fromEntries([
     "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapSettingsDebug", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
     "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugCourseType", "debugCourseLength", "debugGenerate", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
@@ -35,7 +36,7 @@ function readFeatureHelpSeen() {
         return {wide:saved?.wide===true,heart:saved?.heart===true,hazard:saved?.hazard===true};
     } catch(_) {return {wide:false,heart:false,hazard:false};}
 }
-let featureHelpSeen=readFeatureHelpSeen();
+let featureHelpSeen=COURSE_WORKER_MODE ? {wide:false,heart:false,hazard:false} : readFeatureHelpSeen();
 let featureHelpOpen=false;
 let pendingFeatureHelp=[];
 let featureHelpImageTicket=0,featureHelpImageLoading=false;
@@ -646,6 +647,7 @@ function prepareCurrentStage() {
 }
 const stagePreviewCache=new Map();
 function stagePreview(n,mode=courseMode,profile=null) {
+    if(typeof refreshAdoptedCourseCacheDependencies === 'function')refreshAdoptedCourseCacheDependencies();
     mode='existing';
     const selectedTypeId=profile?.typeId ?? courseTypeForStage(n);
     const selectedDifficulty=courseTypeRule(selectedTypeId).generationDifficulty;
