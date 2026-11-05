@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const root=path.join(__dirname,'..');
 // Real physics/input functions; only rendering/audio/result side effects stubbed.
-const files=['config','course-progression-config','course-distribution-config','course-distribution','course-progression','difficulty-config','utils','difficulty','stage','game','route','course','hazards','course-stamina-settings','course-generator-core','course-adoption','tutorial-course'];
+const files=['config','course-progression-config','course-distribution-config','course-distribution','course-progression','difficulty-config','utils','difficulty','stage','finger-aim','finger-route','game','route','course','hazards','course-stamina-settings','course-generator-core','course-adoption','tutorial-course'];
 const source=files.map(file=>fs.readFileSync(path.join(root,'js',file+'.js'),'utf8')).join('\n');
 function engine(body){return new Function('assert',`
  const globalThis={},gameText=x=>x,performance={now:()=>2000};
@@ -25,8 +25,8 @@ test('dedicated deterministic geometry: alternating ordinary holds, START-only w
  assert.equal(holds.filter(h=>h.wide).length,1);assert.equal(holds.find(h=>h.wide).type,'start');
  assert.equal(holds.filter(h=>h.type==='goal').length,1);assert(!holds.find(h=>h.type==='goal').wide);
  assert.equal(holds.filter(h=>h.type==='hazard').length,0);assert.deepEqual(hearts,[]);
- assert.equal(report.referenceMoves,8);assert.equal(report.normalStamina,stageStamina(8));assert.equal(report.initialStamina,16);
- assert.deepEqual(report.resources,{valid:true,moves:8,cost:8,penalties:0,pickupMask:0,pickups:0,required:8,budget:16,remaining:8});
+ assert.equal(report.referenceMoves,6);assert.equal(report.normalStamina,stageStamina(6));assert.equal(report.initialStamina,14);
+ assert.deepEqual(report.resources,{valid:true,moves:6,cost:6,penalties:0,pickupMask:0,pickups:0,required:6,budget:14,remaining:8});
  assert.equal(currentCourseInitialStamina(),report.referenceMoves+8);assert.equal(generatedCourse.holds,holds);
  assert.equal(generatedCourse.level,0);assert.equal(generatedCourse.mode,'tutorial');
  const snapshot=JSON.stringify({holds,route,report});assert.equal(JSON.stringify({holds,route,report:prepareTutorialCourse()}),snapshot);
@@ -45,15 +45,18 @@ test('yellow goal remains functionally distinct: only both hands sharing it win'
 for(const subdivisions of [1,10])test('actual down/move/release wins on alternating ordinary holds ('+subdivisions+' samples/drag)',()=>engine(`
  level=0;const report=prepareTutorialCourse();body={...route[0]};committed={...body};grips=[...initialGrips];startGrips=[...grips];
  stamina=report.initialStamina;moveCount=0;state='playing';settingsOpen=false;featureHelpOpen=false;cameraIntro=null;camera=0;
- const event=p=>({clientX:p.x,clientY:p.y-camera});
+ assert(fingerAimEnabled());assert(coupledBodyEnabled());assert.equal(report.bodyMotion,COUPLED_BODY_MODEL);
+ const event=p=>({clientX:200+p.dx,clientY:500+p.dy});
  for(let i=1;i<route.length;i++){
-  const from={...body},to=route[i];down(event(from));assert(drag);
-  for(let step=1;step<=${subdivisions};step++)move(event({x:from.x+(to.x-from.x)*step/${subdivisions},y:from.y+(to.y-from.y)*step/${subdivisions}}));
+  const to=route[i];assert(validFingerAction(to.action));down(event({dx:0,dy:0}));assert(drag);
+  let from={dx:0,dy:0};for(const point of to.action.points){
+   for(let step=1;step<=${subdivisions};step++)move(event({dx:from.dx+(point.dx-from.dx)*step/${subdivisions},dy:from.dy+(point.dy-from.dy)*step/${subdivisions}}));from=point;
+  }
   release();assert.deepEqual(grips.map(h=>h.id),to.grips,'real release agrees with reference contacts');
   assert.equal(stamina,report.initialStamina-i);assert.equal(moveCount,i);
   if(i<route.length-1)assert.equal(state,'playing','one hand on the goal is not a win');
  }
- assert.equal(state,'won');assert.equal(moveCount,8);assert.equal(stamina,8);assert(bothHandsOnGoal());
+ assert.equal(state,'won');assert.equal(moveCount,6);assert.equal(stamina,8);assert(bothHandsOnGoal());
 `));
 
 test('all installed state restores on route/resource failures; changing anatomy invalidates authored route',()=>engine(`

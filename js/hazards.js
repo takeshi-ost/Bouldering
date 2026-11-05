@@ -1,6 +1,7 @@
 "use strict";
 // Find a real, optional move that grabs a hazard. The ordinary route never uses it.
 function findHazardMove(hold,path=route) {
+    if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerFindHazardMove(hold,path);
     const saved={committed,startGrips};
     const byId=new Map(holds.map(h=>[h.id,h]));
     try {

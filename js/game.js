@@ -383,6 +383,7 @@ function selectAnchor(dx, dy) {
     }
     if (goalPair) return [...goalPair];
 
+    const reachTieTolerance = typeof fingerAimEnabled === 'function' && fingerAimEnabled() ? 1e-7 : 0;
     let bestPair = supportPairs[0];
     let bestMovingCount = -1;
     let bestReach = -1;
@@ -403,10 +404,12 @@ function selectAnchor(dx, dy) {
         //
         // If the number of useful moving limbs is the same, preserve
         // the original philosophy and prefer the pair that lets Body
-        // travel farther in the requested direction.
+        // travel farther in the requested direction. Numerically tied reaches
+        // retain supportPairs order: screen-space round trips can perturb a
+        // mathematically equal ray by ~1e-14 and must not change the lock.
         if (
             movingCount > bestMovingCount ||
-            (movingCount === bestMovingCount && reach > bestReach)
+            (movingCount === bestMovingCount && reach > bestReach + reachTieTolerance)
         ) {
             bestPair = pair;
             bestMovingCount = movingCount;
@@ -422,7 +425,7 @@ function canShareHold(hold, a, b) {
         (hold.wide === true && Math.floor(a / 2) === Math.floor(b / 2)));
 }
 
-function attachMoving(p, anchor) {
+function attachMoving(p, anchor, gestureAim = null) {
     const result = Array(4).fill(null);
     const fixed = anchor;
 
@@ -433,7 +436,7 @@ function attachMoving(p, anchor) {
     const moving = [0, 1, 2, 3].filter(i => !fixed.includes(i));
 
     const candidates = moving.map(i => {
-        const target = {
+        const target = gestureAim ? fingerAimTarget(i, gestureAim) : {
             x: p.x + limbs[i].x,
             y: p.y + limbs[i].y
         };
@@ -646,7 +649,7 @@ function stagePreview(n,mode=courseMode,profile=null) {
     mode='existing';
     const selectedTypeId=profile?.typeId ?? courseTypeForStage(n);
     const selectedDifficulty=courseTypeRule(selectedTypeId).generationDifficulty;
-    const key=JSON.stringify([n,mode,profile?.date,selectedTypeId,COURSE_VERSION,CourseProgressionConfig,CourseDistributionConfig,COURSE_STAMINA_CONFIG,COURSE_RETRY_CONFIG,STAGE_CONFIG,COURSE_TYPES,DIFFICULTY_CONFIG,DIFFICULTY_RULES,HOLD_CONFIG,HAZARD_CONFIG,ROUTE_OPTIMIZATION_CONFIG,ROUTE_COST_SEARCH_CONFIG,COURSE_GENERATION_CONFIG]);
+    const key=JSON.stringify([typeof fingerInputIdentity === 'function' ? fingerInputIdentity() : ['baseline'],n,mode,profile?.date,selectedTypeId,COURSE_VERSION,CourseProgressionConfig,CourseDistributionConfig,COURSE_STAMINA_CONFIG,COURSE_RETRY_CONFIG,STAGE_CONFIG,COURSE_TYPES,DIFFICULTY_CONFIG,DIFFICULTY_RULES,HOLD_CONFIG,HAZARD_CONFIG,ROUTE_OPTIMIZATION_CONFIG,ROUTE_COST_SEARCH_CONFIG,COURSE_GENERATION_CONFIG]);
     if(stagePreviewCache.has(key))return stagePreviewCache.get(key);
     const saved={level,difficulty,courseTypeId,courseMode,dailyRun,debugCourseTrial,holds,route,hearts,HEIGHT,initialGrips,densityStats,stageGenerator,committed,startGrips,moveCount,generatedCourse,activeCourseGeneration,labSkeletonReport,labHeartsCache,labStaminaCache};
     const savedTutorial=typeof tutorialRun==='undefined'?null:tutorialRun;
@@ -786,6 +789,7 @@ function down(e) {
     inspecting = false;
 
     // Read the world point before camera recentering changes its screen mapping.
+    const inputCamera = camera;
     const p = point(e);
 
     camera = clamp(
@@ -797,8 +801,8 @@ function down(e) {
     if (
         p.x < 0 ||
         p.x > W ||
-        p.y < camera ||
-        p.y > camera + H
+        p.y < (typeof fingerAimEnabled === 'function' && fingerAimEnabled() ? inputCamera : camera) ||
+        p.y > (typeof fingerAimEnabled === 'function' && fingerAimEnabled() ? inputCamera : camera) + H
     )
         return;
 
@@ -815,7 +819,9 @@ function down(e) {
     drag = {
         dx: body.x - p.x,
         dy: body.y - p.y,
-        anchor: null
+        anchor: null,
+        ...(typeof fingerAimEnabled === 'function' && fingerAimEnabled() ? { fingerOrigin: {x:e.clientX,y:e.clientY,width:canvas.getBoundingClientRect().width},
+            fingerAction: fingerAction([]), fingerTrace: [{...body}] } : {})
     };
 
     committed = { ...body };
@@ -827,6 +833,11 @@ function down(e) {
 function move(e) {
     if (!drag)
         return;
+
+    if (drag.fingerOrigin) {
+        moveFingerGesture(e);
+        return;
+    }
 
     const p = point(e);
 
@@ -878,6 +889,45 @@ function move(e) {
     updateUI();
 }
 
+
+// Screen-space displacement continues to update even when support reach stops
+// the torso. Capturing width at down makes the gesture independent of camera
+// recentering, starting point, and the number/timing of move events.
+function moveFingerGesture(e) {
+    const origin = drag.fingerOrigin;
+    const delta = { dx: (e.clientX-origin.x)*400/origin.width,
+        dy: (e.clientY-origin.y)*400/origin.width };
+    const last = drag.fingerAction.points.at(-1);
+    if (last && last.dx === delta.dx && last.dy === delta.dy) return;
+    const previousBody = {...body};
+    const coupled=drag.fingerAction.bodyMotion === COUPLED_BODY_MODEL;
+    if(coupled && (drag.inputLimitExceeded || drag.fingerAction.points.length>=COUPLED_BODY_CONFIG.maxPoints)) {
+        // Fail closed instead of committing the stale last accepted endpoint.
+        // The latch is part of the bounded replay record and cannot be cleared
+        // by moving the pointer again within the same gesture.
+        drag.inputLimitExceeded=true;drag.fingerAction.inputLimitExceeded=true;
+        warning=1;updateUI();return;
+    }
+    const next = coupled ? coupledGestureReplay(committed,startGrips,
+        {...drag.fingerAction,points:[...drag.fingerAction.points,delta]},drag.anchor,drag.motionCache) :
+        fingerGestureStep(committed, startGrips, body, grips, drag.anchor,delta, drag.fingerAction.gain);
+    if (!next) return;
+    drag.fingerAction.points.push(delta);
+    drag.anchor = next.anchor;
+    const previousTraceLength=drag.fingerTrace.length;
+    if(coupled){drag.fingerTrace=next.trace.map(p=>({...p}));drag.motionCache=next.motionCache;drag.cancelAtOrigin=next.cancelAtOrigin;}
+    else drag.fingerTrace.push({...next.p});
+    if (!next.active) return;
+    const freshContacts = next.stance.filter((h,i) => h && h !== grips[i] && !drag.anchor.includes(i));
+    if (freshContacts.length && !freshContacts.some(h => h.type === 'hazard')) playSound('contact');
+    body = next.p; grips = next.stance;
+    if(coupled) {
+        for(let i=previousTraceLength;i<next.trace.length;i++)collectHearts(next.trace[i-1],next.trace[i]);
+    } else collectHearts(previousBody, body);
+    warning = next.blocked ? 1 : 0;
+    updateUI();
+}
+
 function bothHandsOnGoal(stance = grips) {
     return (
         stance[0]?.type === 'goal' &&
@@ -912,6 +962,9 @@ function sameContacts(a, b) {
 function release(cancel = false) {
     if (!drag)
         return;
+    // Returning the coupled pointer to its start is an explicit no-cost cancel,
+    // even if a constrained body path still has positional hysteresis.
+    cancel = cancel || drag.cancelAtOrigin === true || drag.inputLimitExceeded === true;
 
     const invalid =
         grips.some(h => h === null) ||
@@ -930,6 +983,14 @@ function release(cancel = false) {
         );
 
     const movingLimbs=[0,1,2,3].filter(i=>!drag.anchor?.includes(i));
+    if (drag.fingerAction) lastFingerGesture = {
+        action: {...fingerAction(drag.fingerAction.points, drag.fingerAction.gain),
+            ...(drag.fingerAction.inputLimitExceeded?{inputLimitExceeded:true}:{})},
+        origin: {...committed}, originGripIds: startGrips.map(h=>h?.id??null),
+        p: {...body}, grips: grips.map(h=>h?.id??null), anchor: drag.anchor && [...drag.anchor],
+        trace: drag.fingerTrace.map(p=>({...p})), canceled: cancel,
+        accepted: !cancel && !invalid && (!sameContacts(grips,startGrips) || newHazardContacts(grips,startGrips).size>0)
+    };
     drag = null;
 
     // Continuity belongs to a limb/hold pair, not just an occupied hold.

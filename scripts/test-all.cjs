@@ -3,7 +3,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {spawnSync} = require('node:child_process');
 const root = path.resolve(__dirname, '..');
-const files = fs.readdirSync(path.join(root, 'tests')).filter(f => f.endsWith('.cjs')).sort();
+const files = fs.readdirSync(path.join(root, 'tests')).filter(f => f.endsWith('.cjs') && f !== 'coupled-production-population.cjs').sort();
+console.log('The full coupled population sweep runs separately with npm run test:population; npm run test:coupled includes its small smoke gate.');
 let failures = 0;
 for (const file of files) {
     console.log(`\n[${files.indexOf(file) + 1}/${files.length}] ${file}`);

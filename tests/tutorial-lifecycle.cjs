@@ -57,7 +57,7 @@ for(const won of [true,false]){
   assert.equal(initialBudget,stageStamina(routeExpectedMoves())+TUTORIAL_COURSE_CONFIG.extraStamina);
   for(let i=1;i<tutorialPath.length;i++){
    camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const target=tutorialPath[i];
-   down({clientX:body.x,clientY:body.y-camera});move({clientX:target.x,clientY:target.y-camera});release();
+   down({clientX:200,clientY:500});assert(validFingerAction(target.action));for(const p of target.action.points)move({clientX:200+p.dx,clientY:500+p.dy});release();
    assert.equal(moveCount,i);assert(grips.every((h,k)=>h&&limbReachable(body,h,k)));
    assert.equal(stamina,initialBudget-i);
   }
@@ -68,15 +68,7 @@ for(const won of [true,false]){
 // exhaust the complete route-derived starting budget without touching the goal.
 {
  const b=boot(),before=snapshot(b);titleStart(b);
- b.run(`cameraIntro=null;hideStageHelp();const bottom={...route[0]},firstStep={...route[1]},initialBudget=stamina;
-  assert.equal(initialBudget,stageStamina(routeExpectedMoves())+TUTORIAL_COURSE_CONFIG.extraStamina);
-  for(let i=0;i<initialBudget;i++){
-   assert(isTutorialRun());const target=i%2?bottom:firstStep;
-   camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
-   down({clientX:body.x,clientY:body.y-camera});move({clientX:target.x,clientY:target.y-camera});release();
-   assert.equal(moveCount,i+1);assert.equal(stamina,initialBudget-i-1);
-   assert.equal(body.x,target.x);assert.equal(body.y,target.y);assert(grips.every((h,k)=>h&&limbReachable(body,h,k)));assert(!bothHandsOnGoal());
-  }`);
+ b.run('cameraIntro=null;hideStageHelp();');require('./tutorial-modals.cjs').exhaust(b);
  completedToStageOne(b);assert.equal(b.run('AscentTutorialState.snapshot().reason'),'failed');assert.equal(snapshot(b),before);
 }
 // Interruption is not completion, does not cost a life, and survives auto-saves.

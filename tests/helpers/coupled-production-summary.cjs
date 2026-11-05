@@ -1,0 +1,7 @@
+'use strict';
+const fs=require('node:fs');
+const logs=process.argv.slice(2);if(!logs.length)logs.push('build/coupled-population/full-low.log','build/coupled-population/full-high.log');
+const rows=[],running=[];
+for(const file of logs){const lines=fs.existsSync(file)?fs.readFileSync(file,'utf8').trim().split('\n'):[];let pending=null;for(const line of lines){if(line.startsWith('START ')){const end=line.lastIndexOf(' ');pending={...JSON.parse(line.slice(6,end)),startedAt:+line.slice(end+1)};}else if(line.startsWith('PASS ')||line.startsWith('FAIL ')){rows.push(JSON.parse(line.slice(5)));pending=null;}}if(pending)running.push({file,...pending,elapsedMs:Date.now()-pending.startedAt});}
+const passed=rows.filter(r=>r.ok),times=passed.map(r=>r.generationMs).sort((a,b)=>a-b),histogram={};for(const r of passed)if(r.retry)histogram[r.retry.attempts]=(histogram[r.retry.attempts]||0)+1;
+console.log(JSON.stringify({completed:rows.length,passed:passed.length,failed:rows.filter(r=>!r.ok).map(r=>({n:r.n,date:r.date,error:r.error,attempts:r.attempts})),running,generationMs:{median:times[Math.floor(times.length*.5)],p95:times[Math.floor(times.length*.95)],max:times.at(-1)},retryAttempts:histogram,bareReferenceInvalid:passed.filter(r=>!r.referenceResources?.valid).length,heartPickupPlans:passed.filter(r=>r.resources.pickups>0).length,slowest:passed.sort((a,b)=>b.generationMs-a.generationMs).slice(0,5).map(r=>({n:r.n,date:r.date,ms:r.generationMs,retry:r.retry,moves:r.moves}))},null,2));

@@ -2,7 +2,7 @@ name: Offline iOS simulator build and runtime smoke
 
 on:
   push:
-    branches: [feature/formal-integration]
+    branches: [feature/formal-integration, feature/coupled-production-integration]
 
 permissions:
   contents: read
@@ -41,6 +41,11 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Validate safe CI configuration
         run: node tests/ios-simulator-ci.cjs
+      - name: Verify transformed coupled input before native compilation
+        run: |
+          ASCENT_NATIVE_TEST=1 node tests/coupled-body.cjs
+          ASCENT_NATIVE_TEST=1 node tests/finger-aim.cjs
+          ASCENT_NATIVE_TEST=1 node tests/finger-route.cjs
       - name: Copy offline bundle only into this disposable checkout
         run: |
           npm run build:ios-assets

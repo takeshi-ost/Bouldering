@@ -41,7 +41,7 @@ vm.runInContext("assert.equal(soundContext.state,'running');assert.equal(pending
 safariEvents.touchend();vm.runInContext("assert.equal(soundContext.state,'running');setSoundEnabled(false);setMusicEnabled(false);soundContext.state='interrupted';",safari);
 safariEvents.touchend();vm.runInContext("assert.equal(soundContext.state,'interrupted');assert.equal(pendingSound,null);",safari);
 // Exercise the actual game hooks, without a sound device or changing game rules.
-const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8'),source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n')+require('./helpers/coupled-service-input.cjs');
 new Function('assert',`
 const elements={},gameEvents={};const document={getElementById(id){return elements[id] ||= {style:{},classList:{toggle(){}},focus(){},addEventListener(k,fn){gameEvents[k]=fn;},setAttribute(){},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};
 const window={addEventListener(){}};function requestAnimationFrame(){}
@@ -49,10 +49,10 @@ const window={addEventListener(){}};function requestAnimationFrame(){}
 const sounds=[];playSound=name=>{sounds.push(name);};
 reset(1);advanceCameraIntro(0);assert.deepEqual(sounds,['start']);assert(cameraIntro);advanceCameraIntro(2000);assert.equal(sounds.filter(s=>s==='start').length,1);
 sounds.length=0;const beforeMove=route.length;
-for(let i=1;i<route.length;i++){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();}
+for(let i=1;i<route.length;i++){servicePlayStep(i);}
 assert.equal(state,'won');assert.equal(sounds.filter(s=>s==='clear').length,1);assert.equal(sounds.filter(s=>s==='move').length,beforeMove-2);
 finish(true);assert.equal(sounds.filter(s=>s==='clear').length,1);
-reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);const pointFor=p=>({clientX:p.x,clientY:p.y-camera});down(pointFor(body));move(pointFor(route[1]));release();const beforeUndo=sounds.filter(s=>s==='move').length;assert(undoMove());assert.equal(sounds.filter(s=>s==='move').length,beforeUndo+1);hearts=[{x:body.x,y:body.y,collected:false}];collectHearts(body,body);collectHearts(body,body);assert.equal(sounds.filter(s=>s==='heart').length,1);
+reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);const pointFor=p=>({clientX:p.x,clientY:p.y-camera});servicePlayStep(1);const beforeUndo=sounds.filter(s=>s==='move').length;assert(undoMove());assert.equal(sounds.filter(s=>s==='move').length,beforeUndo+1);hearts=[{x:body.x,y:body.y,collected:false}];collectHearts(body,body);collectHearts(body,body);assert.equal(sounds.filter(s=>s==='heart').length,1);
 finish(false);assert.equal(sounds.filter(s=>s==='fail').length,1);
 // Shared cues must be emitted once by the actual UI/event hooks.
 sounds.length=0;grantLife();assert.deepEqual(sounds,['pickup']);
@@ -73,23 +73,29 @@ gameEvents.click({target:{closest:()=>({id:'dailyStartButton',disabled:false,clo
 dailyRun=null;
 // Preview contacts sound before release; unchanged frames and detachment are silent.
 reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);
-sounds.length=0;down(pointFor(body));assert.deepEqual(sounds,[]);
-move(pointFor(route[1]));assert(sounds.includes('contact'));assert.equal(moveCount,0);
-sounds.length=0;move(pointFor(route[1]));assert.deepEqual(sounds,[]);
-// Isolate contact transitions while retaining the real drag/input path.
-const realAttachMoving=attachMoving,contactPose={...body},preview=[...grips];
-const moving=preview.map((h,i)=>i).filter(i=>!drag.anchor.includes(i));
-let nextPreview=[...preview];attachMoving=()=>nextPreview;
+const contactOrigin={clientX:123,clientY:330};
+const contactEvent=p=>({clientX:contactOrigin.clientX+p.dx,clientY:contactOrigin.clientY+p.dy});
+sounds.length=0;down(contactOrigin);assert.deepEqual(sounds,[]);
+for(const p of route[1].action.points)move(contactEvent(p));assert(sounds.includes('contact'));assert.equal(moveCount,0);
+const lastContactDelta=route[1].action.points.at(-1);
+sounds.length=0;move(contactEvent(lastContactDelta));assert.deepEqual(sounds,[]);
+// Isolate contact transitions at the coupled replay seam, retaining real input,
+// deduplication and audio hooks. Geometry/clear above uses unmodified replay.
+const realCoupledReplay=coupledGestureReplay,contactPose={...body},preview=[...grips],contactAnchor=[...drag.anchor];
+const moving=preview.map((h,i)=>i).filter(i=>!contactAnchor.includes(i));
+let nextPreview=[...preview],contactTick=0;
+coupledGestureReplay=(...args)=>({...realCoupledReplay(...args),active:true,p:contactPose,stance:nextPreview,anchor:contactAnchor});
+function previewContact(){contactTick++;move(contactEvent({dx:lastContactDelta.dx+contactTick*.01,dy:lastContactDelta.dy}));}
 nextPreview=[...preview];nextPreview[moving[0]]=null;
-move(pointFor(contactPose));assert.deepEqual(sounds,[]);
-nextPreview=[...preview];move(pointFor(contactPose));assert.deepEqual(sounds,['contact']);
-sounds.length=0;move(pointFor(contactPose));assert.deepEqual(sounds,[]);
+previewContact();assert.deepEqual(sounds,[]);
+nextPreview=[...preview];previewContact();assert.deepEqual(sounds,['contact']);
+sounds.length=0;previewContact();assert.deepEqual(sounds,[]);
 nextPreview=[...preview];for(const i of moving)nextPreview[i]={...preview[i],id:999+i};
-move(pointFor(contactPose));assert.deepEqual(sounds,['contact'],'Simultaneous contacts share one short cue');
+previewContact();assert.deepEqual(sounds,['contact'],'Simultaneous contacts share one short cue');
 sounds.length=0;nextPreview=[...preview];for(const i of moving)nextPreview[i]={...preview[i],type:'hazard',id:2000+i};
-move(pointFor(contactPose));assert.deepEqual(sounds,[],'Hazard preview must not double normal contact with its release cue');
+previewContact();assert.deepEqual(sounds,[],'Hazard preview must not double normal contact with its release cue');
 sounds.length=0;release(true);assert.deepEqual(sounds,[]);assert.equal(moveCount,0);
-attachMoving=realAttachMoving;
+coupledGestureReplay=realCoupledReplay;
 
 `)(assert);
 console.log('PASS audio: gesture unlock/no autoplay, sound toggle persistence, mute stops voices, unsupported APIs/storage, cooldown, actual start/move/pickup/clear/fail, shared life/confirm/page/invalid cues, rollback and no duplicate click/result cues');

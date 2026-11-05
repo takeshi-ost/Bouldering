@@ -14,6 +14,17 @@ function tutorialCourseHolds(){
         {x:208,y:40,type:'goal'}
     ].map((hold,id)=>({...hold,id,row:null}));
 }
+// Fixed authored explicit gestures for the 1:1 finger-origin controls.
+// Both support-constrained body motion and live sampled input are replayed.
+function tutorialFingerAuthoredRoute(){
+    return [{"x":200,"y":560},
+        {"x":187.76588568542604,"y":523.2976570562781,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":-30,"dy":-90}]}},
+        {"x":185.69417983147832,"y":397.2392146678793,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":-2.0744142640695316,"dy":-126.2232427922086}]}},
+        {"x":184.94633741828477,"y":351.7347577588425,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":-3.943744368834026,"dy":-239.9675954797924}]}},
+        {"x":224.53061283150686,"y":196.14968300500433,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":50.05366258171523,"dy":-196.73475775884248}]}},
+        {"x":224.53061283150686,"y":172.1763024901651,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":0,"dy":-240}]}},
+        {"x":223.37113150996757,"y":167.81516584541123,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":-8.265306415753429,"dy":-31.088151245082557}]}}];
+}
 function prepareTutorialCourse(){
     const previous={holds,route,HEIGHT,initialGrips,densityStats,generatedCourse,activeCourseGeneration,
         hearts,labSkeletonReport,labHeartsCache,labStaminaCache,committed,startGrips,moveCount};
@@ -29,9 +40,14 @@ function prepareTutorialCourse(){
         const authored=[{x:200,y:560},{x:200,y:540},{x:170,y:450},
             {x:185,y:355},{x:195,y:265},{x:225,y:220},{x:205,y:185},
             {x:265,y:140},{x:235,y:155}];
-        route=replayRoute(authored);
-        if(!route || route.length!==authored.length)
+        const fingerInput=typeof fingerAimEnabled==='function'&&fingerAimEnabled();
+        if(fingerInput&&fingerAimGain()!==1)throw Error('Tutorial authored input witness requires gain 1.');
+        const witness=fingerInput?tutorialFingerAuthoredRoute():authored;
+        if(fingerInput&&coupledBodyEnabled())for(const p of witness)if(p.action)p.action.bodyMotion=COUPLED_BODY_MODEL;
+        route=replayRoute(witness);
+        if(!route || route.length!==witness.length)
             throw Error('Tutorial authored route no longer replays.');
+        if(fingerInput&&!fingerValidateDragReference(route).valid)throw Error('Tutorial finger drag witness no longer replays.');
         const referenceMoves=routeExpectedMoves(route),normalStamina=stageStamina(referenceMoves);
         const initialStamina=normalStamina+TUTORIAL_COURSE_CONFIG.extraStamina;
         const resources=routeResources(route,{pickups:[],budget:initialStamina});
@@ -40,7 +56,7 @@ function prepareTutorialCourse(){
         const report={version:TUTORIAL_COURSE_CONFIG.version,seed:TUTORIAL_COURSE_CONFIG.seed,
             type:'straight',length:'short',height:HEIGHT,centerHoldId:TUTORIAL_COURSE_CONFIG.centerHoldId,
             referenceMoves,normalStamina,extraStamina:TUTORIAL_COURSE_CONFIG.extraStamina,initialStamina,
-            hearts:0,spikes:0,resources,validated:true};
+            hearts:0,spikes:0,resources,validated:true,...(fingerInput?{inputModel:'finger-origin-v1',gain:1,...(coupledBodyEnabled()?{bodyMotion:COUPLED_BODY_MODEL}:{})}: {})};
         generatedCourse={level:0,seed:TUTORIAL_COURSE_CONFIG.seed,difficulty:0,typeId:0,mode:'tutorial',
             holds,intent:'basic',hearts:[],hazardPlacement:{routeIds:[],optionalIds:[]}};
         activeCourseGeneration={tutorial:true,report,initialStamina};

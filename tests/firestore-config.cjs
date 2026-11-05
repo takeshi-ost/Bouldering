@@ -14,7 +14,7 @@ const lock=JSON.parse(fs.readFileSync('package-lock.json','utf8'));
 for(const name of ['firebase','firebase-tools','@firebase/rules-unit-testing'])
   assert.equal(lock.packages['node_modules/'+name].version,pkg.dependencies[name]||pkg.devDependencies[name]);
 const workflow=fs.readFileSync('.github/workflows/firestore-rules.yml','utf8');
-assert.match(workflow,/branches: \[feature\/formal-integration\]/);
+assert.match(workflow,/branches: \[feature\/formal-integration, feature\/coupled-production-integration\]/);
 assert.match(workflow,/permissions:\n  contents: read\n/);
 assert.match(workflow,/runs-on: ubuntu-24\.04/);
 assert.match(workflow,/timeout-minutes: 15/);

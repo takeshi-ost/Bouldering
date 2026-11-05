@@ -42,7 +42,7 @@ function tap(b,{settle=true}={}) {
 }
 function intro(b,language) {for(let i=0;i<3;i++){readyPage(b,i,language);tap(b);}assert.equal(b.run('tutorialInstructionsOpen()'),false);}
 function goal(b) {
- b.run(`for(let i=1;i<route.length;i++){camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const p=route[i];down({clientX:body.x,clientY:body.y-camera});move({clientX:p.x,clientY:p.y-camera});release();}`);
+ b.run(`for(let i=1;i<route.length;i++){camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const p=route[i];assert(validFingerAction(p.action));down({clientX:200,clientY:500});for(const delta of p.action.points)move({clientX:200+delta.dx,clientY:500+delta.dy});release();}`);
  assert(b.run('bothHandsOnGoal() && grips.every((h,i)=>h && limbReachable(body,h,i))'));
  assert.equal(b.run('tutorialRun.pendingOutcome'),true);
 }

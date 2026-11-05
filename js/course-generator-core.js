@@ -54,9 +54,12 @@ function labPrepareSpikes(config){
  const distanceToRoute=h=>{
   let best=Infinity;
   for(let i=1;i<route.length;i++){
-   const a=route[i-1],b=route[i],dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy;
-   const t=den?clamp(((h.x-a.x)*dx+(h.y-a.y)*dy)/den,0,1):0;
-   best=Math.min(best,Math.hypot(h.x-a.x-t*dx,h.y-a.y-t*dy));
+   const trace=typeof fingerAimEnabled==='function'&&fingerAimEnabled()&&route[i].action?route[i].trace:[route[i-1],route[i]];
+   for(let j=1;j<trace.length;j++){
+    const a=trace[j-1],b=trace[j],dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy;
+    const t=den?clamp(((h.x-a.x)*dx+(h.y-a.y)*dy)/den,0,1):0;
+    best=Math.min(best,Math.hypot(h.x-a.x-t*dx,h.y-a.y-t*dy));
+   }
   }
   return best;
  };
@@ -110,6 +113,7 @@ function labCreateOriginalLayout(config) {
  } finally {stageLengthRule=saved.stageLengthRule;makeStageCourse=saved.makeStageCourse;}
 }
 function labReplayPartial(path){
+ if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerReplayRoute(path,{partial:true});
  const saved={committed,startGrips};let stance=[...initialGrips];
  for(const pair of [[0,1],[2,3]]){const sorted=pair.map(i=>stance[i]).sort((a,b)=>a.x-b.x);pair.forEach((i,j)=>stance[i]=sorted[j]);}
  try{
@@ -126,6 +130,7 @@ function labReplayPartial(path){
  }finally{committed=saved.committed;startGrips=saved.startGrips;}
 }
 function labPartialSearch(guide,{start=null,stance=null,limit=18000,maxMoves=45,stop,forwardOnly=false}={}){
+ if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerPartialSearch(guide,{start,stance,limit,maxMoves,stop,forwardOnly});
  const saved={committed,startGrips};const first=stance||[...initialGrips];
  if(!stance)for(const pair of [[0,1],[2,3]]){const sorted=pair.map(i=>first[i]).sort((a,b)=>a.x-b.x);pair.forEach((i,j)=>first[i]=sorted[j]);}
  const origin=start||guide[0];let transitions=0,expanded=0,best=null;
@@ -161,6 +166,7 @@ function labPartialSearch(guide,{start=null,stance=null,limit=18000,maxMoves=45,
 // Local column choice followed by an edge-concentrated native-contact section.
 // Only normal source IDs in the local window are mapped. No new holds/physics.
 function labColumnPartialSearch(guide,{start=null,stance=null,limit=18000,maxMoves=45,stop,forwardOnly=false}={}){
+ if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerPartialSearch(guide,{start,stance,limit,maxMoves,stop,forwardOnly});
  const saved={committed,startGrips};const first=stance||[...initialGrips];
  if(!stance)for(const pair of [[0,1],[2,3]]){const sorted=pair.map(i=>first[i]).sort((a,b)=>a.x-b.x);pair.forEach((i,j)=>first[i]=sorted[j]);}
  const origin=start||guide[0];let transitions=0,expanded=0,best=null;
@@ -500,6 +506,7 @@ function labGenerateCompositeSkeleton(config){
 }
 
 function labSwitchbackSearch(guide,{start=null,stance=null,limit=18000,maxMoves=45,stop,forwardOnly=false,accept=()=>true}={}){
+ if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerPartialSearch(guide,{start,stance,limit,maxMoves,stop,forwardOnly,accept});
  const saved={committed,startGrips};const first=stance||[...initialGrips];
  if(!stance)for(const pair of [[0,1],[2,3]]){const sorted=pair.map(i=>first[i]).sort((a,b)=>a.x-b.x);pair.forEach((i,j)=>first[i]=sorted[j]);}
  const origin=start||guide[0];let transitions=0,expanded=0,best=null;
@@ -603,6 +610,7 @@ function labBuildSwitchbackWitness(guide,geometry){
 // Replays the standard ten-sample body drag at logical 400px width, including
 // the anchor lock when the original 5px threshold is first crossed.
 function labValidateRecoveryDragReference(path){
+ if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerValidateDragReference(path);
  const saved={committed,startGrips},byId=new Map(holds.map(h=>[h.id,h]));
  let stance=[...initialGrips];for(const pair of [[0,1],[2,3]]){const sorted=pair.map(i=>stance[i]).sort((a,b)=>a.x-b.x);pair.forEach((i,j)=>stance[i]=sorted[j]);}
  const fail=(step,reason,extra={})=>({valid:false,step,reason,samples:10,viewportWidth:400,...extra});
@@ -757,7 +765,7 @@ function labPrepareHearts(config){
     const point={x:offset?clamp(p.x+dx*offset,30,W-30):p.x,y:offset?clamp(p.y+dy*offset,80,HEIGHT-40):p.y};
     if(regionFor(point,step)!==region){rejected.ownership++;continue;}
     if(placements.some(h=>distance(h,point)<minimumDistance-1e-9)){rejected.overlap++;continue;}
-    const onReference=route.slice(1).some((q,i)=>torsoTouchesHeart(route[i],q,point));
+    const onReference=route.slice(1).some((q,i)=>typeof fingerAimEnabled==='function'&&fingerAimEnabled()?fingerRouteTouchesHeart(route[i],q,point):torsoTouchesHeart(route[i],q,point));
     if(offset&&onReference){rejected.onReferenceOffset++;continue;}
     reachabilityCalls++;
     const reachable=findCourseHeartMove(point,route);
@@ -769,7 +777,7 @@ function labPrepareHearts(config){
     let contactIds=fromStep?[...route[fromStep].grips]:initialGrips.map(h=>h.id);
     if(!fromStep){const orderedInitial=[...initialGrips];for(const pair of [[0,1],[2,3]]){const sorted=pair.map(i=>orderedInitial[i]).sort((a,b)=>a.x-b.x);pair.forEach((i,j)=>orderedInitial[i]=sorted[j]);}contactIds=orderedInitial.map(h=>h.id);}
     placements.push({id:placements.length,region,referenceStep:step,offset,offReference:!onReference,...point,
-     witness:{fromStep,from:{x:reachable.from.x,y:reachable.from.y},to:{x:reachable.to.x,y:reachable.to.y},anchor:[...reachable.anchor],grips:contactIds}});
+     witness:{fromStep,from:{x:reachable.from.x,y:reachable.from.y},to:{x:reachable.to.x,y:reachable.to.y},anchor:[...reachable.anchor],grips:contactIds,...(reachable.action?{action:reachable.action,trace:reachable.trace}: {})}});
     actual++;break;
    }
   }

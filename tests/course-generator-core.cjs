@@ -23,7 +23,29 @@ function expectedV6(config){
  }
  return expected;
 }
-test('extracted generator math is identical except approved short-heart policy, typed failure boundaries and diagnostics; no trial boot/transport hooks',()=>{
+// The trial adds explicit guarded dispatch and trace-aware resource checks.
+// Normalize only these reviewed exact edits for this historical source identity
+// assertion; the native behavior parity cases below still execute unchanged.
+function withoutFingerHooks(text){
+ for(const [before,after] of [
+  [" if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerReplayRoute(path,{partial:true});\n",''],
+  [" if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerPartialSearch(guide,{start,stance,limit,maxMoves,stop,forwardOnly});\n",''],
+  [" if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerPartialSearch(guide,{start,stance,limit,maxMoves,stop,forwardOnly,accept});\n",''],
+  [" if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerValidateDragReference(path);\n",''],
+  ["typeof fingerAimEnabled==='function'&&fingerAimEnabled()?fingerRouteTouchesHeart(route[i],q,point):torsoTouchesHeart(route[i],q,point)",'torsoTouchesHeart(route[i],q,point)'],
+  ["grips:contactIds,...(reachable.action?{action:reachable.action,trace:reachable.trace}: {})",'grips:contactIds'],
+  [`   const trace=typeof fingerAimEnabled==='function'&&fingerAimEnabled()&&route[i].action?route[i].trace:[route[i-1],route[i]];
+   for(let j=1;j<trace.length;j++){
+    const a=trace[j-1],b=trace[j],dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy;
+    const t=den?clamp(((h.x-a.x)*dx+(h.y-a.y)*dy)/den,0,1):0;
+    best=Math.min(best,Math.hypot(h.x-a.x-t*dx,h.y-a.y-t*dy));
+   }`, `   const a=route[i-1],b=route[i],dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy;
+   const t=den?clamp(((h.x-a.x)*dx+(h.y-a.y)*dy)/den,0,1):0;
+   best=Math.min(best,Math.hypot(h.x-a.x-t*dx,h.y-a.y-t*dy));`]
+ ])text=text.replaceAll(before,after);
+ return text;
+}
+test('native generator math remains identical after reviewed isolated finger hooks and prior approved changes; no trial boot/transport hooks',()=>{
  const withoutDiagnostics=text=>text
   // The only v6 core math change is the approved short pickup cap policy.
   .replace(/ \/\/ Short trials explicitly disable pickups;[\s\S]*?const disabledReason=config.length==='short'\?'short-hearts-disabled':null,effectiveRequested=disabledReason\?\{first:0,second:0\}:requested;/, ' SHORT_HEART_POLICY;')
@@ -34,7 +56,7 @@ test('extracted generator math is identical except approved short-heart policy, 
   .replaceAll('if(!(error instanceof CourseGeometryRejection))throw error;', '')
   .replaceAll(',{cause:e}', '')
   .replace(/Error\((['`])[\s\S]*?\1\)/g, 'Error("diagnostic")');
- assert.equal(withoutDiagnostics(extract(core)),withoutDiagnostics(extract(original['skeleton.js'])));
+ assert.equal(withoutDiagnostics(withoutFingerHooks(extract(core))),withoutDiagnostics(extract(original['skeleton.js'])));
  for(const forbidden of ['function labBootSkeleton','labBootSkeleton();','function labReadConfig','function labPostStatus','postMessage(', 'localStorage','sessionStorage','function labFailSkeleton','recordStageClear=','finish=function','reset=function','document.'])assert(!core.includes(forbidden),forbidden);
 });
 const cases=[];

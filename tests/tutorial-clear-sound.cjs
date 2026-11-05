@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('node:assert/strict');
-const {boot,page,tap,play,settleTransition}=require('./tutorial-modals.cjs');
+const {boot,page,tap,play,exhaust,settleTransition}=require('./tutorial-modals.cjs');
 const flush=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};
 const goalImage='assets/tutorial-goal-feet-78-v2.png';
 function controlledImages(){
@@ -112,7 +112,7 @@ async function finishPages(b){
  // ordinary stage result sounds remain covered by audio.cjs.
  {
   const b=boot();installTrace(b);b.run('titleReady=true;');b.node('titleScreen').onclick();b.run('advanceCameraIntro(0);advanceCameraIntro(100000);');for(let n=1;n<=3;n++)await advance(b);
-  b.run('clearOrder=[];const low={...route[0]},high={...route[1]},budget=stamina;for(let i=0;i<budget;i++){const p=i%2?low:high;camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);down({clientX:body.x,clientY:body.y-camera});move({clientX:p.x,clientY:p.y-camera});release();}');
+  b.run('clearOrder=[];');exhaust(b);
   assert.deepEqual(trace(b).filter(x=>x==='clear'||x==='fail'||x.startsWith('open:')),['fail']);assert.equal(b.run('state'),'map');assert.equal(b.run('AscentTutorialState.snapshot().reason'),'failed');
  }
  console.log('PASS tutorial clear ordering: actual valid goal emits clear once before first goal card (sync/delayed decode/retry/error/timeout), no replay after TAP/completion/stale callbacks, interruption retry, continuous pause and genuine failure unchanged (no device audio audition)');

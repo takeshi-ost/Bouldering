@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-let source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+let source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n')+require('./helpers/coupled-service-input.cjs');
 const env=`
 const elements={};const document={getElementById(id){return elements[id]||={style:{},classList:{toggle(){}},focus(){},setAttribute(){},removeAttribute(){},addEventListener(){},showModal(){this.open=true},close(){this.open=false},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){}}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}}}};
 const window={devicePixelRatio:1,addEventListener(){}};function requestAnimationFrame(){};function setTimeout(){return 0;}function clearTimeout(){}
@@ -33,11 +33,11 @@ for(let stage=1;stage<=20;stage++){
   if(testHeart)heartInputTested=true;
   if(stage===firstSpike)assert(active.report.spikes.count>0,'first selected low-score spike stage must place actual spikes');
   if(!testHeart)assert.equal(hearts.length,0);const budget=stamina;cameraIntro=null;hideStageHelp();settingsOpen=false;state='playing';
-  for(let i=1;i<route.length&&state==='playing';i++){camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const event=p=>({clientX:p.x,clientY:p.y-camera});down(event(body));move(event(route[i]));release();}
+  for(let i=1;i<route.length&&state==='playing';i++){servicePlayStep(i);}
   physical={state,moves:moveCount,expectedMoves:route.length-1,remaining:stamina,budget,picked:hearts.filter(h=>h.collected).length};
   assert.equal(stamina,budget-moveCount+physical.picked*HEART_CONFIG.recovery);
   if(!testHeart){assert.equal(state,'won','default input clear stage '+stage);assert.equal(moveCount,route.length-1);assert.equal(stamina,3);}
-  else {assert(['won','lost'].includes(state));if(state==='won')assert.equal(moveCount,route.length-1);else assert.equal(stamina,0,'report legitimate default-budget exhaustion, not an input failure');}
+  else {assert.equal(state,'won','authored heart detours clear with the default budget');assert.equal(moveCount,route.length-1);assert.equal(physical.picked,hearts.length);}
  }
  report.push({stage,seed:active.resolved.seed,score:active.resolved.score,length:expected.length,spikePercent:expected.spikePercent,actualHearts:hearts.length,actualSpikes:active.report.spikes.count,...(physical?{defaultInput:physical}:{}),...active.retry});
 }

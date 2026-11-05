@@ -106,7 +106,10 @@ function page(b,n){const language=b.run('GAME_TEXT_LANGUAGE'),expected=localized
 function settleTransition(b){while(b.run('!!tutorialRun?.transition'))b.fireTimer(b.run('tutorialRun.transitionTimer'));}
 function tap(b,settle=true){const e=event();b.node('tutorialContinue').onclick(e);assert(e.stopped,'button tap must not bubble and advance twice');if(settle)settleTransition(b);}
 function intros(b){for(let n=1;n<=3;n++){page(b,n);tap(b);}assert.equal(b.run('tutorialInstructionsOpen()'),false);assert.equal(b.run('cameraIntro'),null);assert.notEqual(b.run('runStartedAt'),null);}
-function play(b,index,cancel=false){b.run(`camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);var targetForModalTest=route[${index}];down({clientX:body.x,clientY:body.y-camera});move({clientX:targetForModalTest.x,clientY:targetForModalTest.y-camera});release(${cancel});`);}
+// Actions are cumulative logical screen deltas, independent of camera recentering.
+function play(b,index,cancel=false){b.run(`var targetForModalTest=route[${index}];assert(validFingerAction(targetForModalTest.action));assert.equal(targetForModalTest.action.bodyMotion,COUPLED_BODY_MODEL);down({clientX:200,clientY:500});for(const p of targetForModalTest.action.points)move({clientX:200+p.dx,clientY:500+p.dy});release(${cancel});`);}
+function exhaust(b){b.run(`const budget=stamina,cycle=[];assert.equal(budget,stageStamina(routeExpectedMoves())+TUTORIAL_COURSE_CONFIG.extraStamina);assert(fingerAimEnabled());assert(coupledBodyEnabled());for(let i=0;i<budget;i++){assert(isTutorialRun());const sign=i%2?1:-1;down({clientX:200,clientY:500});move({clientX:200+30*sign,clientY:500+90*sign});release();assert.equal(moveCount,i+1);assert.equal(stamina,budget-i-1);assert(grips.every((h,k)=>h&&limbReachable(body,h,k)));assert(!bothHandsOnGoal());assert.deepEqual(grips.slice(0,2).map(h=>h.id),i%2?[2,2]:[3,4]);if(i<2)cycle.push({...body});else assert.deepEqual(body,cycle[i%2]);}assert.equal(stamina,0);`);}
+
 function completed(b,reason){assert.equal(b.run('isTutorialRun()'),false);assert.equal(b.run('tutorialPending()'),false);assert.equal(b.run('AscentTutorialState.snapshot().reason'),reason);assert.equal(b.run('state'),'map');assert.equal(b.run('stageStartContext?.n'),1);assert(b.node('stageStartDialog').open);assert(!b.node('tutorialDialog').open);assert.equal(b.run('stageRecords.existing[0]'),undefined);}
 function runModalTests(){
 // Both selections show their own reviewed copy and matching language metadata.
@@ -204,7 +207,7 @@ assert(/prefers-reduced-motion:reduce[^}]*tutorial-page-closing \.card[^}]*trans
 // Failure after exhausting the legal move budget reaches no goal messages and consumes no resources.
 {
  const b=boot(),resources=snapshot(b);start(b);intros(b);const shows=b.node('tutorialDialog').showCount;
- b.run(`const low={...route[0]},high={...route[1]},budget=stamina;for(let i=0;i<budget;i++){const p=i%2?low:high;camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);down({clientX:body.x,clientY:body.y-camera});move({clientX:p.x,clientY:p.y-camera});release();assert.equal(moveCount,i+1);}assert.equal(stamina,0);`);
+ exhaust(b);
  completed(b,'failed');assert.equal(snapshot(b),resources);assert.equal(b.node('tutorialDialog').showCount,shows,'failure does not show goal pages');
 }
 // Interrupting an intro preserves pending; reload begins page1. Existing users skip.
@@ -217,4 +220,4 @@ console.log('PASS five exact JA/EN tutorial pages and language metadata, scroll-
 
 }
 if(require.main===module)runModalTests();
-module.exports={boot,page,tap,play,settleTransition};
+module.exports={boot,page,tap,play,exhaust,settleTransition};

@@ -18,7 +18,10 @@ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
 Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try {
 new Function('assert','storage','data',env+source+`
-reset(1);showStageHelp();assert(!featureHelpOpen,'No item means no explanation');
+reset(1);
+// Explicit item-free display fixture: generated stage 1 may now have wide holds.
+function withoutItems(){holds=holds.map(h=>({...h,wide:false,type:h.type==='hazard'?'normal':h.type}));hearts=[];}
+withoutItems();showStageHelp();assert(!featureHelpOpen,'No item means no explanation');
 hearts=[{x:200,y:300}];showStageHelp();assert(featureHelpOpen && ui.featureHelpDialog.open);
 assert(ui.featureHelpContent.innerHTML.includes(COURSE_HEART_IMAGE_SRC));assert(!ui.featureHelpContent.innerHTML.includes('❤️'));
 assert(ui.featureHelpContent.innerHTML.includes('width="96" height="96"'));
@@ -34,15 +37,15 @@ assert.deepEqual(readFeatureHelpSeen(),{wide:false,heart:true,hazard:false});
 advanceCameraIntro(clock);drawStageIntro();assert(labels.some(t=>t.startsWith('STAGE')));
 clock+=999;advanceCameraIntro(clock);assert(cameraIntro);clock++;advanceCameraIntro(clock);assert(!cameraIntro);assert.equal(runTimeMs(),0);
 showStageHelp();assert(!featureHelpOpen,'Do not repeat a heart explanation');
-reset(1);holds.push({type:'hazard'});showStageHelp();assert.deepEqual(pendingFeatureHelp,['hazard']);
+reset(1);withoutItems();holds.push({type:'hazard'});showStageHelp();assert.deepEqual(pendingFeatureHelp,['hazard']);
 assert(ui.featureHelpContent.innerHTML.includes('追加で1消費'));assert(ui.featureHelpContent.innerHTML.includes('feature-hold-image'));assert(!ui.featureHelpContent.innerHTML.includes('<svg'));assert(!ui.featureHelpContent.innerHTML.includes('<small>'));
 assert(ui.featureHelpContent.innerHTML.includes('width="128" height="128"'));
 assert(ui.featureHelpContent.innerHTML.indexOf('<h1')<ui.featureHelpContent.innerHTML.indexOf('class="feature-help-icon"'));
 ui.featureHelpDialog.events.cancel({preventDefault(){}});assert(!featureHelpOpen);assert(readFeatureHelpSeen().hazard);
-courseMode='existing';reset(1);hearts=[{}];holds.push({type:'hazard'});showStageHelp();assert(!featureHelpOpen,'Seen items shared across courses');
+courseMode='existing';reset(1);withoutItems();hearts=[{}];holds.push({type:'hazard'});showStageHelp();assert(!featureHelpOpen,'Seen items shared across courses');
 featureHelpSeen={wide:false,heart:false,hazard:false};showStageHelp();assert.deepEqual(pendingFeatureHelp,['heart','hazard']);
 showLevelMap();assert(!featureHelpOpen && !ui.featureHelpDialog.open);assert(!featureHelpSeen.heart,'Leaving without acknowledging does not mark seen');
-reset(1);hearts=[{}];holds.push({type:'hazard'});showStageHelp();
+reset(1);withoutItems();hearts=[{}];holds.push({type:'hazard'});showStageHelp();
 assert(!ui.featureHelpContent.innerHTML.includes('小さくとがったホールド'));
 ui.featureHelpDialog.onclick();assert(featureHelpOpen && ui.featureHelpDialog.open);
 assert(featureHelpSeen.heart && !featureHelpSeen.hazard);assert.deepEqual(pendingFeatureHelp,['hazard']);
@@ -56,13 +59,13 @@ const savedGet=storage.getItem;storage.getItem=()=>{throw Error('blocked');};ass
 data[FEATURE_HELP_KEY]=JSON.stringify({heart:true,hazard:true});
 `)(assert,storage,data);
 new Function('assert',env+source+`
-assert.deepEqual(featureHelpSeen,{wide:false,heart:true,hazard:true});reset(1);hearts=[{}];holds.push({type:'hazard'});showStageHelp();assert(!featureHelpOpen,'Seen state survives a fresh launch');
+assert.deepEqual(featureHelpSeen,{wide:false,heart:true,hazard:true});reset(1);holds=holds.map(h=>({...h,wide:false}));hearts=[{}];holds.push({type:'hazard'});showStageHelp();assert(!featureHelpOpen,'Seen state survives a fresh launch');
 `)(assert);
 new Function('assert','storage','data',env+source+`
 // Old saves retain heart/spike acknowledgments; wide is new and remains unread.
 data[FEATURE_HELP_KEY]=JSON.stringify({heart:true,hazard:true});featureHelpSeen=readFeatureHelpSeen();
 assert.deepEqual(featureHelpSeen,{wide:false,heart:true,hazard:true});
-reset(1);assert.equal(stageHasLargeHold(),false);showStageHelp();assert(!featureHelpOpen);
+reset(1);holds=holds.map(h=>({...h,wide:false}));assert.equal(stageHasLargeHold(),false);showStageHelp();assert(!featureHelpOpen);
 reset(3);assert(stageHasLargeHold(),'Final generated stage 3 contains a real ordinary wide hold');
 assert.equal(generatedCourse.holds,holds);
 const resources=()=>JSON.stringify({stamina,moveCount,heartItems,lives,playsSinceAd,stageRecords,dailyRecords});

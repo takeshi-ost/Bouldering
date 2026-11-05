@@ -1,7 +1,7 @@
 const originalTimezone=process.env.TZ;process.env.TZ='UTC';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n')+require('./helpers/coupled-service-input.cjs');
 const env=`
 let nowIso='2026-10-17T23:59:59.000Z',clock=1000;
 const NativeDate=globalThis.Date;const Date=class extends NativeDate {constructor(...args){super(...(args.length?args:[nowIso]));}static now(){return new NativeDate(nowIso).getTime();}};
@@ -82,7 +82,7 @@ const normalBefore=JSON.stringify({stageProgress,stageRecords});
 const dates=new Map([[2,'2026-01-13'],[3,'2026-01-03']]);
 for(const [rating,date] of dates){assert.equal(dailyProfile(date).difficulty,rating);const recipe=CourseProgression.recipe(CourseProgression.resolveDaily(date));assert.equal(recipe.heartsFirst+recipe.heartsSecond,0);}
 const snapshot=()=>JSON.stringify({holds,route,hearts,HEIGHT,initialGrips,stamina,seed:dailyRun.seed});
-function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);}
+function play(i){servicePlayStep(i);}
 for(const [rating,key] of dates){
  assert(selectDailyDate(key));finishAds();assert.equal(level,dailyProfile(key).referenceStage);assert.equal(difficulty,rating);assert.equal(courseMode,'existing');assert(dailyRun && ui.dailyCalendar.hidden);assert(ui.level.textContent.startsWith('DAILY'));
  assert.equal(stamina,currentCourseInitialStamina());assert.equal(activeCourseGeneration.resolved.score,CourseProgression.dailyScore(key));const first=snapshot();restartInput(level);assert.equal(snapshot(),first,'Daily retry changed the date seed');

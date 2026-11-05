@@ -45,8 +45,8 @@ test('fresh prefix still enters STAGE0 despite unrelated raw saves',()=>{
  const {dir}=build();try{
   const data=new Map([['ascent.player-uuid.v1','old-raw-uuid']]),b=boot(dir,data);
   assert.equal(b.run('tutorialPending()'),true);b.run('titleReady=true;ui.titleScreen.onclick();');
-  assert.equal(b.run('level'),0);assert.equal(b.run('isTutorialRun()'),true);assert.equal(b.run('activeCourseGeneration.report.referenceMoves'),8);
-  assert.equal(b.run('stamina'),16);assert.equal(b.run('stamina'),b.run('stageStamina(activeCourseGeneration.report.referenceMoves)+TUTORIAL_COURSE_CONFIG.extraStamina'));
+  assert.equal(b.run('level'),0);assert.equal(b.run('isTutorialRun()'),true);assert.equal(b.run('activeCourseGeneration.report.referenceMoves'),6);
+  assert.equal(b.run('stamina'),14);assert.equal(b.run('stamina'),b.run('stageStamina(activeCourseGeneration.report.referenceMoves)+TUTORIAL_COURSE_CONFIG.extraStamina'));
   assert.equal(data.get('ascent.player-uuid.v1'),'old-raw-uuid');
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

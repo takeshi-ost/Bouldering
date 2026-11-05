@@ -8,7 +8,7 @@ assert(/\.map-page \{[^}]*width:100px; height:44px;[^}]*background:transparent;[
 assert(css.includes('.map-page:active:not(:disabled) > svg { transform:scale(1.1); }'));
 assert(!/\.map-page:focus-visible/.test(css),'Map navigation has no keyboard-only focus styling');
 assert(css.includes('.map-page-prev { bottom:40px; transform:translateX(-50%) rotate(180deg); }'));
-const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n')+require('./helpers/coupled-service-input.cjs');
 const mapSource=fs.readFileSync(path.join(root,'js/level-map.js'),'utf8');
 assert(!/focusMapLevel|\.focus\(|tabindex/.test(mapSource),'Map/stage transitions need no keyboard focus or tab stops');
 const env=`
@@ -80,9 +80,7 @@ function complete() {
  while(featureHelpOpen)dismissStageHelp();
  cameraIntro=null;
  for(let i=1;i<route.length;i++) {
-  camera=clamp(body.y-H*.6,0,HEIGHT-H);
-  const e=p=>({clientX:p.x,clientY:p.y-camera});
-  down(e(body));move(e(route[i]));release();
+  servicePlayStep(i);
   assert.equal(moveCount,i);
  }
  assert.equal(state,'won');

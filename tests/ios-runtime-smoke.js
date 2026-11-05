@@ -110,12 +110,17 @@
         let goalSeen=false;
         ensure(!holds.some(h=>h.wide&&h.type!=='start'),'tutorial-nonstart-wide');
         ensure(stamina===activeCourseGeneration.report.initialStamina,'tutorial-stamina-mismatch');
-        const routePoints=route.slice(1).map(p=>({x:p.x,y:p.y}));ensure(routePoints.length>0&&routePoints.length<=20,'unexpected-tutorial-route');
+        const routePoints=route.slice(1);ensure(routePoints.length>0&&routePoints.length<=20,'unexpected-tutorial-route');
         for(const target of routePoints){
             ensure(state==='playing'&&!tutorialInstructionsOpen(),'route-state-invalid');
             const beforeMoves=moveCount;
-            down(client(body));move(client(target));release();
+            ensure(validFingerAction(target.action)&&target.action.bodyMotion===COUPLED_BODY_MODEL,'missing-coupled-gesture-witness');
+            const origin=client(body),scale=canvas.getBoundingClientRect().width/W;
+            down(origin);
+            for(const delta of target.action.points)move({clientX:origin.clientX+delta.dx*scale,clientY:origin.clientY+delta.dy*scale});
+            release();
             await wait(()=>moveCount===beforeMoves+1,'programmatic-move-not-committed',3000);
+            ensure(grips.every((h,index)=>h?.id===target.grips[index]&&limbReachable(body,h,index)),'programmatic-route-contacts-mismatch');
             if(tutorialRun?.explanation?.id==='goal-fixed'){
                 await tapPage('goal-fixed');await readyPage('goal-finish');goalSeen=true;await tapPage('goal-finish');break;
             }

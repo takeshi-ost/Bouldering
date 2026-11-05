@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n')+require('./helpers/coupled-service-input.cjs');
 const env=`let clock=1000;const performance={now:()=>clock};
 const elements={};const document={getElementById(id){return elements[id] ||= {
  style:{},classList:{toggle(){}},focus(){},events:{},addEventListener(k,f){this.events[k]=f;},setAttribute(){},contains(){return true;},
@@ -13,7 +13,7 @@ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');Obje
 try {
 new Function('assert','data','storage',env+source+`
 CourseProgressionConfig.stageSegments=[{fromStage:1,toStage:100,fromScore:1,toScore:1}]; /* Ad-flow fixture, not a difficulty change. */
-function clearStage(){reset(11);assert.equal(bgmTrack,'stage');assert.equal(bgmFadeSeconds,5);cameraIntro=null;for(let i=1;i<route.length;i++) {camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();}assert.equal(state,'won');}
+function clearStage(){reset(11);assert.equal(bgmTrack,'stage');assert.equal(bgmFadeSeconds,5);cameraIntro=null;for(let i=1;i<route.length;i++) {servicePlayStep(i);}assert.equal(state,'won');}
 for(let i=1;i<=9;i++) {
  clearStage();assert.equal(playsSinceAd,(i-1)%3+1);finish(true);assert.equal(playsSinceAd,(i-1)%3+1,'Count each run only once');
  const record=JSON.stringify(stageRecords);ui.overlay.events.click({target:ui.overlay});

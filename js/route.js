@@ -7,6 +7,7 @@ function requiresLegacyTraverse() {
 }
 // Search, replay and pruning share live reach checks, including mid-body foot height and straight raised legs.
 function solveRoute(guide, maxMoves = 40) {
+    if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerSolveRoute(guide,maxMoves);
     if(holds.some(h=>h.type==='hazard'))return solveCostRoute(guide,maxMoves);
     const saved = { committed, startGrips };
     const needsTraverse = requiresLegacyTraverse();
@@ -72,6 +73,7 @@ function solveRoute(guide, maxMoves = 40) {
     }
 }
 function replayRoute(path) {
+    if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerReplayRoute(path);
     const saved = { committed, startGrips, moveCount };
     try {
         let stance = [...initialGrips];
@@ -101,6 +103,7 @@ function replayRoute(path) {
 // Every accepted shortcut replays its suffix with the live selector/snapping rules;
 // a changed contact is allowed only when the rest still reaches the goal.
 function optimizeRoute(path, config = ROUTE_OPTIMIZATION_CONFIG) {
+    if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerOptimizeRoute(path,config);
     const saved = { committed, startGrips };
     const byId = new Map(holds.map(h => [h.id, h]));
     const first = [...initialGrips];
@@ -182,6 +185,7 @@ function prepareStage() {
 // Unused contacts can still affect the six-pair selector's look-ahead.
 // Remove a hold only if both the support pairs and all contacts replay exactly.
 function samePairRoute(expected, actual) {
+    if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerSamePairRoute(expected,actual);
     return !!actual && actual.length===expected.length && actual.every((p,i)=>
         JSON.stringify(p.grips)===JSON.stringify(expected[i].grips) &&
         JSON.stringify(p.anchor)===JSON.stringify(expected[i].anchor));
@@ -258,6 +262,7 @@ function reserveDenseCandidates(path) {
 // Bounded cost-layer beam search on the FINAL hold types. Each edge costs the
 // same 1 + new hazard contacts as release(). A move using two hazards costs 3.
 function solveCostRoute(guide,maxMoves=40,config=ROUTE_COST_SEARCH_CONFIG,options={}) {
+    if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerSolveCostRoute(guide,maxMoves,config,options);
     const saved={committed,startGrips};
     const began=performance.now(),first=[...initialGrips];
     for(const pair of [[0,1],[2,3]]) {

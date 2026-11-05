@@ -6,6 +6,7 @@ function bitCount(mask) {
     let count=0;for(;mask;mask&=mask-1)count++;return count;
 }
 function coursePickupMask(pickups,mask,from,to) {
+    if(typeof fingerAimEnabled==='function'&&fingerAimEnabled()&&to.action&&Array.isArray(to.trace))return fingerRouteTraceMask(pickups,mask,to.trace);
     for(let i=0;i<pickups.length;i++)if(!(mask&(1<<i)) && torsoTouchesHeart(from,to,pickups[i]))mask|=1<<i;
     return mask;
 }
@@ -31,6 +32,7 @@ function chooseCourseIntent() {
 // A pickup may occur while dragging even if the player cancels the release.
 // Check a reachable drag segment, using the same support/snapping rules as play.
 function findCourseHeartMove(heart,path) {
+    if(typeof fingerAimEnabled==='function'&&fingerAimEnabled())return fingerFindCourseHeartMove(heart,path);
     const saved={committed,startGrips},byId=new Map(holds.map(h=>[h.id,h]));
     const nearby=path.slice(0,-1).map((p,i)=>({p,i})).sort((a,b)=>distance(a.p,heart)-distance(b.p,heart));
     let checks=0;
@@ -60,7 +62,7 @@ function recipeHearts(path,intent,salt=0) {
         const length=distance(from,p)||1,dx=-(p.y-from.y)/length,dy=(p.x-from.x)/length;
         for(const offset of [48,-48,64,-64]) {
             const candidate={...heart,x:clamp(p.x+dx*offset,30,W-30),y:clamp(p.y+dy*offset,80,HEIGHT-40)};
-            if(!path.slice(1).some((q,i)=>torsoTouchesHeart(path[i],q,candidate)) && findCourseHeartMove(candidate,path))return candidate;
+            if(!path.slice(1).some((q,i)=>typeof fingerAimEnabled==='function'&&fingerAimEnabled()?fingerRouteTouchesHeart(path[i],q,candidate):torsoTouchesHeart(path[i],q,candidate)) && findCourseHeartMove(candidate,path))return candidate;
         }
         return heart;
     });

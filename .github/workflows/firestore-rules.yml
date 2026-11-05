@@ -2,7 +2,7 @@ name: Offline integration checks
 
 on:
   push:
-    branches: [feature/formal-integration]
+    branches: [feature/formal-integration, feature/coupled-production-integration]
 
 permissions:
   contents: read
@@ -43,6 +43,8 @@ jobs:
         run: npm run test:rules
       - name: Run Web integration and online-adapter mocks
         run: npm run test:web
+      - name: Verify production coupled controls and exact replay
+        run: npm run test:coupled
       - name: Run native auth, queue and connection mocks
         run: |
           node tests/native-firebase.cjs
