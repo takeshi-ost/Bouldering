@@ -4,8 +4,12 @@ const {boot,play}=require('./tutorial-modals.cjs');
 const existing=()=>new Map([['ascent.progress.v1',JSON.stringify({existing:{cleared:10},prototype:{cleared:0}})]]);
 function context(){
  const b=boot(existing());
- // Flow-only later-stage/Daily fixtures avoid unrelated difficult-route sampling.
+ // Flow-only fixtures retain real generation and input, but pin short/single
+ // walls. Score 1 alone still samples middle paired Stage 11 courses,
+ // repeating expensive generation in fresh VM contexts.
  b.run('CourseProgressionConfig.stageSegments=[{fromStage:1,toStage:100,fromScore:1,toScore:1}];CourseProgressionConfig.daily.minScore=CourseProgressionConfig.daily.maxScore=1;');
+ b.run('CourseDistributionConfig.tables.length.rows=[{score:0,weights:[1,0,0]}];CourseDistributionConfig.tables.composition.rows=[{score:0,weights:[1,0]}];');
+ b.run('for(const resolved of [CourseProgression.resolveStage(1),CourseProgression.resolveStage(11),CourseProgression.resolveDaily("2026-01-01")]){const recipe=CourseProgression.recipe(resolved);assert.equal(recipe.length,"short");assert.equal(recipe.composition??"single","single");}');
  return b;
 }
 const records=b=>b.run('JSON.stringify({stageProgress,stageRecords,dailyRecords,mapRewards,heartItems,pending:[...onlineScores.pending]})');

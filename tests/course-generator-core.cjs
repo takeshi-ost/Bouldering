@@ -13,8 +13,32 @@ const nativeCore=original['skeleton.js'].slice(0,original['skeleton.js'].indexOf
 const extract=source=>source.slice(source.indexOf('// For nonzero spikes'),source.indexOf('function labPostStatus(')<0?source.indexOf('// Explicit production boundary.'):source.indexOf('function labPostStatus(')).trim();
 const originalRun=create({engineSources:original,coreSource:nativeCore,staminaSource:original['stamina-settings.js']});
 const extractedRun=create({engineSources:original,productionBoundary:true});
-function expectedV6(config){
- const expected=originalRun(config);
+// Preserve the immutable archive and original/extracted parity. This separate
+// oracle changes only the approved completed-assignment ordering rule, without
+// copying current production code or replacing expected outputs with goldens.
+function archivedWithLimbOrder(original){
+ const file='js/game.js',source=original[file];
+ const signature='function attachMoving(p, anchor) {';
+ assert.equal(source.split(signature).length,2,'one archived attachment function');
+ const start=source.indexOf(signature),end=source.indexOf('\nfunction ',start+1);
+ assert(end>start,'archived attachment function boundary exists');
+ const oldFunction=source.slice(start,end);
+ const anchor='        if (slot === moving.length) {\n            const hands = result.slice(0, 2).filter(Boolean);';
+ assert.equal(oldFunction.split(anchor).length,2,'one archived completed-assignment anchor');
+ const addition='            // Approved absolute order for both moving hands or both moving feet.\n'+
+ '            if ([0, 2].some(left => moving.includes(left) && moving.includes(left + 1) &&\n'+
+ '                result[left] && result[left + 1] && result[left].x > result[left + 1].x)) return;\n';
+ assert(!source.includes(addition),'archive does not already contain migration');
+ const revised=oldFunction.replace(anchor,anchor.replace('            const hands',addition+'            const hands'));
+ assert.equal(revised.replace(addition,''),oldFunction,'only explicit legality addition');
+ const adapted={...original,[file]:source.slice(0,start)+revised+source.slice(end)};
+ assert.equal(adapted[file].replace(addition,''),original[file],'original restored byte-for-byte');
+ for(const name of Object.keys(original))if(name!==file)assert.equal(adapted[name],original[name]);
+ return adapted;
+}
+const orderedOriginalRun=create({engineSources:archivedWithLimbOrder(original),coreSource:nativeCore,staminaSource:original['stamina-settings.js']});
+function expectedV6(config,run=originalRun){
+ const expected=run(config);
  if(config.length==='short'){
   assert.equal(config.heartsFirst+config.heartsSecond,0,'Legacy geometry parity uses zero-heart shorts');
   assert.equal(expected.report.hearts.disabledReason,'short-hearts-disabled');
@@ -99,10 +123,10 @@ test('production boundary restores real stage/daily identity and exposes immutab
 // from frozen-source equivalence. Restore a real non-tutorial identity, bind the
 // formal course, then verify the final route still replays under that identity.
 for(const config of cases)test(`latest native engine and bound replay: ${config.type}/${config.secondType??'single'} ${config.length}`,()=>{
- const expected=expectedV6(config),check=create({productionBoundary:true}).postBindReplay(config);
+ const expected=expectedV6(config,orderedOriginalRun),check=create({productionBoundary:true}).postBindReplay(config);
  assert.equal(check.error,undefined,'fixed regression configuration must generate; never replace the seed');
  assert.equal(check.identityRestored,true);assert.equal(check.replays,true,'real stage 207 must not reimpose the retired traverse rule');
- assert.deepEqual(check.geometry,expected,'latest native generator must preserve approved trial geometry/route/hearts/stamina');
+ assert.deepEqual(check.geometry,expected,'latest native generator must exactly match archived physics plus only approved limb ordering');
 });
 
 test('v6 short heart cap allows one and rejects two instead of silent disabling',()=>{
@@ -114,10 +138,10 @@ test('v6 short heart cap allows one and rejects two instead of silent disabling'
 
 test('latest native wrapper preserves prior active course and binds final post-spike holds',()=>{
  const config={type:'meander',length:'middle',seed:42,heartsFirst:2,heartsSecond:2,spikePercent:30};
- const helper=create({productionBoundary:true}),expected=originalRun(config);
+ const helper=create({productionBoundary:true}),expected=expectedV6(config,orderedOriginalRun);
  const check=helper.identityContract(config);
  assert.equal(check.error,undefined);assert.equal(check.holdsBound,true);assert.equal(check.previousActiveRestored,true);assert.equal(check.identityRestored,true);
- assert.deepEqual(check.result.report,expected.report,'prior active course must not change internal legacy solver constraints');
+ assert.deepEqual(check.result.report,expected.report,'prior active course must not change archived solver plus approved limb-order constraints');
  const failure=helper.identityContract(config,true);
  assert.equal(failure.error,'injected post-generation failure');assert.equal(failure.previousActiveRestored,true);assert.equal(failure.geometryRestored,true);
 });

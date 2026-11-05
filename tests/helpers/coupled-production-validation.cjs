@@ -1,11 +1,18 @@
 'use strict';
 module.exports=String.raw`
+function assertMovingLimbOrder(stance,anchor){
+ assert(Array.isArray(anchor)&&anchor.length===2,'locked support pair');
+ const moving=[0,1,2,3].filter(i=>!anchor.includes(i));
+ if(moving.length===2&&(moving[0]<2)===(moving[1]<2)&&stance[moving[0]]&&stance[moving[1]])
+  assert(stance[moving[0]].x<=stance[moving[1]].x,'same-type moving contacts must retain absolute left/right order');
+}
 function resourcePlan(reference,budget,heartTemplate,placements){
+ for(const point of reference.slice(1))assertMovingLimbOrder(point.grips.map(id=>holds.find(h=>h.id===id)),point.anchor);
  const byStep=new Map();for(const h of placements){const w=h.witness;assert(w?.action&&Number.isInteger(w.fromStep),'explicit heart pickup action');if(!byStep.has(w.fromStep))byStep.set(w.fromStep,[]);byStep.get(w.fromStep).push(w);}
  let mask=0,remaining=budget,penalties=0;const costs=routeHazardCosts(reference);
  for(let i=1;i<reference.length;i++){
   assert(remaining>0,'cannot begin pickup/action at exhausted step '+i);
-  for(const w of byStep.get(i-1)||[]){const stance=w.grips.map(id=>holds.find(h=>h.id===id)),m=fingerGestureReplay(w.from,stance,w.action);assert(m?.active,'heart gesture active');assert(fingerRouteSampleStable(w.from,stance,w.action,m,{requireRelease:false}),'heart resampling');const next=fingerRouteTraceMask(heartTemplate,mask,m.trace);remaining+=(bitCount(next)-bitCount(mask))*HEART_CONFIG.recovery;mask=next;}
+  for(const w of byStep.get(i-1)||[]){const stance=w.grips.map(id=>holds.find(h=>h.id===id)),m=fingerGestureReplay(w.from,stance,w.action);assert(m?.active,'heart gesture active');assertMovingLimbOrder(m.stance,m.anchor);assert(fingerRouteSampleStable(w.from,stance,w.action,m,{requireRelease:false}),'heart resampling');const next=fingerRouteTraceMask(heartTemplate,mask,m.trace);remaining+=(bitCount(next)-bitCount(mask))*HEART_CONFIG.recovery;mask=next;}
   const next=coursePickupMask(heartTemplate,mask,reference[i-1],reference[i]);remaining+=(bitCount(next)-bitCount(mask))*HEART_CONFIG.recovery-1-(costs[i]-costs[i-1]);penalties+=costs[i]-costs[i-1];mask=next;assert(remaining>=0,'resource plan exhausted at '+i);
  }
  assert.equal(bitCount(mask),heartTemplate.length,'all authored heart witnesses collect their pickups');return {byStep,remaining,pickups:bitCount(mask),penalties,budget,moves:reference.length-1,canceledPickups:placements.length};
@@ -18,10 +25,10 @@ function play(reference,count,initialBudget,heartTemplate,plan){
   assert(stamina>0,'exhausted before move '+i);camera=clamp(body.y-H*.6,0,HEIGHT-H);
   for(const w of plan.byStep.get(i-1)||[]){
    const before={...body},beforeGrips=ids(grips),beforeMoves=moveCount;nearly(before,w.from);assert.deepEqual(beforeGrips,w.grips);
-   const pickupOrigin=eventAtScreen(137,320);down(pickupOrigin);assert(drag);for(const p of fingerResampledAction(w.action,count).points)move(movedEvent(pickupOrigin,p));release(true);nearly(body,before);assert.deepEqual(ids(grips),beforeGrips);assert.equal(moveCount,beforeMoves);assert(lastFingerGesture.canceled);
+   const pickupOrigin=eventAtScreen(137,320);down(pickupOrigin);assert(drag);for(const p of fingerResampledAction(w.action,count).points){move(movedEvent(pickupOrigin,p));if(drag.anchor)assertMovingLimbOrder(grips,drag.anchor);}release(true);nearly(body,before);assert.deepEqual(ids(grips),beforeGrips);assert.equal(moveCount,beforeMoves);assert(lastFingerGesture.canceled);
   }
   const e=eventAtScreen(123,330);down(e);assert(drag,'drag '+i);
-  const sampled=fingerResampledAction(reference[i].action,count);for(const p of sampled.points)move(movedEvent(e,p));
+  const sampled=fingerResampledAction(reference[i].action,count);for(const p of sampled.points){move(movedEvent(e,p));if(drag.anchor)assertMovingLimbOrder(grips,drag.anchor);}
   release();assert.equal(moveCount,i,'live commit '+JSON.stringify({step:i,samples:count,action:reference[i].action,expected:{x:reference[i].x,y:reference[i].y,grips:reference[i].grips},actual:{body,grips:ids(grips),state,stamina},record:lastFingerGesture&&{...lastFingerGesture,trace:undefined}}));assert.notEqual(state,'lost');nearly(body,reference[i]);assert.deepEqual(ids(grips),reference[i].grips,'live contacts '+JSON.stringify({step:i,samples:count,action:reference[i].action,body,record:lastFingerGesture&&{...lastFingerGesture,trace:undefined}}));assert.equal(lastFingerGesture.accepted,true);
  }
  assert.equal(state,'won');return {remaining:stamina,pickups:hearts.filter(h=>h.collected).length};

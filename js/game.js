@@ -435,6 +435,8 @@ function attachMoving(p, anchor, gestureAim = null) {
     fixed.forEach(i => result[i] = startGrips[i]);
 
     const moving = [0, 1, 2, 3].filter(i => !fixed.includes(i));
+    const movingSameType = moving.length === 2 &&
+        Math.floor(moving[0] / 2) === Math.floor(moving[1] / 2);
 
     const candidates = moving.map(i => {
         const target = gestureAim ? fingerAimTarget(i, gestureAim) : {
@@ -469,6 +471,12 @@ function attachMoving(p, anchor, gestureAim = null) {
 
     function assign(slot, count, cost) {
         if (slot === moving.length) {
+            // Two moving hands/feet retain absolute left-to-right order.
+            // Equal-x sharing and mixed moving pairs keep their existing rules.
+            if (movingSameType && result[moving[0]] && result[moving[1]] &&
+                result[moving[0]].x > result[moving[1]].x)
+                return;
+
             const hands = result.slice(0, 2).filter(Boolean);
             const feet = result.slice(2).filter(Boolean);
 

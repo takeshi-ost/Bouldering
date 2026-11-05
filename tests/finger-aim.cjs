@@ -61,6 +61,7 @@ function oracle(p,pair,aim=null){
  for(const a of lists[0])for(const b of lists[1]){
   const stance=[...fixed];stance[moving[0]]=a.h;stance[moving[1]]=b.h;
   if(stance.some((h,i)=>h&&stance.some((k,j)=>i!==j&&h===k&&!canShareHold(h,i,j))))continue;
+  if((moving[0]<2)===(moving[1]<2) && a.h && b.h && a.h.x>b.h.x)continue;
   if(stance.slice(2).some(f=>f&&stance.slice(0,2).some(h=>h&&f.y<h.y)))continue;
   const r=[Number(stance.every(Boolean)&&bothHandsOnGoal(stance)),Number(!!a.h)+Number(!!b.h),-(a.cost+b.cost)];
   if(!rank||r[0]>rank[0]||(r[0]===rank[0]&&(r[1]>rank[1]||(r[1]===rank[1]&&r[2]>rank[2])))){rank=r;best=stance;}
