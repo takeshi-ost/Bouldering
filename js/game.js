@@ -831,7 +831,7 @@ function down(e) {
         dy: body.y - p.y,
         anchor: null,
         ...(typeof fingerAimEnabled === 'function' && fingerAimEnabled() ? { fingerOrigin: {x:e.clientX,y:e.clientY,width:canvas.getBoundingClientRect().width},
-            fingerAction: fingerAction([]), fingerTrace: [{...body}] } : {})
+            fingerAction: fingerAction([], 1.5), fingerTrace: [{...body}] } : {})
     };
 
     committed = { ...body };
