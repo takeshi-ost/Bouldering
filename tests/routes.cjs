@@ -62,12 +62,12 @@ for(let n=1;n<=20;n++){
     const budget=stamina;
     for(let i=1;i<route.length;i++){
         camera=clamp(body.y-H*.6,0,HEIGHT-H);
-        const before=[...grips],origin={...body},target=route[i];
-        const event=p=>({clientX:p.x,clientY:p.y-camera});
-        down(event(body));
+        const before=[...grips],origin={x:body.x,y:body.y-camera},target=route[i];
+        const event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
+        check(validFingerAction(target.action),'Explicit reference action required');down(event({dx:0,dy:0}));
         let selected;
-        for(let t=1;t<=10;t++){
-            move(event({x:origin.x+(target.x-origin.x)*t/10,y:origin.y+(target.y-origin.y)*t/10}));
+        for(const point of fingerResampledAction(target.action,10).points){
+            move(event(point));
             if(drag.anchor===null)continue;
             check(Array.isArray(drag.anchor)&&new Set(drag.anchor).size===2,'Not two supports');
             selected??=JSON.stringify(drag.anchor);

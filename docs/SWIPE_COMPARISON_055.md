@@ -1,5 +1,8 @@
 # Swipe comparison debug controls (0.5.5)
 
+Historical specification: 0.5.8 changes the formal baseline to limb gain1.5.
+See FORMAL_LIMB_GAIN_058.md for the current multiplier semantics.
+
 Based on verified public 0.5.3 source, `7a252629db67582296375c2e9c000588550bf64b`.
 The unpublished 0.5.4 change (`b34c783390a8274e42a63c4178a87ab7caca5665`)
 only fixed live aiming gain at 1.5. This update replaces that fixed override with

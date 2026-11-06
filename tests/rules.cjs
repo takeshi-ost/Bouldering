@@ -37,10 +37,10 @@ assert(ui.progress.textContent.includes('想定'));debugMode=false;updateUI();as
 advanceCameraIntro(0);advanceCameraIntro(1650);assert.equal(canUndoMove(),false);
 function playStep(step) {
  advanceCameraIntro(0);advanceCameraIntro(1650);
- camera=clamp(body.y-H*.6,0,HEIGHT-H);
- const event=p=>({clientX:p.x,clientY:p.y-camera});
- down(event(body));const snapshot=moveSnapshot;
- move(event(step));release();return snapshot;
+ camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
+ const origin={x:body.x,y:body.y-camera},event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
+ assert(validFingerAction(step.action));down(event({dx:0,dy:0}));const snapshot=moveSnapshot;
+ for(const point of step.action.points)move(event(point));release();return snapshot;
 }
 function checkUndo(snapshot) {
  const stage=holds,routeBefore=route;

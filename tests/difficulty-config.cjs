@@ -16,7 +16,7 @@ const env=`const nodes={};const document={getElementById(id){return nodes[id]||=
 const probe=`
 assert.equal(DIFFICULTY_CONFIG.stageBands,undefined,'Retired stage table must not return');
 assert.equal(DIFFICULTY_CONFIG.daily,undefined,'Daily no longer samples legacy type weights');
-assert.equal(CourseProgressionConfig.version,'2');assert.equal(CourseProgressionConfig.daily.version,'1');assert.equal(CourseDistribution.version,'5');
+assert.equal(CourseProgressionConfig.version,'5');assert.equal(CourseProgressionConfig.daily.version,'1');assert.equal(CourseDistribution.version,'7');
 for(let n=1;n<10001;n++){
  const resolved=CourseProgression.resolveStage(n),recipe=CourseProgression.recipe(resolved);
  assert.equal(courseTypeLabel(courseTypeForStage(n)),resolved.difficultyLabel);

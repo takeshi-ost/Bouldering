@@ -1,0 +1,125 @@
+{
+  "release": "0.5.8",
+  "baseCommit": "8adbd76709145dec5d14a5bc558222651b508db0",
+  "published": false,
+  "web": {
+    "initial": {
+      "passed": 58,
+      "total": 59,
+      "failed": [
+        "score-metadata"
+      ]
+    },
+    "targetedAfterFix": {
+      "suite": "score-metadata",
+      "passed": true,
+      "fix": "Align Xcode MARKETING_VERSION with release0.5.8; native build15 unchanged"
+    },
+    "note": "58/59 in aggregate; remaining suite passes targeted rerun, not a single59/59 aggregate run"
+  },
+  "coupled": {
+    "passed": 22,
+    "total": 22,
+    "platforms": [
+      "shared Web source",
+      "native transformed source"
+    ]
+  },
+  "representativeCourses": [
+    {
+      "stage": 2,
+      "date": null,
+      "passed": true,
+      "moves": 6,
+      "remaining": 3
+    },
+    {
+      "stage": 20,
+      "date": null,
+      "passed": true,
+      "moves": 28,
+      "remaining": 3
+    },
+    {
+      "stage": 100,
+      "date": null,
+      "passed": true,
+      "moves": 29,
+      "remaining": 2
+    },
+    {
+      "stage": 401,
+      "date": null,
+      "passed": true,
+      "moves": 23,
+      "remaining": 2
+    },
+    {
+      "stage": 1,
+      "date": "2026-11-06",
+      "passed": true,
+      "moves": 36,
+      "remaining": 2
+    }
+  ],
+  "tutorial": {
+    "moves": 6,
+    "initialStamina": 14,
+    "remaining": 8,
+    "actualInputSamples": [
+      1,
+      10
+    ]
+  },
+  "artifacts": {
+    "localWebBuild": true,
+    "nativeAutoSyncBundle": true,
+    "courseWorkerFresh": true,
+    "diffWhitespaceCheck": true
+  },
+  "limitations": [
+    "No real browser/device gesture QA",
+    "No Xcode simulator/app build",
+    "No full401-stage population sweep",
+    "No live Firebase calls or Rules deployment",
+    "Full138-suite aggregate:113 passed initially;12 recovered with targeted reruns;13 unresolved legacy-fixture/runtime checks remain",
+    "Normalv4 and Dailyv3 boards retained: old/new score comparability not guaranteed"
+  ],
+  "aggregate": {
+    "initial": {
+      "passed": 113,
+      "total": 138,
+      "failed": 25
+    },
+    "targetedRecovered": [
+      "coupled-course-preparation",
+      "course-distribution-v7",
+      "course-generation",
+      "course-length",
+      "daily-ads",
+      "dense-hazards",
+      "difficulty-config",
+      "difficulty",
+      "formal-course-balance-v6",
+      "input",
+      "results",
+      "rules"
+    ],
+    "remaining": [
+      "course-types",
+      "formal-course-retry-regression",
+      "formal-course-retry",
+      "hazards",
+      "ios-assets",
+      "ios-floor",
+      "native-resume-game",
+      "player-icon",
+      "prototype",
+      "retired-mode",
+      "route-cost",
+      "route-optimization",
+      "routes"
+    ],
+    "note": "12 of25 initial failures pass after targeted test corrections;13 remain. This is not a clean aggregate run. No tests excluded and no timeouts raised."
+  }
+}

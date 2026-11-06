@@ -16,7 +16,7 @@ const GAME_TEXT_EN = Object.freeze({
     "debug.swipe.mode": "Apply to",
     "debug.swipe.limbs": "Limb aiming only",
     "debug.swipe.body": "Include body",
-    "debug.swipe.help": "Steps of 0.05, from 0.25× to 3.00×. Applies to the next swipe. 1.00× matches release 0.5.3. Settings survive retries and reset on reload. Courses and expected routes are unchanged. Runs using nonstandard sensitivity are excluded from rankings.",
+    "debug.swipe.help": "Steps of 0.05, from 0.25× to 3.00×. Applies to the next swipe. 1.00× is the formal default: 1.5× limb aiming with unchanged body sensitivity. Settings survive retries and reset on reload. Comparison factors do not change the standard course or expected route. Runs using nonstandard sensitivity are excluded from rankings.",
 
     "course-preparation.loading": "Preparing course…",
     "course-preparation.retry": "Retry preparation",

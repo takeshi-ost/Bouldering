@@ -72,7 +72,7 @@ function findValid(){for(const dy of [-100,-70,-40,0,40,70,100])for(const dx of 
  const a=action([{dx,dy}]),r=fingerGestureReplay(body,grips,a);if(r?.valid&&!r.won)return {a,r};
 }throw Error('Fixture has no valid finger gesture');}
 check('production coupled default and nested/throwing suspension restores mode',()=>{
- assert.equal(fingerAimEnabled(),true);assert.equal(coupledBodyEnabled(),true);assert.equal(fingerAimGain(),1);assert.equal(action([{dx:10,dy:0}]).bodyMotion,COUPLED_BODY_MODEL);
+ assert.equal(fingerAimEnabled(),true);assert.equal(coupledBodyEnabled(),true);assert.equal(fingerAimGain(),1.5);assert.equal(action([{dx:10,dy:0}]).bodyMotion,COUPLED_BODY_MODEL);
  assert(fingerAimEnabled());assert.equal(withFingerAimDisabled(()=>{assert(!fingerAimEnabled());return withFingerAimDisabled(()=>42);}),42);
  assert.throws(()=>withFingerAimDisabled(()=>{throw Error('expected');}),/expected/);assert(fingerAimEnabled());
 });
@@ -204,7 +204,7 @@ check('release first sample, body tap threshold and gesture gain stay fixed',()=
  fixture();const {a}=findValid();const e=eventAtScreen(100,200);beginPointer(e);endPointer(movedEvent(e,a.points[0]));assert.equal(moveCount,1);
  fixture();const e2=eventAtScreen(200,500-camera);beginPointer(e2);assert(bodyTap&&!drag);
  movePointer(movedEvent(e2,{dx:1,dy:1}));assert(bodyTap&&!drag);endPointer(null,true);assert(!bodyTap&&!drag);
- fixture();down(e);move(movedEvent(e,a.points[0]));release();assert.equal(lastFingerGesture.action.gain,1);assert.equal(lastFingerGesture.action.bodyMotion,COUPLED_BODY_MODEL);
+ fixture();down(e);move(movedEvent(e,a.points[0]));release();assert.equal(lastFingerGesture.action.gain,1.5);assert.equal(lastFingerGesture.action.bodyMotion,COUPLED_BODY_MODEL);
 });
 check('heart sweeps, canceled pickups, replay traces and undo preserve attempt resources',()=>{
  fixture();const {a,r}=findValid();const end=r.trace.at(-1);

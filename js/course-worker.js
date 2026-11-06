@@ -1,5 +1,5 @@
 'use strict';
-globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"fec6b1f0bda2421c84aefd99c5f63c9114c88fe3949fb4b0fb29b43431a85507","sources":[{"path":"js/text-ja.js","sha256":"43f73b2508c66c8651a960d7598f0fb666f0c70f9e5f077b81ef3438bbba62a9"},{"path":"js/text-en.js","sha256":"8f619015a7b83a38328994a8a84b1d7fa8fb0b905dfdf13c3a933245e04b35a4"},{"path":"js/text-dev-ja.js","sha256":"d53db3d5f5ba8d4d5896640f3c92ef6d78cf3b2c3a56f3ac42cb79e6e7cad5ff"},{"path":"js/config.js","sha256":"69c1049016fe1013a5c7c526937aec1efebdd643a9c8224348db13c33b0c71b9"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"0505974081d03e89c9e54230d8e653aa6c682496cfa89d83cc42e45176dad5a0"},{"path":"js/finger-route.js","sha256":"8c445b6db553cfb99534a38c93dc09f261cce73c94c7ead0c7bbb683ae2542ba"},{"path":"js/game.js","sha256":"f8de0881ef9202d5238037c8c6acc3cb99356a16ec8f3454b6fcaed6614d6189"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"46b2c6008b5c24c0ad4f4f0c6cb2544cc05f76a42907e7497d44c0fd4de0f8a0"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"8d9e6e1124ed0a54482d6dc5510d84b3a8df2e5062a67ea89023d5748f22a67e"},{"path":"js/course-adoption.js","sha256":"02c765114e54f3e54dd86a3e4b9c525fad7b4e3a2f78c27a9b0f61614fca5227"},{"path":"js/tutorial-course.js","sha256":"8a20e522866c3ec52d7f862f862a1b2e959ca634e18ad3785783932cb36af032"},{"path":"js/course-preparation.js","sha256":"9b32d03540c4b44950f1ea288e5fb759b3dec719df82ac5a910ec7f3edac8861"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"4bfb04ed4c3ce0cb640299bab8ad28386961f0072a941093da5c111686740c3a"}]});
+globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"4a47c497700091962a731e0a44b2b9ef9c959cd98566cf29c9cd344cef4a2d5e","sources":[{"path":"js/text-ja.js","sha256":"43f73b2508c66c8651a960d7598f0fb666f0c70f9e5f077b81ef3438bbba62a9"},{"path":"js/text-en.js","sha256":"6cb7a90238b811f46827ee4b7a265e68a9ab7f1ba4724d827009c03da9baf658"},{"path":"js/text-dev-ja.js","sha256":"778e1317540d5fd3c6440ecd306a1ffd02328bbe02df5fc3c0c5cc6f99c6602f"},{"path":"js/config.js","sha256":"f4a673177a124e430522ffcc2ede72e96e8712e872d5f0caddec4af8a9881bb6"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"8c445b6db553cfb99534a38c93dc09f261cce73c94c7ead0c7bbb683ae2542ba"},{"path":"js/game.js","sha256":"5b14b09248e57aedd090f03267f4a9adb480f3c3c14f424bc1927eddb1a558a0"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"46b2c6008b5c24c0ad4f4f0c6cb2544cc05f76a42907e7497d44c0fd4de0f8a0"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"8d9e6e1124ed0a54482d6dc5510d84b3a8df2e5062a67ea89023d5748f22a67e"},{"path":"js/course-adoption.js","sha256":"02c765114e54f3e54dd86a3e4b9c525fad7b4e3a2f78c27a9b0f61614fca5227"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"9b32d03540c4b44950f1ea288e5fb759b3dec719df82ac5a910ec7f3edac8861"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"4bfb04ed4c3ce0cb640299bab8ad28386961f0072a941093da5c111686740c3a"}]});
 globalThis.ASCENT_COURSE_WORKER=true;
 let debugAttempt=false;
 function isTutorialRun(){return tutorialRun!==null;}
@@ -307,7 +307,7 @@ const GAME_TEXT_EN = Object.freeze({
     "debug.swipe.mode": "Apply to",
     "debug.swipe.limbs": "Limb aiming only",
     "debug.swipe.body": "Include body",
-    "debug.swipe.help": "Steps of 0.05, from 0.25× to 3.00×. Applies to the next swipe. 1.00× matches release 0.5.3. Settings survive retries and reset on reload. Courses and expected routes are unchanged. Runs using nonstandard sensitivity are excluded from rankings.",
+    "debug.swipe.help": "Steps of 0.05, from 0.25× to 3.00×. Applies to the next swipe. 1.00× is the formal default: 1.5× limb aiming with unchanged body sensitivity. Settings survive retries and reset on reload. Comparison factors do not change the standard course or expected route. Runs using nonstandard sensitivity are excluded from rankings.",
 
     "course-preparation.loading": "Preparing course…",
     "course-preparation.retry": "Retry preparation",
@@ -646,7 +646,7 @@ const GAME_DEV_TEXT_JA = Object.freeze({
     "debug.swipe.mode": "適用先",
     "debug.swipe.limbs": "四肢の狙いだけ",
     "debug.swipe.body": "ボディも含む",
-    "debug.swipe.help": "0.05刻み・0.25〜3.00倍。次のスワイプから反映。1.00倍は公開版0.5.3と同じです。設定はリトライ後も維持し、再読み込みで標準に戻ります。コース・想定ルートは変わりません。標準以外で操作した記録はランキング対象外です。",
+    "debug.swipe.help": "0.05刻み・0.25〜3.00倍。次のスワイプから反映。1.00倍は正式仕様（四肢の狙い1.5倍・ボディ従来）の標準です。設定はリトライ後も維持し、再読み込みで標準に戻ります。比較倍率を変えてもコース・想定ルートは標準のままです。標準以外で操作した記録はランキング対象外です。",
 
     "account-deletion": "ユーザーデータの削除を待っています",
     "account-deletion.2": "端末の保存データを初期化できませんでした。",
@@ -696,7 +696,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.7';
+const RELEASE_VERSION = '0.5.8';
 const GAMEPLAY_TIP_KEYS = [
     'tips.scroll', 'tips.undo', 'tips.reach',
     'tips.goal', 'tips.heart', 'tips.cancel', 'tips.appearance'
@@ -1473,7 +1473,8 @@ const FINGER_AIM_MODEL = 'finger-origin-v1';
 let fingerAimSuspended = 0;
 let lastFingerGesture = null;
 function fingerAimEnabled() { return !fingerAimSuspended; }
-function fingerAimGain() { return 1; }
+// Formal limb target sensitivity; body displacement remains unscaled.
+function fingerAimGain() { return 1.5; }
 function withFingerAimDisabled(fn) {
     fingerAimSuspended++;
     try { return fn(); } finally { fingerAimSuspended--; }
@@ -1482,7 +1483,7 @@ function fingerInputIdentity() { return [FINGER_AIM_MODEL, fingerAimGain(), COUP
 function fingerAimTarget(index, aim) {
     if (aim?.model !== FINGER_AIM_MODEL || !aim.originGrips?.[index] ||
         !Number.isFinite(aim.dx) || !Number.isFinite(aim.dy) ||
-        !Number.isFinite(aim.gain) || aim.gain <= 0 || aim.gain > 4)
+        !Number.isFinite(aim.gain) || aim.gain <= 0 || aim.gain > 4.5)
         throw new TypeError('Explicit finger-origin aiming context is required.');
     return { x: aim.originGrips[index].x + aim.dx * aim.gain,
         y: aim.originGrips[index].y + aim.dy * aim.gain };
@@ -1494,7 +1495,7 @@ function fingerAction(points, gain = fingerAimGain()) {
 }
 function validFingerAction(action) {
     return action?.version === 1 && action.model === FINGER_AIM_MODEL &&
-        Number.isFinite(action.gain) && action.gain > 0 && action.gain <= 4 &&
+        Number.isFinite(action.gain) && action.gain > 0 && action.gain <= 4.5 &&
         (action.bodyMotion === undefined || action.bodyMotion === COUPLED_BODY_MODEL) &&
         Array.isArray(action.points) && action.points.length > 0 &&
         (action.inputLimitExceeded === undefined || (action.inputLimitExceeded === true &&
@@ -2016,13 +2017,13 @@ const DEBUG_FEATURES_ALLOWED = globalThis.location?.protocol === 'capacitor:'
     : true;
 let debugMode = false;
 const debugDisplay={route:true,holdNumbers:true,courseInfo:true};
-// Session-only comparison controls. Generation/replay defaults remain at 1.00.
+// Session-only comparison controls. 1.00 means the formal sensitivity for both live input and generation.
 const debugSwipeComparison={steps:20,mode:'limbs'};
 function liveSwipeComparison() {
     const enabled=DEBUG_FEATURES_ALLOWED && debugMode;
     const multiplier=enabled?debugSwipeComparison.steps/20:1;
     const bodyScale=enabled && debugSwipeComparison.mode==='body'?multiplier:1;
-    return {multiplier,bodyScale,aimGain:bodyScale===1?multiplier:1};
+    return {multiplier,bodyScale,aimGain:fingerAimGain()*(enabled && debugSwipeComparison.mode==='limbs'?multiplier:1)};
 }
 
 // Latched per attempt: turning a displayed route off (or undoing a move) never
@@ -5013,16 +5014,16 @@ function tutorialCourseHolds(){
         {x:208,y:40,type:'goal'}
     ].map((hold,id)=>({...hold,id,row:null}));
 }
-// Fixed authored explicit gestures for the 1:1 finger-origin controls.
+// Fixed authored explicit gestures for the formal 1.5× limb aiming controls.
 // Both support-constrained body motion and live sampled input are replayed.
 function tutorialFingerAuthoredRoute(){
     return [{"x":200,"y":560},
-        {"x":187.76588568542604,"y":523.2976570562781,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":-30,"dy":-90}]}},
-        {"x":185.69417983147832,"y":397.2392146678793,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":-2.0744142640695316,"dy":-126.2232427922086}]}},
-        {"x":184.94633741828477,"y":351.7347577588425,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":-3.943744368834026,"dy":-239.9675954797924}]}},
-        {"x":224.53061283150686,"y":196.14968300500433,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":50.05366258171523,"dy":-196.73475775884248}]}},
-        {"x":224.53061283150686,"y":172.1763024901651,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":0,"dy":-240}]}},
-        {"x":223.37113150996757,"y":167.81516584541123,"action":{"version":1,"model":"finger-origin-v1","gain":1,"points":[{"dx":-8.265306415753429,"dy":-31.088151245082557}]}}];
+        {"x":193.3872215243139,"y":519.6867277989843,"action":{"version":1,"model":"finger-origin-v1","gain":1.5,"points":[{"dx":-30,"dy":-90}]}},
+        {"x":190.77477265772333,"y":398.18175619538084,"action":{"version":1,"model":"finger-origin-v1","gain":1.5,"points":[{"dx":-2.0744142640695316,"dy":-126.2232427922086}]}},
+        {"x":200,"y":347.8334617360803,"action":{"version":1,"model":"finger-origin-v1","gain":1.5,"points":[{"dx":-3.943744368834026,"dy":-239.9675954797924}]}},
+        {"x":241.8628735511183,"y":196.70613195614658,"action":{"version":1,"model":"finger-origin-v1","gain":1.5,"points":[{"dx":50.05366258171523,"dy":-196.73475775884248}]}},
+        {"x":199.99451552612794,"y":160.6043552443149,"action":{"version":1,"model":"finger-origin-v1","gain":1.5,"points":[{"dx":0,"dy":-240}]}},
+        {"x":192.1399228197822,"y":156.25110758094036,"action":{"version":1,"model":"finger-origin-v1","gain":1.5,"points":[{"dx":-8.265306415753429,"dy":-31.088151245082557}]}}];
 }
 function prepareTutorialCourse(){
     const previous={holds,route,HEIGHT,initialGrips,densityStats,generatedCourse,activeCourseGeneration,
@@ -5040,7 +5041,7 @@ function prepareTutorialCourse(){
             {x:185,y:355},{x:195,y:265},{x:225,y:220},{x:205,y:185},
             {x:265,y:140},{x:235,y:155}];
         const fingerInput=typeof fingerAimEnabled==='function'&&fingerAimEnabled();
-        if(fingerInput&&fingerAimGain()!==1)throw Error('Tutorial authored input witness requires gain 1.');
+        if(fingerInput&&fingerAimGain()!==1.5)throw Error('Tutorial authored input witness requires gain 1.5.');
         const witness=fingerInput?tutorialFingerAuthoredRoute():authored;
         if(fingerInput&&coupledBodyEnabled())for(const p of witness)if(p.action)p.action.bodyMotion=COUPLED_BODY_MODEL;
         route=replayRoute(witness);
@@ -5055,7 +5056,7 @@ function prepareTutorialCourse(){
         const report={version:TUTORIAL_COURSE_CONFIG.version,seed:TUTORIAL_COURSE_CONFIG.seed,
             type:'straight',length:'short',height:HEIGHT,centerHoldId:TUTORIAL_COURSE_CONFIG.centerHoldId,
             referenceMoves,normalStamina,extraStamina:TUTORIAL_COURSE_CONFIG.extraStamina,initialStamina,
-            hearts:0,spikes:0,resources,validated:true,...(fingerInput?{inputModel:'finger-origin-v1',gain:1,...(coupledBodyEnabled()?{bodyMotion:COUPLED_BODY_MODEL}:{})}: {})};
+            hearts:0,spikes:0,resources,validated:true,...(fingerInput?{inputModel:'finger-origin-v1',gain:1.5,...(coupledBodyEnabled()?{bodyMotion:COUPLED_BODY_MODEL}:{})}: {})};
         generatedCourse={level:0,seed:TUTORIAL_COURSE_CONFIG.seed,difficulty:0,typeId:0,mode:'tutorial',
             holds,intent:'basic',hearts:[],hazardPlacement:{routeIds:[],optionalIds:[]}};
         activeCourseGeneration={tutorial:true,report,initialStamina};

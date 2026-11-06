@@ -24,7 +24,7 @@ for(const spec of [...selected.map(n=>({n})),...dates.map(date=>({date,n:dailyPr
  console.log('START',JSON.stringify(spec),Date.now());attemptLog=[];const begin=Date.now();
  try{
  initialize(spec.n,spec.date);const generationMs=Date.now()-begin,reference=route,budget=stamina,heartTemplate=hearts.map(h=>({...h})),stable=fingerprint(),attempts=attemptLog.slice();
- assert(fingerAimEnabled()&&coupledBodyEnabled());assert(reference.slice(1).every(q=>q.action?.gain===1&&q.action.bodyMotion===COUPLED_BODY_MODEL));
+ assert(fingerAimEnabled()&&coupledBodyEnabled());assert(reference.slice(1).every(q=>q.action?.gain===1.5&&q.action.bodyMotion===COUPLED_BODY_MODEL));
  assert(samePairRoute(reference,replayRoute(reference)),'exact explicit action/trace/contact replay');
  const referenceResources=routeResources(reference,{pickups:heartTemplate,budget});assert(validateRouteBudget(reference));const plan=resourcePlan(reference,budget,heartTemplate,activeCourseGeneration?.report?.hearts?.placements||[]);const {byStep,...resources}=plan;
  if(spec.n!==0||spec.date){const resolved=spec.date?CourseProgression.resolveDaily(spec.date):CourseProgression.resolveStage(spec.n),expected=CourseProgression.recipe(resolved),actual=activeCourseGeneration;

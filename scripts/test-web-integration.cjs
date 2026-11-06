@@ -7,7 +7,7 @@ const shardCount=2;
 const suites=['pages-formal-runtime','pages-storage-deletion','formal-debug-ranking','formal-v4-preservation','course-version-compat','score-metadata','online','online-progress-generation','online-scores','firebase-client','account-deletion','transfer','settings-connection','settings-layout','language','initial-language','text','button-theme','pointer-only-ui','title-centering','tutorial-course','tutorial-lifecycle','tutorial-modals','tutorial-localization','tutorial-clear-sound','explanation-image-readiness','hazard-image-readiness','hazard-game-rendering','explanation-feedback','feature-help','feature-help-localization','help-dialog','help-document','help-owner-copy','help-layout','stage-start','failure-return','level-map','map-players','daily','rewards','ads','ads-early-stages','course-progression','formal-course-seed-offset','formal-course-seed-offset-daily-march','formal-course-seed-offset-daily-january-zero','formal-course-seed-offset-daily-january-high'];
 // Profile synchronization has its own scope and must not imply score completion.
 suites.push('profile-sync-status','release-050-ui','bgm','audio-settings','audio-files','audio');
-suites.push('hazard-modal-rendering','render-scheduling','debug-score-trial','coupled-course-preparation');
+suites.push('hazard-modal-rendering','render-scheduling','debug-score-trial','coupled-course-preparation','swipe-comparison');
 Object.freeze(suites);
 function parseArguments(args) {
  const options={list:false,shard:null};

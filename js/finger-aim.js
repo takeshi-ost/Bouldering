@@ -5,7 +5,8 @@ const FINGER_AIM_MODEL = 'finger-origin-v1';
 let fingerAimSuspended = 0;
 let lastFingerGesture = null;
 function fingerAimEnabled() { return !fingerAimSuspended; }
-function fingerAimGain() { return 1; }
+// Formal limb target sensitivity; body displacement remains unscaled.
+function fingerAimGain() { return 1.5; }
 function withFingerAimDisabled(fn) {
     fingerAimSuspended++;
     try { return fn(); } finally { fingerAimSuspended--; }
@@ -14,7 +15,7 @@ function fingerInputIdentity() { return [FINGER_AIM_MODEL, fingerAimGain(), COUP
 function fingerAimTarget(index, aim) {
     if (aim?.model !== FINGER_AIM_MODEL || !aim.originGrips?.[index] ||
         !Number.isFinite(aim.dx) || !Number.isFinite(aim.dy) ||
-        !Number.isFinite(aim.gain) || aim.gain <= 0 || aim.gain > 4)
+        !Number.isFinite(aim.gain) || aim.gain <= 0 || aim.gain > 4.5)
         throw new TypeError('Explicit finger-origin aiming context is required.');
     return { x: aim.originGrips[index].x + aim.dx * aim.gain,
         y: aim.originGrips[index].y + aim.dy * aim.gain };
@@ -26,7 +27,7 @@ function fingerAction(points, gain = fingerAimGain()) {
 }
 function validFingerAction(action) {
     return action?.version === 1 && action.model === FINGER_AIM_MODEL &&
-        Number.isFinite(action.gain) && action.gain > 0 && action.gain <= 4 &&
+        Number.isFinite(action.gain) && action.gain > 0 && action.gain <= 4.5 &&
         (action.bodyMotion === undefined || action.bodyMotion === COUPLED_BODY_MODEL) &&
         Array.isArray(action.points) && action.points.length > 0 &&
         (action.inputLimitExceeded === undefined || (action.inputLimitExceeded === true &&

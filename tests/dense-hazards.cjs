@@ -40,7 +40,10 @@ for(const mode of ['existing'])for(const n of [40,41,42,45,47,80]) {
  assert(samePairRoute(route,replayRoute(route)));
  const saved=JSON.stringify({holds,route,hearts}),starting=stamina;
  // Conversion changes type only; normal geometry replays the identical route.
- blue.forEach(h=>h.type='normal');assert(samePairRoute(route,replayRoute(route)));
+ blue.forEach(h=>h.type='normal');
+ const normalReplay=replayRoute(route);assert(normalReplay);
+ assert(normalReplay.slice(1).every(p=>p.penalty===0));
+ assert(samePairRoute(route.map((p,i)=>i?{...p,penalty:0}:p),normalReplay),'Changing hazard types preserves geometry, contacts, actions and trace');
  blue.forEach(h=>h.type='hazard');
  const moves=route.length-1,base=stageStamina(moves);
  assert.equal(starting,moves+3);
@@ -50,9 +53,11 @@ for(const mode of ['existing'])for(const n of [40,41,42,45,47,80]) {
  for(let i=1;i<route.length;i++) {
   assert(stamina>0,mode+' Lv'+n+' cannot start move '+i);
   camera=clamp(body.y-H*.6,0,HEIGHT-H);
-  const eventAt=p=>({clientX:p.x,clientY:p.y-camera});
+  const origin={x:body.x,y:body.y-camera};
+  const eventAt=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
   const before=[...grips],beforeStamina=stamina,beforeHearts=hearts.filter(h=>h.collected).length;
-  down(eventAt(body));move(eventAt(route[i]));release();
+  assert(validFingerAction(route[i].action));down(eventAt({dx:0,dy:0}));
+  for(const point of route[i].action.points)move(eventAt(point));release();
   assert.equal(moveCount,i);assert.notEqual(state,'lost');
   const fresh=grips.filter((h,j)=>h.type==='hazard' && before[j]!==h).length;
   paid+=fresh;

@@ -26,15 +26,17 @@ for(let kind=0;kind<3;kind++) {
   if(kind===0){assert(cameraTop()<0);assert(canScrollStage(),'Short course must remain scrollable');}
   assert(validateRouteBudget(route));assert.equal(stamina,routeExpectedMoves()+3);
   const fixed=JSON.stringify({holds,route,hearts,stamina,HEIGHT});
-  const preview=stagePreview(23,mode);assert.equal(preview.height,stageLengthInfo(23).height);assert.equal(preview.seed,23);
+  const preview=stagePreview(23,mode);assert.equal(preview.height,stageLengthInfo(23).height);assert.equal(preview.seed,CourseProgression.resolveStage(23).seed);
   assert.equal(JSON.stringify({holds,route,hearts,stamina,HEIGHT}),fixed);
   reset(23);cameraIntro=null;hideStageHelp();settingsOpen=false;state='playing';
   assert.equal(JSON.stringify({holds,route,hearts,stamina,HEIGHT}),fixed);
   const moves=routeExpectedMoves();
   for(let i=1;i<route.length;i++) {
    camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
-   const from={...body},to=route[i],e=p=>({clientX:p.x,clientY:p.y-camera});down(e(from));
-   for(let k=1;k<=10;k++)move(e({x:from.x+(to.x-from.x)*k/10,y:from.y+(to.y-from.y)*k/10}));
+   const origin={x:body.x,y:body.y-camera},action=route[i].action;
+   assert(validFingerAction(action));
+   const e=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});down(e({dx:0,dy:0}));
+   for(const point of fingerResampledAction(action,10).points)move(e(point));
    release();assert.equal(moveCount,i);assert.notEqual(state,'lost');
   }
   assert.equal(state,'won');report.push({mode,rating,length:expected,height:HEIGHT,moves});

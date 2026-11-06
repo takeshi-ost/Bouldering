@@ -22,7 +22,10 @@ const forceType=id=>{debugMode=true;debugAttempt=true;debugCourseTrial={typeId:i
 forceType(6);reset(1);cameraIntro=null;
 assert.equal(difficulty,3);const count=holds.filter(h=>h.type==='hazard').length;assert(count>=Math.ceil(holds.length*.1) && count<=Math.floor(holds.length*.3));
 for(let i=1;i<route.length;i++){
- camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);
+ camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const origin={x:body.x,y:body.y-camera};
+ const e=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
+ assert(validFingerAction(route[i].action));down(e({dx:0,dy:0}));
+ for(const point of route[i].action.points)move(e(point));release();assert.equal(moveCount,i);
 }
 assert.equal(state,'won');
 const sample=Array.from({length:9},(_,i)=>({x:200,y:800-i*80}));

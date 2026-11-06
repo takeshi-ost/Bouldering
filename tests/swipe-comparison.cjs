@@ -2,12 +2,18 @@
 const assert=require('node:assert/strict'),run=require('./coupled-production-harness.cjs');
 const result=run(String.raw`
 const identity=JSON.stringify(fingerInputIdentity());
+assert.equal(fingerAimGain(),1.5);
+assert.equal(fingerAimTarget(0,{model:FINGER_AIM_MODEL,originGrips:[{x:100,y:200}],dx:20,dy:-40,gain:fingerAimGain()}).x,130);
+assert.equal(fingerAimTarget(0,{model:FINGER_AIM_MODEL,originGrips:[{x:100,y:200}],dx:20,dy:-40,gain:fingerAimGain()}).y,140);
+assert(validFingerAction(fingerAction([{dx:20,dy:-40}],4.5)));
+assert(!validFingerAction(fingerAction([{dx:20,dy:-40}],4.51)));
+assert.equal(fingerAction([{dx:20,dy:-40}],1).gain,1,'Historical explicit replay gain remains intact');
 function settings(steps,mode){debugMode=true;debugSwipeComparison.steps=steps;debugSwipeComparison.mode=mode;}
 let checks=0;
 for(const mode of ['limbs','body'])for(const steps of [5,20,30,60])for(const n of [1,10,60]){
  fixture();settings(steps,mode);rankingAssistanceUsed=false;
  const origin={...body},stance=[...grips],points=sample(30,-70,n),scale=steps/20;
- const expectedAction=fingerAction(points.map(p=>({dx:p.dx*(mode==='body'?scale:1),dy:p.dy*(mode==='body'?scale:1)})),mode==='limbs'?scale:1);
+ const expectedAction=fingerAction(points.map(p=>({dx:p.dx*(mode==='body'?scale:1),dy:p.dy*(mode==='body'?scale:1)})),1.5*(mode==='limbs'?scale:1));
  const expected=fingerGestureReplay(origin,stance,expectedAction);
  const actual=live(points);
  nearly(actual.p,expected.p);assert.deepEqual(actual.stance,ids(expected.stance));
@@ -20,13 +26,13 @@ for(const mode of ['limbs','body'])for(const steps of [5,20,30,60])for(const n o
 for(const mode of ['limbs','body']){
  fixture();settings(30,mode);const e=eventAtScreen(100,200);down(e);settings(60,mode==='body'?'limbs':'body');
  move(movedEvent(e,{dx:30,dy:-70}));release();
- assert.equal(lastFingerGesture.action.gain,mode==='limbs'?1.5:1);
+ assert.equal(lastFingerGesture.action.gain,mode==='limbs'?2.25:1.5);
  assert.deepEqual(lastFingerGesture.action.points,[{dx:mode==='body'?45:30,dy:mode==='body'?-105:-70}]);
  fixture();down(e);assert.equal(drag.swipeComparison.multiplier,3);release(true);
 }
 // Debug-off is exactly standard even after a high multiplier was selected.
 fixture();settings(60,'body');debugMode=false;let e=eventAtScreen(100,200);down(e);
-assert.equal(drag.swipeComparison.multiplier,1);assert.equal(drag.fingerAction.gain,1);release(true);
+assert.equal(drag.swipeComparison.multiplier,1);assert.equal(drag.fingerAction.gain,1.5);release(true);
 // UI guards, exact integer stepping, bounds, reset and mode.
 fixture();settings(20,'limbs');openSettings();assert(settingsOpen);assert.equal(ui.stageDebugDisplay.hidden,false);
 for(let i=0;i<10;i++)ui.debugSwipeMore.onclick();assert.equal(ui.debugSwipeValue.textContent,'1.50×');
@@ -46,7 +52,7 @@ const course=JSON.stringify({holds,route,hearts,stamina,HEIGHT});
 settings(30,'body');rankingAssistanceUsed=true;restartInput(0);
 assert.equal(debugSwipeComparison.steps,30);assert.equal(debugSwipeComparison.mode,'body');assert.equal(rankingAssistanceUsed,false);
 assert.equal(JSON.stringify({holds,route,hearts,stamina,HEIGHT}),course);
-assert(route.slice(1).every(p=>p.action.gain===1));
+assert(route.slice(1).every(p=>p.action.gain===1.5));
 return {checks};
 `);
 assert.equal(result.checks,24);console.log('PASS swipe comparison '+JSON.stringify(result));

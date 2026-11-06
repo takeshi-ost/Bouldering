@@ -69,7 +69,10 @@ test('score4 seed174 spike recipe generates deterministically and clears via act
  body={...route[0]};committed={...body};grips=[...initialGrips];startGrips=[...grips];hearts=[];stamina=first.stamina.initialStamina;moveCount=0;cameraIntro=null;hideStageHelp();settingsOpen=false;state='playing';
  const budget=stamina;
  for(let i=1;i<route.length;i++){
-  camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const event=p=>({clientX:p.x,clientY:p.y-camera});down(event(body));move(event(route[i]));release();
+  camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const origin={x:body.x,y:body.y-camera};
+  const event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
+  assert(validFingerAction(route[i].action));down(event({dx:0,dy:0}));
+  for(const point of route[i].action.points)move(event(point));release();
  }
  assert.equal(state,'won');assert.equal(moveCount,route.length-1);assert.equal(stamina,budget-moveCount);
  console.log(JSON.stringify({score:4,seed:174,spikePercent:10,candidates:first.report.spikes.candidateCount,actualSpikes:first.report.spikes.count,moves:moveCount,remaining:stamina,scope:'one direct recipe input clear, not universal solvability'}));

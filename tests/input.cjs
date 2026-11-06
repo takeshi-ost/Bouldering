@@ -25,8 +25,10 @@ function mouse(name,e){(name==='mousedown'?canvas.events:window.events)[name](e)
 function touch(name,touches,changed=touches){canvas.events[name]({touches,changedTouches:changed,preventDefault(){}});}
 function finger(id,e){return {...e,identifier:id};}
 function play(i) {
- camera=clamp(body.y-H*.6,0,HEIGHT-H);
- down(eventAt(body));move(eventAt(route[i]));release();
+ camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
+ const origin=eventAt(body),scale=canvas.getBoundingClientRect().width/W;
+ assert(validFingerAction(route[i].action));down(origin);
+ for(const point of route[i].action.points)move({...origin,clientX:origin.clientX+point.dx*scale,clientY:origin.clientY+point.dy*scale});release();
  assert.equal(moveCount,i);
 }
 function fixture() {
@@ -86,7 +88,8 @@ before=fixture();e=eventAt({x:body.x<200?380:20,y:body.y});mouse('mousedown',e);
 e=visibleEvent();mouse('mousedown',e);clock+=INPUT_CONFIG.tapMaxDuration+1;mouse('mouseup',e);assert.equal(moveCount,1);assert.equal(bodyTap,null);
 // Drag from the visible torso still performs an ordinary move, never Undo.
 before=fixture();e=visibleEvent();const r=canvas.getBoundingClientRect();
-const destination={...e,clientX:e.clientX+(route[2].x-body.x)*r.width/W,clientY:e.clientY+(route[2].y-body.y)*r.height/H};
+assert(validFingerAction(route[2].action));const gesture=route[2].action.points;assert.equal(gesture.length,1);
+const destination={...e,clientX:e.clientX+gesture[0].dx*r.width/W,clientY:e.clientY+gesture[0].dy*r.height/H};
 mouse('mousedown',e);assert(bodyTap);mouse('mousemove',destination);assert(!bodyTap && drag);
 mouse('mouseup',destination);assert.equal(moveCount,2);
 // Crossing the drag threshold and returning must not turn into a body tap.

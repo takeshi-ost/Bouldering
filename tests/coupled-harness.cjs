@@ -59,5 +59,5 @@ const reconstructed={HEIGHT:2100,origin:{x:297.7,y:340.6},gripIds:[43,45,47,48],
  // Display label 44 in the reconstructed screenshot, not raw ID 44.
  {id:42,x:342.6485503409058,y:196.60729175444263,type:'normal'}]};
 
-assert(fingerAimEnabled());assert(coupledBodyEnabled());assert.equal(fingerAimGain(),1);
+assert(fingerAimEnabled());assert(coupledBodyEnabled());assert.equal(fingerAimGain(),1.5);
 `+script)(require('node:assert/strict'),failures,{});};

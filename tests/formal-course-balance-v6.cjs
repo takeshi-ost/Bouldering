@@ -52,8 +52,10 @@ cameraIntro=null;hideStageHelp();settingsOpen=false;state='playing';
 const defaultBudget=stamina;const moves=route.length-1;
 for(let i=1;i<route.length&&state==='playing';i++){
  camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
- const event=p=>({clientX:p.x,clientY:p.y-camera});
- down(event(body));move(event(route[i]));release();
+ const origin={x:body.x,y:body.y-camera};
+ const event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
+ assert(validFingerAction(route[i].action));down(event({dx:0,dy:0}));
+ for(const point of route[i].action.points)move(event(point));release();
 }
 const physical={stage:shortStage,state,moves:moveCount,expectedMoves:moves,defaultBudget,remaining:stamina,picked:hearts.filter(h=>h.collected).length};
 assert.equal(moveCount,moves,'short-heart default input route did not finish');assert.equal(state,'won','short-heart default input route did not clear');

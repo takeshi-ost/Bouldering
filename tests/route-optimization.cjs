@@ -54,10 +54,10 @@ for(const mode of ['existing']) {
   const expectedPath=[...route];
   for(let i=1;i<expectedPath.length;i++) {
    camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
-   const origin={...body},target=expectedPath[i];
-   const event=p=>({clientX:p.x,clientY:p.y-camera});
-   down(event(origin));
-   for(let k=1;k<=10;k++)move(event({x:origin.x+(target.x-origin.x)*k/10,y:origin.y+(target.y-origin.y)*k/10}));
+   const origin={x:body.x,y:body.y-camera},target=expectedPath[i];
+   const event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
+   assert(validFingerAction(target.action));down(event({dx:0,dy:0}));
+   for(const point of fingerResampledAction(target.action,10).points)move(event(point));
    assert.deepEqual(drag.anchor,target.anchor,'Live support mismatch '+mode+'/'+n+'/'+i);
    assert.deepEqual(grips.map(h=>h?.id),target.grips,'Live contacts mismatch '+mode+'/'+n+'/'+i);
    release();assert.equal(moveCount,i,'Rejected shortcut '+mode+'/'+n+'/'+i);

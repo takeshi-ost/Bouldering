@@ -18,13 +18,13 @@ const DEBUG_FEATURES_ALLOWED = globalThis.location?.protocol === 'capacitor:'
     : true;
 let debugMode = false;
 const debugDisplay={route:true,holdNumbers:true,courseInfo:true};
-// Session-only comparison controls. Generation/replay defaults remain at 1.00.
+// Session-only comparison controls. 1.00 means the formal sensitivity for both live input and generation.
 const debugSwipeComparison={steps:20,mode:'limbs'};
 function liveSwipeComparison() {
     const enabled=DEBUG_FEATURES_ALLOWED && debugMode;
     const multiplier=enabled?debugSwipeComparison.steps/20:1;
     const bodyScale=enabled && debugSwipeComparison.mode==='body'?multiplier:1;
-    return {multiplier,bodyScale,aimGain:bodyScale===1?multiplier:1};
+    return {multiplier,bodyScale,aimGain:fingerAimGain()*(enabled && debugSwipeComparison.mode==='limbs'?multiplier:1)};
 }
 
 // Latched per attempt: turning a displayed route off (or undoing a move) never

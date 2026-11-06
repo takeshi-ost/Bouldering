@@ -24,7 +24,7 @@ test('tutorial preserves historical baseline witness and has fixed production co
  assert(!samePairRoute(route,changed),'Pruning fingerprint includes action');
  const changedTrace=JSON.parse(JSON.stringify(route));changedTrace[1].trace[0].x+=1;
  assert(!samePairRoute(route,changedTrace),'Pruning fingerprint includes heart sweep');
- assert(fingerAimEnabled());assert(coupledBodyEnabled());assert.equal(fingerRouteAction(0,-10).gain,1);assert.equal(fingerRouteAction(0,-10).bodyMotion,COUPLED_BODY_MODEL);
+ assert(fingerAimEnabled());assert(coupledBodyEnabled());assert.equal(fingerRouteAction(0,-10).gain,1.5);assert.equal(fingerRouteAction(0,-10).bodyMotion,COUPLED_BODY_MODEL);
 `));
 for(const subdivisions of [1,10])test('fixed tutorial wins with actual live input ('+subdivisions+' samples)',()=>engine(`
  const report=prepareTutorialCourse();const reference=route;body={...route[0]};committed={...body};grips=fingerRouteInitial();startGrips=[...grips];

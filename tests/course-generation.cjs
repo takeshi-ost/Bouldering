@@ -60,8 +60,10 @@ for(const mode of ['existing'])for(let kind=1;kind<COURSE_INTENTS.length;kind++)
  assert.equal(JSON.stringify({holds,route,hearts,stamina}),snapshot,'Retry changed the fixed recipe');
  for(let i=1;i<route.length;i++) {
   assert(stamina>0);camera=clamp(body.y-H*.6,0,HEIGHT-H);
-  const from={...body},to=route[i],e=p=>({clientX:p.x,clientY:p.y-camera});down(e(from));
-  for(let k=1;k<=10;k++)move(e({x:from.x+(to.x-from.x)*k/10,y:from.y+(to.y-from.y)*k/10}));
+  const origin={x:body.x,y:body.y-camera},action=route[i].action;
+  assert(validFingerAction(action),'Reference contains explicit live input');
+  const e=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});down(e({dx:0,dy:0}));
+  for(const point of fingerResampledAction(action,10).points)move(e(point));
   release();assert.equal(moveCount,i);assert.notEqual(state,'lost');
  }
  assert.equal(state,'won');assert.equal(stamina,resources.remaining);
@@ -76,8 +78,10 @@ forceType(1);debugCourseTrial.seed=6;courseMode='existing';reset(6);cameraIntro=
 assert.equal(hearts.length,2);assert.equal(routeResources(route).pickups,0);
 for(const heart of hearts)assert(findCourseHeartMove(heart,route));
 for(let i=1;i<route.length;i++) {
- camera=clamp(body.y-H*.6,0,HEIGHT-H);const e=p=>({clientX:p.x,clientY:p.y-camera});
- down(e(body));move(e(route[i]));release();assert.equal(moveCount,i);
+ camera=clamp(body.y-H*.6,0,HEIGHT-H);const origin={x:body.x,y:body.y-camera};
+ const e=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
+ assert(validFingerAction(route[i].action));down(e({dx:0,dy:0}));
+ for(const point of route[i].action.points)move(e(point));release();assert.equal(moveCount,i);
 }
 assert.equal(state,'won');assert(hearts.every(h=>!h.collected));assert.equal(stamina,3);
 // Formal Daily keeps its actual date-selected recipe, not a forced old family.

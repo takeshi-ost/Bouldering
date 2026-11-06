@@ -17,7 +17,7 @@ const resultRows=[];
 function check(name,fn){try{fn();console.log('PASS finger aim: '+name);}catch(e){failures.push({name,message:e.stack});console.error('FAIL finger aim: '+name+'\\n'+e.stack);}}
 const ids=stance=>stance?.map(h=>h?.id??null);
 const nearly=(a,b,label='point')=>assert(Math.abs(a.x-b.x)<1e-6&&Math.abs(a.y-b.y)<1e-6,label+': '+JSON.stringify([a,b]));
-const action=points=>({version:1,model:'finger-origin-v1',gain:1,points});
+const action=points=>({version:1,model:'finger-origin-v1',gain:fingerAimGain(),points});
 const pairs=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
 function sample(dx,dy,n=1){return Array.from({length:n},(_,i)=>({dx:dx*(i+1)/n,dy:dy*(i+1)/n}));}
 function fixture(custom=null){

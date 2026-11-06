@@ -18,7 +18,7 @@ return (async()=>{
    const report={validated:true},adjustment={initialStamina:6};
    const retry={version:COURSE_RETRY_CONFIG.version,initialSeed:request.resolved.seed,geometrySeed:request.resolved.seed,
     attempts:1,maxAttempts:COURSE_RETRY_CONFIG.maxAttempts};
-   const snapshot={holds:h,route:[{x:200,y:500},{x:200,y:168,grips:[3,3,1,2],anchor:[0,1],trace:[{x:200,y:500},{x:200,y:168}],action:{version:1,model:FINGER_AIM_MODEL,gain:1,bodyMotion:COUPLED_BODY_MODEL,points:[{dx:0,dy:-120}]}}],HEIGHT:700,
+   const snapshot={holds:h,route:[{x:200,y:500},{x:200,y:168,grips:[3,3,1,2],anchor:[0,1],trace:[{x:200,y:500},{x:200,y:168}],action:{version:1,model:FINGER_AIM_MODEL,gain:1.5,bodyMotion:COUPLED_BODY_MODEL,points:[{dx:0,dy:-120}]}}],HEIGHT:700,
     initialGrips:[h[0],h[0],h[1],h[2]],densityStats:{total:4},labSkeletonReport:report,labHeartsCache:[],labStaminaCache:adjustment,
     generatedCourse:{holds:h,hearts:[],level:request.level,difficulty:request.difficulty,typeId:request.courseTypeId,
      seed:request.resolved.seed,geometrySeed:request.resolved.seed,generationRetryVersion:retry.version,mode:'existing',generationScore:request.resolved.score},
@@ -99,6 +99,7 @@ return (async()=>{
   r=>r.request={...r.request,level:99},r=>r.snapshot.initialGrips[0]={...r.snapshot.holds[0]},
   r=>r.snapshot.activeCourseGeneration.recipe.seed++,r=>r.snapshot.activeCourseGeneration.initialStamina=Infinity,
   r=>r.snapshot.generatedCourse.holds=[],r=>r.snapshot.player={name:'forbidden'},
+  r=>r.snapshot.route[1].action.gain=1,
   r=>r.snapshot.route[1].action={version:1,model:'wrong',gain:1,points:[{dx:1,dy:2}]}]){
   clearAdoptedCourseCache();const job=prepareCourseAsync(5),rejected=assert.rejects(job.promise);workers.at(-1).reply(mutate);await rejected;
   assert.equal(adoptedCourseCache.size,0);

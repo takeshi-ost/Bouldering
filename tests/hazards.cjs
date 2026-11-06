@@ -10,7 +10,12 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
 `;
 new Function('assert',env+source+`
 function eventAt(p){return {clientX:p.x,clientY:p.y-camera};}
-function play(i){camera=clamp(body.y-H*.6,0,HEIGHT-H);down(eventAt(body));move(eventAt(route[i]));release();assert.equal(moveCount,i);}
+function play(i){
+ camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const origin={x:body.x,y:body.y-camera};
+ const event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
+ assert(validFingerAction(route[i].action));down(event({dx:0,dy:0}));
+ for(const point of route[i].action.points)move(event(point));release();assert.equal(moveCount,i);
+}
 // Final cost-aware route, playable optional branches, real budget and retry.
 const report=[];
 const applyRecipe=applyRouteHazards;
@@ -46,7 +51,9 @@ for(const mode of ['existing'])for(const n of [19,20,21,22,23]) {
   if(option) {
   for(let i=1;i<=option.step;i++)play(i);
   camera=clamp(body.y-H*.6,0,HEIGHT-H);
-  down(eventAt(body));const snapshot=moveSnapshot;move(eventAt(option.to));
+  const origin={x:body.x,y:body.y-camera},event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
+  assert(validFingerAction(option.action));down(event({dx:0,dy:0}));const snapshot=moveSnapshot;
+  for(const point of option.action.points)move(event(point));
   assert(grips.includes(hazards[0]));const fresh=new Set(grips.filter((h,i)=>h.type==='hazard' && h!==startGrips[i]));
   const gains=hearts.filter((h,i)=>h.collected&&!snapshot.collectedHearts[i]).length*2;
   release();assert.equal(stamina,Math.max(0,snapshot.stamina+gains-1-fresh.size*HAZARD_CONFIG.penalty));
