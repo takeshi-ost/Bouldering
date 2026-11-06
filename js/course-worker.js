@@ -1,5 +1,5 @@
 'use strict';
-globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"7bf3ba20e9947b2d7d32a25c05c974434e2a7d55dd3456d3a4945625bda6f1dc","sources":[{"path":"js/text-ja.js","sha256":"e6c72738624f5436fcb135e68beb0ac0c9996b940a7e47cecf969d01ce3310f2"},{"path":"js/text-en.js","sha256":"cb2a0389805574a2628e104efbce4df6bb56b2aaba3842b58bfee0b820ae002e"},{"path":"js/text-dev-ja.js","sha256":"f2435dbb1cf2883b9053501178fcc631b37d66695e00f0ba3388864c125b5e4e"},{"path":"js/config.js","sha256":"e21ca437b87168d4754e42b6078a4da435c3cf3edbd71f4fcdf1b30370a3d788"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"0505974081d03e89c9e54230d8e653aa6c682496cfa89d83cc42e45176dad5a0"},{"path":"js/finger-route.js","sha256":"8c445b6db553cfb99534a38c93dc09f261cce73c94c7ead0c7bbb683ae2542ba"},{"path":"js/game.js","sha256":"e5e584e758062adc3c70ba657f5465d81df94b877ee9007565c952c1db8c75b0"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"46b2c6008b5c24c0ad4f4f0c6cb2544cc05f76a42907e7497d44c0fd4de0f8a0"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"8d9e6e1124ed0a54482d6dc5510d84b3a8df2e5062a67ea89023d5748f22a67e"},{"path":"js/course-adoption.js","sha256":"503b31e4b3ac9e2e6e257ae67727e48b25665c0d7e17cf49e5a703db6e45fa7b"},{"path":"js/tutorial-course.js","sha256":"8a20e522866c3ec52d7f862f862a1b2e959ca634e18ad3785783932cb36af032"},{"path":"js/course-preparation.js","sha256":"8412e0a7b1966b13626627089824750877eaf0a1a8f5ae2778e07595a398812d"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"2af229de9ba06e2c42552e09165926395b42580cd2253d8f5c9450e8b888009c"},{"path":"scripts/build-course-worker.cjs","sha256":"4bfb04ed4c3ce0cb640299bab8ad28386961f0072a941093da5c111686740c3a"}]});
+globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"b90cc13b9416b5e222e3b0d7cf2ef54c749f3653967b935e0550e395e6a875c1","sources":[{"path":"js/text-ja.js","sha256":"43f73b2508c66c8651a960d7598f0fb666f0c70f9e5f077b81ef3438bbba62a9"},{"path":"js/text-en.js","sha256":"39c01738e75674667f714eb4c1b48b143e52660599fd0a898d195b34e0356287"},{"path":"js/text-dev-ja.js","sha256":"d1ef4396e939fa23c3a981b71385de1716fe9f42453aa8d367c58ed3ec2b7c52"},{"path":"js/config.js","sha256":"4c19d723b2aa4b8145fef8be15ffa5579d8e97c7ca5046214729e64822404c25"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"0505974081d03e89c9e54230d8e653aa6c682496cfa89d83cc42e45176dad5a0"},{"path":"js/finger-route.js","sha256":"8c445b6db553cfb99534a38c93dc09f261cce73c94c7ead0c7bbb683ae2542ba"},{"path":"js/game.js","sha256":"e6ef8ab2aff2f1aa463ec81d35f8d87d5f82ab3a4ce26dcd5606f37232780440"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"46b2c6008b5c24c0ad4f4f0c6cb2544cc05f76a42907e7497d44c0fd4de0f8a0"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"8d9e6e1124ed0a54482d6dc5510d84b3a8df2e5062a67ea89023d5748f22a67e"},{"path":"js/course-adoption.js","sha256":"503b31e4b3ac9e2e6e257ae67727e48b25665c0d7e17cf49e5a703db6e45fa7b"},{"path":"js/tutorial-course.js","sha256":"8a20e522866c3ec52d7f862f862a1b2e959ca634e18ad3785783932cb36af032"},{"path":"js/course-preparation.js","sha256":"8412e0a7b1966b13626627089824750877eaf0a1a8f5ae2778e07595a398812d"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"2af229de9ba06e2c42552e09165926395b42580cd2253d8f5c9450e8b888009c"},{"path":"scripts/build-course-worker.cjs","sha256":"4bfb04ed4c3ce0cb640299bab8ad28386961f0072a941093da5c111686740c3a"}]});
 globalThis.ASCENT_COURSE_WORKER=true;
 let debugAttempt=false;
 function isTutorialRun(){return tutorialRun!==null;}
@@ -12,7 +12,7 @@ const GAME_TEXT_JA = Object.freeze({
     "course-preparation.retry": "準備をやり直す",
     "course-preparation.error": "コースを準備できませんでした。やり直すか、閉じて開き直してください。",
     "online-scores.pendingBlocked": "未送信記録を保護しています。通信を停止しました。",
-    "formal.ranking.localOnly": "パス表示を使用した記録です。進行は保存されますが、ランキングには送信されません。",
+    "formal.ranking.localOnly": "デバッグ補助を使用した記録です。進行は保存されますが、ランキングには送信されません。",
     "formal.seed.label": "DEBUG SEED 補正値",
     "formal.seed.apply": "適用",
     "formal.seed.help": "通常プレイは +10 固定です。DEBUG の補正値は次の検証用ステージから使用し、進行・正式記録には保存しません。デイリーは変わりません。",
@@ -293,11 +293,20 @@ const GAME_TEXT_JA = Object.freeze({
 // English copy aligned with the Japanese player and maintenance catalogs.
 // Placeholder names and intentionally empty help blocks match the Japanese source.
 const GAME_TEXT_EN = Object.freeze({
+    "debug.swipe.title": "Swipe sensitivity comparison",
+    "debug.swipe.less": "Decrease sensitivity by 0.05",
+    "debug.swipe.more": "Increase sensitivity by 0.05",
+    "debug.swipe.reset": "Reset to 1.00× (standard)",
+    "debug.swipe.mode": "Apply to",
+    "debug.swipe.limbs": "Limb aiming only",
+    "debug.swipe.body": "Include body",
+    "debug.swipe.help": "Steps of 0.05, from 0.25× to 3.00×. Applies to the next swipe. 1.00× matches release 0.5.3. Settings survive retries and reset on reload. Courses and expected routes are unchanged. Runs using nonstandard sensitivity are excluded from rankings.",
+
     "course-preparation.loading": "Preparing course…",
     "course-preparation.retry": "Retry preparation",
     "course-preparation.error": "Could not prepare the course. Please retry or close and reopen.",
     "online-scores.pendingBlocked": "Pending records are protected. Sync has been stopped.",
-    "formal.ranking.localOnly": "This run used the route display. Progress is saved, but this record is not submitted to rankings.",
+    "formal.ranking.localOnly": "This run used debug assistance. Progress is saved, but this record is not submitted to rankings.",
     "formal.seed.label": "DEBUG SEED offset",
     "formal.seed.apply": "Apply",
     "formal.seed.help": "Normal play always uses +10. This DEBUG offset applies from the next test stage, and test results are not saved as progress or official records. Daily is unchanged.",
@@ -616,6 +625,15 @@ const GAME_TEXT_EN_ONE = Object.freeze({
 "use strict";
 // Japanese source for active debug tools and account maintenance; English counterparts are in text-en.js.
 const GAME_DEV_TEXT_JA = Object.freeze({
+    "debug.swipe.title": "スワイプ感度の比較",
+    "debug.swipe.less": "感度を0.05下げる",
+    "debug.swipe.more": "感度を0.05上げる",
+    "debug.swipe.reset": "1.00倍（標準）に戻す",
+    "debug.swipe.mode": "適用先",
+    "debug.swipe.limbs": "四肢の狙いだけ",
+    "debug.swipe.body": "ボディも含む",
+    "debug.swipe.help": "0.05刻み・0.25〜3.00倍。次のスワイプから反映。1.00倍は公開版0.5.3と同じです。設定はリトライ後も維持し、再読み込みで標準に戻ります。コース・想定ルートは変わりません。標準以外で操作した記録はランキング対象外です。",
+
     "account-deletion": "ユーザーデータの削除を待っています",
     "account-deletion.2": "端末の保存データを初期化できませんでした。",
     "account-deletion.deleteCurrentAccount": "削除が完了していません。接続とFirestoreのルールを確認して再試行してください。",
@@ -664,7 +682,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.4';
+const RELEASE_VERSION = '0.5.5';
 const GAMEPLAY_TIP_KEYS = [
     'tips.scroll', 'tips.undo', 'tips.reach',
     'tips.goal', 'tips.heart', 'tips.cancel', 'tips.appearance'
@@ -1971,7 +1989,7 @@ const canvas = COURSE_WORKER_MODE ? null : document.getElementById("game");
 const ctx = COURSE_WORKER_MODE ? null : canvas.getContext("2d");
 const ui = COURSE_WORKER_MODE ? null : Object.fromEntries([
     "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
-    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapSettingsDebug", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
+    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "debugSwipeValue", "debugSwipeLess", "debugSwipeMore", "debugSwipeReset", "debugSwipeMode", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapSettingsDebug", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
     "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugCourseType", "debugCourseLength", "debugGenerate", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "paletteSwatches", "editorRandom", "editorConfirm", "editorCancel",
     "mapSettingsLanguage", "languageChoice", "titleWallpaper", "titleTransfer", "titleScreen", "releaseVersion", "playerUuid", "titleTap", "showHelp", "helpDialog", "helpScroll", "closeHelp"
@@ -1984,6 +2002,15 @@ const DEBUG_FEATURES_ALLOWED = globalThis.location?.protocol === 'capacitor:'
     : true;
 let debugMode = false;
 const debugDisplay={route:true,holdNumbers:true,courseInfo:true};
+// Session-only comparison controls. Generation/replay defaults remain at 1.00.
+const debugSwipeComparison={steps:20,mode:'limbs'};
+function liveSwipeComparison() {
+    const enabled=DEBUG_FEATURES_ALLOWED && debugMode;
+    const multiplier=enabled?debugSwipeComparison.steps/20:1;
+    const bodyScale=enabled && debugSwipeComparison.mode==='body'?multiplier:1;
+    return {multiplier,bodyScale,aimGain:bodyScale===1?multiplier:1};
+}
+
 // Latched per attempt: turning a displayed route off (or undoing a move) never
 // makes an assisted attempt eligible for the formal leaderboard again.
 let rankingAssistanceUsed=false;
@@ -2792,12 +2819,13 @@ function down(e) {
         joints:jointHistory.map(p=>p && ({...p}))
     };
     resetCharacterAnimation();
+    const swipeComparison=liveSwipeComparison();
     drag = {
         dx: body.x - p.x,
         dy: body.y - p.y,
         anchor: null,
         ...(typeof fingerAimEnabled === 'function' && fingerAimEnabled() ? { fingerOrigin: {x:e.clientX,y:e.clientY,width:canvas.getBoundingClientRect().width},
-            fingerAction: fingerAction([], 1.5), fingerTrace: [{...body}] } : {})
+            fingerAction: fingerAction([],swipeComparison.aimGain), swipeComparison, fingerTrace: [{...body}] } : {})
     };
 
     committed = { ...body };
@@ -2871,8 +2899,9 @@ function move(e) {
 // recentering, starting point, and the number/timing of move events.
 function moveFingerGesture(e) {
     const origin = drag.fingerOrigin;
-    const delta = { dx: (e.clientX-origin.x)*400/origin.width,
-        dy: (e.clientY-origin.y)*400/origin.width };
+    const scale=drag.swipeComparison?.bodyScale ?? 1;
+    const delta = { dx: (e.clientX-origin.x)*400/origin.width*scale,
+        dy: (e.clientY-origin.y)*400/origin.width*scale };
     const last = drag.fingerAction.points.at(-1);
     if (last && last.dx === delta.dx && last.dy === delta.dy) return;
     const previousBody = {...body};
@@ -2894,6 +2923,7 @@ function moveFingerGesture(e) {
     if(coupled){drag.fingerTrace=next.trace.map(p=>({...p}));drag.motionCache=next.motionCache;drag.cancelAtOrigin=next.cancelAtOrigin;}
     else drag.fingerTrace.push({...next.p});
     if (!next.active) return;
+    if((drag.swipeComparison?.multiplier ?? 1)!==1)rankingAssistanceUsed=true;
     const freshContacts = next.stance.filter((h,i) => h && h !== grips[i] && !drag.anchor.includes(i));
     if (freshContacts.length && !freshContacts.some(h => h.type === 'hazard')) playSound('contact');
     body = next.p; grips = next.stance;

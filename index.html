@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=29652558e0cc">
+    <link rel="stylesheet" href="styles.css?v=9cc66bfa9f05">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=8adae9aa1630" defer></script>
-    <script src="js/text-ja.js?v=e6c72738624f" defer></script>
-    <script src="js/text-en.js?v=cb2a03898055" defer></script>
-    <script src="js/text-dev-ja.js?v=f2435dbb1cf2" defer></script>
+    <script src="js/text-ja.js?v=43f73b2508c6" defer></script>
+    <script src="js/text-en.js?v=39c01738e756" defer></script>
+    <script src="js/text-dev-ja.js?v=d1ef4396e939" defer></script>
     <script src="js/text.js?v=c7df5d2ebf70" defer></script>
     <script src="js/score-metadata.js?v=ad0e02f921ca" defer></script>
-    <script src="js/config.js?v=e21ca437b871" defer></script>
+    <script src="js/config.js?v=4c19d723b2aa" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=3438658870e1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -27,14 +27,14 @@
     <script src="js/stage.js?v=1c768a6ef803" defer></script>
     <script src="js/finger-aim.js?v=0505974081d0" defer></script>
     <script src="js/finger-route.js?v=8c445b6db553" defer></script>
-    <script src="js/game.js?v=e5e584e75806" defer></script>
+    <script src="js/game.js?v=e6ef8ab2aff2" defer></script>
     <script src="js/route.js?v=f979755a04ec" defer></script>
     <script src="js/course.js?v=be5a5b1d78a1" defer></script>
     <script src="js/hazards.js?v=46b2c6008b5c" defer></script>
     <script src="js/course-stamina-settings.js?v=e5a64ef8dafb" defer></script>
     <script src="js/course-generator-core.js?v=8d9e6e1124ed" defer></script>
     <script src="js/course-adoption.js?v=503b31e4b3ac" defer></script>
-    <script src="js/course-preparation-build.js?v=4ea64839248e" defer></script>
+    <script src="js/course-preparation-build.js?v=902d27f8fbe0" defer></script>
     <script src="js/course-preparation.js?v=8412e0a7b196" defer></script>
     <script src="js/tutorial-course.js?v=8a20e522866c" defer></script>
     <script src="js/map-art.js?v=ba5492a063da" defer></script>
@@ -44,7 +44,7 @@
     <script src="js/lives.js?v=43566a05fc33" defer></script>
     <script src="js/rewards.js?v=bca1d0759442" defer></script>
     <script src="js/debug-course.js?v=0c8b33d2cd64" defer></script>
-    <script src="js/input.js?v=619e6cb788f5" defer></script>
+    <script src="js/input.js?v=29865f8bc561" defer></script>
     <script src="js/renderer.js?v=c0d370b61ec7" defer></script>
     <script src="js/help-illustrations.js?v=3aa3b1ddec68" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
@@ -311,6 +311,17 @@
                 <button id="debugDeleteUser" class="account-delete-button" hidden data-i18n="ui.debugDeleteUser"></button>
             </div>
             <div id="stageDebugDisplay" hidden>
+                <fieldset class="debug-swipe-settings">
+                    <legend data-i18n="debug.swipe.title"></legend>
+                    <div class="debug-swipe-stepper">
+                        <button id="debugSwipeLess" type="button" class="secondary" data-i18n-aria-label="debug.swipe.less">−</button>
+                        <output id="debugSwipeValue" aria-live="polite">1.00×</output>
+                        <button id="debugSwipeMore" type="button" class="secondary" data-i18n-aria-label="debug.swipe.more">＋</button>
+                    </div>
+                    <button id="debugSwipeReset" type="button" class="secondary" data-i18n="debug.swipe.reset"></button>
+                    <label class="settings-row" for="debugSwipeMode"><span data-i18n="debug.swipe.mode"></span><select id="debugSwipeMode"><option value="limbs" data-i18n="debug.swipe.limbs"></option><option value="body" data-i18n="debug.swipe.body"></option></select></label>
+                    <p class="debug-swipe-help" data-i18n="debug.swipe.help"></p>
+                </fieldset>
                 <label class="settings-row" for="debugRoute"><span data-i18n="ui.stageDebugDisplay.label.span"></span><input id="debugRoute" type="checkbox" checked></label>
                 <label class="settings-row" for="debugHoldNumbers"><span data-i18n="ui.stageDebugDisplay.label.span.2"></span><input id="debugHoldNumbers" type="checkbox" checked></label>
                 <label class="settings-row" for="debugCourseInfo"><span data-i18n="ui.stageDebugDisplay.label.span.3"></span><input id="debugCourseInfo" type="checkbox" checked></label>

@@ -2,11 +2,20 @@
 // English copy aligned with the Japanese player and maintenance catalogs.
 // Placeholder names and intentionally empty help blocks match the Japanese source.
 const GAME_TEXT_EN = Object.freeze({
+    "debug.swipe.title": "Swipe sensitivity comparison",
+    "debug.swipe.less": "Decrease sensitivity by 0.05",
+    "debug.swipe.more": "Increase sensitivity by 0.05",
+    "debug.swipe.reset": "Reset to 1.00× (standard)",
+    "debug.swipe.mode": "Apply to",
+    "debug.swipe.limbs": "Limb aiming only",
+    "debug.swipe.body": "Include body",
+    "debug.swipe.help": "Steps of 0.05, from 0.25× to 3.00×. Applies to the next swipe. 1.00× matches release 0.5.3. Settings survive retries and reset on reload. Courses and expected routes are unchanged. Runs using nonstandard sensitivity are excluded from rankings.",
+
     "course-preparation.loading": "Preparing course…",
     "course-preparation.retry": "Retry preparation",
     "course-preparation.error": "Could not prepare the course. Please retry or close and reopen.",
     "online-scores.pendingBlocked": "Pending records are protected. Sync has been stopped.",
-    "formal.ranking.localOnly": "This run used the route display. Progress is saved, but this record is not submitted to rankings.",
+    "formal.ranking.localOnly": "This run used debug assistance. Progress is saved, but this record is not submitted to rankings.",
     "formal.seed.label": "DEBUG SEED offset",
     "formal.seed.apply": "Apply",
     "formal.seed.help": "Normal play always uses +10. This DEBUG offset applies from the next test stage, and test results are not saved as progress or official records. Daily is unchanged.",

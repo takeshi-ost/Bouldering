@@ -5,7 +5,7 @@ const GAME_TEXT_JA = Object.freeze({
     "course-preparation.retry": "準備をやり直す",
     "course-preparation.error": "コースを準備できませんでした。やり直すか、閉じて開き直してください。",
     "online-scores.pendingBlocked": "未送信記録を保護しています。通信を停止しました。",
-    "formal.ranking.localOnly": "パス表示を使用した記録です。進行は保存されますが、ランキングには送信されません。",
+    "formal.ranking.localOnly": "デバッグ補助を使用した記録です。進行は保存されますが、ランキングには送信されません。",
     "formal.seed.label": "DEBUG SEED 補正値",
     "formal.seed.apply": "適用",
     "formal.seed.help": "通常プレイは +10 固定です。DEBUG の補正値は次の検証用ステージから使用し、進行・正式記録には保存しません。デイリーは変わりません。",

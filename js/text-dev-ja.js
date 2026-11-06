@@ -1,6 +1,15 @@
 "use strict";
 // Japanese source for active debug tools and account maintenance; English counterparts are in text-en.js.
 const GAME_DEV_TEXT_JA = Object.freeze({
+    "debug.swipe.title": "スワイプ感度の比較",
+    "debug.swipe.less": "感度を0.05下げる",
+    "debug.swipe.more": "感度を0.05上げる",
+    "debug.swipe.reset": "1.00倍（標準）に戻す",
+    "debug.swipe.mode": "適用先",
+    "debug.swipe.limbs": "四肢の狙いだけ",
+    "debug.swipe.body": "ボディも含む",
+    "debug.swipe.help": "0.05刻み・0.25〜3.00倍。次のスワイプから反映。1.00倍は公開版0.5.3と同じです。設定はリトライ後も維持し、再読み込みで標準に戻ります。コース・想定ルートは変わりません。標準以外で操作した記録はランキング対象外です。",
+
     "account-deletion": "ユーザーデータの削除を待っています",
     "account-deletion.2": "端末の保存データを初期化できませんでした。",
     "account-deletion.deleteCurrentAccount": "削除が完了していません。接続とFirestoreのルールを確認して再試行してください。",

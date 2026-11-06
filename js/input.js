@@ -272,6 +272,23 @@ for(const [key,control] of Object.entries(debugDisplayControls)) {
         updateUI();
     };
 }
+function syncDebugSwipeControls() {
+    ui.debugSwipeValue.textContent=(debugSwipeComparison.steps/20).toFixed(2)+'×';
+    ui.debugSwipeLess.disabled=debugSwipeComparison.steps<=5;
+    ui.debugSwipeMore.disabled=debugSwipeComparison.steps>=60;
+    ui.debugSwipeMode.value=debugSwipeComparison.mode;
+}
+function changeDebugSwipe(change) {
+    if(!DEBUG_FEATURES_ALLOWED || !debugMode || state!=='playing' || !settingsOpen)return;
+    change();syncDebugSwipeControls();
+}
+ui.debugSwipeLess.onclick=()=>changeDebugSwipe(()=>{debugSwipeComparison.steps=Math.max(5,debugSwipeComparison.steps-1);});
+ui.debugSwipeMore.onclick=()=>changeDebugSwipe(()=>{debugSwipeComparison.steps=Math.min(60,debugSwipeComparison.steps+1);});
+ui.debugSwipeReset.onclick=()=>changeDebugSwipe(()=>{debugSwipeComparison.steps=20;});
+ui.debugSwipeMode.onchange=()=>{
+    changeDebugSwipe(()=>{debugSwipeComparison.mode=ui.debugSwipeMode.value==='body'?'body':'limbs';});
+    syncDebugSwipeControls();
+};
 function openSettings() {
     const onMap=['map','daily'].includes(state);
     if(settingsOpen || stageStartContext || (onMap ? !!mapTransition || mapPreparing : state!=='playing' || cameraIntro || featureHelpOpen))return;
@@ -282,6 +299,7 @@ function openSettings() {
     if(typeof refreshSettingsConnection==='function')refreshSettingsConnection();
     syncAudioControls();
     ui.stageDebugDisplay.hidden=onMap || !debugMode;
+    syncDebugSwipeControls();
     for(const [key,control] of Object.entries(debugDisplayControls))control.checked=debugDisplay[key];
     ui.mapDebugMode.checked=debugMode;
     syncDebugCourseControls();

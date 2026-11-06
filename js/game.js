@@ -5,7 +5,7 @@ const canvas = COURSE_WORKER_MODE ? null : document.getElementById("game");
 const ctx = COURSE_WORKER_MODE ? null : canvas.getContext("2d");
 const ui = COURSE_WORKER_MODE ? null : Object.fromEntries([
     "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
-    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapSettingsDebug", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
+    "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "debugSwipeValue", "debugSwipeLess", "debugSwipeMore", "debugSwipeReset", "debugSwipeMode", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapSettingsDebug", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
     "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugCourseType", "debugCourseLength", "debugGenerate", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "paletteSwatches", "editorRandom", "editorConfirm", "editorCancel",
     "mapSettingsLanguage", "languageChoice", "titleWallpaper", "titleTransfer", "titleScreen", "releaseVersion", "playerUuid", "titleTap", "showHelp", "helpDialog", "helpScroll", "closeHelp"
@@ -18,6 +18,15 @@ const DEBUG_FEATURES_ALLOWED = globalThis.location?.protocol === 'capacitor:'
     : true;
 let debugMode = false;
 const debugDisplay={route:true,holdNumbers:true,courseInfo:true};
+// Session-only comparison controls. Generation/replay defaults remain at 1.00.
+const debugSwipeComparison={steps:20,mode:'limbs'};
+function liveSwipeComparison() {
+    const enabled=DEBUG_FEATURES_ALLOWED && debugMode;
+    const multiplier=enabled?debugSwipeComparison.steps/20:1;
+    const bodyScale=enabled && debugSwipeComparison.mode==='body'?multiplier:1;
+    return {multiplier,bodyScale,aimGain:bodyScale===1?multiplier:1};
+}
+
 // Latched per attempt: turning a displayed route off (or undoing a move) never
 // makes an assisted attempt eligible for the formal leaderboard again.
 let rankingAssistanceUsed=false;
@@ -826,12 +835,13 @@ function down(e) {
         joints:jointHistory.map(p=>p && ({...p}))
     };
     resetCharacterAnimation();
+    const swipeComparison=liveSwipeComparison();
     drag = {
         dx: body.x - p.x,
         dy: body.y - p.y,
         anchor: null,
         ...(typeof fingerAimEnabled === 'function' && fingerAimEnabled() ? { fingerOrigin: {x:e.clientX,y:e.clientY,width:canvas.getBoundingClientRect().width},
-            fingerAction: fingerAction([], 1.5), fingerTrace: [{...body}] } : {})
+            fingerAction: fingerAction([],swipeComparison.aimGain), swipeComparison, fingerTrace: [{...body}] } : {})
     };
 
     committed = { ...body };
@@ -905,8 +915,9 @@ function move(e) {
 // recentering, starting point, and the number/timing of move events.
 function moveFingerGesture(e) {
     const origin = drag.fingerOrigin;
-    const delta = { dx: (e.clientX-origin.x)*400/origin.width,
-        dy: (e.clientY-origin.y)*400/origin.width };
+    const scale=drag.swipeComparison?.bodyScale ?? 1;
+    const delta = { dx: (e.clientX-origin.x)*400/origin.width*scale,
+        dy: (e.clientY-origin.y)*400/origin.width*scale };
     const last = drag.fingerAction.points.at(-1);
     if (last && last.dx === delta.dx && last.dy === delta.dy) return;
     const previousBody = {...body};
@@ -928,6 +939,7 @@ function moveFingerGesture(e) {
     if(coupled){drag.fingerTrace=next.trace.map(p=>({...p}));drag.motionCache=next.motionCache;drag.cancelAtOrigin=next.cancelAtOrigin;}
     else drag.fingerTrace.push({...next.p});
     if (!next.active) return;
+    if((drag.swipeComparison?.multiplier ?? 1)!==1)rankingAssistanceUsed=true;
     const freshContacts = next.stance.filter((h,i) => h && h !== grips[i] && !drag.anchor.includes(i));
     if (freshContacts.length && !freshContacts.some(h => h.type === 'hazard')) playSound('contact');
     body = next.p; grips = next.stance;

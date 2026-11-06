@@ -707,3 +707,11 @@ dialog.help-dialog { max-height:min(560px,calc(var(--viewport-height,700px) - 32
 #formalDebugSeed button{min-height:44px}
 #formalDebugSeed p{overflow-wrap:anywhere}
 #formalDebugSeed[hidden]{display:none!important}
+
+.debug-swipe-settings { min-width:0; margin:16px 0; padding:12px; border:1px solid #c7d2bf; border-radius:10px; }
+.debug-swipe-settings legend { padding:0 6px; font-size:14px; }
+.debug-swipe-stepper { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.debug-swipe-stepper button { min-width:56px; min-height:48px; margin:0; font-size:22px; }
+.debug-swipe-stepper output { font-size:24px; font-variant-numeric:tabular-nums; }
+#debugSwipeReset { width:100%; min-height:44px; margin-top:10px; }
+.debug-swipe-help { font-size:12px; line-height:1.6; margin:12px 0 0; }
