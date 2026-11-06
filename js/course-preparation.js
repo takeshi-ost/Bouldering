@@ -23,7 +23,7 @@ function coursePreparationRuntimeConfig() {
 function coursePreparationIdentity(n,profile=null) {
     const request=adoptedCourseRequest(n,profile);
     if(!Number.isSafeInteger(n)||n<1||n>=Number.MAX_SAFE_INTEGER||
-        (profile && (n!==1||profile.typeId!==generationTypeForScore(request.resolved.score))))
+        (profile && (n!==(profile.kind==='score'?2:1)||profile.typeId!==generationTypeForScore(request.resolved.score))))
         throw coursePreparationError('COURSE_PREPARATION_REQUEST');
     return request;
 }

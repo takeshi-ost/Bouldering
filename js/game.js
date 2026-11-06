@@ -6,7 +6,7 @@ const ctx = COURSE_WORKER_MODE ? null : canvas.getContext("2d");
 const ui = COURSE_WORKER_MODE ? null : Object.fromEntries([
     "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "debugSwipeValue", "debugSwipeLess", "debugSwipeMore", "debugSwipeReset", "debugSwipeMode", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapSettingsDebug", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
-    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugCourseType", "debugCourseLength", "debugGenerate", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
+    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugCourseType", "debugCourseLength", "debugScoreLoading", "debugScoreCancel", "debugScoreStart", "debugScoreNext", "debugGenerate", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "paletteSwatches", "editorRandom", "editorConfirm", "editorCancel",
     "mapSettingsLanguage", "languageChoice", "titleWallpaper", "titleTransfer", "titleScreen", "releaseVersion", "playerUuid", "titleTap", "showHelp", "helpDialog", "helpScroll", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
@@ -144,6 +144,8 @@ let difficulty = 0; // Internal legacy generation family, not a course-type ID.
 let courseTypeId = 0;
 let debugCourseTrial = null;
 let debugHelpBefore = null;
+function activeDebugScoreTrial(){return activeDebugCourse()?.kind==='score';}
+function debugCourseTitle(){return activeDebugScoreTrial()?gameText('debug.score.current',{value0:debugCourseTrial.score}):gameText('debug.trialTitle',{value0:courseTypeId});}
 function activeDebugCourse(){return DEBUG_FEATURES_ALLOWED && debugMode && typeof debugAttempt!=='undefined' && debugAttempt && debugCourseTrial;}
 let holds = [];
 let route = [];
@@ -645,7 +647,7 @@ function restoreMoveStamina(saved) {
 function prepareCurrentStage() {
     courseMode='existing'; // Old experimental modes cannot enter generation.
     if(typeof isTutorialRun==='function' && isTutorialRun())return prepareTutorialCourse();
-    if(!activeDebugCourse())return prepareAdoptedCourse();
+    if(!activeDebugCourse() || activeDebugScoreTrial())return prepareAdoptedCourse();
     activeCourseGeneration=null;
     generatedCourse=null;
     if(dailyRun)dailyRun.seed=dailyRun.baseSeed;
@@ -754,7 +756,7 @@ function reset(n,staminaBonus=0) {
     ui.characterEditor.hidden=true;
     ui.restart.disabled = false;
 
-    ui.level.textContent = activeDebugCourse() ? gameText("debug.trialTitle",{value0:courseTypeId}) : dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
+    ui.level.textContent = activeDebugCourse() ? debugCourseTitle() : dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
     ui.next.hidden=true;
     ui.retry.hidden=false;
     ui.dailyCalendar.hidden=true;
@@ -1104,7 +1106,8 @@ function finish(won) {
     ui.next.textContent=dailyRun?gameText("action.returnCalendar"):gameText("action.returnMap");
     ui.retry.hidden=won;
     ui.closeResult.hidden=won;
-    ui.resultTap.hidden=!won;
+    ui.resultTap.hidden=!won || activeDebugScoreTrial();
+    if(activeDebugScoreTrial() && won){ui.next.hidden=false;ui.next.textContent=debugCourseTrial.score<100?gameText('debug.score.next'):gameText('debug.score.done');}
     ui.overlay.classList.toggle('is-clear',won);
     ui.retry.textContent=dailyRun?gameText("action.retry"):gameText("action.retryEnglish");
 

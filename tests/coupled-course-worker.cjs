@@ -25,10 +25,10 @@ function invoke(input){
   });worker.postMessage(input);
  });
 }
-function fixture({offset=10,date=null,n=1}={}){
+function fixture({offset=10,date=null,n=1,score=null}={}){
  return run(`
   CourseProgressionConfig.normalSeedOffset=${offset};
-  const profile=${date?`dailyProfile(${JSON.stringify(date)})`:'null'};
+  const profile=${score?`{kind:'score',score:${score},seed:${score+10},typeId:generationTypeForScore(${score})}`:date?`dailyProfile(${JSON.stringify(date)})`:'null'};
   const request=coursePreparationIdentity(${n},profile),signature=refreshAdoptedCourseCacheDependencies();
   return {input:{protocol:1,requestId:1,buildId:globalThis.ASCENT_COURSE_BUILD.id,request,
     portable:coursePreparationPortableSignature(),runtime:coursePreparationRuntimeConfig()},
@@ -41,18 +41,19 @@ function fixture({offset=10,date=null,n=1}={}){
     assert.equal(result.snapshot.initialGrips[0],result.snapshot.holds.find(h=>h.id===result.snapshot.initialGrips[0].id));
     assert.equal(result.snapshot.generatedCourse.holds,result.snapshot.holds);
     assert.equal(result.snapshot.activeCourseGeneration.report,result.snapshot.labSkeletonReport);
-    stagePreview(${n},'existing',profile);
+    if(profile?.kind==='score'){level=${n};difficulty=request.difficulty;courseTypeId=request.courseTypeId;debugAttempt=debugMode=true;debugCourseTrial=profile;prepareAdoptedCourse();}
+    else stagePreview(${n},'existing',profile);
     const direct=adoptedCourseCache.get(adoptedCourseCacheKey(request,signature));
     const actualJSON=JSON.stringify(result.snapshot),expectedJSON=JSON.stringify(direct);
     if(actualJSON!==expectedJSON){let at=0;while(at<actualJSON.length&&actualJSON[at]===expectedJSON[at])at++;throw Error('Worker/direct first difference at '+at+' actual '+actualJSON.slice(at-100,at+250)+' expected '+expectedJSON.slice(at-100,at+250));}
     assert.deepEqual(result.snapshot,direct);
     const lease={request,signature,snapshot:freezeAdoptedCourse(result.snapshot),cancelled:false};
-    clearAdoptedCourseCache();dailyRun=profile?{...profile}:null;
+    clearAdoptedCourseCache();dailyRun=profile && profile.kind!=='score'?{...profile}:null;
     withPreparedCourse(lease,${n},profile,()=>reset(${n}));
     assert.notEqual(holds,lease.snapshot.holds);assert.notEqual(route,lease.snapshot.route);
     assert.equal(generatedCourse.holds,holds);assert(initialGrips.every(h=>holds.includes(h)));
     assert.equal(stamina,lease.snapshot.activeCourseGeneration.initialStamina);
-    assert.equal(rankingAttemptEligible(),true);
+    assert.equal(rankingAttemptEligible(),profile?.kind!=='score');
     assert.equal(activeCourseGeneration.retry.geometrySeed,lease.snapshot.activeCourseGeneration.retry.geometrySeed);
    }};
  `);
@@ -67,6 +68,7 @@ function fixture({offset=10,date=null,n=1}={}){
  console.log('PASS course worker: current deterministic bundle, no imports/DOM/storage/network, malformed request/build/config rejects');
  if(process.argv.includes('--real')){
   const scenarios=process.argv.includes('--extended')?[{}, {offset:0}, {offset:4294967295}, {date:'2026-11-05',offset:0}]:[{}];
+  scenarios.push({n:2,score:1});
   for(const options of scenarios){
    const test=fixture(options),start=Date.now(),result=await invoke(test.input);
    test.compare(result);

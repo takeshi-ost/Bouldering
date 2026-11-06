@@ -2,6 +2,13 @@
 // English copy aligned with the Japanese player and maintenance catalogs.
 // Placeholder names and intentionally empty help blocks match the Japanese source.
 const GAME_TEXT_EN = Object.freeze({
+    "debug.score.start": "Play scores 1–100 in order",
+    "debug.score.help": "One course per production difficulty score. Retries use the same layout. Clear to continue, or use Next score to skip. Records, lives and rewards are unaffected.",
+    "debug.score.current": "SCORE {value0} / 100",
+    "debug.score.next": "Next score",
+    "debug.score.retry": "Retry this score",
+    "debug.score.done": "Trial complete · Map",
+
     "debug.swipe.title": "Swipe sensitivity comparison",
     "debug.swipe.less": "Decrease sensitivity by 0.05",
     "debug.swipe.more": "Increase sensitivity by 0.05",

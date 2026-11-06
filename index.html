@@ -4,15 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=9cc66bfa9f05">
+    <link rel="stylesheet" href="styles.css?v=1009268cf9e0">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=8adae9aa1630" defer></script>
     <script src="js/text-ja.js?v=43f73b2508c6" defer></script>
-    <script src="js/text-en.js?v=39c01738e756" defer></script>
-    <script src="js/text-dev-ja.js?v=d1ef4396e939" defer></script>
+    <script src="js/text-en.js?v=8f619015a7b8" defer></script>
+    <script src="js/text-dev-ja.js?v=d53db3d5f5ba" defer></script>
     <script src="js/text.js?v=c7df5d2ebf70" defer></script>
     <script src="js/score-metadata.js?v=ad0e02f921ca" defer></script>
-    <script src="js/config.js?v=4c19d723b2aa" defer></script>
+    <script src="js/config.js?v=1d1dfce448ae" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=3438658870e1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -27,15 +27,15 @@
     <script src="js/stage.js?v=1c768a6ef803" defer></script>
     <script src="js/finger-aim.js?v=0505974081d0" defer></script>
     <script src="js/finger-route.js?v=8c445b6db553" defer></script>
-    <script src="js/game.js?v=e6ef8ab2aff2" defer></script>
+    <script src="js/game.js?v=f8de0881ef92" defer></script>
     <script src="js/route.js?v=f979755a04ec" defer></script>
     <script src="js/course.js?v=be5a5b1d78a1" defer></script>
     <script src="js/hazards.js?v=46b2c6008b5c" defer></script>
     <script src="js/course-stamina-settings.js?v=e5a64ef8dafb" defer></script>
     <script src="js/course-generator-core.js?v=8d9e6e1124ed" defer></script>
-    <script src="js/course-adoption.js?v=503b31e4b3ac" defer></script>
-    <script src="js/course-preparation-build.js?v=902d27f8fbe0" defer></script>
-    <script src="js/course-preparation.js?v=8412e0a7b196" defer></script>
+    <script src="js/course-adoption.js?v=02c765114e54" defer></script>
+    <script src="js/course-preparation-build.js?v=7dc42e454923" defer></script>
+    <script src="js/course-preparation.js?v=9b32d03540c4" defer></script>
     <script src="js/tutorial-course.js?v=8a20e522866c" defer></script>
     <script src="js/map-art.js?v=ba5492a063da" defer></script>
     <script src="js/level-map.js?v=f7609d5cca82" defer></script>
@@ -43,9 +43,9 @@
     <script src="js/ads.js?v=10c96c8913f3" defer></script>
     <script src="js/lives.js?v=43566a05fc33" defer></script>
     <script src="js/rewards.js?v=bca1d0759442" defer></script>
-    <script src="js/debug-course.js?v=0c8b33d2cd64" defer></script>
-    <script src="js/input.js?v=29865f8bc561" defer></script>
-    <script src="js/renderer.js?v=c0d370b61ec7" defer></script>
+    <script src="js/debug-course.js?v=72e5ad34da8f" defer></script>
+    <script src="js/input.js?v=786c8a8985aa" defer></script>
+    <script src="js/renderer.js?v=61f8a666cd18" defer></script>
     <script src="js/help-illustrations.js?v=3aa3b1ddec68" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
     <script src="js/appearance.js?v=97d112b38c0e" defer></script>
@@ -55,7 +55,7 @@
     <script src="js/settings-connection.js?v=3f225b2b37d6" defer></script>
     <script src="js/account-deletion.js?v=a26b680d9a8b" defer></script>
     <script src="js/transfer.js?v=f4d72039a7c9" defer></script>
-    <script src="js/language.js?v=5d89d6e12ad8" defer></script>
+    <script src="js/language.js?v=a63e0182d0e0" defer></script>
     <script src="js/tutorial.js?v=7b2ad9ddff49" defer></script>
     <script src="js/main.js?v=d6b3474031a0" defer></script>
     <script type="module" src="js/firebase-client.js?v=ec7299200981"></script>
@@ -65,7 +65,7 @@
         <section class="wall" id="wall" aria-label="" data-i18n-aria-label="ui.wall.aria-label">
             <canvas id="game" width="400" height="700" aria-label="" data-i18n-aria-label="ui.game.aria-label"></canvas>
             <div id="goalEffects" class="goal-effects" aria-hidden="true" hidden><i></i><i></i><i></i><i></i></div>
-            <section id="debugCourseStatus" class="debug-course-status" hidden><details><summary id="debugCourseSummary"></summary><strong id="debugCourseVerdict"></strong><pre id="debugCourseReport"></pre></details><button id="debugRegenerate" type="button" data-i18n="debug.regenerate"></button><button id="debugCourseExit" type="button" data-i18n="debug.exit"></button></section>
+            <section id="debugCourseStatus" class="debug-course-status" hidden><details><summary id="debugCourseSummary"></summary><strong id="debugCourseVerdict"></strong><pre id="debugCourseReport"></pre></details><button id="debugScoreNext" type="button" hidden data-i18n="debug.score.next"></button><button id="debugRegenerate" type="button" data-i18n="debug.regenerate"></button><button id="debugCourseExit" type="button" data-i18n="debug.exit"></button></section>
             <div id="lifeStatus" class="life-status" aria-label="" hidden></div>
             <div class="hud" id="hud" hidden>
                 <div id="staminaGauge" class="stamina-heart">
@@ -142,7 +142,10 @@
                         <div id="mapMarker" class="map-marker" aria-hidden="true"><i></i><b></b></div>
                     </div>
                 </div>
+                <dialog id="debugScoreLoading"><p data-i18n="course-preparation.loading"></p><button id="debugScoreCancel" type="button" data-i18n="debug.exit"></button></dialog>
                 <form id="debugControls" class="debug-controls" hidden>
+                    <button id="debugScoreStart" type="button" data-i18n="debug.score.start"></button>
+                    <small data-i18n="debug.score.help"></small>
                     <label for="debugCourseType" data-i18n="debug.courseType"></label><select id="debugCourseType"></select>
                     <label for="debugCourseLength" data-i18n="debug.courseLength"></label><select id="debugCourseLength"></select>
                     <button id="debugGenerate" type="button" data-i18n="debug.generate"></button>

@@ -1,6 +1,13 @@
 "use strict";
 // Japanese source for active debug tools and account maintenance; English counterparts are in text-en.js.
 const GAME_DEV_TEXT_JA = Object.freeze({
+    "debug.score.start": "スコア1〜100を順番に試遊",
+    "debug.score.help": "本番と同じ難易度スコアで各1コースを試遊。再挑戦は同じ配置。クリア後は次へ進みます。途中で「次のスコアへ」でスキップも可能です。記録・ライフ・報酬には影響しません。",
+    "debug.score.current": "SCORE {value0} / 100",
+    "debug.score.next": "次のスコアへ",
+    "debug.score.retry": "同じスコアを再挑戦",
+    "debug.score.done": "試遊完了・マップへ",
+
     "debug.swipe.title": "スワイプ感度の比較",
     "debug.swipe.less": "感度を0.05下げる",
     "debug.swipe.more": "感度を0.05上げる",

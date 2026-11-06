@@ -16,12 +16,13 @@ globalThis.onmessage=event=>{
         response.runtime=coursePreparationRuntimeConfig();response.portable=coursePreparationPortableSignature();
         if(input.portable!==response.portable)throw coursePreparationError('COURSE_PREPARATION_CONFIG');
         const requested=input.request;
-        const resolved=requested.date?CourseProgression.resolveDaily(requested.date):CourseProgression.resolveStage(requested.level);
-        const profile=requested.date?{date:requested.date,typeId:generationTypeForScore(resolved.score)}:null;
+        const scoreTrial=requested.resolved?.kind==='debug-score';
+        const resolved=scoreTrial?resolveDebugScoreCourse(requested.resolved):requested.date?CourseProgression.resolveDaily(requested.date):CourseProgression.resolveStage(requested.level);
+        const profile=scoreTrial?{kind:'score',score:resolved.score,seed:resolved.seed,typeId:generationTypeForScore(resolved.score)}:requested.date?{date:requested.date,typeId:generationTypeForScore(resolved.score)}:null;
         const request=coursePreparationIdentity(requested.level,profile);response.request=request;
         if(JSON.stringify(request)!==JSON.stringify(requested))throw coursePreparationError('COURSE_PREPARATION_REQUEST');
         level=request.level;difficulty=request.difficulty;courseTypeId=request.courseTypeId;
-        courseMode='existing';dailyRun=profile;tutorialRun=null;debugCourseTrial=null;
+        courseMode='existing';dailyRun=scoreTrial?null:profile;tutorialRun=null;debugCourseTrial=scoreTrial?profile:null;debugMode=debugAttempt=scoreTrial;
         prepareAdoptedCourse();
         response.snapshot=validatePreparedCourse(adoptedCourseSnapshot(),request);
     } catch(error){response.error={code:error?.code||'COURSE_PREPARATION_FAILED',message:String(error?.message||error)};}

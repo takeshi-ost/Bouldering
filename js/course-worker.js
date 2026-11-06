@@ -1,5 +1,5 @@
 'use strict';
-globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"b90cc13b9416b5e222e3b0d7cf2ef54c749f3653967b935e0550e395e6a875c1","sources":[{"path":"js/text-ja.js","sha256":"43f73b2508c66c8651a960d7598f0fb666f0c70f9e5f077b81ef3438bbba62a9"},{"path":"js/text-en.js","sha256":"39c01738e75674667f714eb4c1b48b143e52660599fd0a898d195b34e0356287"},{"path":"js/text-dev-ja.js","sha256":"d1ef4396e939fa23c3a981b71385de1716fe9f42453aa8d367c58ed3ec2b7c52"},{"path":"js/config.js","sha256":"4c19d723b2aa4b8145fef8be15ffa5579d8e97c7ca5046214729e64822404c25"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"0505974081d03e89c9e54230d8e653aa6c682496cfa89d83cc42e45176dad5a0"},{"path":"js/finger-route.js","sha256":"8c445b6db553cfb99534a38c93dc09f261cce73c94c7ead0c7bbb683ae2542ba"},{"path":"js/game.js","sha256":"e6ef8ab2aff2f1aa463ec81d35f8d87d5f82ab3a4ce26dcd5606f37232780440"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"46b2c6008b5c24c0ad4f4f0c6cb2544cc05f76a42907e7497d44c0fd4de0f8a0"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"8d9e6e1124ed0a54482d6dc5510d84b3a8df2e5062a67ea89023d5748f22a67e"},{"path":"js/course-adoption.js","sha256":"503b31e4b3ac9e2e6e257ae67727e48b25665c0d7e17cf49e5a703db6e45fa7b"},{"path":"js/tutorial-course.js","sha256":"8a20e522866c3ec52d7f862f862a1b2e959ca634e18ad3785783932cb36af032"},{"path":"js/course-preparation.js","sha256":"8412e0a7b1966b13626627089824750877eaf0a1a8f5ae2778e07595a398812d"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"2af229de9ba06e2c42552e09165926395b42580cd2253d8f5c9450e8b888009c"},{"path":"scripts/build-course-worker.cjs","sha256":"4bfb04ed4c3ce0cb640299bab8ad28386961f0072a941093da5c111686740c3a"}]});
+globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"01647bde1f673f7e13cc317c3a3575b76bd65aaf9d1c22e542f7307ca3550351","sources":[{"path":"js/text-ja.js","sha256":"43f73b2508c66c8651a960d7598f0fb666f0c70f9e5f077b81ef3438bbba62a9"},{"path":"js/text-en.js","sha256":"8f619015a7b83a38328994a8a84b1d7fa8fb0b905dfdf13c3a933245e04b35a4"},{"path":"js/text-dev-ja.js","sha256":"d53db3d5f5ba8d4d5896640f3c92ef6d78cf3b2c3a56f3ac42cb79e6e7cad5ff"},{"path":"js/config.js","sha256":"1d1dfce448ae5dbcb75a94cd04635333901060177c39881d91bb42b55a8153af"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"0505974081d03e89c9e54230d8e653aa6c682496cfa89d83cc42e45176dad5a0"},{"path":"js/finger-route.js","sha256":"8c445b6db553cfb99534a38c93dc09f261cce73c94c7ead0c7bbb683ae2542ba"},{"path":"js/game.js","sha256":"f8de0881ef9202d5238037c8c6acc3cb99356a16ec8f3454b6fcaed6614d6189"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"46b2c6008b5c24c0ad4f4f0c6cb2544cc05f76a42907e7497d44c0fd4de0f8a0"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"8d9e6e1124ed0a54482d6dc5510d84b3a8df2e5062a67ea89023d5748f22a67e"},{"path":"js/course-adoption.js","sha256":"02c765114e54f3e54dd86a3e4b9c525fad7b4e3a2f78c27a9b0f61614fca5227"},{"path":"js/tutorial-course.js","sha256":"8a20e522866c3ec52d7f862f862a1b2e959ca634e18ad3785783932cb36af032"},{"path":"js/course-preparation.js","sha256":"9b32d03540c4b44950f1ea288e5fb759b3dec719df82ac5a910ec7f3edac8861"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"4bfb04ed4c3ce0cb640299bab8ad28386961f0072a941093da5c111686740c3a"}]});
 globalThis.ASCENT_COURSE_WORKER=true;
 let debugAttempt=false;
 function isTutorialRun(){return tutorialRun!==null;}
@@ -293,6 +293,13 @@ const GAME_TEXT_JA = Object.freeze({
 // English copy aligned with the Japanese player and maintenance catalogs.
 // Placeholder names and intentionally empty help blocks match the Japanese source.
 const GAME_TEXT_EN = Object.freeze({
+    "debug.score.start": "Play scores 1–100 in order",
+    "debug.score.help": "One course per production difficulty score. Retries use the same layout. Clear to continue, or use Next score to skip. Records, lives and rewards are unaffected.",
+    "debug.score.current": "SCORE {value0} / 100",
+    "debug.score.next": "Next score",
+    "debug.score.retry": "Retry this score",
+    "debug.score.done": "Trial complete · Map",
+
     "debug.swipe.title": "Swipe sensitivity comparison",
     "debug.swipe.less": "Decrease sensitivity by 0.05",
     "debug.swipe.more": "Increase sensitivity by 0.05",
@@ -625,6 +632,13 @@ const GAME_TEXT_EN_ONE = Object.freeze({
 "use strict";
 // Japanese source for active debug tools and account maintenance; English counterparts are in text-en.js.
 const GAME_DEV_TEXT_JA = Object.freeze({
+    "debug.score.start": "スコア1〜100を順番に試遊",
+    "debug.score.help": "本番と同じ難易度スコアで各1コースを試遊。再挑戦は同じ配置。クリア後は次へ進みます。途中で「次のスコアへ」でスキップも可能です。記録・ライフ・報酬には影響しません。",
+    "debug.score.current": "SCORE {value0} / 100",
+    "debug.score.next": "次のスコアへ",
+    "debug.score.retry": "同じスコアを再挑戦",
+    "debug.score.done": "試遊完了・マップへ",
+
     "debug.swipe.title": "スワイプ感度の比較",
     "debug.swipe.less": "感度を0.05下げる",
     "debug.swipe.more": "感度を0.05上げる",
@@ -682,7 +696,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.5';
+const RELEASE_VERSION = '0.5.6';
 const GAMEPLAY_TIP_KEYS = [
     'tips.scroll', 'tips.undo', 'tips.reach',
     'tips.goal', 'tips.heart', 'tips.cancel', 'tips.appearance'
@@ -1990,7 +2004,7 @@ const ctx = COURSE_WORKER_MODE ? null : canvas.getContext("2d");
 const ui = COURSE_WORKER_MODE ? null : Object.fromEntries([
     "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "debugSwipeValue", "debugSwipeLess", "debugSwipeMore", "debugSwipeReset", "debugSwipeMode", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapSettingsDebug", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
-    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugCourseType", "debugCourseLength", "debugGenerate", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
+    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugCourseType", "debugCourseLength", "debugScoreLoading", "debugScoreCancel", "debugScoreStart", "debugScoreNext", "debugGenerate", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "paletteSwatches", "editorRandom", "editorConfirm", "editorCancel",
     "mapSettingsLanguage", "languageChoice", "titleWallpaper", "titleTransfer", "titleScreen", "releaseVersion", "playerUuid", "titleTap", "showHelp", "helpDialog", "helpScroll", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
@@ -2128,6 +2142,8 @@ let difficulty = 0; // Internal legacy generation family, not a course-type ID.
 let courseTypeId = 0;
 let debugCourseTrial = null;
 let debugHelpBefore = null;
+function activeDebugScoreTrial(){return activeDebugCourse()?.kind==='score';}
+function debugCourseTitle(){return activeDebugScoreTrial()?gameText('debug.score.current',{value0:debugCourseTrial.score}):gameText('debug.trialTitle',{value0:courseTypeId});}
 function activeDebugCourse(){return DEBUG_FEATURES_ALLOWED && debugMode && typeof debugAttempt!=='undefined' && debugAttempt && debugCourseTrial;}
 let holds = [];
 let route = [];
@@ -2629,7 +2645,7 @@ function restoreMoveStamina(saved) {
 function prepareCurrentStage() {
     courseMode='existing'; // Old experimental modes cannot enter generation.
     if(typeof isTutorialRun==='function' && isTutorialRun())return prepareTutorialCourse();
-    if(!activeDebugCourse())return prepareAdoptedCourse();
+    if(!activeDebugCourse() || activeDebugScoreTrial())return prepareAdoptedCourse();
     activeCourseGeneration=null;
     generatedCourse=null;
     if(dailyRun)dailyRun.seed=dailyRun.baseSeed;
@@ -2738,7 +2754,7 @@ function reset(n,staminaBonus=0) {
     ui.characterEditor.hidden=true;
     ui.restart.disabled = false;
 
-    ui.level.textContent = activeDebugCourse() ? gameText("debug.trialTitle",{value0:courseTypeId}) : dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
+    ui.level.textContent = activeDebugCourse() ? debugCourseTitle() : dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
     ui.next.hidden=true;
     ui.retry.hidden=false;
     ui.dailyCalendar.hidden=true;
@@ -3088,7 +3104,8 @@ function finish(won) {
     ui.next.textContent=dailyRun?gameText("action.returnCalendar"):gameText("action.returnMap");
     ui.retry.hidden=won;
     ui.closeResult.hidden=won;
-    ui.resultTap.hidden=!won;
+    ui.resultTap.hidden=!won || activeDebugScoreTrial();
+    if(activeDebugScoreTrial() && won){ui.next.hidden=false;ui.next.textContent=debugCourseTrial.score<100?gameText('debug.score.next'):gameText('debug.score.done');}
     ui.overlay.classList.toggle('is-clear',won);
     ui.retry.textContent=dailyRun?gameText("action.retry"):gameText("action.retryEnglish");
 
@@ -4855,12 +4872,16 @@ function adoptedCourseCacheSignature() {
     });
 }
 // Shared, state-free identity used by previews, the worker and launch leases.
+function resolveDebugScoreCourse(profile){
+    if(!Number.isInteger(profile.score)||profile.score<1||profile.score>100||profile.seed!==profile.score+10)throw new RangeError('Invalid debug score');
+    return {kind:'debug-score',score:profile.score,seed:profile.seed,difficultyLabel:CourseProgression.labelForScore(profile.score),progressionVersion:CourseProgressionConfig.version};
+}
 function adoptedCourseRequest(n,profile=null) {
-    const resolved=profile?CourseProgression.resolveDaily(profile.date):CourseProgression.resolveStage(n);
+    const resolved=profile?.kind==='score'?resolveDebugScoreCourse(profile):profile?CourseProgression.resolveDaily(profile.date):CourseProgression.resolveStage(n);
     const typeId=profile?.typeId??courseTypeForStage(n);
     return {level:n,difficulty:courseTypeRule(typeId).generationDifficulty,courseTypeId:typeId,
         mode:'existing',date:profile?.date??null,resolved,
-        sampled:{...CourseProgression.recipe(resolved),stage:profile?1:n,staminaRules:COURSE_STAMINA_CONFIG.rules}};
+        sampled:{...CourseProgression.recipe(resolved),stage:profile && profile.kind!=='score'?1:n,staminaRules:COURSE_STAMINA_CONFIG.rules}};
 }
 function adoptedCourseCacheKey(request,signature=refreshAdoptedCourseCacheDependencies()) {
     return signature===null?null:JSON.stringify([signature,request.resolved,request.sampled,
@@ -4890,12 +4911,13 @@ function restoreAdoptedCourseCache(snapshot) {
 
 function prepareAdoptedCourse() {
     if(adoptedCourseLaunchLease) {
-        assertPreparedCourse(adoptedCourseLaunchLease,level,dailyRun);
+        assertPreparedCourse(adoptedCourseLaunchLease,level,activeDebugScoreTrial()?debugCourseTrial:dailyRun);
         restoreAdoptedCourseCache(adoptedCourseLaunchLease.snapshot);
         if(dailyRun)dailyRun.seed=adoptedCourseLaunchLease.request.resolved.seed;
         return;
     }
-    const resolved=dailyRun?CourseProgression.resolveDaily(dailyRun.date):CourseProgression.resolveStage(level);
+    const resolved=activeDebugScoreTrial()?resolveDebugScoreCourse(debugCourseTrial):
+        dailyRun?CourseProgression.resolveDaily(dailyRun.date):CourseProgression.resolveStage(level);
     // Sample exactly once. Never let a rejected placement resample its score,
     // length, profiles/composition, heart caps, spikes or stamina bonus rules.
     const sampled=Object.freeze({...CourseProgression.recipe(resolved),stage:dailyRun?1:level,
@@ -5075,7 +5097,7 @@ function coursePreparationRuntimeConfig() {
 function coursePreparationIdentity(n,profile=null) {
     const request=adoptedCourseRequest(n,profile);
     if(!Number.isSafeInteger(n)||n<1||n>=Number.MAX_SAFE_INTEGER||
-        (profile && (n!==1||profile.typeId!==generationTypeForScore(request.resolved.score))))
+        (profile && (n!==(profile.kind==='score'?2:1)||profile.typeId!==generationTypeForScore(request.resolved.score))))
         throw coursePreparationError('COURSE_PREPARATION_REQUEST');
     return request;
 }
@@ -5222,12 +5244,13 @@ globalThis.onmessage=event=>{
         response.runtime=coursePreparationRuntimeConfig();response.portable=coursePreparationPortableSignature();
         if(input.portable!==response.portable)throw coursePreparationError('COURSE_PREPARATION_CONFIG');
         const requested=input.request;
-        const resolved=requested.date?CourseProgression.resolveDaily(requested.date):CourseProgression.resolveStage(requested.level);
-        const profile=requested.date?{date:requested.date,typeId:generationTypeForScore(resolved.score)}:null;
+        const scoreTrial=requested.resolved?.kind==='debug-score';
+        const resolved=scoreTrial?resolveDebugScoreCourse(requested.resolved):requested.date?CourseProgression.resolveDaily(requested.date):CourseProgression.resolveStage(requested.level);
+        const profile=scoreTrial?{kind:'score',score:resolved.score,seed:resolved.seed,typeId:generationTypeForScore(resolved.score)}:requested.date?{date:requested.date,typeId:generationTypeForScore(resolved.score)}:null;
         const request=coursePreparationIdentity(requested.level,profile);response.request=request;
         if(JSON.stringify(request)!==JSON.stringify(requested))throw coursePreparationError('COURSE_PREPARATION_REQUEST');
         level=request.level;difficulty=request.difficulty;courseTypeId=request.courseTypeId;
-        courseMode='existing';dailyRun=profile;tutorialRun=null;debugCourseTrial=null;
+        courseMode='existing';dailyRun=scoreTrial?null:profile;tutorialRun=null;debugCourseTrial=scoreTrial?profile:null;debugMode=debugAttempt=scoreTrial;
         prepareAdoptedCourse();
         response.snapshot=validatePreparedCourse(adoptedCourseSnapshot(),request);
     } catch(error){response.error={code:error?.code||'COURSE_PREPARATION_FAILED',message:String(error?.message||error)};}

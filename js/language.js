@@ -21,11 +21,12 @@ function refreshGameLanguage(previous) {
     else if(state==='daily')renderDailyCalendar();
     else if(state==='editing')renderCharacterEditor();
     if(['playing','won','lost'].includes(state)) {
-        ui.level.textContent=activeDebugCourse()?gameText("debug.trialTitle",{value0:courseTypeId}):dailyRun?gameText("label.daily",{value0:dailyRun.date.slice(5).replace('-','/')}):gameText("label.stage",{value0:level});
+        if(activeDebugCourse())updateDebugCourseReport();
+        ui.level.textContent=activeDebugCourse()?debugCourseTitle():dailyRun?gameText("label.daily",{value0:dailyRun.date.slice(5).replace('-','/')}):gameText("label.stage",{value0:level});
         ui.retry.textContent=gameText(dailyRun?'action.retry':'action.retryEnglish');
         if(state==='won' || state==='lost') {
             ui.resultTitle.textContent=gameText(state==='won'?'result.success':'result.failure');
-            ui.next.textContent=dailyRun?gameText("action.returnCalendar"):gameText("action.returnMap");
+            ui.next.textContent=activeDebugScoreTrial() && state==='won'?(debugCourseTrial.score<100?gameText("debug.score.next"):gameText("debug.score.done")):dailyRun?gameText("action.returnCalendar"):gameText("action.returnMap");
             if(state==='won') {
                 ui.resultStats.textContent=formatStageRecord({moves:moveCount,timeMs:runElapsedMs});
                 if(dailyRun)ui.resultDifficulty.textContent=dailyResultDateLabel(dailyRun.date);

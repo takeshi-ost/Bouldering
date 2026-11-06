@@ -136,6 +136,11 @@ function restartInput(n,staminaBonus=0) {
     bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n,staminaBonus);showStageHelp();
 }
 ui.next.onclick = () => {
+    if(activeDebugScoreTrial() && state==='won'){
+        if(ui.overlay.hidden)return;
+        if(debugCourseTrial.score<100)startDebugScoreTrial(debugCourseTrial.score+1);else showLevelMap();
+        return;
+    }
     if(state==='lost') {
         // Ignore queued/hidden clicks while retry confirmation or an ad owns UI.
         if(ui.overlay.hidden || stageStartContext || lifePrompt || dummyAd || adCoverPending)return;
@@ -145,6 +150,7 @@ ui.next.onclick = () => {
     else if(state==='won')continueNormalClear();
 };
 ui.retry.onclick=()=>{
+    if(activeDebugScoreTrial()){startDebugScoreTrial(debugCourseTrial.score);return;}
     if(activeDebugCourse()){const trial=debugCourseTrial;startDebugCourse(trial.typeId,trial.lengthCategory);return;}
     if(state!=='lost')return;
     if(dailyRun)continueDailyResult(true);

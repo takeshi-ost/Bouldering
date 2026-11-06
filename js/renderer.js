@@ -625,7 +625,7 @@ function drawStageIntro() {
     ctx.font='800 40px system-ui';
     ctx.textAlign='center';
     ctx.textBaseline='middle';
-    const title=activeDebugCourse()?gameText("debug.trialTitle",{value0:courseTypeId}):dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
+    const title=activeDebugCourse()?debugCourseTitle():dailyRun ? gameText("label.daily", {value0: dailyRun.date.slice(5).replace('-','/')}) : gameText("label.stage", {value0: level});
     const x=W/2;
     ctx.strokeText(title,x,H/2);
     ctx.fillText(title,x,H/2);

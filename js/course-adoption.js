@@ -99,12 +99,16 @@ function adoptedCourseCacheSignature() {
     });
 }
 // Shared, state-free identity used by previews, the worker and launch leases.
+function resolveDebugScoreCourse(profile){
+    if(!Number.isInteger(profile.score)||profile.score<1||profile.score>100||profile.seed!==profile.score+10)throw new RangeError('Invalid debug score');
+    return {kind:'debug-score',score:profile.score,seed:profile.seed,difficultyLabel:CourseProgression.labelForScore(profile.score),progressionVersion:CourseProgressionConfig.version};
+}
 function adoptedCourseRequest(n,profile=null) {
-    const resolved=profile?CourseProgression.resolveDaily(profile.date):CourseProgression.resolveStage(n);
+    const resolved=profile?.kind==='score'?resolveDebugScoreCourse(profile):profile?CourseProgression.resolveDaily(profile.date):CourseProgression.resolveStage(n);
     const typeId=profile?.typeId??courseTypeForStage(n);
     return {level:n,difficulty:courseTypeRule(typeId).generationDifficulty,courseTypeId:typeId,
         mode:'existing',date:profile?.date??null,resolved,
-        sampled:{...CourseProgression.recipe(resolved),stage:profile?1:n,staminaRules:COURSE_STAMINA_CONFIG.rules}};
+        sampled:{...CourseProgression.recipe(resolved),stage:profile && profile.kind!=='score'?1:n,staminaRules:COURSE_STAMINA_CONFIG.rules}};
 }
 function adoptedCourseCacheKey(request,signature=refreshAdoptedCourseCacheDependencies()) {
     return signature===null?null:JSON.stringify([signature,request.resolved,request.sampled,
@@ -134,12 +138,13 @@ function restoreAdoptedCourseCache(snapshot) {
 
 function prepareAdoptedCourse() {
     if(adoptedCourseLaunchLease) {
-        assertPreparedCourse(adoptedCourseLaunchLease,level,dailyRun);
+        assertPreparedCourse(adoptedCourseLaunchLease,level,activeDebugScoreTrial()?debugCourseTrial:dailyRun);
         restoreAdoptedCourseCache(adoptedCourseLaunchLease.snapshot);
         if(dailyRun)dailyRun.seed=adoptedCourseLaunchLease.request.resolved.seed;
         return;
     }
-    const resolved=dailyRun?CourseProgression.resolveDaily(dailyRun.date):CourseProgression.resolveStage(level);
+    const resolved=activeDebugScoreTrial()?resolveDebugScoreCourse(debugCourseTrial):
+        dailyRun?CourseProgression.resolveDaily(dailyRun.date):CourseProgression.resolveStage(level);
     // Sample exactly once. Never let a rejected placement resample its score,
     // length, profiles/composition, heart caps, spikes or stamina bonus rules.
     const sampled=Object.freeze({...CourseProgression.recipe(resolved),stage:dailyRun?1:level,
