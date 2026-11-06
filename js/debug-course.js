@@ -74,8 +74,8 @@ ui.debugGenerate.onclick=()=>{
     const type=COURSE_TYPES.find(t=>String(t.id)===ui.debugCourseType.value);
     if(type)startDebugCourse(type.id,ui.debugCourseLength.value);
 };
-ui.debugRegenerate.onclick=()=>{const trial=activeDebugCourse();if(activeDebugScoreTrial())startDebugScoreTrial(trial.score);else if(trial)startDebugCourse(trial.typeId,trial.lengthCategory);};
-ui.debugCourseExit.onclick=()=>{if(activeDebugCourse())showLevelMap();};
+ui.debugRegenerate.onclick=()=>{const trial=activeDebugCourse();if(trial)hideSettings();if(activeDebugScoreTrial())startDebugScoreTrial(trial.score);else if(trial)startDebugCourse(trial.typeId,trial.lengthCategory);};
+ui.debugCourseExit.onclick=()=>{if(activeDebugCourse()){hideSettings();showLevelMap();}};
 
 // One fixed sample per integer score, independent of normal stage/SEED settings.
 function startDebugScoreTrial(score=1) {
@@ -108,7 +108,7 @@ function startDebugScoreTrial(score=1) {
     }
 }
 ui.debugScoreStart.onclick=()=>startDebugScoreTrial(1);
-ui.debugScoreNext.onclick=()=>{if(activeDebugScoreTrial())startDebugScoreTrial(debugCourseTrial.score+1);};
+ui.debugScoreNext.onclick=()=>{if(activeDebugScoreTrial() && debugCourseTrial.score<100){hideSettings();startDebugScoreTrial(debugCourseTrial.score+1);}};
 
 ui.debugScoreCancel.onclick=()=>{if(debugScorePreparation)showLevelMap();};
 ui.debugScoreLoading.addEventListener('cancel',event=>{event.preventDefault();ui.debugScoreCancel.onclick();});

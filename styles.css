@@ -679,7 +679,7 @@ dialog.help-dialog { max-height:min(560px,calc(var(--viewport-height,700px) - 32
 
 /* Isolated generation inspector; logical viewport coordinates, Debug only. */
 .debug-controls select { max-width:100%; min-height:36px; font:inherit; }
-.debug-course-status { position:absolute; z-index:4; left:12px; right:12px; top:104px; padding:6px; background:#fffdf3ed; border-radius:8px; font:11px monospace; }
+.debug-course-status { margin:12px 0; padding:8px; background:#fffdf3ed; border-radius:8px; font:11px monospace; }
 .debug-course-status[hidden] { display:none; }
 .debug-course-status pre { margin:0 0 4px; white-space:pre-wrap; overflow-wrap:anywhere; }
 .debug-course-status button { min-height:32px; font-size:12px; padding:4px 8px; }

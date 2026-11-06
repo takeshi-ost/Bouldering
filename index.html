@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title data-i18n="title.document"></title>
-    <link rel="stylesheet" href="styles.css?v=1009268cf9e0">
+    <link rel="stylesheet" href="styles.css?v=ff7acfe09c90">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=8adae9aa1630" defer></script>
     <script src="js/text-ja.js?v=43f73b2508c6" defer></script>
@@ -12,7 +12,7 @@
     <script src="js/text-dev-ja.js?v=d53db3d5f5ba" defer></script>
     <script src="js/text.js?v=c7df5d2ebf70" defer></script>
     <script src="js/score-metadata.js?v=ad0e02f921ca" defer></script>
-    <script src="js/config.js?v=1d1dfce448ae" defer></script>
+    <script src="js/config.js?v=69c1049016fe" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=3438658870e1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -34,7 +34,7 @@
     <script src="js/course-stamina-settings.js?v=e5a64ef8dafb" defer></script>
     <script src="js/course-generator-core.js?v=8d9e6e1124ed" defer></script>
     <script src="js/course-adoption.js?v=02c765114e54" defer></script>
-    <script src="js/course-preparation-build.js?v=7dc42e454923" defer></script>
+    <script src="js/course-preparation-build.js?v=5c2333a323e3" defer></script>
     <script src="js/course-preparation.js?v=9b32d03540c4" defer></script>
     <script src="js/tutorial-course.js?v=8a20e522866c" defer></script>
     <script src="js/map-art.js?v=ba5492a063da" defer></script>
@@ -43,7 +43,7 @@
     <script src="js/ads.js?v=10c96c8913f3" defer></script>
     <script src="js/lives.js?v=43566a05fc33" defer></script>
     <script src="js/rewards.js?v=bca1d0759442" defer></script>
-    <script src="js/debug-course.js?v=72e5ad34da8f" defer></script>
+    <script src="js/debug-course.js?v=11596ed23b21" defer></script>
     <script src="js/input.js?v=786c8a8985aa" defer></script>
     <script src="js/renderer.js?v=61f8a666cd18" defer></script>
     <script src="js/help-illustrations.js?v=3aa3b1ddec68" defer></script>
@@ -65,7 +65,6 @@
         <section class="wall" id="wall" aria-label="" data-i18n-aria-label="ui.wall.aria-label">
             <canvas id="game" width="400" height="700" aria-label="" data-i18n-aria-label="ui.game.aria-label"></canvas>
             <div id="goalEffects" class="goal-effects" aria-hidden="true" hidden><i></i><i></i><i></i><i></i></div>
-            <section id="debugCourseStatus" class="debug-course-status" hidden><details><summary id="debugCourseSummary"></summary><strong id="debugCourseVerdict"></strong><pre id="debugCourseReport"></pre></details><button id="debugScoreNext" type="button" hidden data-i18n="debug.score.next"></button><button id="debugRegenerate" type="button" data-i18n="debug.regenerate"></button><button id="debugCourseExit" type="button" data-i18n="debug.exit"></button></section>
             <div id="lifeStatus" class="life-status" aria-label="" hidden></div>
             <div class="hud" id="hud" hidden>
                 <div id="staminaGauge" class="stamina-heart">
@@ -301,6 +300,7 @@
                 <input id="soundVolume" type="range" min="0" max="100" step="1" value="100" data-i18n-aria-label="audio.effectsVolume">
             </div>
             <button id="showHelp" class="secondary" aria-haspopup="dialog" aria-controls="helpDialog" data-i18n="ui.showHelp"></button>
+            <section id="debugCourseStatus" class="debug-course-status" hidden><details><summary id="debugCourseSummary"></summary><strong id="debugCourseVerdict"></strong><pre id="debugCourseReport"></pre></details><button id="debugScoreNext" type="button" hidden data-i18n="debug.score.next"></button><button id="debugRegenerate" type="button" data-i18n="debug.regenerate"></button><button id="debugCourseExit" type="button" data-i18n="debug.exit"></button></section>
             <hr id="settingsDivider" class="settings-divider">
             <div id="mapSettingsControls" class="map-settings-controls" hidden>
                 <button id="mapEditCharacter" class="secondary" data-i18n="ui.mapEditCharacter"></button>

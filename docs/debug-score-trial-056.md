@@ -1,4 +1,4 @@
-# Sequential score trial (0.5.6)
+# Sequential score trial (introduced in 0.5.6, UI revised in 0.5.7)
 
 Enable DEBUG in map settings, then use “Play scores 1–100 in order” on the map.
 This tests difficulty scores, not normal STAGE numbers. Each integer score has
@@ -7,8 +7,10 @@ generator, geometry retries, stamina and pickup rules. No distribution or
 normal/Daily seed configuration is modified. A single sample is not an estimate
 of the full difficulty distribution at that score.
 
-Clear and continue to the next score; score 100 returns to the map. The top
-Next score control also permits skipping a course. Retry uses the same score,
+Clear and continue to the next score; score 100 returns to the map. Trial controls
+and generation details are inside the existing settings dialog, never over the
+climbing wall. The normal HUD shows the current score. Open the gear menu to skip
+to the next score, retry, or leave. Retry uses the same score,
 seed and geometry; sensitivity comparison settings remain in effect. Leaving
 returns to the map, and starting again begins at 1. Trial progress is session-only.
 Preparation runs in the existing geometry worker with a cancellable loading dialog;
