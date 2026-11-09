@@ -43,7 +43,11 @@ const preparationExceptions={
 // ONLINE_PROGRESS_VERSION stays v4, old records/queues and storage keys remain intact.
 // Builder identity guard is advanced to normal v5 / Daily v4; no deployment occurs.
 const courseGenerationExceptions={"js/score-metadata.js": "11f4ce6668c512d24a8c7fa77b518cf1e12fcca35e7258f8ad4e50dca572e472", "firestore.rules": "369166eeda40d6876f5e727d065246bec34fdd3335add93319eeccf18ce3f9b6", "scripts/build-pages-formal.cjs": "4dc2e325571a012a5aaa831bfde7cbccd12ee2009e46d81d9a95601ffd1a649c"};
-for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),courseGenerationExceptions[file]||preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation and v5 generation '+file);
+// Owner-approved Web ranking pause: no score reads/writes; retain queues.
+// Regression tests enforce the disabled service boundary rather than merely its hash.
+const rankingPauseExceptions={"js/firebase-client.js": "bdd7a4650fe73137c41af7865bd44e9b6aca6c211bb0fb96435a6a182e8a96b9", "js/online-scores.js": "06d0567fa941c6a716013f897ced35a5ee6229f90131470d1ca6c1491494619b"};
+require('./course-rankings-disabled.cjs');
+for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),rankingPauseExceptions[file]||courseGenerationExceptions[file]||preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation and v5 generation '+file);
 const map=fs.readFileSync('js/level-map.js','utf8');
 assert.equal(crypto.createHash('sha256').update(map.slice(0,map.indexOf('let stageStartContext='))).digest('hex'),'bcd613a8c17fd53a4691055ee206bf2a8a043bbefad5cc325bd93589483eff40','Map records, rewards, inventory and navigation before the dialog remain byte-identical');
 const launch=`            restartInput(n,heartsUsed);
