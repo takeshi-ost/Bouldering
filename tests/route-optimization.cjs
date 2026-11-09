@@ -9,6 +9,9 @@ const env=`const elements={};const document={getElementById(id){return elements[
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};`;
 new Function('assert',env+source+`
+// This suite checks the baseline generator and its recorded input witnesses.
+// New live-control alternatives are verified independently.
+return SixPairSelection.withBaseline(()=>{
 const timings=[];
 for(const mode of ['existing']) {
  courseMode=mode;
@@ -70,4 +73,5 @@ for(const mode of ['existing']) {
 }
 console.log('PASS 21 formal courses: real input with actual base stamina, work limits, exhausted fallback, unchanged geometry, preview/retry and exact adopted initial stamina plus explicit replay bonus for heart-bearing courses');
 console.log(JSON.stringify(timings));
+});
 `)(assert);

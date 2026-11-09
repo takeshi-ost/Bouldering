@@ -9,6 +9,7 @@ function beginPointer(e) {
     if (featureHelpOpen || settingsOpen || !ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
     const p=point(e);
     if(p.x>=0 && p.x<=W && (p.x<INPUT_CONFIG.edgeScrollWidth || p.x>W-INPUT_CONFIG.edgeScrollWidth)) {
+        if(typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.reset();
         inspecting=true;
         pan={edge:true,side:p.x<W/2?'left':'right',scrolling:false,mouse:e.identifier===undefined,ids:e.identifier===undefined?[]:[e.identifier],y:e.clientY,camera};
         return;
@@ -16,10 +17,15 @@ function beginPointer(e) {
     const visible=characterPose(performance.now()).body;
     if (Math.abs(p.x-visible.x)<=TORSO.width/2+TORSO.hitPadding &&
         Math.abs(p.y-visible.y)<=TORSO.height/2+TORSO.hitPadding) {
+        if(typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.hide();
         bodyTap={event:{clientX:e.clientX,clientY:e.clientY},start:performance.now()};
-    } else down(e);
+    } else if(typeof SixPairAngleOverlay!=='undefined' && state==='playing')SixPairAngleOverlay.begin(e);
+    else down(e);
 }
 function movePointer(e) {
+    if(typeof SixPairAngleOverlay!=='undefined' && SixPairAngleOverlay.pending){
+        const origin=SixPairAngleOverlay.move(e);if(!origin)return;down(origin);
+    }
     if (bodyTap) {
         const r=canvas.getBoundingClientRect(),origin=bodyTap.event;
         const moved=Math.hypot(viewportClientDelta(e.clientX-origin.clientX,r),viewportClientDelta(e.clientY-origin.clientY,r));
@@ -31,6 +37,8 @@ function movePointer(e) {
 }
 function endPointer(e=null,cancel=false) {
     if (!cancel && e) movePointer(e);
+    if(typeof SixPairAngleOverlay!=='undefined' && SixPairAngleOverlay.pending){SixPairAngleOverlay.end(cancel);return;}
+    if(cancel && typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.hide();
     if (bodyTap) {
         const tap=bodyTap;bodyTap=null;
         if (!cancel && performance.now()-tap.start<=INPUT_CONFIG.tapMaxDuration) undoMove();
@@ -90,7 +98,7 @@ canvas.addEventListener('touchstart', e => {
     if (touchId !== null) return;
     const t = e.changedTouches[0];
     beginPointer(t);
-    if (drag || bodyTap) touchId = t.identifier;
+    if (drag || bodyTap || (typeof SixPairAngleOverlay!=='undefined' && SixPairAngleOverlay.pending)) touchId = t.identifier;
 }, { passive: false });
 canvas.addEventListener('touchmove', e => {
     e.preventDefault();
@@ -133,6 +141,7 @@ function touchEnd(e, cancel) {
 canvas.addEventListener('touchend', e => touchEnd(e, false));
 canvas.addEventListener('touchcancel', e => touchEnd(e, true));
 function restartInput(n,staminaBonus=0) {
+    if(typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.reset();
     bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n,staminaBonus);showStageHelp();
 }
 ui.next.onclick = () => {

@@ -8,7 +8,7 @@ b.run(`globalThis.sent=[];queueOnlineScore=(n,m,c)=>sent.push({n,m,c});
  debugDisplay.route=true;drawPath();assert.equal(rankingAssistanceUsed,true);
  debugMode=false;debugDisplay.route=false;drawPath();assert.equal(rankingAssistanceUsed,true);
  moveCount=6;runElapsedMs=900;recordStageClear();assert.equal(sent.length,0);assert.equal(stageProgress.existing.cleared,1);assert.equal(stageRecords.existing[1].rankingEligible,false);
- reset(1);cameraIntro=null;hideStageHelp();state='playing';assert.equal(rankingAssistanceUsed,false);drawPath();moveCount=8;runElapsedMs=1000;recordStageClear();assert.equal(sent.length,1);assert.equal(sent[0].c.scoreSpecVersion,'v4');assert.equal(stageRecords.existing[1].rankingEligible,false,'better local assisted remains visibly local only');
+ reset(1);cameraIntro=null;hideStageHelp();state='playing';assert.equal(rankingAssistanceUsed,false);drawPath();moveCount=8;runElapsedMs=1000;recordStageClear();assert.equal(sent.length,1);assert.equal(sent[0].c.scoreSpecVersion,'v5');assert.equal(stageRecords.existing[1].rankingEligible,false,'better local assisted remains visibly local only');
  reset(1);state='lost';debugMode=true;debugDisplay.route=true;drawPath();state='playing';debugMode=false;assert.equal(rankingAssistanceUsed,true,'route viewed while lost cannot become ranked via undo');
  reset(1);state='won';debugMode=true;debugDisplay.route=true;drawPath();assert.equal(rankingAssistanceUsed,false,'route shown only after completed clear does not retroactively invalidate it');
 `);

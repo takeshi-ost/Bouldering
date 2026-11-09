@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
+const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n').replace('const COURSE_RANKINGS_ENABLED = false;', 'const COURSE_RANKINGS_ENABLED = true;');
 const env=`const elements={};const document={getElementById(id){return elements[id] ||= {
  style:{setProperty(){}},classList:{toggle(){}},focus(){},setAttribute(){},removeAttribute(){},addEventListener(){},showModal(){this.open=true;},close(){this.open=false;},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
@@ -91,7 +91,7 @@ const priorV1={moves:2,timeMs:200,version:'v1',stars:2,...scoreMetadata({scoreSp
 const priorV2={moves:3,timeMs:300,version:'v2',stars:3,...scoreMetadata({appVersion:'0.4.10',buildNumber:'18',platform:'iOS',scoreSpecVersion:'v2'}),previousVersions:{v1:priorV1}};
 stageRecords.existing[23]=priorV2;moveCount=30;runElapsedMs=1000;recordStageClear();
 assert.equal(stageRecords.existing[23].version,COURSE_VERSION);
-assert.equal(COURSE_VERSION,'v4');
+assert.equal(COURSE_VERSION,'v5');
 {
  const {previousVersions:ignored,...historic}=priorV2;
  assert.deepEqual(stageRecords.existing[23].previousVersions.v2,historic);

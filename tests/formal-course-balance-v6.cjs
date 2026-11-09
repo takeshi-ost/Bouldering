@@ -8,6 +8,8 @@ const elements={};const document={getElementById(id){return elements[id]||={styl
 const window={devicePixelRatio:1,addEventListener(){}};function requestAnimationFrame(){};function setTimeout(){return 0;}function clearTimeout(){}
 `;
 new Function('assert',env+source+`
+// Historical internal-generation witness; actual new live inputs are tested separately.
+return SixPairSelection.withBaseline(()=>{
 // Historical pre-offset identity fixture; current offset behavior has its own suite.
 const savedNormalSeedOffset=CourseProgressionConfig.normalSeedOffset;
 CourseProgressionConfig.normalSeedOffset=0;
@@ -62,4 +64,5 @@ assert.equal(moveCount,moves,'short-heart default input route did not finish');a
 console.log('PASS v6 targeted actual generation/repeat/contact replay/preview/identity, low-score feature exclusion, global short heart cap, tutorial parity, one default-stamina short-heart input clear; no universal solvability claim');
 console.log(JSON.stringify({results,physical}));
 } finally {CourseProgressionConfig.normalSeedOffset=savedNormalSeedOffset;}
+});
 `)(assert);

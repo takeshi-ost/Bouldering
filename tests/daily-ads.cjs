@@ -20,12 +20,13 @@ startCourse('existing');showDailyCalendar({openFromMap:true});
 const normal=playsSinceAd;
 assert(selectDailyDate(key));assert.equal(state,'playing');assert.equal(dailyPlayAdState.plays,1);
 while(featureHelpOpen)dismissStageHelp();cameraIntro=null;
-for(let i=1;i<route.length;i++){
+// Isolate the ad lifecycle from live selector direction changes.
+SixPairSelection.withBaseline(()=>{for(let i=1;i<route.length;i++){
  camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const origin={x:body.x,y:body.y-camera};
  const e=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
  assert(validFingerAction(route[i].action));down(e({dx:0,dy:0}));
  for(const point of route[i].action.points)move(e(point));release();
-}
+}});
 assert.equal(state,'won');ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd,'No post-clear daily ad');
 const before=JSON.stringify(dailyPlayAdState);assert(!selectDailyDate(key));assert.equal(JSON.stringify(dailyPlayAdState),before);
 // Play 2 is the first attempt on another date, so cadence cannot be date-local.

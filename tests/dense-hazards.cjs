@@ -37,19 +37,22 @@ for(const mode of ['existing'])for(const n of [40,41,42,45,47,80]) {
  assert.equal(blue.length,placement.routeIds.length+placement.optionalIds.length);
  assert(initialGrips.every(h=>h.type!=='hazard'));
  assert(blue.every(h=>!h.wide));assert(holds.some(h=>h.type==='goal'));
- assert(samePairRoute(route,replayRoute(route)));
+ assert(samePairRoute(route,SixPairSelection.withBaseline(()=>replayRoute(route))));
  const saved=JSON.stringify({holds,route,hearts}),starting=stamina;
  // Conversion changes type only; normal geometry replays the identical route.
  blue.forEach(h=>h.type='normal');
- const normalReplay=replayRoute(route);assert(normalReplay);
+ const normalReplay=SixPairSelection.withBaseline(()=>replayRoute(route));assert(normalReplay);
  assert(normalReplay.slice(1).every(p=>p.penalty===0));
  assert(samePairRoute(route.map((p,i)=>i?{...p,penalty:0}:p),normalReplay),'Changing hazard types preserves geometry, contacts, actions and trace');
  blue.forEach(h=>h.type='hazard');
  const moves=route.length-1,base=stageStamina(moves);
  assert.equal(starting,moves+3);
- assert(densityStats.routeBudgetValidated);assert(validateRouteBudget(route));
+ assert(densityStats.routeBudgetValidated);assert(SixPairSelection.withBaseline(()=>validateRouteBudget(route)));
  assert(densityStats.costSearch.transitions<=ROUTE_COST_SEARCH_CONFIG.maxTransitions);
  let paid=0,pickups=0;
+ // Historical generator witness uses baseline controls. New live controls are
+ // covered separately by six-pair-baseline-live.cjs, not this replay.
+ SixPairSelection.withBaseline(()=>{
  for(let i=1;i<route.length;i++) {
   assert(stamina>0,mode+' Lv'+n+' cannot start move '+i);
   camera=clamp(body.y-H*.6,0,HEIGHT-H);
@@ -64,6 +67,7 @@ for(const mode of ['existing'])for(const n of [40,41,42,45,47,80]) {
   const gained=(hearts.filter(h=>h.collected).length-beforeHearts)*2;pickups+=gained;
   assert.equal(stamina,beforeStamina+gained-1-fresh);
  }
+ });
  assert(routeResources(route).valid,'Final route must fit its base budget with actual pickups');
  assert.equal(state,'won');assert.equal(pickups,routeResources(route).pickups*2);
  assert.equal(routeExpectedMoves(),moves);assert.equal(starting,moves+3);
@@ -103,6 +107,6 @@ for(let n=40;n<100;n++) {
  }
  assert(items.length<=HEART_CONFIG.maxCount);
 }
-console.log('PASS retained debug dense hazards: seeds40/41/42/45/47/80, 10-30% after fixed geometry/hearts, cost search before acceptance, protected start/wide/goal, unchanged replay, exact live costs, fixed moves+3 budget, unassisted full clears, seeded retries');
+console.log('PASS retained debug dense hazards: seeds40/41/42/45/47/80, 10-30% after fixed geometry/hearts, cost search before acceptance, protected start/wide/goal, unchanged replay, exact baseline-input costs, fixed moves+3 budget, baseline-witness full clears, seeded retries');
 console.log(JSON.stringify(report));
 `)(assert);

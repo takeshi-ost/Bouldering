@@ -20,7 +20,7 @@ test('minimal artifact preserves original order and includes existing Firebase m
   assert(/<script type="module" src="js\/firebase-client.js\?v=/.test(html));
   assert.equal(fs.readFileSync(path.join(dir,'js/firebase-client.js'),'utf8'),fs.readFileSync(path.join(root,'js/firebase-client.js'),'utf8'));
   assert(!/formalEntry|pagesTrialLabel|pages-trial-seed|formal-save-migration|formal-web-online|Web Locks/.test(html));
-  assert.equal(manifest.storagePrefix,prefix);assert.equal(manifest.normalVersion,'v4');assert.equal(manifest.dailyVersion,'v3');assert.equal(manifest.normalSeedOffset,10);
+  assert.equal(manifest.storagePrefix,prefix);assert.equal(manifest.normalVersion,'v5');assert.equal(manifest.dailyVersion,'v4');assert.equal(manifest.normalSeedOffset,10);
   assert(manifest.csp.includes('https://www.gstatic.com'));assert(manifest.csp.includes('https://firestore.googleapis.com'));
   for(const file of manifest.files){assert(!/migration|formal-pages-entry|formal-web-online/.test(file.path));assert(!/^(?:ios|docs|tests|\.git)\//.test(file.path));assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(dir,file.path))).digest('hex'),file.sha256);}
   console.log('PASS minimal formal artifact: '+manifest.files.length+' files / '+manifest.totalBytes+' bytes, Firebase packaged but not executed in tests');

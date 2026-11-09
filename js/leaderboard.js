@@ -45,6 +45,7 @@ function stageLeaderboardMarkup(record,others) {
 }
 
 function renderStageLeaderboard(expectedMoves) {
+    if(!COURSE_RANKINGS_ENABLED) {ui.resultRanking.hidden=true;ui.resultLeaderboard.innerHTML='';return;}
     const record=stageRecords[courseMode][level];
     const own=!debugAttempt && rankingAttemptEligible() && record?.version===COURSE_VERSION && record.rankingEligible!==false?record:null;
     ui.resultLeaderboard.innerHTML=stageLeaderboardMarkup(own,currentStageScores(level,courseMode,expectedMoves));
@@ -55,7 +56,7 @@ function renderStageStartRecord(context) {
     ui.stageStartStars.hidden=!record?.stars;
     ui.stageStartStars.textContent=record?.stars?'⭐️'.repeat(record.stars):'';
     ui.stageStartStars.setAttribute('aria-label',record?.stars?gameText("score.stars", {value0: record.stars}):'');
-    ui.stageStartRanking.hidden=context.n>stageProgress[context.mode].cleared;
+    ui.stageStartRanking.hidden=!COURSE_RANKINGS_ENABLED || context.n>stageProgress[context.mode].cleared;
     ui.stageStartLeaderboard.innerHTML='';
     document.getElementById('stageScoreStatus').textContent='';
     if(ui.stageStartRanking.hidden)return;

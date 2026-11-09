@@ -24,7 +24,7 @@ function buildPagesFormal({outputDir,allowDirty=false}={}){
  const sourceHTML=read('index.html').toString(),config=read('js/config.js').toString();
  const release=config.match(/const RELEASE_VERSION = '([^']+)'/)?.[1];if(!/^\d+\.\d+\.\d+$/.test(release||''))throw Error('Invalid source release');
  const normalVersion=config.match(/const COURSE_VERSION = '([^']+)'/)?.[1],dailyVersion=config.match(/const DAILY_COURSE_VERSION = '([^']+)'/)?.[1];
- if(normalVersion!=='v4'||dailyVersion!=='v3')throw Error('Review formal course identity before packaging');
+ if(normalVersion!=='v5'||dailyVersion!=='v4')throw Error('Review formal course identity before packaging');
  const progression=read('js/course-progression-config.js').toString(),distribution=read('js/course-distribution-config.js').toString();
  if(!/version:\s*'5'/.test(progression)||!/normalSeedOffset:\s*10,/.test(progression)||!/version:\s*'7'/.test(distribution))throw Error('Review adopted course recipe before packaging');
  const scripts=[...sourceHTML.matchAll(/<script src="(js\/[^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>m[1]);

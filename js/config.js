@@ -4,16 +4,18 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.8';
+const RELEASE_VERSION = '0.5.9';
+// Temporarily disabled for the formal release. Keep historical records and queues.
+const COURSE_RANKINGS_ENABLED = false;
 const GAMEPLAY_TIP_KEYS = [
     'tips.scroll', 'tips.undo', 'tips.reach',
     'tips.goal', 'tips.heart', 'tips.cancel', 'tips.appearance'
 ];
 const GAMEPLAY_TIPS = GAMEPLAY_TIP_KEYS.map(key=>gameText(key));
 // Bump whenever generation/gameplay changes make stage scores incomparable.
-const COURSE_VERSION = 'v4';
-// Formal adoption of distribution v7: keep older normal/Daily records historical.
-const DAILY_COURSE_VERSION = 'v3';
+const COURSE_VERSION = 'v5';
+// Six-pair controls and arc-progress generation: retain older records as history.
+const DAILY_COURSE_VERSION = 'v4';
 // 表示サイズと可動域。単位はゲーム内の論理pxです。
 const W = 400;
 const H = 700;

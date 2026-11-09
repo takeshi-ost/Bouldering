@@ -91,7 +91,7 @@ for(const [rating,key] of dates){
  for(let i=1;i<route.length;i++){clock+=100;play(i);}
  assert.equal(state,'won');assert.equal(dailyRecords[key].stars,3);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
  assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore,'Daily clear polluted normal progress');
- assert.deepEqual(scoreMetadata(dailyRecords[key]),currentDailyScoreMetadata());assert.equal(dailyRecords[key].scoreSpecVersion,'v3','Formal adoption of distribution7 uses new Daily generation without rewriting old dates');assert.equal(dailyRecords[key].moves,moveCount);assert(ui.overlay.open);
+ assert.deepEqual(scoreMetadata(dailyRecords[key]),currentDailyScoreMetadata());assert.equal(dailyRecords[key].scoreSpecVersion,'v4','Arc and six-pair adoption uses new Daily generation without rewriting old dates');assert.equal(dailyRecords[key].moves,moveCount);assert(ui.overlay.open);
  ui.overlay.events.click({target:ui.resultStats});finishAds();assert.equal(state,'daily');assert(!dailyRun && ui.overlay.hidden && !ui.dailyCalendar.hidden);assert(!ui.dailyGrid.innerHTML.includes('daily-stars'));
  assert(chooseDailyDate(key));assert.equal(dailySelectedDate,key);assert(ui.dailyStartButton.hidden && ui.dailyStartButton.disabled);assert(!ui.dailyClearRecord.hidden);
  assert.equal(ui.dailyClearStars.textContent,'⭐️⭐️⭐️');assert.equal(ui.dailyClearStats.textContent,formatStageRecord(dailyRecords[key]));

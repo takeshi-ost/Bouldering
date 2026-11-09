@@ -21,12 +21,16 @@ const forceType=id=>{debugMode=true;debugAttempt=true;debugCourseTrial={typeId:i
 // Force dense hazards on STAGE 1: progression must not disable a selected rule set.
 forceType(6);reset(1);cameraIntro=null;
 assert.equal(difficulty,3);const count=holds.filter(h=>h.type==='hazard').length;assert(count>=Math.ceil(holds.length*.1) && count<=Math.floor(holds.length*.3));
+// Historical generator witness uses baseline controls. New live controls are
+// covered separately by six-pair-baseline-live.cjs, not this replay.
+SixPairSelection.withBaseline(()=>{
 for(let i=1;i<route.length;i++){
  camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const origin={x:body.x,y:body.y-camera};
  const e=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
  assert(validFingerAction(route[i].action));down(e({dx:0,dy:0}));
  for(const point of route[i].action.points)move(e(point));release();assert.equal(moveCount,i);
 }
+});
 assert.equal(state,'won');
 const sample=Array.from({length:9},(_,i)=>({x:200,y:800-i*80}));
 for(const d of [0,1,2,3]){
@@ -37,5 +41,5 @@ for(const d of [0,1,2,3]){
 forceType(0);reset(40);assert.equal(difficulty,0);assert.equal(hearts.length,0);assert(!holds.some(h=>h.type==='hazard'));
 const snapshot=JSON.stringify({holds,route,hearts,stamina,difficulty});reset(40);assert.equal(JSON.stringify({holds,route,hearts,stamina,difficulty}),snapshot);
 debugCourseTrial=null;debugAttempt=false;debugMode=false;
-console.log('PASS weighted difficulties: integer-score labels, normalized legacy debug ratios, deterministic stage/day selection, dense early-stage clear, late-stage rule removal and stable retry');
+console.log('PASS weighted difficulties: integer-score labels, normalized legacy debug ratios, deterministic stage/day selection, dense early-stage baseline-witness clear, late-stage rule removal and stable retry');
 `)(assert);

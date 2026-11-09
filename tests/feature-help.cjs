@@ -66,11 +66,11 @@ new Function('assert','storage','data',env+source+`
 data[FEATURE_HELP_KEY]=JSON.stringify({heart:true,hazard:true});featureHelpSeen=readFeatureHelpSeen();
 assert.deepEqual(featureHelpSeen,{wide:false,heart:true,hazard:true});
 reset(1);holds=holds.map(h=>({...h,wide:false}));assert.equal(stageHasLargeHold(),false);showStageHelp();assert(!featureHelpOpen);
-// Stage 5 / seed 15 remains a positive fixture after coupled-route generation.
-// Stage 3 no longer has an ordinary wide hold in its final playable geometry.
-const normalWideStage=5;
-reset(normalWideStage);assert(stageHasLargeHold(),'Final generated stage 5 contains a real ordinary wide hold');
-assert.deepEqual(holds.filter(h=>h.type==='normal' && h.wide===true && !initialGrips.some(s=>s.id===h.id)).map(h=>h.id),[18]);
+// Arc-progress generation removed the old Stage 5 wide hold.
+// Stage 6 / seed 16 is the current real positive fixture (ordinary wide hold 8).
+const normalWideStage=6;
+reset(normalWideStage);assert(stageHasLargeHold(),'Final generated stage 6 contains a real ordinary wide hold');
+assert.deepEqual(holds.filter(h=>h.type==='normal' && h.wide===true && !initialGrips.some(s=>s.id===h.id)).map(h=>h.id),[8]);
 assert.equal(generatedCourse.holds,holds);
 const resources=()=>JSON.stringify({stamina,moveCount,heartItems,lives,playsSinceAd,stageRecords,dailyRecords});
 const before=resources();showStageHelp();assert.deepEqual(pendingFeatureHelp,['wide']);
@@ -106,11 +106,12 @@ dismissStageHelp();assert.deepEqual(pendingFeatureHelp,['hazard']);
 ui.featureHelpDialog.events.cancel({preventDefault(){}});dismissStageHelp();assert.deepEqual(cues,['move','move','move']);
 assert.equal(resources(),queuedResources);assert.equal(cameraIntro.start,null);assert.equal(runTimeMs(),0);
 // Daily uses the same final-hold detection and the same durable acknowledgment.
-const dailyWideDate='2026-11-05';
+// Arc progress removed the old November 5 wide hold; November 4 retains real hold 39.
+const dailyWideDate='2026-11-04';
 dailyRun={date:dailyWideDate,...dailyProfile(dailyWideDate)};reset(1);
 assert.equal(stageHasLargeHold(),holds.some(h=>h.type==='normal' && h.wide===true && !initialGrips.some(s=>s.id===h.id)));
 assert(stageHasLargeHold(),'Fixed real Daily fixture must contain an ordinary wide hold');
-assert.deepEqual(holds.filter(h=>h.type==='normal' && h.wide===true && !initialGrips.some(s=>s.id===h.id)).map(h=>h.id),[21]);
+assert.deepEqual(holds.filter(h=>h.type==='normal' && h.wide===true && !initialGrips.some(s=>s.id===h.id)).map(h=>h.id),[39]);
 showStageHelp();assert(!featureHelpOpen,'Normal acknowledgment applies to Daily');
 featureHelpSeen.wide=false;showStageHelp();assert.deepEqual(pendingFeatureHelp,['wide']);dismissStageHelp();
 dailyRun=null;reset(normalWideStage);showStageHelp();assert(!featureHelpOpen,'Daily acknowledgment applies to normal');

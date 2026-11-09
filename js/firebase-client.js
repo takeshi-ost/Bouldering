@@ -101,6 +101,7 @@ async function bootFirebase() {
                 });
             },
             async saveScore(uid,board,score) {
+                if(!COURSE_RANKINGS_ENABLED)return null;
                 const ref=dbSDK.doc(db,'stageScores',board,'entries',uid);
                 return dbSDK.runTransaction(db,async transaction=>{
                     const snapshot=await transaction.get(ref),previous=snapshot.exists()?snapshot.data():null;
@@ -111,6 +112,7 @@ async function bootFirebase() {
                 });
             },
             async scores(uid,board) {
+                if(!COURSE_RANKINGS_ENABLED)return [];
                 const collection=dbSDK.collection(db,'stageScores',board,'entries');
                 const query=dbSDK.query(collection,dbSDK.orderBy('moves'),dbSDK.orderBy('timeMs'),dbSDK.limit(100));
                 const [snapshot,own]=await Promise.all([dbSDK.getDocs(query),dbSDK.getDoc(dbSDK.doc(collection,uid))]);

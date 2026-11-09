@@ -31,12 +31,14 @@ for(const [moves,timeMs,rank,index] of [[9,10000,1,0],[13,9000,4,3],[14,9000,5,4
 }
 playerName=originalName;
 assert.equal(scoreText('<img src=x onerror="x">'),'&lt;img src=x onerror=&quot;x&quot;&gt;');
-function play(i){
+// Result/record UI fixtures replay baseline generation witnesses; live six-pair
+// reachability is tested independently with alternative input copies.
+function play(i){return SixPairSelection.withBaseline(()=>{
  camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const origin={x:body.x,y:body.y-camera};
  const e=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
  assert(validFingerAction(route[i].action));down(e({dx:0,dy:0}));
  for(const point of route[i].action.points)move(e(point));release();assert.equal(moveCount,i);
-}
+});}
 function begin(n=1){hideStageStart();playsSinceAd=0;reset(n);advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);assert(!cameraIntro);}
 reset(1);assert.equal(runTimeMs(),0);advanceCameraIntro(100);clock=1099;advanceCameraIntro(clock);
 assert(cameraIntro);assert.equal(runStartedAt,null);assert.equal(runTimeMs(),0);

@@ -23,7 +23,7 @@ for(const n of [1,20,21,55,80,81,200,201,400,401]) {
  assert.equal(generatedCourse.level,n);assert.equal(generatedCourse.seed,n+10);assert.equal(generatedCourse.holds,holds);
  assert.equal(hearts.length,activeCourseGeneration.report.hearts.actual.total);
  assert.equal(stamina,routeExpectedMoves()+3-activeCourseGeneration.report.hearts.staminaAdjustment.appliedReduction);
- assert(samePairRoute(route,replayRoute(route)),'restored stage identity rejects valid profile '+n);
+ assert(SixPairSelection.withBaseline(()=>samePairRoute(route,replayRoute(route))),'restored stage identity rejects valid profile '+n);
  const stable=JSON.stringify({holds,route,hearts,stamina,level,difficulty}),active=activeCourseGeneration;
  const preview=stagePreview(n);assert.equal(preview.stamina,stamina);assert.equal(preview.height,HEIGHT);
  assert.equal(JSON.stringify({holds,route,hearts,stamina,level,difficulty}),stable);assert.equal(activeCourseGeneration,active);
@@ -39,10 +39,10 @@ try {labGenerateSkeleton=()=>{holds=[];route=[];hearts=[];throw Error('injected 
 finally {labGenerateSkeleton=generateBefore;}
 assert.deepEqual({hearts,holds,route,generatedCourse,activeCourseGeneration,level,difficulty,courseTypeId,stamina},saved);
 assert.equal(hearts,saved.hearts);assert.equal(holds,saved.holds);assert.equal(route,saved.route);assert(hearts.at(-1).collected);
-// v1 records remain archived instead of being erased/relabelled by a v4 clear.
+// v1 records remain archived instead of being erased/relabelled by a v5 clear.
 stageRecords.existing[55]={moves:3,timeMs:1234,stars:3,version:'v1',scoreSpecVersion:'v1'};
 moveCount=10;runElapsedMs=3000;recordStageClear();
-assert.equal(stageRecords.existing[55].version,'v4');assert.equal(stageRecords.existing[55].stars,clearStars(moveCount,routeExpectedMoves()));
+assert.equal(stageRecords.existing[55].version,'v5');assert.equal(stageRecords.existing[55].stars,clearStars(moveCount,routeExpectedMoves()));
 assert.equal(stageRecords.existing[55].previousVersions.v1.moves,3);assert.equal(stageRecords.existing[55].previousVersions.v1.scoreSpecVersion,'v1');
 console.log('PASS generated boundary course invariants, map/preview/play/retry consistency, exact hearts/stamina, item bonus, failed-preview rollback, v1 archive');
 console.log(JSON.stringify({generated:report,rejections}));

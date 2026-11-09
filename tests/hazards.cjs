@@ -29,6 +29,9 @@ applyRouteHazards=(path,intent,salt)=>{
  }
  return accepted;
 };
+// Historical generator witnesses and optional-branch searches use baseline
+// controls; manual contact fixtures below retain current live behavior.
+SixPairSelection.withBaseline(()=>{
 for(const mode of ['existing'])for(const n of [19,20,21,22,23]) {
  // Explicit recipe fixtures: selector probabilities are covered by course-types.cjs.
  debugMode=true;debugAttempt=true;debugCourseTrial={typeId:n<20?1:n===20?2:3,lengthCategory:stageLengthRule(n).category,seed:n};
@@ -67,6 +70,7 @@ for(const mode of ['existing'])for(const n of [19,20,21,22,23]) {
  reset(n);assert.equal(JSON.stringify({holds,route,hearts}),saved);
  report.push({mode,level:n,count:hazards.length});
 }
+});
 assert(consumptionRecipes>0);applyRouteHazards=applyRecipe;debugMode=false;debugAttempt=false;debugCourseTrial=null;
 // Actual v5 sampled features are post-process caps, not legacy dense quotas.
 for(const stage of [1,18,55]){
@@ -75,7 +79,8 @@ for(const stage of [1,18,55]){
  assert.equal(report.spikes.count,Math.floor(report.spikes.candidateCount*recipe.spikePercent/100));
  assert.deepEqual(holds.filter(h=>h.type==='hazard').map(h=>h.id).sort((a,b)=>a-b),[...report.spikes.selectedIds].sort((a,b)=>a-b));
  assert.equal(report.spikes.referenceHazardCost,0);assert(report.spikes.referenceContactsUnchanged);
- assert(samePairRoute(route,replayRoute(route)));assert.equal(routeHazardCosts(route).at(-1)||0,0);
+ // Adopted generation records baseline witnesses, not identical new-control inputs.
+ assert(samePairRoute(route,SixPairSelection.withBaseline(()=>replayRoute(route))));assert.equal(routeHazardCosts(route).at(-1)||0,0);
  assert(holds.filter(h=>h.type==='hazard').every(h=>!h.wide&&!initialGrips.includes(h)));
  assert(report.hearts.actual.first<=recipe.heartsFirst);assert(report.hearts.actual.second<=recipe.heartsSecond);
  assert.equal(hearts.length,report.hearts.actual.total,'Visible hearts must match adopted caps at stage '+stage+': '+JSON.stringify({hearts,recipe,identityMatches:generatedCourse?.holds===holds,recipeHearts:generatedCourse?.hearts,actual:report.hearts.actual}));if(recipe.length==='short')assert(hearts.length<=1,'Approved short-course rule permits at most one heart');
@@ -159,6 +164,6 @@ assert(HAZARD_CONFIG.radius<8);
 points.forEach((p,i)=>assert(Math.abs(distance(p,{x:100,y:200})-HAZARD_CONFIG.radius*(i%2?.66:1))<1e-8));
 const originalPlaySound=playSound,emitted=[];playSound=name=>emitted.push(name);
 fixture();reach([0,1],{x:200,y:310});assert.deepEqual(emitted,[],'No normal preview before hazard confirmation');release();assert.deepEqual(emitted,['hazard'],'Hazard replaces the normal move/contact cue');playSound=originalPlaySound;
-console.log('PASS hazards: isolated legacy0–5 fixtures, optional real moves, free-route clears; actual v5 spikes preserve reference and heart caps; retry, contact transitions, cancel, stacked costs, zero clamp, Undo and heart recovery; purple penalty and vector loading fallback');
+console.log('PASS hazards: isolated legacy0–5 fixtures, optional baseline-input moves, baseline free-route clears; actual v5 spikes preserve reference and heart caps; retry, contact transitions, cancel, stacked costs, zero clamp, Undo and heart recovery; purple penalty and vector loading fallback');
 console.log(JSON.stringify(report));
 `)(assert);

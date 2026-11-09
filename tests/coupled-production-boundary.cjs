@@ -38,7 +38,12 @@ const preparationExceptions={
   "scripts/build-ios-assets.cjs": "3654c6984d382d562f60c8819e915e80ae3551a587e0490c5c0401a377c8d8e2",
   "scripts/build-pages-formal.cjs": "0d821629436ae809db7f7d44689167acc961f5d128d064a92cc746c3a4f184f0"
 };
-for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation '+file);
+
+// Reviewed v5 exception: additive score-board generation and matching metadata only;
+// ONLINE_PROGRESS_VERSION stays v4, old records/queues and storage keys remain intact.
+// Builder identity guard is advanced to normal v5 / Daily v4; no deployment occurs.
+const courseGenerationExceptions={"js/score-metadata.js": "11f4ce6668c512d24a8c7fa77b518cf1e12fcca35e7258f8ad4e50dca572e472", "firestore.rules": "369166eeda40d6876f5e727d065246bec34fdd3335add93319eeccf18ce3f9b6", "scripts/build-pages-formal.cjs": "4dc2e325571a012a5aaa831bfde7cbccd12ee2009e46d81d9a95601ffd1a649c"};
+for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),courseGenerationExceptions[file]||preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation and v5 generation '+file);
 const map=fs.readFileSync('js/level-map.js','utf8');
 assert.equal(crypto.createHash('sha256').update(map.slice(0,map.indexOf('let stageStartContext='))).digest('hex'),'bcd613a8c17fd53a4691055ee206bf2a8a043bbefad5cc325bd93589483eff40','Map records, rewards, inventory and navigation before the dialog remain byte-identical');
 const launch=`            restartInput(n,heartsUsed);
@@ -59,6 +64,6 @@ for(const file of ['js/finger-aim.js','js/finger-route.js','js/game.js','js/cour
  const s=fs.readFileSync(file,'utf8');assert(!/ASCENT_FINGER_TRIAL|prepareFrozenFingerTrialCourse|currentFingerTrialReport|memoryStorage|build-coupled-trial/.test(s),'No isolated-trial runtime '+file);
 }
 const html=fs.readFileSync('index.html','utf8');assert(html.includes('js/finger-aim.js'));assert(html.includes('js/finger-route.js'));assert(html.includes('js/firebase-client.js'));assert(!html.includes('coupled-trial'));
-const cfg=fs.readFileSync('js/config.js','utf8');assert(cfg.includes("const COURSE_VERSION = 'v4'"));assert(cfg.includes("const DAILY_COURSE_VERSION = 'v3'"));
+const cfg=fs.readFileSync('js/config.js','utf8');assert(cfg.includes("const COURSE_VERSION = 'v5'"));assert(cfg.includes("const DAILY_COURSE_VERSION = 'v4'"));
 assert(!fs.readFileSync('.github/workflows/pages.yml','utf8').includes('coupled-production-integration'));
-console.log('PASS coupled production boundary: unchanged 0.5.1 online, saves, ads, audio, Rules and native adapters; reviewed geometry-preparation UI/build exceptions; no trial runtime; no deployment trigger or reset');
+console.log('PASS coupled production boundary: preserved 0.5.1 saves, ads, audio and adapters; reviewed preparation plus additive v5 score/rules and v4 Daily identity exceptions; no trial runtime; no deployment trigger or reset');

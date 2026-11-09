@@ -12,6 +12,10 @@ function validScoreBoard(key) {
     return supportedScoreBoard(key);
 }
 function persistPendingScores() {
+    if(!COURSE_RANKINGS_ENABLED) {
+        const status=document.getElementById('onlineScoreStatus');
+        status.hidden=true;status.textContent='';return;
+    }
     // Unsafe restored payloads remain byte-for-byte in their original key.
     if(!onlineScores.blocked)try {globalThis.localStorage?.setItem(ONLINE_SCORES_KEY,JSON.stringify({uid:onlineScores.owner,items:[...onlineScores.pending]}));}catch(_) {}
     const status=document.getElementById('onlineScoreStatus');
@@ -42,6 +46,7 @@ function readPendingScores() {
 readPendingScores();
 persistPendingScores();
 function connectOnlineScores(uid) {
+    if(!COURSE_RANKINGS_ENABLED)return;
     // Do not submit another guest account's pending records under a new identity.
     if(onlineScores.owner && onlineScores.owner!==uid) {
         onlineScores.blocked='pending-owner-mismatch';persistPendingScores();refreshOpenScoreViews();return;
@@ -51,6 +56,7 @@ function connectOnlineScores(uid) {
     onlineScores.owner=uid;persistPendingScores();void flushOnlineScores();refreshOpenScoreViews();
 }
 function queueOnlineScore(stage,mode,score) {
+    if(!COURSE_RANKINGS_ENABLED)return false;
     if(onlineScores.blocked || score?.rankingEligible===false)return false;
     if(stage<1 || (typeof isTutorialRun==='function' && isTutorialRun()))return false;
     if(accountDeletion.marker)return false;
@@ -66,6 +72,7 @@ function queueOnlineScore(stage,mode,score) {
     void flushOnlineScores();return true;
 }
 async function flushOnlineScores() {
+    if(!COURSE_RANKINGS_ENABLED)return;
     if(onlineScores.blocked || accountDeletion.marker || !online.ready || !online.adapter.saveScore || onlineScores.saving || (typeof transferBusy==='function' && transferBusy()))return;
     onlineScores.saving=true;
     try {
@@ -113,6 +120,7 @@ function stageScoreStatus(stage,mode) {
     return page?.rows.length?'':gameText("online-scores.stageScoreStatus");
 }
 function onlineStageScores(stage,mode) {
+    if(!COURSE_RANKINGS_ENABLED)return [];
     if(mode!=='existing')return [];
     const board=scoreBoardKey(stage,mode);
     if(!validScoreBoard(board))return [];

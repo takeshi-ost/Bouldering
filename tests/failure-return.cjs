@@ -1,6 +1,9 @@
 'use strict';
 const fs=require('node:fs'),assert=require('node:assert/strict');
-const {boot,play}=require('./tutorial-modals.cjs');
+const {boot}=require('./tutorial-modals.cjs');
+// Return/reward flows replay generated baseline witnesses; new-selector live
+// equivalence is covered separately by six-pair-baseline-live.cjs.
+function play(b,index,cancel=false){b.run(`SixPairSelection.withBaseline(()=>{const target=route[${index}];assert(validFingerAction(target.action));assert.equal(target.action.bodyMotion,COUPLED_BODY_MODEL);down({clientX:200,clientY:500});for(const p of target.action.points)move({clientX:200+p.dx,clientY:500+p.dy});release(${cancel});});`);}
 const existing=()=>new Map([['ascent.progress.v1',JSON.stringify({existing:{cleared:10},prototype:{cleared:0}})]]);
 function context(){
  const b=boot(existing());

@@ -374,6 +374,10 @@ function goalSupportDistance(pair, ux, uy, reach) {
 }
 
 function selectAnchor(dx, dy) {
+    return typeof SixPairSelection !== "undefined" && SixPairSelection.enabled && !SixPairSelection.useBaseline
+        ? SixPairSelection.select(dx,dy) : selectAnchorBaseline(dx,dy);
+}
+function selectAnchorBaseline(dx, dy) {
     const length = Math.hypot(dx, dy);
     if (!(length > 0)) return [0, 1];
     const ux = dx / length;
@@ -645,6 +649,12 @@ function restoreMoveStamina(saved) {
 
 // A date keeps its difficulty even if a layout needs a deterministic retry.
 function prepareCurrentStage() {
+    // Every generation entry, including retained debug types and authored tutorial,
+    // uses baseline controls. Live six-pair planning must never run inside search.
+    return typeof SixPairSelection==='undefined' ? prepareCurrentStageBaseline()
+        : SixPairSelection.withBaseline(prepareCurrentStageBaseline);
+}
+function prepareCurrentStageBaseline() {
     courseMode='existing'; // Old experimental modes cannot enter generation.
     if(typeof isTutorialRun==='function' && isTutorialRun())return prepareTutorialCourse();
     if(!activeDebugCourse() || activeDebugScoreTrial())return prepareAdoptedCourse();
@@ -768,6 +778,11 @@ function reset(n,staminaBonus=0) {
 }
 
 function updateUI() {
+    if(typeof SixPairSelection!=="undefined" && state==='playing' && !drag && body && grips.every(Boolean)) {
+        const savedOrigin=committed,savedStance=startGrips;
+        try {committed=body;startGrips=grips;SixPairSelection.prepare();}
+        finally {committed=savedOrigin;startGrips=savedStance;}
+    }
     if(typeof updateDebugCourseReport==='function')updateDebugCourseReport();
     if(typeof requestGameRender==='function')requestGameRender();
     ui.settingsButton.disabled = !!cameraIntro || state!=='playing';
@@ -1094,7 +1109,7 @@ function finish(won) {
     recordAdPlay();
     if(won) { recordStageClear(); recordMapRewardClear(); startGoalHang(); }
     else startFall();
-    const showRanking=won && !dailyRun && !activeDebugCourse();
+    const showRanking=COURSE_RANKINGS_ENABLED && won && !dailyRun && !activeDebugCourse();
     ui.resultRanking.hidden=!showRanking;
     ui.overlay.classList.toggle('has-ranking',showRanking);
     ui.resultDifficulty.hidden=!won || showRanking;

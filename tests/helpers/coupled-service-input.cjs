@@ -1,14 +1,15 @@
 'use strict';
-// Injected beside the actual index scripts, so every step uses production input.
+// Service/reward tests replay generated baseline witnesses through real input.
+// New-selector alternative inputs have a separate six-pair-baseline-live test.
 module.exports = `
-function serviceGesture(action,cancel=false){
+function serviceGesture(action,cancel=false){return SixPairSelection.withBaseline(()=>{
  assert(validFingerAction(action));assert.equal(action.bodyMotion,COUPLED_BODY_MODEL);
  const rect=canvas.getBoundingClientRect(),scale=rect.width/400;
  const origin={clientX:rect.left+123*scale,clientY:rect.top+330*scale};
  down(origin);assert(drag,'production finger gesture starts');
  for(const p of action.points)move({clientX:origin.clientX+p.dx*scale,clientY:origin.clientY+p.dy*scale});
  release(cancel);
-}
+});}
 function servicePlayStep(i){
  camera=clamp(body.y-H*.6,0,HEIGHT-H);
  for(const placement of activeCourseGeneration?.report?.hearts?.placements||[]){

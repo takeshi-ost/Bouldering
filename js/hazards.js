@@ -79,7 +79,9 @@ function convertDenseHazards(path=route,salt=0,safeFallback=false) {
     for(const {h} of candidates) {
         if(selected.length>=target)break;
         h.type='hazard';
-        if(!safeFallback || routeResources(path).valid)selected.push(h.id);
+        // A safe fallback must preserve the executable witness, not only its
+        // arithmetic budget: changing a hold type can alter capture selection.
+        if(!safeFallback || validateRouteBudget(path))selected.push(h.id);
         else h.type='normal';
     }
     if(selected.length<min)return false;

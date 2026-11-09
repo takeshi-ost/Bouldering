@@ -12,7 +12,8 @@ showLevelMap();debugMode=true;mapPreparing=false;mapTransition=null;
 const before=JSON.stringify({stageProgress,stageRecords,lives,heartItems,mapRewards,playsSinceAd,featureHelpSeen});
 const originalRestart=restartInput,originalPrepare=prepareCurrentStage;
 // Exercise every transition with inexpensive valid geometry; generation checked separately below.
-prepareCurrentStage=()=>prepareTutorialCourse();
+// Match the production generation boundary even in this cheap tutorial substitute.
+prepareCurrentStage=()=>SixPairSelection.withBaseline(prepareTutorialCourse);
 assert.equal(startDebugScoreTrial(0),false);assert.equal(startDebugScoreTrial(101),false);
 assert.equal(startDebugScoreTrial(1.5),false);
 settingsOpen=true;assert.equal(startDebugScoreTrial(1),false);settingsOpen=false;

@@ -24,13 +24,16 @@ for(let kind=0;kind<3;kind++) {
   assert(Math.abs(goal.y-STAGE_CONFIG.goalTopMargin)<=STAGE_CONFIG.holdOffset+1e-8);
   assert(initialGrips[2].y-goal.y>=HEIGHT-160);
   if(kind===0){assert(cameraTop()<0);assert(canScrollStage(),'Short course must remain scrollable');}
-  assert(validateRouteBudget(route));assert.equal(stamina,routeExpectedMoves()+3);
+  assert(SixPairSelection.withBaseline(()=>validateRouteBudget(route)));assert.equal(stamina,routeExpectedMoves()+3);
   const fixed=JSON.stringify({holds,route,hearts,stamina,HEIGHT});
   const preview=stagePreview(23,mode);assert.equal(preview.height,stageLengthInfo(23).height);assert.equal(preview.seed,CourseProgression.resolveStage(23).seed);
   assert.equal(JSON.stringify({holds,route,hearts,stamina,HEIGHT}),fixed);
   reset(23);cameraIntro=null;hideStageHelp();settingsOpen=false;state='playing';
   assert.equal(JSON.stringify({holds,route,hearts,stamina,HEIGHT}),fixed);
   const moves=routeExpectedMoves();
+  // Historical generator witness uses baseline controls. New live controls are
+  // covered separately by six-pair-baseline-live.cjs, not this replay.
+  SixPairSelection.withBaseline(()=>{
   for(let i=1;i<route.length;i++) {
    camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
    const origin={x:body.x,y:body.y-camera},action=route[i].action;
@@ -39,6 +42,7 @@ for(let kind=0;kind<3;kind++) {
    for(const point of fingerResampledAction(action,10).points)move(e(point));
    release();assert.equal(moveCount,i);assert.notEqual(state,'lost');
   }
+  });
   assert.equal(state,'won');report.push({mode,rating,length:expected,height:HEIGHT,moves});
  }
  // Geometry retries keep the selected length's base seed.
@@ -53,6 +57,6 @@ const days=new Set();for(let day=1;day<=31;day++) {
  const p=dailyProfile('2026-10-'+String(day).padStart(2,'0'));days.add(resolvedCourseLengthInfo(CourseProgression.resolveDaily(p.date)).category);
 }
 assert.equal(days.size,3);
-console.log('PASS score-derived normal/Daily lengths, exact recipe previews; retained debug planner all lengths/families clear via real input with preview/retry isolation');
+console.log('PASS score-derived normal/Daily lengths, exact recipe previews; retained debug planner all lengths/families clear via baseline witness input with preview/retry isolation');
 console.log(JSON.stringify({counts,report}));
 `)(assert);

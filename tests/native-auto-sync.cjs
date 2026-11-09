@@ -62,7 +62,7 @@ const profile={name:'local-private-name',colors:['#123456'],headColor:'#abcdef',
   {sequence:2,board:'v2_existing_1',score:{moves:7,timeMs:11,scoreSpecVersion:'v2',appVersion:'0.4.10'}},
   {sequence:3,board:'v3_existing_1',score:{moves:6,timeMs:12,scoreSpecVersion:'v3'}},
   {sequence:4,board:'v1_prototype_1',score:{moves:1,timeMs:1}},
-  {sequence:5,board:'v5_existing_1',score:{moves:1,timeMs:1}},
+  {sequence:5,board:'v6_existing_1',score:{moves:1,timeMs:1}},
   {sequence:6,board:'v4_existing_2',score:{moves:1,timeMs:1,scoreSpecVersion:'v3'}},
   {sequence:7,board:'v4_existing_3',score:{moves:1,timeMs:1,rankingEligible:false}}];
  const upgradeData=new Map([[SYNC_KEY,JSON.stringify({version:1,owner:'existing-owner',activatedAt:42,sequence:7,name:'Saved name',profile:null,events:entries})],['ascent.pending-scores.v1',oldQueue]]);
@@ -90,5 +90,14 @@ const profile={name:'local-private-name',colors:['#123456'],headColor:'#abcdef',
  await pending.queue.flush();assert.equal(pending.calls.profiles.length,0);assert.equal(pending.calls.scores.length,1);assert.deepEqual(JSON.parse(pendingData.get(SYNC_KEY)).profile,pendingLegacy.profile);
  assert.equal(pending.queue.queueProfile(oldProfile),false);assert.equal(pending.calls.profiles.length,0);
  pending.queue.queueProfile(profile);await pending.queue.flush();assert.equal(pending.calls.profiles.length,1);assert.equal(pending.calls.profiles[0].reachedLevel,2);assert.equal(pending.calls.profiles[0].progressVersion,'v4');assert.equal(pending.queue.report().retainedProfile,false);
+ // Current v5 queues retain v4 scores with original provenance and v4 profile generation.
+ const v5Data=new Map([[SYNC_KEY,JSON.stringify({version:1,owner:'existing-owner',activatedAt:42,sequence:1,name:'Saved',profile:null,events:[{sequence:1,board:'v4_existing_1',score:{moves:8,timeMs:9,scoreSpecVersion:'v4'}}]})]]);
+ const v5=fixture(v5Data,new Map(),'v5');v5.online(false);
+ assert.equal(v5.queue.recordClear(1,'existing',{moves:1,timeMs:1,version:'v4',scoreSpecVersion:'v4'}),false);
+ assert(v5.queue.recordClear(1,'existing',{moves:20,timeMs:30,version:'v5',scoreSpecVersion:'v5'}));
+ v5.queue.queueProfile(profile);await v5.queue.flush();v5.online(true);await v5.queue.flush();
+ assert.deepEqual(v5.calls.scores.map(x=>x.board),['v4_existing_1','v5_existing_1']);
+ assert.deepEqual(v5.calls.scores.map(x=>x.score.scoreSpecVersion),['v4','v5']);
+ assert.equal(v5.calls.profiles[0].progressVersion,'v4');
  console.log('PASS automatic queue: persistent activation boundary; historical queues/best never imported; worse fresh result sent; offline/restart recovery; duplicate suppression; real names preserved; v4 mixed-history/assisted exclusions; concurrent profile edits; corrupt storage fail-stop');
 })().catch(e=>{console.error(e);process.exitCode=1;});

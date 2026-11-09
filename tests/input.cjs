@@ -24,13 +24,14 @@ function visibleEvent(){return eventAt(characterPose(clock).body);}
 function mouse(name,e){(name==='mousedown'?canvas.events:window.events)[name](e);}
 function touch(name,touches,changed=touches){canvas.events[name]({touches,changedTouches:changed,preventDefault(){}});}
 function finger(id,e){return {...e,identifier:id};}
-function play(i) {
+// Historical generated witness; the rest of the input tests use current live controls.
+function play(i) {return SixPairSelection.withBaseline(()=>{
  camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
  const origin=eventAt(body),scale=canvas.getBoundingClientRect().width/W;
  assert(validFingerAction(route[i].action));down(origin);
  for(const point of route[i].action.points)move({...origin,clientX:origin.clientX+point.dx*scale,clientY:origin.clientY+point.dy*scale});release();
  assert.equal(moveCount,i);
-}
+});}
 function fixture() {
  hideStageStart();playsSinceAd=0;reset(1);advanceCameraIntro(0);advanceCameraIntro(1000);clock+=1000;
  play(1);clock+=250;

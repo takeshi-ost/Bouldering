@@ -102,9 +102,15 @@ function fingerRouteCandidates(p,targets,{wide=false}={}) {
     return result;
 }
 function fingerRouteProgress(guide,p) {
-    let best=Infinity,index=0;
-    guide.forEach((q,i)=>{const d=distance(p,q);if(d<best){best=d;index=i;}});
-    return index*100-best;
+    let best=Infinity,progress=0,arc=0;
+    for(let i=1;i<guide.length;i++) {
+        const a=guide[i-1],b=guide[i],dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy);
+        const t=length?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(length*length),0,1):0;
+        const d=distance(p,{x:a.x+dx*t,y:a.y+dy*t});
+        if(d<best){best=d;progress=arc+length*t;}
+        arc+=length;
+    }
+    return progress;
 }
 function fingerPartialSearchBounded(guide,{start=null,stance=null,limit=18000,maxMoves=45,stop,forwardOnly=false,accept=()=>true,beamWidth=12,needsTraverse=false,greedy=false}={}) {
     const origin=start||guide[0],first=stance||fingerRouteInitial();

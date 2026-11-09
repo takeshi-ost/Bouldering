@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const ROOT=path.resolve(__dirname,'..');
 const files=['text-ja','text-en','text-dev-ja','config','course-progression-config','course-distribution-config',
  'course-distribution','course-progression','difficulty-config','utils','difficulty','stage','finger-aim','finger-route',
- 'game','route','course','hazards','course-stamina-settings','course-generator-core','course-adoption','tutorial-course','course-preparation'].map(n=>'js/'+n+'.js');
+ 'six-pair-selection','game','route','course','hazards','course-stamina-settings','course-generator-core','course-adoption','tutorial-course','course-preparation'].map(n=>'js/'+n+'.js');
 function buildCourseWorker({write=false}={}){
  const sources=files.map(file=>({file,source:fs.readFileSync(path.join(ROOT,file),'utf8')}));
  const text=fs.readFileSync(path.join(ROOT,'js/text.js'),'utf8');

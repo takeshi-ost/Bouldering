@@ -8,7 +8,7 @@ const COURSE_RETRY_CONFIG = Object.freeze({version:'1',maxAttempts:32});
 let activeCourseGeneration = null;
 // Session-only validated geometry. No storage, account, reward or live run state.
 // Bump this schema when adding generation inputs or changing the snapshot shape.
-const ADOPTED_COURSE_CACHE_VERSION='1';
+const ADOPTED_COURSE_CACHE_VERSION='2';
 const ADOPTED_COURSE_CACHE_CAPACITY=12;
 const adoptedCourseCache=new Map();
 const adoptedCourseFunctionIds=new WeakMap();
@@ -78,7 +78,8 @@ function adoptedCourseCacheInputs() {
         labSolveCompositeSwitchbacks,labCompositeSwitchbackFeatures,labGenerateSwitchbackSkeleton,labGenerateSkeleton,labPrepareHearts,
         labHeartStaminaAdjustment,labPrepareStaminaAdjustment,generateCourseFromRecipe,courseSeed,cameraTop,
         limbReachable,supportMotionFraction,supportPairReach,movingLimbHasForwardHold,goalSupportDistance,
-        selectAnchor,canShareHold,attachMoving,stageStamina,newHazardContacts,
+        selectAnchor,selectAnchorBaseline,
+        ...(typeof SixPairSelection!=='undefined'?[SixPairSelection.select,SixPairSelection.plan]:[]),canShareHold,attachMoving,stageStamina,newHazardContacts,
         routeHazardCosts,routeMoveCost,routeConsumption,routeExpectedMoves,routeStamina,
         createHearts,makeRouteHearts,torsoTouchesHeart,limbRoot,bothHandsOnGoal,
         sameContacts,isSupportPair,supportsReachable,
@@ -182,10 +183,18 @@ function prepareAdoptedCourse() {
                 // All placement/postprocessing randomness uses the same effective
                 // seed. The core's temporary level 1/2 and difficulty 0 may not
                 // escape to stage/day identity, score records or progression.
-                labGenerateSkeleton(recipe);
-                labPrepareSpikes(recipe);
-                labPrepareHearts(recipe);
-                labPrepareStaminaAdjustment(recipe);
+                const build=()=>{
+                    labGenerateSkeleton(recipe);
+                    labPrepareSpikes(recipe);
+                    labPrepareHearts(recipe);
+                    labPrepareStaminaAdjustment(recipe);
+                };
+                // Generation and its recorded witnesses intentionally retain the
+                // baseline selection model. A changed live input direction alone
+                // is not a reason to reject/reseed an otherwise valid layout.
+                // Alternative live input is verified separately, not searched here.
+                if(typeof SixPairSelection==='undefined')build();
+                else SixPairSelection.withBaseline(build);
             } catch(error) {
                 // Configuration/programming failures must not be disguised as a
                 // rejected seed. Only explicitly classified finite rejections retry.

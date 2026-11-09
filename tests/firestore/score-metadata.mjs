@@ -44,7 +44,8 @@ const progressExtended=deployed
         && (!('progressVersion' in resource.data)
           || ('progressVersion' in request.resource.data
             && request.resource.data.progressVersion == resource.data.progressVersion));`);
-assert.equal(current,progressExtended,'Unexpected change outside reviewed profile generation extension');
+const courseExtended=progressExtended.replace('v[234]_existing','v[2345]_existing').replace('^v[1234]$','^v[12345]$').replace("|| (data.scoreSpecVersion == 'v4' && board.matches('^v4_.*$')))", ()=>"|| (data.scoreSpecVersion == 'v4' && board.matches('^v4_.*$'))\n            || (data.scoreSpecVersion == 'v5' && board.matches('^v5_.*$')))");
+assert.equal(current,courseExtended,'Unexpected change outside additive v5 course generation extension');
 console.log('PASS owner Console snapshot hash, deployed snapshot, and exact minimal Rules diffs');
 // Four isolated demo projects; never a production project or production token.
 const environments=[];
@@ -94,7 +95,7 @@ try {
   for(const missing of ['moves','timeMs','updatedAt']) {
    const payload=old();delete payload[missing];await deny(setDoc(doc(owner,path()),payload));
   }
-  for(const board of ['v1_daily_1','v5_existing_1','v4_prototype_1','trial-d7-offset10_existing_1','v2_prototype_1','v3_prototype_1','v1_existing_0'])await deny(setDoc(doc(owner,`stageScores/${board}/entries/mock-owner`),old()));
+  for(const board of ['v1_daily_1','v6_existing_1','v5_prototype_1','v4_prototype_1','trial-d7-offset10_existing_1','v2_prototype_1','v3_prototype_1','v1_existing_0'])await deny(setDoc(doc(owner,`stageScores/${board}/entries/mock-owner`),old()));
   // v2 is isolated from legacy v1 and metadata cannot claim another generation.
   const v2Path='stageScores/v2_existing_200/entries/mock-owner';
   await (hasGenerations?pass:deny)(setDoc(doc(owner,v2Path),{...old(),...metadata,scoreSpecVersion:'v2'}));
@@ -112,6 +113,13 @@ try {
    await deny(setDoc(doc(owner,v2Path),{...old(),moves:1,...metadata,scoreSpecVersion:'v3'}));
    await pass(setDoc(doc(owner,'stageScores/v3_existing_201/entries/mock-owner'),{...old(),scoreSpecVersion:null}));
    await deny(setDoc(doc(other,'stageScores/v3_existing_202/entries/mock-owner'),{...old(),...metadata,scoreSpecVersion:'v3'}));
+  }
+  const v5Path='stageScores/v5_existing_200/entries/mock-owner';
+  await (label==='metadata'?pass:deny)(setDoc(doc(owner,v5Path),{...old(),...metadata,scoreSpecVersion:'v5'}));
+  if(label==='metadata'){
+   for(const wrong of ['v1','v2','v3','v4'])await deny(setDoc(doc(owner,v5Path),{...old(),moves:1,...metadata,scoreSpecVersion:wrong}));
+   await pass(setDoc(doc(owner,'stageScores/v5_existing_201/entries/mock-owner'),{...old(),scoreSpecVersion:null}));
+   await deny(setDoc(doc(other,'stageScores/v5_existing_202/entries/mock-owner'),{...old(),...metadata,scoreSpecVersion:'v5'}));
   }
   const v4Path='stageScores/v4_existing_200/entries/mock-owner';
   await (hasGenerations?pass:deny)(setDoc(doc(owner,v4Path),{...old(),...metadata,scoreSpecVersion:'v4'}));

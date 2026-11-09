@@ -63,13 +63,14 @@ record('slow curved input carries subpixel distance across turns',()=>{
   let prior=[f.p];for(let k=1;k<=points.length;k++){const prefix=coupledGestureReplay(f.p,f.stance,fingerAction(points.slice(0,k)),[0,3]);prior.forEach((p,i)=>nearly(p,prefix.trace[i]));prior=prefix.trace;}
  }
 });
-record('return to pointer origin cancels hysteresis without cost or lost hearts',()=>{
+// Isolate motion cancellation from the direction-selector policy used by this recorded gesture.
+record('return to pointer origin cancels hysteresis without cost or lost hearts',()=>SixPairSelection.withBaseline(()=>{
  const points=[{dx:122.4586983568,dy:295.6414504036},{dx:0,dy:0}],f=fixture(),r=fingerGestureReplay(f.p,f.stance,fingerAction(points));
  assert(distance(r.p,f.p)>80);assert(r.cancelAtOrigin);assert.equal(r.valid,false);
  for(const delta of [{dx:0,dy:0},{dx:3,dy:3}]){fixture();const out=live([points[0],delta]);assert(out.record.canceled);assert.equal(out.record.accepted,false);nearly(body,f.p);assert.equal(stamina,100);assert.equal(moveCount,0);}
  fixture();const center=r.trace[Math.floor(r.trace.length/3)];hearts=[{x:center.x,y:center.y,collected:false}];const out=live(points);assert(hearts[0].collected);assert.equal(stamina,100+HEART_CONFIG.recovery);assert.equal(moveCount,0);nearly(body,f.p);
  fixture();live([points[0],{dx:0,dy:0},{dx:60,dy:-50}]);assert.equal(lastFingerGesture.canceled,false,'Moving out of cancellation zone may resume the same gesture');
-});
+}));
 record('point-limit overflow latches cancellation and records replay parity',()=>{
  const f=fixture(),points=Array.from({length:8192},(_,i)=>({dx:80,dy:-80+(i%2)*.01})),a=fingerAction(points),r=fingerGestureReplay(f.p,f.stance,a);assert(r.valid);
  const e=eventAtScreen(150,300);down(e);drag.fingerAction=a;drag.anchor=r.anchor;drag.fingerTrace=r.trace;drag.motionCache=r.motionCache;body=r.p;grips=r.stance;

@@ -1,6 +1,15 @@
 "use strict";
 // Player-facing Japanese copy, including accessibility and recoverable errors.
 const GAME_TEXT_JA = Object.freeze({
+    "debug.pair.title": "可動二肢（残りが固定）｜壁タップで消す",
+    "debug.pair.feet": "両足",
+    "debug.pair.right": "右手＋右足",
+    "debug.pair.rightLeft": "右手＋左足",
+    "debug.pair.leftRight": "左手＋右足",
+    "debug.pair.left": "左手＋左足",
+    "debug.pair.hands": "両手",
+    "debug.pair.hint": "二肢選択・全方向を0.1°刻みで表示／スワイプ開始で消去",
+
     "course-preparation.loading": "コースを準備中…",
     "course-preparation.retry": "準備をやり直す",
     "course-preparation.error": "コースを準備できませんでした。やり直すか、閉じて開き直してください。",

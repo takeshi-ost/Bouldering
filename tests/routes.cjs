@@ -8,6 +8,9 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 if(!html.includes('id="titleTap"') || html.includes('id="prototypeCourse"'))throw Error('Current title/debug course controls missing');
 // Same native-function fixture as the other geometry tests; no VM proxy overhead.
 console.log(new Function(environment+source+`
+// This suite checks the baseline generator and its recorded input witnesses.
+// New live-control alternatives are verified independently.
+return SixPairSelection.withBaseline(()=>{
 function check(v,m){if(!v)throw Error(m);}
 check(state==='choosing' && !cameraIntro && !ui.titleScreen.hidden,'Course menu startup failed');
 startCourse('existing');check(state==='map','Course should open map');selectStage(1);
@@ -126,4 +129,5 @@ restartInput(1);const repeated=JSON.stringify({holds,route});
 finish(false);playsSinceAd=0;lives.count=LIFE_MAX;ui.retry.onclick();check(stageStartContext?.retry && ui.stageStartDialog.open,'Retry confirmation missing');ui.stageStartButton.onclick();check(JSON.stringify({holds,route})===repeated && cameraIntro,'Retry failed');
 state='won';recordStageClear();playsSinceAd=0;ui.next.onclick();check(state==='map','Next should open map');advanceLevelMap(0);advanceLevelMap(650);check(stageStartContext?.n===2,'Next stage confirmation missing');flushTimers();check(ui.stageStartDialog.open,'Next stage dialog missing');ui.stageStartButton.onclick();check(level===2 && cameraIntro,'Next stage failed');
 return JSON.stringify(report);
+});
 `)());

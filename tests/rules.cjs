@@ -35,13 +35,14 @@ startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert.
 assert.equal(ui.progress.hidden,true);debugMode=true;updateUI();assert.equal(ui.progress.hidden,false);
 assert(ui.progress.textContent.includes('想定'));debugMode=false;updateUI();assert.equal(ui.progress.hidden,true);
 advanceCameraIntro(0);advanceCameraIntro(1650);assert.equal(canUndoMove(),false);
-function playStep(step) {
+// Internal baseline witness fixture; new live input variants have separate coverage.
+function playStep(step) {return SixPairSelection.withBaseline(()=>{
  advanceCameraIntro(0);advanceCameraIntro(1650);
  camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
  const origin={x:body.x,y:body.y-camera},event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
  assert(validFingerAction(step.action));down(event({dx:0,dy:0}));const snapshot=moveSnapshot;
  for(const point of step.action.points)move(event(point));release();return snapshot;
-}
+});}
 function checkUndo(snapshot) {
  const stage=holds,routeBefore=route;
  assert.equal(undoMove(),true);assert.equal(state,'playing');
@@ -211,7 +212,8 @@ reset(1);cameraIntro=null;HEIGHT=H*2;
 const beforePan={stamina,moveCount,body:{...body},grips:[...grips]};
 const finger=(id,y)=>({identifier:id,clientX:200,clientY:y});
 const emit=(name,touches,changed=touches)=>canvas.events[name]({touches,changedTouches:changed,preventDefault(){}});
-emit('touchstart',[finger(1,350)]);assert(drag);
+emit('touchstart',[finger(1,350)]);assert(SixPairAngleOverlay.pending);
+emit('touchmove',[finger(1,340)]);assert(drag);
 emit('touchstart',[finger(1,350),finger(2,450)],[finger(2,450)]);
 assert(pan);assert.equal(drag,null);assert(inspecting);
 const initialCamera=camera;

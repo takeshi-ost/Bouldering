@@ -1,5 +1,5 @@
 'use strict';
-globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"4a47c497700091962a731e0a44b2b9ef9c959cd98566cf29c9cd344cef4a2d5e","sources":[{"path":"js/text-ja.js","sha256":"43f73b2508c66c8651a960d7598f0fb666f0c70f9e5f077b81ef3438bbba62a9"},{"path":"js/text-en.js","sha256":"6cb7a90238b811f46827ee4b7a265e68a9ab7f1ba4724d827009c03da9baf658"},{"path":"js/text-dev-ja.js","sha256":"778e1317540d5fd3c6440ecd306a1ffd02328bbe02df5fc3c0c5cc6f99c6602f"},{"path":"js/config.js","sha256":"f4a673177a124e430522ffcc2ede72e96e8712e872d5f0caddec4af8a9881bb6"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"8c445b6db553cfb99534a38c93dc09f261cce73c94c7ead0c7bbb683ae2542ba"},{"path":"js/game.js","sha256":"5b14b09248e57aedd090f03267f4a9adb480f3c3c14f424bc1927eddb1a558a0"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"46b2c6008b5c24c0ad4f4f0c6cb2544cc05f76a42907e7497d44c0fd4de0f8a0"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"8d9e6e1124ed0a54482d6dc5510d84b3a8df2e5062a67ea89023d5748f22a67e"},{"path":"js/course-adoption.js","sha256":"02c765114e54f3e54dd86a3e4b9c525fad7b4e3a2f78c27a9b0f61614fca5227"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"9b32d03540c4b44950f1ea288e5fb759b3dec719df82ac5a910ec7f3edac8861"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"4bfb04ed4c3ce0cb640299bab8ad28386961f0072a941093da5c111686740c3a"}]});
+globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"3f6077f4dc165d60967aa1ca8d18f216ae791fe3f2b880253d7f07f5d4ce9df6","sources":[{"path":"js/text-ja.js","sha256":"8eb16aebcdf6821d81399171c4e2514cf78cac4b3ac3ed848bd43367d72a3513"},{"path":"js/text-en.js","sha256":"7c5616d641af41f74fd16d9f1e52be14d41f0fed8503bbcaeff93899c4c13b40"},{"path":"js/text-dev-ja.js","sha256":"778e1317540d5fd3c6440ecd306a1ffd02328bbe02df5fc3c0c5cc6f99c6602f"},{"path":"js/config.js","sha256":"4aa0e9c6fec4751333e2baeb40b6e168526b4b00d296e33c037c9a6a024b2620"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"2f355fb52497a23ea8ab8cacbf913b82688e70e64a937763e523114ebf0e067f"},{"path":"js/six-pair-selection.js","sha256":"b9d5ee7c6c125189a7eef64af77f749e43a8146d275911357374f37b142b6180"},{"path":"js/game.js","sha256":"6c98f301897ba7249da2e9832be5270539452be5622dd887da801b033f053ef1"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"26ac55233974a498ae6962cb437a6d6fd777248614bb27e7ae65f94120275157"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"03383eac4d20ce947d94e5d4e46f6821187edaae51883685ea224b43ce5b635e"},{"path":"js/course-adoption.js","sha256":"f95a33aedd2f9c8d7e4446a30fb51c9b003f890319c6f2951d3b7a6f2ff25f09"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"9b32d03540c4b44950f1ea288e5fb759b3dec719df82ac5a910ec7f3edac8861"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"c830ae65e1e699c280ccdac7b6bcc85ab3f1da3b9adc69e48148359fe6f88aee"}]});
 globalThis.ASCENT_COURSE_WORKER=true;
 let debugAttempt=false;
 function isTutorialRun(){return tutorialRun!==null;}
@@ -8,6 +8,15 @@ function isTutorialRun(){return tutorialRun!==null;}
 "use strict";
 // Player-facing Japanese copy, including accessibility and recoverable errors.
 const GAME_TEXT_JA = Object.freeze({
+    "debug.pair.title": "可動二肢（残りが固定）｜壁タップで消す",
+    "debug.pair.feet": "両足",
+    "debug.pair.right": "右手＋右足",
+    "debug.pair.rightLeft": "右手＋左足",
+    "debug.pair.leftRight": "左手＋右足",
+    "debug.pair.left": "左手＋左足",
+    "debug.pair.hands": "両手",
+    "debug.pair.hint": "二肢選択・全方向を0.1°刻みで表示／スワイプ開始で消去",
+
     "course-preparation.loading": "コースを準備中…",
     "course-preparation.retry": "準備をやり直す",
     "course-preparation.error": "コースを準備できませんでした。やり直すか、閉じて開き直してください。",
@@ -293,6 +302,15 @@ const GAME_TEXT_JA = Object.freeze({
 // English copy aligned with the Japanese player and maintenance catalogs.
 // Placeholder names and intentionally empty help blocks match the Japanese source.
 const GAME_TEXT_EN = Object.freeze({
+    "debug.pair.title": "Moving limbs | Tap wall to hide",
+    "debug.pair.feet": "Both feet",
+    "debug.pair.right": "RH + RF",
+    "debug.pair.rightLeft": "RH + LF",
+    "debug.pair.leftRight": "LH + RF",
+    "debug.pair.left": "LH + LF",
+    "debug.pair.hands": "Both hands",
+    "debug.pair.hint": "0.1° angle samples | Swipe to hide",
+
     "debug.score.start": "Play scores 1–100 in order",
     "debug.score.help": "One course per production difficulty score. Retries use the same layout. Clear to continue, or use Next score to skip. Records, lives and rewards are unaffected.",
     "debug.score.current": "SCORE {value0} / 100",
@@ -696,16 +714,18 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.8';
+const RELEASE_VERSION = '0.5.9';
+// Temporarily disabled for the formal release. Keep historical records and queues.
+const COURSE_RANKINGS_ENABLED = false;
 const GAMEPLAY_TIP_KEYS = [
     'tips.scroll', 'tips.undo', 'tips.reach',
     'tips.goal', 'tips.heart', 'tips.cancel', 'tips.appearance'
 ];
 const GAMEPLAY_TIPS = GAMEPLAY_TIP_KEYS.map(key=>gameText(key));
 // Bump whenever generation/gameplay changes make stage scores incomparable.
-const COURSE_VERSION = 'v4';
-// Formal adoption of distribution v7: keep older normal/Daily records historical.
-const DAILY_COURSE_VERSION = 'v3';
+const COURSE_VERSION = 'v5';
+// Six-pair controls and arc-progress generation: retain older records as history.
+const DAILY_COURSE_VERSION = 'v4';
 // 表示サイズと可動域。単位はゲーム内の論理pxです。
 const W = 400;
 const H = 700;
@@ -1797,9 +1817,15 @@ function fingerRouteCandidates(p,targets,{wide=false}={}) {
     return result;
 }
 function fingerRouteProgress(guide,p) {
-    let best=Infinity,index=0;
-    guide.forEach((q,i)=>{const d=distance(p,q);if(d<best){best=d;index=i;}});
-    return index*100-best;
+    let best=Infinity,progress=0,arc=0;
+    for(let i=1;i<guide.length;i++) {
+        const a=guide[i-1],b=guide[i],dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy);
+        const t=length?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(length*length),0,1):0;
+        const d=distance(p,{x:a.x+dx*t,y:a.y+dy*t});
+        if(d<best){best=d;progress=arc+length*t;}
+        arc+=length;
+    }
+    return progress;
 }
 function fingerPartialSearchBounded(guide,{start=null,stance=null,limit=18000,maxMoves=45,stop,forwardOnly=false,accept=()=>true,beamWidth=12,needsTraverse=false,greedy=false}={}) {
     const origin=start||guide[0],first=stance||fingerRouteInitial();
@@ -1994,6 +2020,117 @@ function fingerFindHazardMove(hold,path=route) {
     }
     return null;
 }
+
+
+// js/six-pair-selection.js
+'use strict';
+// Adaptive six-pair selector. Route generation retains its recorded baseline input model.
+const SixPairSelection = (() => {
+    const pairs=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+    // Stable diagnostic identifiers; localized UI names belong to the catalogs.
+    const labels=['both-feet','right-hand-right-foot','right-hand-left-foot','left-hand-right-foot','left-hand-left-foot','both-hands'];
+    const tau=Math.PI*2,width=Math.PI/9;
+    let cached=null,baselineDepth=0;
+    function withBaseline(fn){baselineDepth++;try{return fn();}finally{baselineDepth--;}}
+    function withCurrent(fn){const saved=baselineDepth;baselineDepth=0;try{return fn();}finally{baselineDepth=saved;}}
+    const wrap=a=>(a%tau+tau)%tau;
+    function forward() {
+        let nearest=Infinity,result=-Math.PI/2;
+        for(let i=1;i<route.length;i++) {
+            const a=route[i-1],b=route[i],dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy;
+            if(len2<1e-9)continue;
+            const t=Math.max(0,Math.min(1,((committed.x-a.x)*dx+(committed.y-a.y)*dy)/len2));
+            const d=(committed.x-a.x-t*dx)**2+(committed.y-a.y-t*dy)**2;
+            if(d<nearest){nearest=d;result=Math.atan2(dy,dx);}
+        }
+        return result;
+    }
+    const N=3600, span=200, step=tau/N;
+    let pending=null, ticket=0;
+    function same(snapshot) {return snapshot && snapshot.HEIGHT===HEIGHT && snapshot.holds===holds && snapshot.route===route && snapshot.x===committed.x && snapshot.y===committed.y && snapshot.grips.every((h,i)=>h===startGrips[i]);}
+    function snapshot() {return {holds,route,HEIGHT,x:committed.x,y:committed.y,grips:[...startGrips],direction:forward(),samples:[],goal:[]};}
+    function scan(job,count=N) {
+        const saved={committed,startGrips,holds,route,HEIGHT};
+        try {
+            committed={x:job.x,y:job.y};startGrips=job.grips;holds=job.holds;route=job.route;HEIGHT=job.HEIGHT;
+            const end=Math.min(N,job.samples.length+count);
+            while(job.samples.length<end) {
+                const i=job.samples.length,a=job.direction-Math.PI+i*step,ux=Math.cos(a),uy=Math.sin(a),pair=selectAnchorBaseline(ux,uy);
+                job.samples.push(pairs.findIndex(p=>p[0]===pair[0]&&p[1]===pair[1]));
+                job.goal.push(Number.isFinite(goalSupportDistance(pair,ux,uy,supportPairReach(pair,ux,uy))));
+            }
+        } finally {({committed,startGrips,holds,route,HEIGHT}=saved);}
+    }
+    function finish(job) {
+        // k means baseline pairs with a continuous >=20-degree witness wholly
+        // inside the FINAL retained region. It does not count injected pairs.
+        function natural(k) {
+            const retainedCells=1440+360*k,lo=(N-retainedCells)/2,hi=lo+retainedCells;
+            const found=[];
+            for(let index=0;index<6;index++) {
+                let run=0,best=-1,bestCost=Infinity;
+                for(let i=lo;i<=(k===6?N+span:hi);i++) {
+                    run=job.samples[i%N]===index?run+1:0;
+                    if(run<span+1)continue;
+                    const start=(i-span)%N,cost=Math.abs(Math.atan2(Math.sin((start+span/2)*step-Math.PI),Math.cos((start+span/2)*step-Math.PI)));
+                    if(cost<bestCost){best=start;bestCost=cost;}
+                }
+                if(best>=0)found.push({start:wrap(job.direction-Math.PI+best*step),width:span*step,pair:[...pairs[index]],index,moving:labels[index]});
+            }
+            return found;
+        }
+        // F(k) is monotone: wider retained regions cannot remove a witness.
+        // Starting at 6 gives a nonincreasing sequence in {0,...,6}, terminating
+        // at the greatest fixed point in at most seven evaluations.
+        let k=6,protectedSectors,iterations=0;
+        for(;;) {
+            protectedSectors=natural(k);iterations++;
+            const next=protectedSectors.length;
+            if(next===k)break;
+            k=next;
+        }
+        const retainedWidth=(144+36*k)*Math.PI/180;
+        const missing=pairs.map((_,i)=>i).filter(i=>!protectedSectors.some(s=>s.index===i));
+        const sectors=missing.map((index,j)=>({start:wrap(job.direction+retainedWidth/2+j*Math.PI/5),width:Math.PI/5,pair:[...pairs[index]],index,moving:labels[index]}));
+        return {...job,protectedSectors,sectors,missing,conflict:[],k,retainedWidth,iterations};
+    }
+    function plan() {
+        if(same(cached))return cached;
+        const job=same(pending)?pending:snapshot();
+        ticket++;pending=null; // A synchronous completion supersedes scheduled chunks.
+        // Rare first-touch/rapid-repeat fallback: finish outstanding work once,
+        // never silently revert to old selection while the map is incomplete.
+        scan(job);cached=finish(job);return cached;
+    }
+    function prepare() {
+        if(!committed || !startGrips?.every(Boolean) || same(cached) || same(pending))return;
+        const job=snapshot(),id=++ticket;pending=job;
+        const next=()=>{
+            if(id!==ticket || same(cached))return;
+            scan(job,120);
+            if(job.samples.length===N){cached=finish(job);if(pending===job)pending=null;}
+            else setTimeout(next,0);
+        };
+        setTimeout(next,0);
+    }
+    function reservation(map,a) {return [...map.protectedSectors,...map.sectors].find(s=>wrap(a-s.start)<s.width-1e-12);}
+    function directionSamples() {
+        const map=plan(),start=map.direction-Math.PI;
+        return {start,indices:map.samples.map((baseline,i)=>{
+            const angle=start+i*step,a=wrap(Math.atan2(Math.sin(angle),Math.cos(angle)));
+            return (SixPairSelection.enabled?reservation(map,a)?.index:undefined)??baseline;
+        })};
+    }
+    function select(dx,dy) {
+        if(Math.hypot(dx,dy)<1e-12)return selectAnchorBaseline(dx,dy);
+        const a=wrap(Math.atan2(dy,dx)),map=plan();
+        // Both kinds of witnesses are authoritative. Sampled natural runs
+        // alone cannot prove what baseline does between the sampled directions.
+        const sector=reservation(map,a);
+        return sector?[...sector.pair]:selectAnchorBaseline(dx,dy);
+    }
+    return {enabled:true,get useBaseline(){return baselineDepth>0;},withBaseline,withCurrent,plan,prepare,select,directionSamples,pairs,labels,clear:()=>{cached=null;pending=null;ticket++;}};
+})();
 
 
 // js/game.js
@@ -2373,6 +2510,10 @@ function goalSupportDistance(pair, ux, uy, reach) {
 }
 
 function selectAnchor(dx, dy) {
+    return typeof SixPairSelection !== "undefined" && SixPairSelection.enabled && !SixPairSelection.useBaseline
+        ? SixPairSelection.select(dx,dy) : selectAnchorBaseline(dx,dy);
+}
+function selectAnchorBaseline(dx, dy) {
     const length = Math.hypot(dx, dy);
     if (!(length > 0)) return [0, 1];
     const ux = dx / length;
@@ -2644,6 +2785,12 @@ function restoreMoveStamina(saved) {
 
 // A date keeps its difficulty even if a layout needs a deterministic retry.
 function prepareCurrentStage() {
+    // Every generation entry, including retained debug types and authored tutorial,
+    // uses baseline controls. Live six-pair planning must never run inside search.
+    return typeof SixPairSelection==='undefined' ? prepareCurrentStageBaseline()
+        : SixPairSelection.withBaseline(prepareCurrentStageBaseline);
+}
+function prepareCurrentStageBaseline() {
     courseMode='existing'; // Old experimental modes cannot enter generation.
     if(typeof isTutorialRun==='function' && isTutorialRun())return prepareTutorialCourse();
     if(!activeDebugCourse() || activeDebugScoreTrial())return prepareAdoptedCourse();
@@ -2767,6 +2914,11 @@ function reset(n,staminaBonus=0) {
 }
 
 function updateUI() {
+    if(typeof SixPairSelection!=="undefined" && state==='playing' && !drag && body && grips.every(Boolean)) {
+        const savedOrigin=committed,savedStance=startGrips;
+        try {committed=body;startGrips=grips;SixPairSelection.prepare();}
+        finally {committed=savedOrigin;startGrips=savedStance;}
+    }
     if(typeof updateDebugCourseReport==='function')updateDebugCourseReport();
     if(typeof requestGameRender==='function')requestGameRender();
     ui.settingsButton.disabled = !!cameraIntro || state!=='playing';
@@ -3093,7 +3245,7 @@ function finish(won) {
     recordAdPlay();
     if(won) { recordStageClear(); recordMapRewardClear(); startGoalHang(); }
     else startFall();
-    const showRanking=won && !dailyRun && !activeDebugCourse();
+    const showRanking=COURSE_RANKINGS_ENABLED && won && !dailyRun && !activeDebugCourse();
     ui.resultRanking.hidden=!showRanking;
     ui.overlay.classList.toggle('has-ranking',showRanking);
     ui.resultDifficulty.hidden=!won || showRanking;
@@ -3847,7 +3999,9 @@ function convertDenseHazards(path=route,salt=0,safeFallback=false) {
     for(const {h} of candidates) {
         if(selected.length>=target)break;
         h.type='hazard';
-        if(!safeFallback || routeResources(path).valid)selected.push(h.id);
+        // A safe fallback must preserve the executable witness, not only its
+        // arithmetic budget: changing a hold type can alter capture selection.
+        if(!safeFallback || validateRouteBudget(path))selected.push(h.id);
         else h.type='normal';
     }
     if(selected.length<min)return false;
@@ -4758,7 +4912,8 @@ function generateCourseFromRecipe(recipe) {
   if(hasActiveGeneration)activeCourseGeneration=null;
   level=1;difficulty=0;dailyRun=null;courseMode='existing';courseSeed=()=>config.seed;
   labHeartsCache=null;labStaminaCache=null;labSkeletonReport=null;generatedCourse=null;
-  labGenerateSkeleton(config);labPrepareSpikes(config);labPrepareHearts(config);labPrepareStaminaAdjustment(config);
+  const build=()=>{labGenerateSkeleton(config);labPrepareSpikes(config);labPrepareHearts(config);labPrepareStaminaAdjustment(config);};
+  if(typeof SixPairSelection==='undefined')build();else SixPairSelection.withBaseline(build);
   if(generatedCourse)Object.assign(generatedCourse,{level:saved.level,difficulty:saved.difficulty,mode:saved.courseMode,seed:config.seed,holds});
   return Object.freeze({recipe:copy(config),report:copy(labSkeletonReport),hearts:copy(labHeartsCache),stamina:copy(labStaminaCache)});
  } catch(error) {
@@ -4782,7 +4937,7 @@ const COURSE_RETRY_CONFIG = Object.freeze({version:'1',maxAttempts:32});
 let activeCourseGeneration = null;
 // Session-only validated geometry. No storage, account, reward or live run state.
 // Bump this schema when adding generation inputs or changing the snapshot shape.
-const ADOPTED_COURSE_CACHE_VERSION='1';
+const ADOPTED_COURSE_CACHE_VERSION='2';
 const ADOPTED_COURSE_CACHE_CAPACITY=12;
 const adoptedCourseCache=new Map();
 const adoptedCourseFunctionIds=new WeakMap();
@@ -4852,7 +5007,8 @@ function adoptedCourseCacheInputs() {
         labSolveCompositeSwitchbacks,labCompositeSwitchbackFeatures,labGenerateSwitchbackSkeleton,labGenerateSkeleton,labPrepareHearts,
         labHeartStaminaAdjustment,labPrepareStaminaAdjustment,generateCourseFromRecipe,courseSeed,cameraTop,
         limbReachable,supportMotionFraction,supportPairReach,movingLimbHasForwardHold,goalSupportDistance,
-        selectAnchor,canShareHold,attachMoving,stageStamina,newHazardContacts,
+        selectAnchor,selectAnchorBaseline,
+        ...(typeof SixPairSelection!=='undefined'?[SixPairSelection.select,SixPairSelection.plan]:[]),canShareHold,attachMoving,stageStamina,newHazardContacts,
         routeHazardCosts,routeMoveCost,routeConsumption,routeExpectedMoves,routeStamina,
         createHearts,makeRouteHearts,torsoTouchesHeart,limbRoot,bothHandsOnGoal,
         sameContacts,isSupportPair,supportsReachable,
@@ -4956,10 +5112,18 @@ function prepareAdoptedCourse() {
                 // All placement/postprocessing randomness uses the same effective
                 // seed. The core's temporary level 1/2 and difficulty 0 may not
                 // escape to stage/day identity, score records or progression.
-                labGenerateSkeleton(recipe);
-                labPrepareSpikes(recipe);
-                labPrepareHearts(recipe);
-                labPrepareStaminaAdjustment(recipe);
+                const build=()=>{
+                    labGenerateSkeleton(recipe);
+                    labPrepareSpikes(recipe);
+                    labPrepareHearts(recipe);
+                    labPrepareStaminaAdjustment(recipe);
+                };
+                // Generation and its recorded witnesses intentionally retain the
+                // baseline selection model. A changed live input direction alone
+                // is not a reason to reject/reseed an otherwise valid layout.
+                // Alternative live input is verified separately, not searched here.
+                if(typeof SixPairSelection==='undefined')build();
+                else SixPairSelection.withBaseline(build);
             } catch(error) {
                 // Configuration/programming failures must not be disguised as a
                 // rejected seed. Only explicitly classified finite rejections retry.

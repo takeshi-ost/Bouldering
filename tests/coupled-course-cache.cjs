@@ -6,9 +6,11 @@ assert.equal(new Function(adapter+'; return refreshAdoptedCourseCacheDependencie
  'Historical fixtures without input modules bypass cache without evaluating missing symbols');
 run(`
 const fingerprint=()=>JSON.stringify({holds,route,HEIGHT,initialGrips,densityStats,generatedCourse,activeCourseGeneration,labSkeletonReport,labHeartsCache,labStaminaCache});
-const originals={labGenerateSkeleton,labPrepareSpikes,labPrepareHearts,labPrepareStaminaAdjustment};
+const originals={labGenerateSkeleton,labPrepareSpikes,labPrepareHearts,labPrepareStaminaAdjustment,fingerValidateDragReference};
 let calls=0;
 try {
+ // Cache isolation fixture is deliberately synthetic, not a playable route.
+ fingerValidateDragReference=()=>({valid:true});
  clearAdoptedCourseCache();dailyRun=null;level=4;difficulty=0;courseTypeId=0;courseMode='existing';
  labGenerateSkeleton=recipe=>{
   calls++;holds=[{id:1,x:100,y:600,type:'normal'},{id:2,x:200,y:50,type:'goal'}];
@@ -67,7 +69,7 @@ try {
  clearAdoptedCourseCache();rejected=0;prepareAdoptedCourse();
  assert.equal(calls,retryCalls+1);assert.equal(fingerprint(),retryFingerprint);
  dailyRun=null;
-} finally {({labGenerateSkeleton,labPrepareSpikes,labPrepareHearts,labPrepareStaminaAdjustment}=originals);clearAdoptedCourseCache();}
+} finally {({labGenerateSkeleton,labPrepareSpikes,labPrepareHearts,labPrepareStaminaAdjustment,fingerValidateDragReference}=originals);clearAdoptedCourseCache();}
 console.log('PASS coupled course cache: immutable bounded geometry, exact warm parity, fresh objects, hook/config invalidation, no live resource leakage, failure rollback');
 `);
 

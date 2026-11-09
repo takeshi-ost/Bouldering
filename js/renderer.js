@@ -449,41 +449,21 @@ function drawPath() {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
-        route.forEach((p, i) => {
-            if (
-                p.y < camera - stageViewPadding() - 24 ||
-                p.y > camera + H + stageViewPadding() + 24
-            )
-                return;
-
-            ctx.lineWidth = 1.5;
-
-            circle(
-                p.x,
-                p.y,
-                4,
-                '#f3f0e7',
-                '#527faa'
-            );
-
-            const labelX =
-                p.x > W - 65
-                    ? p.x - 20
-                    : p.x + 20;
-
-            circle(
-                labelX,
-                p.y,
-                11,
-                '#eef3f7ee'
-            );
-
-            ctx.fillStyle = '#527faa';
-            ctx.fillText(
-                String(i),
-                labelX,
-                p.y
-            );
+        // Number the two movable limbs at their target holds, not at torso points.
+        const colors=['#c34d43','#397cc1','#d18a22','#419663'];
+        const offsets=[[-13,-13],[13,-13],[-13,13],[13,13]];
+        const byId=new Map(holds.map(h=>[h.id,h])),occupied=new Map();
+        route.slice(1).forEach((p,step)=>{
+            if(!Array.isArray(p.grips)||!Array.isArray(p.anchor))return;
+            for(let limb=0;limb<4;limb++){
+                if(p.anchor.includes(limb))continue;
+                const hold=byId.get(p.grips[limb]);if(!hold)continue;
+                const key=hold.id+':'+limb,n=occupied.get(key)||0;occupied.set(key,n+1);
+                const [dx,dy]=offsets[limb],x=hold.x+dx+(dx<0?-1:1)*Math.floor(n/3)*20,y=hold.y+dy+(dy<0?-1:1)*(n%3)*20;
+                if(y<camera-stageViewPadding()-24||y>camera+H+stageViewPadding()+24)continue;
+                circle(x,y,9,'#fffef4ee',colors[limb]);
+                ctx.fillStyle=colors[limb];ctx.fillText(String(step+1),x,y);
+            }
         });
     }
 
@@ -1175,6 +1155,7 @@ function draw(now = 0) {
     drawDebugHoldNumbers();
     drawAnchorRings(now);
     drawHeartPopups(paintTime);
+    if(typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.draw();
     ctx.restore();
     if(pan?.edge && pan.scrolling && canScrollStage()) {
         ctx.fillStyle=RENDER_CONFIG.safeAreaColor;

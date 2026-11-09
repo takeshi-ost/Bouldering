@@ -56,11 +56,14 @@ test('only scores4–9 can change recipes; profiles/length/RNG/exclusion/caps re
  }
  console.log('Historical offset0 stage identities1–50 and365 Daily dates unchanged; new probability is tested with score4 seed174.');
 });
-test('score4 seed174 spike recipe generates deterministically and clears via actual default-stamina input',()=>{
+test('historical v7 score4 seed174 spike recipe remains deterministic under its baseline controls',()=>{
  const recipe=plain(api.sample(4,174));assert.equal(recipe.spikePercent,10);assert.equal(old.sample(4,174).spikePercent,0);
  const html=read('index.html'),source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>read(m[1])).join('\n');
  const env=`const elements={};const document={getElementById(id){return elements[id]||={style:{},classList:{toggle(){}},focus(){},setAttribute(){},removeAttribute(){},addEventListener(){},showModal(){this.open=true},close(){this.open=false},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){}}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}}}};const window={devicePixelRatio:1,addEventListener(){}};function requestAnimationFrame(){};function setTimeout(){return 0;}function clearTimeout(){}`;
+ // This direct-recipe fixture isolates distribution/spike behavior. Current six-pair
+ // compatibility is separately enforced by prepareAdoptedCourse and live population tests.
  new Function('assert','sample',env+source+`
+ SixPairSelection.withBaseline(()=>{
  reset(1);const recipe={...sample,seed:174,stage:4,staminaRules:'0:3'};
  const first=generateCourseFromRecipe(recipe),shape=JSON.stringify({holds,route,HEIGHT,initialGrips});
  const second=generateCourseFromRecipe(recipe);assert.equal(JSON.stringify({holds,route,HEIGHT,initialGrips}),shape);assert.deepEqual(first,second);
@@ -75,6 +78,7 @@ test('score4 seed174 spike recipe generates deterministically and clears via act
   for(const point of route[i].action.points)move(event(point));release();
  }
  assert.equal(state,'won');assert.equal(moveCount,route.length-1);assert.equal(stamina,budget-moveCount);
- console.log(JSON.stringify({score:4,seed:174,spikePercent:10,candidates:first.report.spikes.candidateCount,actualSpikes:first.report.spikes.count,moves:moveCount,remaining:stamina,scope:'one direct recipe input clear, not universal solvability'}));
+ console.log(JSON.stringify({score:4,seed:174,spikePercent:10,candidates:first.report.spikes.candidateCount,actualSpikes:first.report.spikes.count,moves:moveCount,remaining:stamina,scope:'historical baseline recipe clear; not current six-pair compatibility'}));
+ });
  `)(assert,recipe);
 });

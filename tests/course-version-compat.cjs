@@ -1,10 +1,9 @@
 'use strict';
-// Web adoption coverage only. Native remains the public 0.4.6 baseline;
-// native version migration needs its own separately approved implementation.
+// Web adoption coverage; native mixed-generation coverage is in native-auto-sync.cjs.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const {scoreMetadata,supportedCourseVersion,historicalCourseVersion,supportedScoreBoard,scoreMatchesBoard}=require('../js/score-metadata.js');
-const metadata={v1:{appVersion:'0.4.9',buildNumber:'17',platform:'iOS',scoreSpecVersion:'v1'},v2:{appVersion:'0.4.10',buildNumber:'18',platform:'iOS',scoreSpecVersion:'v2'},v3:{appVersion:'0.4.11',buildNumber:'19',platform:'iOS',scoreSpecVersion:'v3'},v4:{appVersion:'0.4.46',buildNumber:null,platform:'Web',scoreSpecVersion:'v4'}};
-const versions=['v1','v2','v3','v4'],score=version=>({moves:Number(version.slice(1))*4,timeMs:100,...metadata[version]});
+const metadata={v1:{appVersion:'0.4.9',buildNumber:'17',platform:'iOS',scoreSpecVersion:'v1'},v2:{appVersion:'0.4.10',buildNumber:'18',platform:'iOS',scoreSpecVersion:'v2'},v3:{appVersion:'0.4.11',buildNumber:'19',platform:'iOS',scoreSpecVersion:'v3'},v4:{appVersion:'0.4.46',buildNumber:null,platform:'Web',scoreSpecVersion:'v4'},v5:{appVersion:'0.5.9',buildNumber:null,platform:'Web',scoreSpecVersion:'v5'}};
+const versions=['v1','v2','v3','v4','v5'],score=version=>({moves:Number(version.slice(1))*4,timeMs:100,...metadata[version]});
 const clone=x=>JSON.parse(JSON.stringify(x));
 function store(data=new Map()){return {getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v),data};}
 async function web(current) {
@@ -12,7 +11,7 @@ async function web(current) {
  const archive=Object.fromEntries(historical.map(version=>[version,{...score(version),version}]));
  const data=new Map([['ascent.pending-scores.v1',JSON.stringify({uid:'owner',items:[...all.map(version=>[version+'_existing_1',score(version)]),['v1_prototype_2',{moves:3,timeMs:50}]]})]]),sent=[];
  const context=vm.createContext({localStorage:store(data),sent,console});
- vm.runInContext(`const COURSE_VERSION=${JSON.stringify(current)},RELEASE_VERSION=${JSON.stringify(metadata[current].appVersion)},RECORDS_KEY='records',ONLINE_CACHE_MS=1;
+ vm.runInContext(`const COURSE_RANKINGS_ENABLED=true;const COURSE_VERSION=${JSON.stringify(current)},RELEASE_VERSION=${JSON.stringify(metadata[current].appVersion)},RECORDS_KEY='records',ONLINE_CACHE_MS=1;
  const document={getElementById:()=>({})},accountDeletion={marker:false},online={ready:false,uid:'owner'},stageRecords={existing:{1:${JSON.stringify({...fresh,stars:3,previousVersions:archive})}},prototype:{}};
  function gameText(){return '';}function readOnlineCheckpoint(){return null;}function compareStageScores(a,b){return a.moves-b.moves||a.timeMs-b.timeMs;}
  const state='map',stageStartContext=null;`+fs.readFileSync('js/score-metadata.js','utf8')+fs.readFileSync('js/online-scores.js','utf8'),context);
@@ -38,12 +37,12 @@ function transfer() {
  context.record={...score('v3'),version:'v3',previousVersions:{v1:{...score('v1'),version:'v1'},v2:{...score('v2'),version:'v2'}}};assert(vm.runInContext('validTransferRecord(record)',context));
  context.record.previousVersions['trial-d7-offset10']={moves:8,timeMs:8,stars:2,version:'trial-d7-offset10',scoreSpecVersion:'trial-d7-offset10',rankingEligible:false};assert(vm.runInContext('validTransferRecord(record)',context),'Trial provenance is valid local transfer history, never an upload board');
  context.record.previousVersions.v1.previousVersions={};assert(!vm.runInContext('validTransferRecord(record)',context),'Reject recursive history');delete context.record.previousVersions.v1.previousVersions;
- context.record.previousVersions.v5={moves:1,timeMs:1,version:'v5'};assert(!vm.runInContext('validTransferRecord(record)',context),'Reject unknown history generation');
+ context.record.previousVersions.v6={moves:1,timeMs:1,version:'v6'};assert(!vm.runInContext('validTransferRecord(record)',context),'Reject unknown history generation');
 }
 (async()=>{
- for(const board of ['v1_existing_1','v1_prototype_999999','v2_existing_1','v3_existing_1','v4_existing_1'])assert(supportedScoreBoard(board));
- for(const board of ['v5_existing_1','v4_prototype_1','trial-d7-offset10_existing_1','v2_prototype_1','v3_prototype_1','v1_existing_0','v3_existing_1000000','v3_existing_1suffix'])assert(!supportedScoreBoard(board));
+ for(const board of ['v1_existing_1','v1_prototype_999999','v2_existing_1','v3_existing_1','v4_existing_1','v5_existing_1'])assert(supportedScoreBoard(board));
+ for(const board of ['v6_existing_1','v5_prototype_1','v4_prototype_1','trial-d7-offset10_existing_1','v2_prototype_1','v3_prototype_1','v1_existing_0','v3_existing_1000000','v3_existing_1suffix'])assert(!supportedScoreBoard(board));
  for(const version of versions){assert(scoreMatchesBoard(version+'_existing_1',{}));assert(scoreMatchesBoard(version+'_existing_1',{scoreSpecVersion:null}));for(const other of versions)assert.equal(scoreMatchesBoard(version+'_existing_1',{scoreSpecVersion:other}),version===other);}
- for(const current of ['v2','v3','v4']){await web(current);}transfer();
- console.log('PASS v1→v2→v3→v4 migration: mixed Web queues, retired mode preserved, original metadata, late legacy acknowledgements, trial IDs excluded from upload boards, historical archive/transfer');
+ for(const current of ['v2','v3','v4','v5']){await web(current);}transfer();
+ console.log('PASS v1→v2→v3→v4→v5 migration: mixed Web queues, retired mode preserved, original metadata, late legacy acknowledgements, trial IDs excluded from upload boards, historical archive/transfer');
 })().catch(error=>{console.error(error);process.exitCode=1;});

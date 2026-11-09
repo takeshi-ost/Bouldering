@@ -28,7 +28,8 @@ for(let stage=1;stage<=20;stage++){
  assert.equal(active.resolved.seed,stage+10);assert.equal(generatedCourse.seed,stage+10);assert.equal(courseSeed(),stage+10);
  assert.equal(active.retry.initialSeed,stage+10);assert.equal(active.retry.geometrySeed,(stage+10+active.retry.attempts-1)>>>0);assert.equal(active.recipe.seed,active.retry.geometrySeed);
  for(const key of Object.keys(expected).filter(k=>k!=='seed'))assert.equal(active.recipe[key],expected[key]);
- assert(samePairRoute(route,replayRoute(route)));assert.equal(hearts.length,active.report.hearts.actual.total);
+ // Generated witness keeps baseline selection; new live equivalence is tested separately.
+ assert(SixPairSelection.withBaseline(()=>samePairRoute(route,replayRoute(route))));assert.equal(hearts.length,active.report.hearts.actual.total);
  assert.deepEqual(hearts.map(({id,x,y})=>({id,x,y})),generatedCourse.hearts.map(({id,x,y})=>({id,x,y})),'live adopted heart placements must not fall back');
  assert.equal(active.resolved.score,stage);assert.equal(active.resolved.difficultyLabel,stage<=5?'EASY':'NORMAL');
  const preview=stagePreview(stage);assert.equal(preview.seed,stage+10);assert.equal(preview.stamina,stamina);assert.equal(preview.height,HEIGHT);assert.equal(shape(),first);assert.equal(activeCourseGeneration,active);

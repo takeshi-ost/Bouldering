@@ -13,9 +13,10 @@ state='map';mapPreparing=false;mapTransition=null;settingsOpen=false;debugMode=t
 const before=capture();let sent=0;queueOnlineScore=()=>{sent++;};queueOnlineProfileSave=()=>{sent++;};
 // Selecting/canceling an ordinary stage does not start a trial or mutate saves.
 assert(openStageStart(1,true));closeStageStart();assert.equal(debugCourseTrial,null);assert.equal(capture(),before);
+// Validate the baseline generator witness, not unchanged live direction mapping.
 for(const type of COURSE_TYPES){
  state='map';mapPreparing=false;mapTransition=null;assert(startDebugCourse(type.id,'short',1000+type.id),ui.mapError.textContent);
- assert.equal(level,2);assert.equal(courseTypeId,type.id);assert.equal(difficulty,type.generationDifficulty);assert.equal(generatedCourse.intent,type.intent);assert.equal(chooseCourseIntent(),type.intent);assert.equal(HEIGHT,H);assert(debugAttempt);assert(!ui.debugCourseStatus.hidden);assert(validateRouteBudget(route));assert.equal(stamina,routeExpectedMoves()+3);
+ assert.equal(level,2);assert.equal(courseTypeId,type.id);assert.equal(difficulty,type.generationDifficulty);assert.equal(generatedCourse.intent,type.intent);assert.equal(chooseCourseIntent(),type.intent);assert.equal(HEIGHT,H);assert(debugAttempt);assert(!ui.debugCourseStatus.hidden);assert(SixPairSelection.withBaseline(()=>validateRouteBudget(route)));assert.equal(stamina,routeExpectedMoves()+3);
  const status=JSON.parse(ui.debugCourseReport.textContent);assert.equal(status.seed,1000+type.id);assert.equal(status.typeId,type.id);assert.equal(status.requested,type.intent);assert.equal(status.actual,densityStats.courseGeneration.actual);assert.equal(status.matchesRequested,status.actual===type.intent);assert.equal(status.safeFallback,densityStats.courseGeneration.usedSafeFallback);
  report.push({id:type.id,requested:type.intent,actual:status.actual,fallback:status.safeFallback});
  const fixed=JSON.stringify({holds,route,hearts,stamina});assert(startDebugCourse(type.id,'short',1000+type.id));assert.equal(JSON.stringify({holds,route,hearts,stamina}),fixed);

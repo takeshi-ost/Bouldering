@@ -192,7 +192,7 @@ check('cancel, blur, multitouch and undo restore committed state; next gesture r
   fixture();const {a}=findValid(),before={p:{...body},stance:ids(grips)};
   const e=eventAtScreen(100,200),touch={...e,identifier:7};
   if(kind==='touchcancel'||kind==='multitouch')canvas.events.touchstart({touches:[touch],changedTouches:[touch],preventDefault(){}});else down(e);
-  move(movedEvent(e,a.points[0]));assert(drag);
+  movePointer(movedEvent(e,a.points[0]));assert(drag);
   if(kind==='cancel')release(true);else if(kind==='blur')window.events.blur();else if(kind==='touchcancel')canvas.events.touchcancel({touches:[],changedTouches:[],preventDefault(){}});
   else {const other={...touch,identifier:8,clientX:touch.clientX+50};canvas.events.touchstart({touches:[touch,other],changedTouches:[other],preventDefault(){}});canvas.events.touchend({touches:[],changedTouches:[touch,other],preventDefault(){}});}
   assert.equal(drag,null);assert.equal(moveCount,0);assert.equal(stamina,100);nearly(body,before.p);assert.deepEqual(ids(grips),before.stance);

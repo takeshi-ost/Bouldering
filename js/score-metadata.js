@@ -4,7 +4,7 @@
 const ONLINE_PROGRESS_VERSION='v4';
 function currentOnlineProgress(profile) {return profile?.progressVersion===ONLINE_PROGRESS_VERSION;}
 // Explicit generations: retired prototype scores remain valid historical data only.
-function supportedCourseVersion(version) {return version==='v1' || version==='v2' || version==='v3' || version==='v4';}
+function supportedCourseVersion(version) {return version==='v1' || version==='v2' || version==='v3' || version==='v4' || version==='v5';}
 // Local history is broader than upload eligibility. Trial provenance never
 // becomes a formal score merely because its course happens to be equivalent.
 function historicalCourseVersion(version) {
@@ -13,7 +13,7 @@ function historicalCourseVersion(version) {
     return !!match && Number(match[1])<=4294967295;
 }
 function supportedScoreBoard(board) {
-    return typeof board==='string' && /^(?:v1_(?:existing|prototype)|v[234]_existing)_[1-9][0-9]{0,5}$/.test(board);
+    return typeof board==='string' && /^(?:v1_(?:existing|prototype)|v[2345]_existing)_[1-9][0-9]{0,5}$/.test(board);
 }
 function scoreMatchesBoard(board,score) {
     return supportedScoreBoard(board) && (score?.scoreSpecVersion==null || score.scoreSpecVersion===board.split('_')[0]);

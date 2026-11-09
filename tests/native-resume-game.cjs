@@ -55,7 +55,7 @@ function boot(data=initial(),{token=null,fault=null,now=wallTime}={}) {
     vm.runInContext(preboot,context,{filename:'native-resume-preboot.js'});
     // Real native queue implementation, deliberately paused/offline: no SDK or
     // authentication, and retained bytes remain observable across reloads.
-    host.ASCENT_NATIVE_SYNC=createNativeAutoSync({storage,owner:null,startPaused:true,courseVersion:'v4',
+    host.ASCENT_NATIVE_SYNC=createNativeAutoSync({storage,owner:null,startPaused:true,courseVersion:'v5',
         controller:{permissions:()=>({automaticSync:false}),authenticate(){throw Error('Unexpected authentication');}}});
     for(const file of files) {
         if(file==='js/main.js')vm.runInContext(runtime,context,{filename:'native-resume-runtime.js'});
@@ -151,7 +151,7 @@ for(const won of [true,false]) {
     assert.equal(b.run('lives.count'),won?3:2);assert.equal(b.run('heartItems'),17);
     if(won) {
         assert.equal(b.run('stageRecords.existing[4].moves'),8);assert.equal(b.run('mapRewards[4].status'),'pending');
-        assert.equal(JSON.parse(b.data.get(SYNC_KEY)).events.at(-1).board,'v4_existing_4');
+        assert.equal(JSON.parse(b.data.get(SYNC_KEY)).events.at(-1).board,'v5_existing_4');
     }
     const before=saved(b),resumed=boot(b.data,{token:'finished-'+won});
     assert.equal(resumed.run('heartItems'),17);assert.equal(resumed.run('lives.count'),won?3:2);assert.deepEqual(saved(resumed),before);
@@ -326,7 +326,7 @@ for(const won of [true,false])for(const mode of ['before','after','readback']) {
     const b=boot(data);normal(b,{stage:4});b.run('moveCount=8;');oneShotCleanupFailure(b,mode);
     b.run(`finish(${won});`);assert.equal(b.run('ASCENT_NATIVE_RESUME.ready'),false);assert.equal(b.run('state'),won?'won':'lost');
     assert.equal(life(b).inProgress,false);assert.equal(life(b).count,won?3:2);assert.equal(b.data.get(ITEMS_KEY),'17');
-    if(won){assert.equal(b.run('mapRewards[4].status'),'pending');assert.equal(JSON.parse(b.data.get(SYNC_KEY)).events.at(-1).board,'v4_existing_4');}
+    if(won){assert.equal(b.run('mapRewards[4].status'),'pending');assert.equal(JSON.parse(b.data.get(SYNC_KEY)).events.at(-1).board,'v5_existing_4');}
     const before=saved(b),crashed=new Map(b.data);
     b.clearFault();b.run('ASCENT_NATIVE_RESUME.retry();');assert.equal(receipt(b).ended,null);assert.deepEqual(saved(b),before);
     assert.equal(life(b).count,won?3:2);assert.equal(b.data.get(ITEMS_KEY),'17');

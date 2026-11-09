@@ -861,7 +861,8 @@ function generateCourseFromRecipe(recipe) {
   if(hasActiveGeneration)activeCourseGeneration=null;
   level=1;difficulty=0;dailyRun=null;courseMode='existing';courseSeed=()=>config.seed;
   labHeartsCache=null;labStaminaCache=null;labSkeletonReport=null;generatedCourse=null;
-  labGenerateSkeleton(config);labPrepareSpikes(config);labPrepareHearts(config);labPrepareStaminaAdjustment(config);
+  const build=()=>{labGenerateSkeleton(config);labPrepareSpikes(config);labPrepareHearts(config);labPrepareStaminaAdjustment(config);};
+  if(typeof SixPairSelection==='undefined')build();else SixPairSelection.withBaseline(build);
   if(generatedCourse)Object.assign(generatedCourse,{level:saved.level,difficulty:saved.difficulty,mode:saved.courseMode,seed:config.seed,holds});
   return Object.freeze({recipe:copy(config),report:copy(labSkeletonReport),hearts:copy(labHeartsCache),stamina:copy(labStaminaCache)});
  } catch(error) {

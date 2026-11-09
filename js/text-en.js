@@ -2,6 +2,15 @@
 // English copy aligned with the Japanese player and maintenance catalogs.
 // Placeholder names and intentionally empty help blocks match the Japanese source.
 const GAME_TEXT_EN = Object.freeze({
+    "debug.pair.title": "Moving limbs | Tap wall to hide",
+    "debug.pair.feet": "Both feet",
+    "debug.pair.right": "RH + RF",
+    "debug.pair.rightLeft": "RH + LF",
+    "debug.pair.leftRight": "LH + RF",
+    "debug.pair.left": "LH + LF",
+    "debug.pair.hands": "Both hands",
+    "debug.pair.hint": "0.1° angle samples | Swipe to hide",
+
     "debug.score.start": "Play scores 1–100 in order",
     "debug.score.help": "One course per production difficulty score. Retries use the same layout. Clear to continue, or use Next score to skip. Records, lives and rewards are unaffected.",
     "debug.score.current": "SCORE {value0} / 100",
