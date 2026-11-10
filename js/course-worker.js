@@ -1,5 +1,5 @@
 'use strict';
-globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"3f6077f4dc165d60967aa1ca8d18f216ae791fe3f2b880253d7f07f5d4ce9df6","sources":[{"path":"js/text-ja.js","sha256":"8eb16aebcdf6821d81399171c4e2514cf78cac4b3ac3ed848bd43367d72a3513"},{"path":"js/text-en.js","sha256":"7c5616d641af41f74fd16d9f1e52be14d41f0fed8503bbcaeff93899c4c13b40"},{"path":"js/text-dev-ja.js","sha256":"778e1317540d5fd3c6440ecd306a1ffd02328bbe02df5fc3c0c5cc6f99c6602f"},{"path":"js/config.js","sha256":"4aa0e9c6fec4751333e2baeb40b6e168526b4b00d296e33c037c9a6a024b2620"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"2f355fb52497a23ea8ab8cacbf913b82688e70e64a937763e523114ebf0e067f"},{"path":"js/six-pair-selection.js","sha256":"b9d5ee7c6c125189a7eef64af77f749e43a8146d275911357374f37b142b6180"},{"path":"js/game.js","sha256":"6c98f301897ba7249da2e9832be5270539452be5622dd887da801b033f053ef1"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"26ac55233974a498ae6962cb437a6d6fd777248614bb27e7ae65f94120275157"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"03383eac4d20ce947d94e5d4e46f6821187edaae51883685ea224b43ce5b635e"},{"path":"js/course-adoption.js","sha256":"f95a33aedd2f9c8d7e4446a30fb51c9b003f890319c6f2951d3b7a6f2ff25f09"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"9b32d03540c4b44950f1ea288e5fb759b3dec719df82ac5a910ec7f3edac8861"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"c830ae65e1e699c280ccdac7b6bcc85ab3f1da3b9adc69e48148359fe6f88aee"}]});
+globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"989c649acb7876ecc869ff71d033a0b8727659cf28ab0c66084dbc966a0308bc","sources":[{"path":"js/text-ja.js","sha256":"8eb16aebcdf6821d81399171c4e2514cf78cac4b3ac3ed848bd43367d72a3513"},{"path":"js/text-en.js","sha256":"7c5616d641af41f74fd16d9f1e52be14d41f0fed8503bbcaeff93899c4c13b40"},{"path":"js/text-dev-ja.js","sha256":"778e1317540d5fd3c6440ecd306a1ffd02328bbe02df5fc3c0c5cc6f99c6602f"},{"path":"js/config.js","sha256":"04e4fa4c56886b43bfa51027c9421a8fc818f16b4a022b600f6f28079a9c1788"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"2f355fb52497a23ea8ab8cacbf913b82688e70e64a937763e523114ebf0e067f"},{"path":"js/six-pair-selection.js","sha256":"3001c2472ba388076e3465f499bbd6594eb984b74f7488efa86f89a66350da78"},{"path":"js/game.js","sha256":"6c98f301897ba7249da2e9832be5270539452be5622dd887da801b033f053ef1"},{"path":"js/route.js","sha256":"f979755a04ec290eda70f64489cab73476b78077f766c7b7e07f5ef254966d7e"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"26ac55233974a498ae6962cb437a6d6fd777248614bb27e7ae65f94120275157"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"03383eac4d20ce947d94e5d4e46f6821187edaae51883685ea224b43ce5b635e"},{"path":"js/course-adoption.js","sha256":"f95a33aedd2f9c8d7e4446a30fb51c9b003f890319c6f2951d3b7a6f2ff25f09"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"9b32d03540c4b44950f1ea288e5fb759b3dec719df82ac5a910ec7f3edac8861"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"c830ae65e1e699c280ccdac7b6bcc85ab3f1da3b9adc69e48148359fe6f88aee"}]});
 globalThis.ASCENT_COURSE_WORKER=true;
 let debugAttempt=false;
 function isTutorialRun(){return tutorialRun!==null;}
@@ -714,7 +714,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.9';
+const RELEASE_VERSION = '0.5.10';
 // Temporarily disabled for the formal release. Keep historical records and queues.
 const COURSE_RANKINGS_ENABLED = false;
 const GAMEPLAY_TIP_KEYS = [
@@ -2029,7 +2029,7 @@ const SixPairSelection = (() => {
     const pairs=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
     // Stable diagnostic identifiers; localized UI names belong to the catalogs.
     const labels=['both-feet','right-hand-right-foot','right-hand-left-foot','left-hand-right-foot','left-hand-left-foot','both-hands'];
-    const tau=Math.PI*2,width=Math.PI/9;
+    const tau=Math.PI*2;
     let cached=null,baselineDepth=0;
     function withBaseline(fn){baselineDepth++;try{return fn();}finally{baselineDepth--;}}
     function withCurrent(fn){const saved=baselineDepth;baselineDepth=0;try{return fn();}finally{baselineDepth=saved;}}
@@ -2045,7 +2045,7 @@ const SixPairSelection = (() => {
         }
         return result;
     }
-    const N=3600, span=200, step=tau/N;
+    const N=3600, step=tau/N;
     let pending=null, ticket=0;
     function same(snapshot) {return snapshot && snapshot.HEIGHT===HEIGHT && snapshot.holds===holds && snapshot.route===route && snapshot.x===committed.x && snapshot.y===committed.y && snapshot.grips.every((h,i)=>h===startGrips[i]);}
     function snapshot() {return {holds,route,HEIGHT,x:committed.x,y:committed.y,grips:[...startGrips],direction:forward(),samples:[],goal:[]};}
@@ -2061,38 +2061,48 @@ const SixPairSelection = (() => {
             }
         } finally {({committed,startGrips,holds,route,HEIGHT}=saved);}
     }
+    // Screen directions for MOVING limbs (pair stores the complementary anchors).
+    const preferredAngles=[Math.PI/2,0,3*Math.PI/4,Math.PI/4,Math.PI,-Math.PI/2];
     function finish(job) {
-        // k means baseline pairs with a continuous >=20-degree witness wholly
-        // inside the FINAL retained region. It does not count injected pairs.
-        function natural(k) {
-            const retainedCells=1440+360*k,lo=(N-retainedCells)/2,hi=lo+retainedCells;
-            const found=[];
-            for(let index=0;index<6;index++) {
-                let run=0,best=-1,bestCost=Infinity;
-                for(let i=lo;i<=(k===6?N+span:hi);i++) {
-                    run=job.samples[i%N]===index?run+1:0;
-                    if(run<span+1)continue;
-                    const start=(i-span)%N,cost=Math.abs(Math.atan2(Math.sin((start+span/2)*step-Math.PI),Math.cos((start+span/2)*step-Math.PI)));
-                    if(cost<bestCost){best=start;bestCost=cost;}
-                }
-                if(best>=0)found.push({start:wrap(job.direction-Math.PI+best*step),width:span*step,pair:[...pairs[index]],index,moving:labels[index]});
+        const counts=Array(6).fill(0),sx=Array(6).fill(0),sy=Array(6).fill(0),origin=job.direction-Math.PI;
+        job.samples.forEach((index,i)=>{const a=origin+(i+.5)*step;counts[index]++;sx[index]+=Math.cos(a);sy[index]+=Math.sin(a);});
+        const missing=counts.map((n,i)=>n? -1:i).filter(i=>i>=0),remaining=tau-6*Math.PI/5;
+        const targets=counts.map((n,index)=>{
+            if(!n)return wrap(preferredAngles[index]);
+            if(Math.hypot(sx[index],sy[index])/n>=1e-6)return wrap(Math.atan2(sy[index],sx[index]));
+            // A directionless circular average uses the longest natural run.
+            // Ties choose the smallest screen angle, independent of scan origin.
+            let bestLength=-1,bestAngle=Infinity;
+            for(let i=0;i<N;i++)if(job.samples[i]===index&&job.samples[(i+N-1)%N]!==index){
+                let length=1;while(length<N&&job.samples[(i+length)%N]===index)length++;
+                const angle=wrap(origin+(i+length/2)*step);
+                if(length>bestLength||length===bestLength&&angle<bestAngle){bestLength=length;bestAngle=angle;}
             }
-            return found;
+            return Number.isFinite(bestAngle)?bestAngle:wrap(preferredAngles[index]);
+        });
+        const total=counts.reduce((sum,n)=>sum+n,0);
+        const widths=counts.map(n=>Math.PI/5+remaining*(total?n/total:1/6));
+        const delta=a=>wrap(a+Math.PI)-Math.PI;
+        let best=null;
+        function evaluate(order){
+            let cursor=0;const offsets=order.map(i=>{const mid=cursor+widths[i]/2;cursor+=widths[i];return mid;});
+            const breaks=[0,tau,...order.map((i,j)=>wrap(targets[i]-offsets[j]+Math.PI))].sort((a,b)=>a-b);
+            for(let q=0;q<breaks.length-1;q++){
+                const lo=breaks[q],hi=breaks[q+1],mid=(lo+hi)/2;
+                const desired=order.map((i,j)=>mid-delta(mid+offsets[j]-targets[i]));
+                const rotation=Math.max(lo,Math.min(hi,desired.reduce((a,b)=>a+b,0)/6));
+                const cost=order.reduce((sum,i,j)=>sum+delta(rotation+offsets[j]-targets[i])**2,0);
+                if(!best||cost<best.cost-1e-12){best={order:[...order],rotation:wrap(rotation),cost};}
+            }
         }
-        // F(k) is monotone: wider retained regions cannot remove a witness.
-        // Starting at 6 gives a nonincreasing sequence in {0,...,6}, terminating
-        // at the greatest fixed point in at most seven evaluations.
-        let k=6,protectedSectors,iterations=0;
-        for(;;) {
-            protectedSectors=natural(k);iterations++;
-            const next=protectedSectors.length;
-            if(next===k)break;
-            k=next;
-        }
-        const retainedWidth=(144+36*k)*Math.PI/180;
-        const missing=pairs.map((_,i)=>i).filter(i=>!protectedSectors.some(s=>s.index===i));
-        const sectors=missing.map((index,j)=>({start:wrap(job.direction+retainedWidth/2+j*Math.PI/5),width:Math.PI/5,pair:[...pairs[index]],index,moving:labels[index]}));
-        return {...job,protectedSectors,sectors,missing,conflict:[],k,retainedWidth,iterations};
+        // Fix pair 0 first to remove equivalent circular permutations (5! =120).
+        function permute(order,left){if(!left.length){evaluate(order);return;}for(const i of left)permute([...order,i],left.filter(j=>j!==i));}
+        permute([0],[1,2,3,4,5]);
+        let cursor=0;const sectors=best.order.map((index,j)=>{
+            const width=j===5?tau-cursor:widths[index],start=wrap(best.rotation+cursor);cursor+=width;
+            return {start,width,index,pair:[...pairs[index]],moving:labels[index],preferredAngle:targets[index],natural:counts[index]>0};
+        });
+        return {...job,sectors,protectedSectors:[],missing,k:6-missing.length,counts,targets,rotation:best.rotation,placementCost:best.cost,iterations:120};
     }
     function plan() {
         if(same(cached))return cached;
@@ -2113,19 +2123,19 @@ const SixPairSelection = (() => {
         };
         setTimeout(next,0);
     }
-    function reservation(map,a) {return [...map.protectedSectors,...map.sectors].find(s=>wrap(a-s.start)<s.width-1e-12);}
+    function reservation(map,a) {
+        const local=wrap(a-map.rotation);let end=0;
+        for(let i=0;i<map.sectors.length;i++){end+=map.sectors[i].width;if(local<end||i===map.sectors.length-1)return map.sectors[i];}
+    }
     function directionSamples() {
         const map=plan(),start=map.direction-Math.PI;
-        return {start,indices:map.samples.map((baseline,i)=>{
-            const angle=start+i*step,a=wrap(Math.atan2(Math.sin(angle),Math.cos(angle)));
-            return (SixPairSelection.enabled?reservation(map,a)?.index:undefined)??baseline;
-        })};
+        return {start,sectors:SixPairSelection.enabled?map.sectors.map(s=>({...s})):null,indices:map.samples.map((baseline,i)=>
+            SixPairSelection.enabled?reservation(map,wrap(start+i*step)).index:baseline)};
     }
     function select(dx,dy) {
         if(Math.hypot(dx,dy)<1e-12)return selectAnchorBaseline(dx,dy);
         const a=wrap(Math.atan2(dy,dx)),map=plan();
-        // Both kinds of witnesses are authoritative. Sampled natural runs
-        // alone cannot prove what baseline does between the sampled directions.
+        // Exact half-open sectors tile the circle; never fall back between samples.
         const sector=reservation(map,a);
         return sector?[...sector.pair]:selectAnchorBaseline(dx,dy);
     }

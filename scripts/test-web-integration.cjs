@@ -8,6 +8,7 @@ const suites=['pages-formal-runtime','pages-storage-deletion','formal-debug-rank
 // Profile synchronization has its own scope and must not imply score completion.
 suites.push('course-rankings-disabled','profile-sync-status','release-050-ui','bgm','audio-settings','audio-files','audio');
 suites.push('hazard-modal-rendering','render-scheduling','debug-score-trial','coupled-course-preparation','swipe-comparison');
+suites.push('six-pair-selection','six-pair-continuous','six-pair-cache','six-pair-angle-input','six-pair-generation-scope','six-pair-course-gate');
 Object.freeze(suites);
 function parseArguments(args) {
  const options={list:false,shard:null};

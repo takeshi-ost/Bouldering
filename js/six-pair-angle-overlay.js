@@ -34,17 +34,15 @@ const SixPairAngleOverlay=(()=>{
             visual.y-(camera-stageViewPadding())-8,camera+H+stageViewPadding()-visual.y-8));
         const inner=outer*.75,labelRadius=outer*.875,step=Math.PI*2/view.indices.length;
         ctx.save();ctx.lineWidth=1;
-        for(let i=0;i<view.indices.length;){
-            const index=view.indices[i];let end=i+1;
-            while(end<view.indices.length&&view.indices[end]===index)end++;
-            const a=view.start+i*step,b=view.start+end*step;
+        const sectors=view.sectors||(()=>{const result=[];for(let i=0;i<view.indices.length;){let end=i+1;while(end<view.indices.length&&view.indices[end]===view.indices[i])end++;result.push({index:view.indices[i],start:view.start+i*step,width:(end-i)*step});i=end;}return result;})();
+        for(const sector of sectors){
+            const {index,start:a,width}=sector,b=a+width;
             ctx.beginPath();ctx.arc(visual.x,visual.y,outer,a,b);ctx.arc(visual.x,visual.y,inner,b,a,true);ctx.closePath();
             ctx.fillStyle=colors[index];ctx.globalAlpha=.55;ctx.fill();ctx.globalAlpha=.85;ctx.strokeStyle='#fff';ctx.stroke();
-            if((end-i)*step>=Math.PI/18){
+            if(width>=Math.PI/18){
                 const middle=(a+b)/2;ctx.globalAlpha=1;ctx.font='bold '+Math.max(9,Math.min(13,outer/8))+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.fillStyle=colors[index];
                 const x=visual.x+labelRadius*Math.cos(middle),y=visual.y+labelRadius*Math.sin(middle);ctx.strokeText(String(index+1),x,y);ctx.fillText(String(index+1),x,y);ctx.lineWidth=1;
             }
-            i=end;
         }
         // Compact temporary legend; no DOM/pointer hit region and no permanent HUD.
         const top=camera+94;ctx.globalAlpha=.9;ctx.fillStyle='#fbf9f1';ctx.fillRect(30,top,340,67);ctx.globalAlpha=1;ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font='bold 11px system-ui';ctx.fillStyle='#263d34';
