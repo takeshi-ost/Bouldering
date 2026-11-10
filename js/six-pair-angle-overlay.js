@@ -5,14 +5,20 @@ const SixPairAngleOverlay=(()=>{
     let pending=null,view=null;
     const invalidate=()=>{if(typeof requestStageArtworkRender==='function')requestStageArtworkRender();};
     function hide(){view=null;invalidate();}
-    function begin(e){pending={event:{clientX:e.clientX,clientY:e.clientY},start:performance.now()};}
+    function enabled(){
+        if(DEBUG_FEATURES_ALLOWED && debugMode)return true;
+        if(pending || view)reset();
+        return false;
+    }
+    function begin(e){if(!enabled())return;pending={event:{clientX:e.clientX,clientY:e.clientY},start:performance.now()};}
     function move(e){
-        if(!pending)return null;
+        if(!enabled() || !pending)return null;
         const r=canvas.getBoundingClientRect(),p=pending.event;
         if(Math.hypot(viewportClientDelta(e.clientX-p.clientX,r),viewportClientDelta(e.clientY-p.clientY,r))<INPUT_CONFIG.dragThreshold)return null;
         pending=null;hide();return p;
     }
     function toggle(){
+        if(!enabled())return;
         if(view){hide();return;}
         if(state!=='playing'||!body||!grips.every(Boolean))return;
         const saved={committed,startGrips};
@@ -23,10 +29,10 @@ const SixPairAngleOverlay=(()=>{
         } finally {({committed,startGrips}=saved);}
         invalidate();
     }
-    function end(cancel){const tap=pending;pending=null;if(cancel){hide();return;}if(tap&&performance.now()-tap.start<=INPUT_CONFIG.tapMaxDuration)toggle();}
+    function end(cancel){if(!enabled())return;const tap=pending;pending=null;if(cancel){hide();return;}if(tap&&performance.now()-tap.start<=INPUT_CONFIG.tapMaxDuration)toggle();}
     function reset(){pending=null;hide();}
     function draw(){
-        if(!view)return;
+        if(!enabled() || !view)return;
         if(state!=='playing'||holds!==view.holds||body.x!==view.body.x||body.y!==view.body.y||!grips.every((h,i)=>h===view.grips[i])||SixPairSelection.enabled!==view.enabled){hide();return;}
         if(settingsOpen||featureHelpOpen||!ui.overlay.hidden||cameraIntro)return;
         const visual=characterPose(performance.now()).body;
@@ -52,5 +58,5 @@ const SixPairAngleOverlay=(()=>{
         ctx.fillStyle='#555';ctx.font='9px system-ui';ctx.fillText(gameText("debug.pair.hint"),40,top+61);
         ctx.restore();
     }
-    return {begin,move,end,reset,hide,toggle,draw,get pending(){return pending;},get visible(){return !!view;},get snapshot(){return view;}};
+    return {begin,move,end,reset,hide,toggle,draw,get enabled(){return enabled();},get pending(){return enabled()?pending:null;},get visible(){return enabled() && !!view;},get snapshot(){return enabled()?view:null;}};
 })();

@@ -48,7 +48,8 @@ assert(titleReady && !ui.titleTap.hidden);assert.equal(ui.titleWallpaper.style.a
 assert.equal(state,'map');assert(ui.titleScreen.hidden && !ui.levelMap.inert);assert.equal(ui.mapNodes.innerHTML,markup);
 ui.mapSettingsButton.onclick();ui.showHelp.onclick();assert(ui.settingsDialog.open && ui.helpDialog.open);assert.equal(state,'map');
 ui.closeHelp.onclick();assert(!ui.helpDialog.open && settingsOpen);ui.closeSettings.onclick();
-assert(selectStage(1));cameraIntro=null;ui.settingsButton.onclick();ui.showHelp.onclick();assert(ui.helpDialog.open && settingsOpen);assert.equal(state,'playing');
+// Settings entry is tested after dismissing course-dependent first-encounter help.
+assert(selectStage(1));cameraIntro=null;hideStageHelp();ui.settingsButton.onclick();ui.showHelp.onclick();assert(ui.helpDialog.open && settingsOpen);assert.equal(state,'playing');
 ui.closeHelp.onclick();ui.closeSettings.onclick();showLevelMap();
 ui.mapSettingsButton.onclick();ui.mapDebugMode.checked=true;ui.mapDebugMode.onchange();assert(!html.includes('prototypeCourse'));
 startCourse('prototype');assert.equal(courseMode,'existing');assert.equal(state,'map');

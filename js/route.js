@@ -193,12 +193,13 @@ function samePairRoute(expected, actual) {
 function pruneUnusedHolds() {
     const before=holds.length;
     const reserved=reserveDenseCandidates(route);
+    const straightSupports=typeof labStraightSupportIds==='function'?labStraightSupportIds(route):new Set();
     const used=new Set([...initialGrips.map(h=>h.id),...route.flatMap(p=>p.grips||[])]);
     let removed;
     do {
         removed=false;
         for(const h of [...holds]) {
-            if(h.type!=='normal' || used.has(h.id) || reserved.has(h.id))continue;
+            if(h.type!=='normal' || used.has(h.id) || reserved.has(h.id) || straightSupports.has(h.id))continue;
             const previous=holds;
             holds=holds.filter(p=>p!==h);
             const played=replayRoute(route);

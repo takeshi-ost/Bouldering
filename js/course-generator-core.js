@@ -41,6 +41,163 @@ labGenerateSkeleton=function(config){
  catch(error){throw classifyNativeCourseGeometryRejection(error);}
 };
 // END typed native boundary.
+
+// BEGIN straight-support prototype. Fixed profile geometry, never a difficulty rule.
+const STRAIGHT_SUPPORT_CONFIG=Object.freeze({version:'prototype-2-half',halfWidth:80,retention:0.5});
+// Dynamic scope only: nothing survives a generation/retry/cache restoration.
+let labStraightSupportContext=null;
+function labHasStraightProfile(config){return config.type==='straight'||config.composition==='pair'&&config.secondType==='straight';}
+function labStraightSupportOwned(hold,context){
+ if(!context||!labHasStraightProfile(context.config))return false;
+ if(context.config.composition!=='pair')return true;
+ const seam=HEIGHT/2;
+ return (context.sections||[]).some(s=>s.type==='straight'&&s.idMap.some(pair=>pair[1]===hold.id)&&
+  (s.index===0?hold.y>=seam:hold.y<seam));
+}
+// A horizontal band at the hold's exact y, not Euclidean distance, guide distance,
+// or a vertical screen-centre strip. Horizontal/nonmonotone trace segments count.
+function labStraightSupportDistance(hold,path){
+ let best=Infinity;
+ for(let i=1;i<path.length;i++){
+  const trace=path[i].action&&Array.isArray(path[i].trace)?path[i].trace:[path[i-1],path[i]];
+  for(let j=1;j<trace.length;j++){
+   const a=trace[j-1],b=trace[j];
+   if(hold.y<Math.min(a.y,b.y)-1e-9||hold.y>Math.max(a.y,b.y)+1e-9)continue;
+   if(Math.abs(b.y-a.y)<1e-9){
+    if(Math.abs(hold.y-a.y)<1e-9)best=Math.min(best,Math.max(Math.min(a.x,b.x)-hold.x,0,hold.x-Math.max(a.x,b.x)));
+   }else{
+    const t=clamp((hold.y-a.y)/(b.y-a.y),0,1);
+    best=Math.min(best,Math.abs(hold.x-(a.x+(b.x-a.x)*t)));
+   }
+  }
+ }
+ return best;
+}
+function labStraightSupportIds(path,context=labStraightSupportContext){
+ return new Set(holds.filter(h=>h.type==='normal'&&labStraightSupportOwned(h,context)&&
+  (context.defer||labStraightSupportDistance(h,path)<=STRAIGHT_SUPPORT_CONFIG.halfWidth+1e-9)).map(h=>h.id));
+}
+function labRecordStraightSupports(context,candidateIds){
+ if(!context||!labHasStraightProfile(context.config)||!labSkeletonReport)return null;
+ const used=new Set([...initialGrips.map(h=>h.id),...route.flatMap(p=>p.grips||[])]);
+ const kept=labStraightSupportIds(route,{...context,defer:false});
+ const supportIds=[...kept].filter(id=>!used.has(id));
+ const report={version:STRAIGHT_SUPPORT_CONFIG.version,halfWidth:STRAIGHT_SUPPORT_CONFIG.halfWidth,
+  metric:'horizontal-distance-at-same-y-to-final-body-trace',difficultyLinked:false,
+  scope:context.config.composition==='pair'?'straight-source-ids-within-owned-half':'straight-profile',
+  seamOwnership:'lower-y-greater-or-equal; upper-y-less',candidateIds:candidateIds||[],
+  supportIds,usedRouteIds:[...used],normalCount:supportIds.length,
+  spikeSelection:'unchanged-unused-normal-pool; retained-supports-may-be-converted',
+  finalReferenceReplay:!!samePairRoute(route,replayRoute(route))};
+ labSkeletonReport.straightSupports=report;labSkeletonReport.holds=holds.length;
+ const finalIds=new Set(holds.map(h=>h.id)),placement=labSkeletonReport.placement;
+ if(placement){const input=placement.mergedInputHolds??placement.placedHolds;if(Number.isFinite(input))placement.pruneRemoved=input-holds.length;}
+ // The native report was assembled before final support trimming. Keep final
+ // section diagnostics faithful to the geometry actually delivered to play.
+ for(const s of labSkeletonReport.composition?.sections||[]){
+  const ids=new Set(s.idMap.map(pair=>pair[1])),points=holds.filter(h=>ids.has(h.id));
+  const collisionIds=new Set(s.collisionRemovedIds||[]);
+  s.finalIds=points.map(h=>h.id);s.usedIds=points.filter(h=>used.has(h.id)).map(h=>h.id);
+  s.prunedIds=[...ids].filter(id=>!finalIds.has(id)&&!collisionIds.has(id));
+  s.finalGeometry.holds=points.length;
+ }
+
+ densityStats.straightSupports=report;updateStageDensity();
+ if(generatedCourse)generatedCourse.holds=holds;
+ return report;
+}
+function labTrimStraightSupports(context){
+ const beforeCount=holds.length;
+ const owned=holds.filter(h=>h.type==='normal'&&labStraightSupportOwned(h,context));
+ const retained=labStraightSupportIds(route,{...context,defer:false});
+ const used=new Set([...initialGrips.map(h=>h.id),...route.flatMap(p=>p.grips||[])]);
+ let removed;
+ do{
+  removed=false;
+  for(const h of [...holds]){
+   if(h.type!=='normal'||!labStraightSupportOwned(h,context)||used.has(h.id)||retained.has(h.id))continue;
+   const previous=holds;holds=holds.filter(p=>p!==h);
+   const played=replayRoute(route);
+   if(samePairRoute(route,played)&&hasHazardFallbackCandidates(played)){route=played;removed=true;}
+   else holds=previous;
+  }
+ }while(removed);
+ if(!samePairRoute(route,replayRoute(route)))throw new CourseGeometryRejection('Straight support final reference replay failed.');
+ densityStats.routeRemoved=(densityStats.routeRemoved||0)+beforeCount-holds.length;
+ return labRecordStraightSupports(context,owned.map(h=>h.id));
+}
+// Thin only the final v1 result, after spike selection. No layout RNG is consumed.
+// Partition the y-sorted candidates into equal-count strata; alternating sides
+// avoids choosing an entire vertical column when each stratum offers both sides.
+function labHalfStraightSupportSelection(candidates,seed){
+ const sorted=[...candidates].sort((a,b)=>b.y-a.y||a.x-b.x||a.id-b.id);
+ const count=Math.floor(sorted.length*STRAIGHT_SUPPORT_CONFIG.retention),ids=[];
+ for(let i=0;i<count;i++){
+  const group=sorted.slice(Math.floor(i*sorted.length/count),Math.floor((i+1)*sorted.length/count));
+  const side=((seed>>>0)+i)%2?1:-1;
+  group.sort((a,b)=>side*(a.x-b.x)||b.y-a.y||a.id-b.id);ids.push(group[0].id);
+ }
+ return ids;
+}
+function labThinStraightSupports(context){
+ if(!labHasStraightProfile(context.config))return null;
+ const oldReport=labSkeletonReport?.straightSupports;
+ if(oldReport?.thinning?.applied)return oldReport;
+ const used=new Set([...initialGrips.map(h=>h.id),...route.flatMap(p=>p.grips||[])]);
+ const eligible=labStraightSupportIds(route,{...context,defer:false});
+ const candidates=holds.filter(h=>eligible.has(h.id)&&!used.has(h.id));
+ const preferred=new Set(labHalfStraightSupportSelection(candidates,context.config.seed));
+ const originalHolds=holds,originalRoute=route,target=preferred.size;
+ const safe=()=>{const played=replayRoute(originalRoute);return samePairRoute(originalRoute,played)&&hasHazardFallbackCandidates(played);};
+ const candidateIds=new Set(candidates.map(h=>h.id));
+ holds=originalHolds.filter(h=>!candidateIds.has(h.id)||preferred.has(h.id));
+ const unreducedIds=[];
+ if(!safe()){
+  holds=originalHolds;
+  const order=[...candidates].sort((a,b)=>Number(preferred.has(a.id))-Number(preferred.has(b.id))||b.y-a.y||a.x-b.x||a.id-b.id);
+  let remaining=candidates.length;
+  // Retry after successful deletions because selector dependencies can change.
+  let changed=true;
+  while(remaining>target&&changed){changed=false;
+   for(const h of order){if(remaining<=target)break;if(!holds.includes(h))continue;
+    const previous=holds;holds=holds.filter(p=>p!==h);
+    if(safe()){remaining--;changed=true;}else holds=previous;
+   }
+  }
+  if(remaining>target)for(const h of candidates)if(holds.includes(h))unreducedIds.push(h.id);
+ }
+ if(!safe()){holds=originalHolds;throw new CourseGeometryRejection('Half straight support replay failed.');}
+ const retained=new Set(holds.map(h=>h.id)),removedIds=candidates.filter(h=>!retained.has(h.id)).map(h=>h.id);
+ densityStats.routeRemoved=(densityStats.routeRemoved||0)+removedIds.length;
+ densityStats.selectionHoldIds=holds.filter(h=>!used.has(h.id)).map(h=>h.id);
+ const report=labRecordStraightSupports(context,oldReport?.candidateIds||[]);
+ report.thinning={applied:true,ratio:STRAIGHT_SUPPORT_CONFIG.retention,rounding:'floor',
+  selection:'y-strata-alternating-x-side-seed-parity; safe-replay-fallback',
+  beforeIds:candidates.map(h=>h.id),beforeCount:candidates.length,targetCount:target,afterCount:report.normalCount,
+  preferredIds:[...preferred],removedIds,unreducedIds,
+  configSignature:JSON.stringify(context.config),
+  referenceRouteUnchanged:samePairRoute(originalRoute,route)};
+ return report;
+}
+const labGenerateSkeletonBeforeStraightSupports=labGenerateSkeleton;
+labGenerateSkeleton=function(config){
+ const previous=labStraightSupportContext;
+ const context={config,sections:null,defer:true};
+ // Non-straight source calls must not inherit their parent's straight scope.
+ labStraightSupportContext=labHasStraightProfile(config)?context:null;
+ try{
+  const result=labGenerateSkeletonBeforeStraightSupports(config);
+  if(!labHasStraightProfile(config))return result;
+  context.sections=result.composition?.sections||null;
+  // Keep source candidates until the actual merged trace exists. Source IDs
+  // alone are never the final protection, and collision-dropped IDs stay gone.
+  if(previous?.config.composition==='pair')return result;
+  if(!(config.spikePercent>0))labTrimStraightSupports(context);
+  else labRecordStraightSupports(context,holds.filter(h=>h.type==='normal'&&labStraightSupportOwned(h,context)).map(h=>h.id));
+  return result;
+ }finally{labStraightSupportContext=previous;}
+};
+// END straight-support prototype.
 // Change unused normal holds after the final normal-only reference search.
 // Selected candidates become spikes; the other unused holds are pruned.
 // At 0% retain the established no-spike profile generation byte-for-byte.
@@ -48,7 +205,10 @@ labGenerateSkeleton=function(config){
 function labPrepareSpikes(config){
  const percent=config.spikePercent??0;
  if(![0,10,20,30].includes(percent))throw Error('Spike scatter must be 0, 10, 20 or 30 percent.');
- if(!Object.prototype.hasOwnProperty.call(config,'spikePercent'))return null;
+ if(labHasStraightProfile(config)&&labSkeletonReport?.straightSupports?.thinning?.configSignature===JSON.stringify(config))return labSkeletonReport.spikes||null;
+ if(!Object.prototype.hasOwnProperty.call(config,'spikePercent')){if(labHasStraightProfile(config))labThinStraightSupports({config,sections:labSkeletonReport?.composition?.sections||null});return null;}
+ const supportContext={config,sections:labSkeletonReport?.composition?.sections||null,defer:false};
+ const supportIds=labStraightSupportIds(route,supportContext);
  const protectedIds=new Set(initialGrips.map(h=>h.id));
  for(const p of route)for(const id of p.grips||[])protectedIds.add(id);
  const distanceToRoute=h=>{
@@ -71,8 +231,12 @@ function labPrepareSpikes(config){
   const selectedIds=new Set(selected.map(v=>v.hold.id)),previous=holds;
   // Remove the whole unused group first: selectors can depend on pairs of
   // unused holds even when no individual removal preserves the replay.
-  holds=holds.filter(h=>h.type!=='normal'||protectedIds.has(h.id)||selectedIds.has(h.id));
-  if(!samePairRoute(route,replayRoute(route))){holds=previous;pruneUnusedHolds();}
+  holds=holds.filter(h=>h.type!=='normal'||protectedIds.has(h.id)||selectedIds.has(h.id)||supportIds.has(h.id));
+  if(!samePairRoute(route,replayRoute(route))){
+   holds=previous;const previousContext=labStraightSupportContext;
+   try{labStraightSupportContext=labHasStraightProfile(config)?supportContext:null;pruneUnusedHolds();}
+   finally{labStraightSupportContext=previousContext;}
+  }
   updateStageDensity();
  }
  const retainedIds=new Set(holds.map(h=>h.id)),deletedIds=beforeHolds.filter(h=>!retainedIds.has(h.id)).map(h=>h.id);
@@ -84,7 +248,14 @@ function labPrepareSpikes(config){
   prunePolicy:percent>0?'nearest-fraction-to-spikes-rest-native-safe-delete':'legacy-zero-percent',rounding:'floor',denominator:'unused-normal-holds',distanceMetric:'minimum-distance-to-reference-body-segments',
   selectedIds:selected.map(v=>v.hold.id),candidates:candidates.map(v=>({id:v.hold.id,distance:v.distance})),protectedIds:[...protectedIds],
   referenceContactsUnchanged:unchanged,referenceHazardCost:cost,placementStage:'after-normal-reference-before-hearts'};
+ if(labHasStraightProfile(config))labRecordStraightSupports(supportContext,labSkeletonReport?.straightSupports?.candidateIds||[...supportIds]);
  if(labSkeletonReport){labSkeletonReport.spikes=report;labSkeletonReport.holds=holds.length;if(percent>0&&labSkeletonReport.placement)labSkeletonReport.placement.pruneRemoved=deletedIds.length;}
+ if(labHasStraightProfile(config)){
+  labThinStraightSupports(supportContext);
+  const finalIds=new Set(holds.map(h=>h.id));
+  report.deletedIds=beforeHolds.filter(h=>!finalIds.has(h.id)).map(h=>h.id);report.deletedCount=report.deletedIds.length;
+  report.retainedUnselectedIds=candidates.slice(count).filter(v=>finalIds.has(v.hold.id)).map(v=>v.hold.id);
+ }
  return report;
 }
 // The actual original placer is used, not a parallel grid or a new hold-adder.
@@ -440,6 +611,7 @@ function labGenerateCompositeSkeleton(config){
    const preserve=s.report.branchDetails?.protectedIds||[...(s.report.contrast?.retention.protectedDiffusionIds||[]),...(s.report.contrast?.retention.protectedConcentrationIds||[])];preserve.forEach(id=>protectedIds.add(map.get(id)));
    sectionReports.push({index:i,type:s.type,seed:s.seed,height:s.height,offsetY:dy,idMap:[...map],sourceReport:s.report,sourceHolds:s.holds,sourceRoute:s.route,ownedBounds:{xMin:16,xMax:W-16,yMin:i===0?height/2:0,yMax:i===0?height:height/2},protectedIds:preserve.map(id=>map.get(id))});
   }
+  if(labStraightSupportContext)labStraightSupportContext.sections=sectionReports;
   const seam=height/2,sourceSection=new Map(sectionReports.flatMap(s=>s.idMap.map(([sourceId,id])=>[id,{section:s.index,sourceId}]))),joinDrops=[];
   const mandatory=new Set([...protectedIds,...sections[0].initialIds.map(id=>sections[0].idMap.get(id)),...all.filter(h=>h.type==='goal').map(h=>h.id)]);
   const crossPairs=points=>{

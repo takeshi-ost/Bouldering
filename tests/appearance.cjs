@@ -137,7 +137,8 @@ showCharacterEditor();assert(confirmCharacterEditor());assert.equal(state,'daily
 showLevelMap({target:mapReturn.selected});
 assert(!focusLog.some(id=>['stripeCount','mapSettingsButton','dailySettingsButton','paletteSwatch','editorPart'].includes(id)),
  'Editor controls, palettes and return navigation must not move focus for keyboard navigation');
-assert(selectStage(1));cameraIntro=null;
+// Appearance assertions need an active renderer, regardless of generated first-encounter help.
+assert(selectStage(1));cameraIntro=null;hideStageHelp();
 const fills=[];ctx.fill=()=>fills.push(ctx.fillStyle);
 paints=[];draw(0);assert(fills.includes('#334455'));chosen.forEach(c=>assert(paints.some(p=>p.color===c && p.w===TORSO.width && Math.abs(p.h-TORSO.height/3)<1e-8)));
 warning=1;paints=[];draw(0);chosen.forEach(c=>assert(paints.some(p=>p.color===c && p.w===TORSO.width),'Blocked movement must keep saved body colors'));warning=0;

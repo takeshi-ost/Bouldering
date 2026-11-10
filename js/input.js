@@ -19,7 +19,7 @@ function beginPointer(e) {
         Math.abs(p.y-visible.y)<=TORSO.height/2+TORSO.hitPadding) {
         if(typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.hide();
         bodyTap={event:{clientX:e.clientX,clientY:e.clientY},start:performance.now()};
-    } else if(typeof SixPairAngleOverlay!=='undefined' && state==='playing')SixPairAngleOverlay.begin(e);
+    } else if(typeof SixPairAngleOverlay!=='undefined' && SixPairAngleOverlay.enabled && state==='playing')SixPairAngleOverlay.begin(e);
     else down(e);
 }
 function movePointer(e) {
@@ -257,6 +257,7 @@ ui.closeLife.onclick=cancelLifePrompt;
 dismissOutside(ui.lifeDialog,cancelLifePrompt,true);
 
 function setDebugMode(enabled) {
+    if((!enabled || !DEBUG_FEATURES_ALLOWED) && typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.reset();
     if(!DEBUG_FEATURES_ALLOWED) {
         ui.mapDebugMode.checked=false;
         syncDebugCourseControls();

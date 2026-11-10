@@ -52,7 +52,7 @@ function adoptedCourseCacheInputs() {
         DENSITY_CONFIG,HEART_CONFIG,HAZARD_CONFIG,INPUT_CONFIG,CAMERA_CONFIG,
         COURSE_GENERATION_CONFIG,ROUTE_COST_SEARCH_CONFIG,ROUTE_OPTIMIZATION_CONFIG,
         CourseProgressionConfig,CourseDistributionConfig,COURSE_STAMINA_CONFIG,
-        COURSE_RETRY_CONFIG,CourseProgression,CourseDistribution,LabStaminaSettings,
+        COURSE_RETRY_CONFIG,STRAIGHT_SUPPORT_CONFIG,labHasStraightProfile,labStraightSupportOwned,labStraightSupportDistance,labStraightSupportIds,labRecordStraightSupports,labTrimStraightSupports,labHalfStraightSupportSelection,labThinStraightSupports,CourseProgression,CourseDistribution,LabStaminaSettings,
         mulberry32,gripAim,isTraverse,insideStartTriangle,weightedItemId,
         difficultyRule,courseTypeDefinitions,courseTypeRule,courseTypeLabel,weightedCourseType,
         validateCourseDistribution,stageDistribution,dailyDistribution,generationTypeForScore,courseTypeForStage,

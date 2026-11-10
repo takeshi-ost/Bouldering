@@ -1,6 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),zlib=require('node:zlib'),crypto=require('node:crypto');
 const {create}=require('./helpers/course-core-fixture.cjs');
+const {disableStraightSupport,withoutStraightSupport}=require('./helpers/straight-support-historical.cjs');
 const root=path.resolve(__dirname,'..'),fixtureDir=path.join(__dirname,'fixtures');
 const manifest=require('./fixtures/course-generator-site41.manifest.json');
 const archive=fs.readFileSync(path.join(fixtureDir,'course-generator-site41.json.gz'));
@@ -12,7 +13,12 @@ const core=fs.readFileSync(path.join(root,'js/course-generator-core.js'),'utf8')
 const nativeCore=original['skeleton.js'].slice(0,original['skeleton.js'].indexOf('function labPostStatus('));
 const extract=source=>source.slice(source.indexOf('// For nonzero spikes'),source.indexOf('function labPostStatus(')<0?source.indexOf('// Explicit production boundary.'):source.indexOf('function labPostStatus(')).trim();
 const originalRun=create({engineSources:original,coreSource:nativeCore,staminaSource:original['stamina-settings.js']});
-const extractedRun=create({engineSources:original,productionBoundary:true});
+// Preserve all historical equality contracts via a reversible, one-predicate
+// ablation. This is causal isolation, not a current-output golden: disabling only
+// the approved feature must recover the immutable archive's full results.
+const supportDisabledCore=disableStraightSupport(core);
+const extractedRun=create({engineSources:original,coreSource:supportDisabledCore,productionBoundary:true});
+const currentArchivedPhysicsRun=create({engineSources:original,productionBoundary:true});
 // Preserve the immutable archive and original/extracted parity. This separate
 // oracle changes only the approved completed-assignment ordering rule, without
 // copying current production code or replacing expected outputs with goldens.
@@ -85,7 +91,7 @@ function labGenerateCompositeSourceSkeleton(config,sourceConfig){
  ])text=text.replaceAll(before,after);
  return text;
 }
-test('native generator math remains identical after reviewed isolated finger hooks and prior approved changes; no trial boot/transport hooks',()=>{
+test('native generator math remains identical outside exact reviewed straight-support/finger hooks and prior changes; no trial boot/transport hooks',()=>{
  const withoutDiagnostics=text=>text
   // The only v6 core math change is the approved short pickup cap policy.
   .replace(/ \/\/ Short trials explicitly disable pickups;[\s\S]*?const disabledReason=config.length==='short'\?'short-hearts-disabled':null,effectiveRequested=disabledReason\?\{first:0,second:0\}:requested;/, ' SHORT_HEART_POLICY;')
@@ -96,16 +102,51 @@ test('native generator math remains identical after reviewed isolated finger hoo
   .replaceAll('if(!(error instanceof CourseGeometryRejection))throw error;', '')
   .replaceAll(',{cause:e}', '')
   .replace(/Error\((['`])[\s\S]*?\1\)/g, 'Error("diagnostic")');
- assert.equal(withoutDiagnostics(withoutFingerHooks(extract(core))),withoutDiagnostics(extract(original['skeleton.js'])));
+ assert.equal(withoutDiagnostics(withoutFingerHooks(withoutStraightSupport(extract(core)))),withoutDiagnostics(extract(original['skeleton.js'])));
  for(const forbidden of ['function labBootSkeleton','labBootSkeleton();','function labReadConfig','function labPostStatus','postMessage(', 'localStorage','sessionStorage','function labFailSkeleton','recordStageClear=','finish=function','reset=function','document.'])assert(!core.includes(forbidden),forbidden);
 });
+// Current straight geometry is independently frozen to the approved trial in
+// straight-support-generation.cjs (14 courses). Historical straight cases below
+// retain their original configs and verify current safety, rather than falsely
+// demanding pre-feature geometry. Nonstraight archive parity stays exact.
+function assertCurrentPolicy(actual,expected,config){
+ const straight=config.type==='straight'||config.composition==='pair'&&config.secondType==='straight';
+ if(!straight){assert.deepEqual(actual,expected,'unmodified current nonstraight geometry, contacts, hearts, stamina and full report match archive');return;}
+ const report=actual.report.straightSupports,t=report?.thinning;
+ assert(report&&t?.applied,'current straight policy applied');assert(report.finalReferenceReplay&&t.referenceRouteUnchanged);
+ assert.equal(report.halfWidth,80);assert.equal(report.difficultyLinked,false);assert.equal(t.ratio,.5);assert.equal(t.rounding,'floor');
+ assert.equal(t.targetCount,Math.floor(t.beforeCount/2));assert.equal(t.afterCount,t.targetCount);assert.deepEqual(t.unreducedIds,[]);
+ assert.equal(t.beforeCount,t.beforeIds.length);assert.equal(t.afterCount,report.supportIds.length);assert.equal(t.removedIds.length,t.beforeCount-t.afterCount);
+ const byId=new Map(actual.holds.map(h=>[h.id,h])),used=new Set([...actual.initialGrips.map(h=>h.id),...actual.route.flatMap(p=>p.grips||[])]);
+ for(const id of used)assert(byId.has(id),'all route contacts retained');
+ for(const id of t.removedIds){assert(!byId.has(id));assert(!used.has(id));}
+ for(const id of report.supportIds){
+  const h=byId.get(id);assert(h&&h.type==='normal'&&!used.has(id),'extra unused normal support');
+  if(config.composition==='pair')assert(actual.report.composition.sections.some(s=>s.type==='straight'&&s.idMap.some(p=>p[1]===id)&&(s.index===0?h.y>=actual.HEIGHT/2:h.y<actual.HEIGHT/2)),'straight source and owned half');
+  // Independent same-y intersection oracle, including horizontal trace spans.
+  let distance=Infinity;
+  for(let i=1;i<actual.route.length;i++){
+   const p=actual.route[i],trace=p.action&&Array.isArray(p.trace)?p.trace:[actual.route[i-1],p];
+   for(let j=1;j<trace.length;j++){
+    const a=trace[j-1],b=trace[j];if(h.y<Math.min(a.y,b.y)-1e-9||h.y>Math.max(a.y,b.y)+1e-9)continue;
+    if(Math.abs(a.y-b.y)<1e-9)distance=Math.min(distance,Math.max(Math.min(a.x,b.x)-h.x,h.x-Math.max(a.x,b.x),0));
+    else distance=Math.min(distance,Math.abs(h.x-a.x-(b.x-a.x)*(h.y-a.y)/(b.y-a.y)));
+   }
+  }
+  assert(distance<=80+1e-9,'support within horizontal actual-route band');
+ }
+ assert(actual.report.validated);assert.equal(actual.stamina.initialStamina,actual.stamina.baseBudget-actual.stamina.appliedReduction);
+ assert(actual.report.spikes.referenceContactsUnchanged);assert.equal(actual.report.spikes.referenceHazardCost,0);
+ for(const id of actual.report.spikes.selectedIds)assert.equal(byId.get(id)?.type,'hazard','selected hazard retained');
+}
 const cases=[];
 for(const type of ['straight','meander','contrast','branch','switchback'])cases.push({type,length:'middle',seed:42,heartsFirst:2,heartsSecond:2,spikePercent:30});
 for(const [type,secondType] of [['straight','meander'],['branch','contrast'],['switchback','straight'],['switchback','switchback'],['meander','branch']])cases.push({type,secondType,composition:'pair',length:'long',seed:42,heartsFirst:2,heartsSecond:1,spikePercent:10});
 cases.push({type:'straight',length:'short',seed:1,heartsFirst:0,heartsSecond:0,spikePercent:0});
-for(const config of cases)test(`original/extracted parity: ${config.type}/${config.secondType??'single'} ${config.length} seed ${config.seed}`,()=>{
+for(const config of cases)test(`support-disabled original/extracted full archive parity plus current policy: ${config.type}/${config.secondType??'single'} ${config.length} seed ${config.seed}`,()=>{
  const expected=expectedV6(config),actual=extractedRun(config);
  assert.deepEqual(actual,expected,'same geometry, route, contacts, actual hearts, stamina and full diagnostic report');
+ assertCurrentPolicy(currentArchivedPhysicsRun(config),expected,config);
  assert.equal(actual.report.validated,true);
  assert.equal(actual.stamina.initialStamina,actual.stamina.baseBudget-actual.stamina.appliedReduction);
 });
@@ -122,11 +163,14 @@ test('production boundary restores real stage/daily identity and exposes immutab
 // Test the extracted engine against the latest production/Mac physics separately
 // from frozen-source equivalence. Restore a real non-tutorial identity, bind the
 // formal course, then verify the final route still replays under that identity.
-for(const config of cases)test(`latest native engine and bound replay: ${config.type}/${config.secondType??'single'} ${config.length}`,()=>{
+for(const config of cases)test(`latest native bound replay, full ablated archive parity and current policy: ${config.type}/${config.secondType??'single'} ${config.length}`,()=>{
  const expected=expectedV6(config,orderedOriginalRun),check=create({productionBoundary:true}).postBindReplay(config);
  assert.equal(check.error,undefined,'fixed regression configuration must generate; never replace the seed');
  assert.equal(check.identityRestored,true);assert.equal(check.replays,true,'real stage 207 must not reimpose the retired traverse rule');
- assert.deepEqual(check.geometry,expected,'latest native generator must exactly match archived physics plus only approved limb ordering');
+ const ablated=create({coreSource:supportDisabledCore,productionBoundary:true}).postBindReplay(config);
+ assert.equal(ablated.error,undefined);assert(ablated.identityRestored&&ablated.replays);
+ assert.deepEqual(ablated.geometry,expected,'support-disabled latest native generator exactly matches archive plus approved limb ordering');
+ assertCurrentPolicy(check.geometry,expected,config);
 });
 
 test('v6 short heart cap allows one and rejects two instead of silent disabling',()=>{

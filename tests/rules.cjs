@@ -32,11 +32,14 @@ wide.wide=false;startGrips=[null,null,...feet];holds=[wide,...feet];
 attached=attachMoving(body,[2,3]);assert(attached.filter(h=>h===wide).length<=1);
 // Actual input / release path, including visual restoration and terminal states.
 startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert.equal(state,'playing');
+// Feature introductions are orthogonal to these input/mechanics fixtures.
+hideStageHelp();
 assert.equal(ui.progress.hidden,true);debugMode=true;updateUI();assert.equal(ui.progress.hidden,false);
 assert(ui.progress.textContent.includes('想定'));debugMode=false;updateUI();assert.equal(ui.progress.hidden,true);
 advanceCameraIntro(0);advanceCameraIntro(1650);assert.equal(canUndoMove(),false);
 // Internal baseline witness fixture; new live input variants have separate coverage.
 function playStep(step) {return SixPairSelection.withBaseline(()=>{
+ hideStageHelp();
  advanceCameraIntro(0);advanceCameraIntro(1650);
  camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);
  const origin={x:body.x,y:body.y-camera},event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
@@ -157,7 +160,7 @@ courseMode='existing';
 console.log('PASS early heart deadlines across 3600 routes; Lv14 reference input replay with explicit reduction-restoring item bonus and one extra cost (not default-budget solvability)');
 assert(torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:300}),'Fast sweep misses heart');
 assert(!torsoTouchesHeart({x:100,y:300},{x:300,y:300},{x:200,y:347}),'Arm/leg contact collects heart');
-reset(1);cameraIntro=null;
+reset(1);hideStageHelp();cameraIntro=null;
 const heartTarget=route[1];
 hearts=[{id:0,x:heartTarget.x,y:heartTarget.y,collected:false}];
 const initialHeartBudget=stamina;
@@ -181,7 +184,7 @@ assert.equal(stamina,initialHeartBudget+1);
 checkUndo(beforeHeart);assert(hearts[0].collected);
 playStep(route[1]);assert.equal(stamina,initialHeartBudget+1,'Undo then pickup duplicates recovery');
 // Undo the move on which a heart was first touched: keep the pickup and refund the move.
-reset(1);cameraIntro=null;hearts=[{id:0,x:route[1].x,y:route[1].y,collected:false}];
+reset(1);hideStageHelp();cameraIntro=null;hearts=[{id:0,x:route[1].x,y:route[1].y,collected:false}];
 const beforeFreshPickup=stamina;playStep(route[1]);assert.equal(stamina,beforeFreshPickup+1);
 assert(undoMove());assert(hearts[0].collected);assert.equal(stamina,beforeFreshPickup+2);
 playStep(route[1]);assert.equal(stamina,beforeFreshPickup+1);
@@ -193,7 +196,7 @@ move({clientX:route[2].x,clientY:route[2].y-camera});release(true);
 assert(hearts[1].collected);assert(undoMove());assert.equal(stamina,beforeFreshPickup+4);
 assert(hearts.every(h=>h.collected));
 // Recovery on the final available move happens before the loss check.
-reset(1);cameraIntro=null;hearts=[{id:0,x:route[1].x,y:route[1].y,collected:false}];
+reset(1);hideStageHelp();cameraIntro=null;hearts=[{id:0,x:route[1].x,y:route[1].y,collected:false}];
 stamina=1;playStep(route[1]);assert.equal(state,'playing');assert.equal(stamina,2);
 reset(1);assert.deepEqual(hearts,[]);assert.deepEqual(heartPopups,[]);
 // Sample the drawn positions and opacity at known elapsed times without real waits.
@@ -208,11 +211,13 @@ drawHeartPopups(2000);assert.equal(popupCalls.length,0);assert.deepEqual(heartPo
 console.log('PASS +2 popup position, 30px/1s rise, opacity, expiration, reset, no duplicate; fixed +3 stamina');
 console.log('PASS hearts: eligibility, retry seed, route budget, swept contact, persistent cancel/no-op/invalid/Undo pickups, no duplicate recovery, last-stamina rescue');
 // Two fingers cancel movement without spending a move and pan in canvas units.
-reset(1);cameraIntro=null;HEIGHT=H*2;
+reset(1);hideStageHelp();cameraIntro=null;HEIGHT=H*2;
 const beforePan={stamina,moveCount,body:{...body},grips:[...grips]};
 const finger=(id,y)=>({identifier:id,clientX:200,clientY:y});
 const emit=(name,touches,changed=touches)=>canvas.events[name]({touches,changedTouches:changed,preventDefault(){}});
-emit('touchstart',[finger(1,350)]);assert(SixPairAngleOverlay.pending);
+// Normal play starts dragging immediately; angle-overlay pending is debug-only.
+assert.equal(debugMode,false);
+emit('touchstart',[finger(1,350)]);assert.equal(SixPairAngleOverlay.pending,null);assert(drag);
 emit('touchmove',[finger(1,340)]);assert(drag);
 emit('touchstart',[finger(1,350),finger(2,450)],[finger(2,450)]);
 assert(pan);assert.equal(drag,null);assert(inspecting);

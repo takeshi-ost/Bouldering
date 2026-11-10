@@ -14,10 +14,13 @@ return SixPairSelection.withBaseline(()=>{
 function check(v,m){if(!v)throw Error(m);}
 check(state==='choosing' && !cameraIntro && !ui.titleScreen.hidden,'Course menu startup failed');
 startCourse('existing');check(state==='map','Course should open map');selectStage(1);
+// First-encounter feature help pauses intro/input; dismiss that orthogonal UI
+// without disabling the camera or changing its timing assertions.
+hideStageHelp();
 check(state==='playing' && cameraIntro && level===1 && courseMode==='existing','One-screen stage needs its title intro');
 advanceCameraIntro(0);advanceCameraIntro(999);check(cameraIntro,'One-screen title vanished before 1s');
 advanceCameraIntro(1000);check(!cameraIntro,'One-screen intro did not finish at 1s');
-reset(2);check(cameraIntro,'Tall stage needs a scroll');
+reset(2);hideStageHelp();check(cameraIntro,'Tall stage needs a scroll');
 advanceCameraIntro(0);
 const introEnd=Math.max(CAMERA_CONFIG.introMinDuration,(cameraIntro.to-cameraIntro.from)/CAMERA_CONFIG.introSpeed*1000);
 advanceCameraIntro(introEnd/2);check(cameraIntro,'Introduction ended too early');
@@ -26,7 +29,7 @@ advanceCameraIntro(introEnd+1);check(!cameraIntro && camera===HEIGHT-H,'Introduc
 check(!isSupportPair(0) && !isSupportPair([0]) && !isSupportPair([0,0]) && !isSupportPair([0,1,1]),'Non-pair supports accepted');
 const report=[];
 for(let n=1;n<=20;n++){
-    try { reset(n); } catch(error) { throw Error('STAGE '+n+': '+error.message); }
+    try { reset(n);hideStageHelp(); } catch(error) { throw Error('STAGE '+n+': '+error.message); }
     check(grips[0]===grips[1] && grips[0].wide,'Hands must share starting bar');
     check(grips[2]!==grips[3] && grips[2].y===grips[3].y,'Feet must have separate bottom holds');
     check(grips[2].y===HEIGHT-HOLD_CONFIG.bottomMargin,'Feet not on bottom row');
@@ -40,7 +43,8 @@ for(let n=1;n<=20;n++){
     // Optional paid shortcuts may replace contacts; check pruning on the free base graph.
     // At zero spikes the adopted trial deliberately retains contrast/branch shape
     // scatter. Only those explicitly reported protected IDs escape minimality;
-    // straight/meander/native selector holds and all other IDs remain checked.
+    // Approved extra straight supports are separately protected at every spike
+    // percentage; all other straight/meander/native selector IDs stay checked.
     const profileReport=activeCourseGeneration.report;
     const shapeProtected=new Set(profileReport.spikes.percent===0?[
         ...(profileReport.branchDetails?.protectedIds||[]),
@@ -49,9 +53,18 @@ for(let n=1;n<=20;n++){
         ...(profileReport.composition?.sections.flatMap(s=>s.protectedIds)||[])
     ]:[]);
     for(const id of shapeProtected)check(finalHolds.some(h=>h.id===id),'Protected profile hold missing '+n+'/'+id);
+    const straightProtected=new Set(profileReport.straightSupports?.supportIds||[]);
+    const usedIds=new Set([...initialGrips.map(h=>h.id),...route.flatMap(p=>p.grips||[])]);
+    const supportContext={config:activeCourseGeneration.recipe,sections:profileReport.composition?.sections||null};
+    for(const id of straightProtected){
+        const h=finalHolds.find(h=>h.id===id);
+        check(h&&h.type==='normal'&&!usedIds.has(id),'Straight exemption must be an unused normal hold '+n+'/'+id);
+        check(labStraightSupportOwned(h,supportContext),'Straight exemption must belong to the straight source/half '+n+'/'+id);
+        check(labStraightSupportDistance(h,route)<=80+1e-9,'Straight exemption outside actual-route band '+n+'/'+id);
+    }
     const ordinary=finalHolds.filter(h=>h.type!=='hazard');
     for(const id of densityStats.selectionHoldIds) {
-        if(shapeProtected.has(id))continue;
+        if(shapeProtected.has(id)||straightProtected.has(id))continue;
         holds=ordinary.filter(h=>h.id!==id);
         check(!samePairRoute(route,replayRoute(route)),'Unnecessary selection hold retained '+n+'/'+id);
     }
@@ -88,8 +101,10 @@ for(let n=1;n<=20;n++){
         check(grips.every((h,k)=>h.id===target.grips[k]),'Different contact sequence');
     }
     check(state==='won'&&bothHandsOnGoal()&&stamina===budget-(route.length-1)-routeHazardCosts(route).at(-1)+hearts.filter(h=>h.collected).length*HEART_CONFIG.recovery,'Goal or actual pickup/hazard budget failed '+n);
-    const swept=hearts.filter(h=>route.slice(1).some((p,i)=>torsoTouchesHeart(route[i],p,h))).map(h=>h.id);
-    check(JSON.stringify(hearts.filter(h=>h.collected).map(h=>h.id))===JSON.stringify(swept),'Validated route must collect all and only swept recoveries');
+    // Finger actions follow the recorded body trace, which can curve away from
+    // the endpoint chord. Legacy routes without actions retain chord semantics.
+    const swept=hearts.filter(h=>route.slice(1).some((p,i)=>p.action?fingerRouteTouchesHeart(route[i],p,h):torsoTouchesHeart(route[i],p,h))).map(h=>h.id);
+    check(JSON.stringify(hearts.filter(h=>h.collected).map(h=>h.id))===JSON.stringify(swept),'Validated route must collect all and only swept recoveries '+n);
     check(holds.filter(h=>h.wide).length<=(activeCourseGeneration.recipe.composition==='pair'?6:3),'Too many wide holds');
     report.push({level:n,moves:moveCount,holds:holds.length,wide:holds.filter(h=>h.wide).length,selectionHolds:densityStats.selectionHoldIds.length});
 }
@@ -103,7 +118,7 @@ check(!holds.some(h=>h.id===redundantId),'Native pruning retained a provably red
 check(samePairRoute(nativeRoute,replayRoute(route)),'Native pruning changed the route');
 for(const id of densityStats.selectionHoldIds){const saved=holds;holds=saved.filter(h=>h.id!==id);check(!samePairRoute(route,replayRoute(route)),'Native unnecessary selector retained '+id);holds=saved;}
 debugMode=false;debugAttempt=false;debugCourseTrial=null;
-reset(2);advanceCameraIntro(0);advanceCameraIntro(1650);
+reset(2);hideStageHelp();advanceCameraIntro(0);advanceCameraIntro(1650);
 const origin={...body},before=[...grips],budget=stamina;
 camera=clamp(body.y-H*.6,0,HEIGHT-H);
 const event=p=>({clientX:p.x,clientY:p.y-camera});
