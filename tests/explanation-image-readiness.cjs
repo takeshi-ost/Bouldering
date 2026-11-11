@@ -45,8 +45,8 @@ function blocked(b){const before=frozen(b);b.run('down({clientX:body.x,clientY:b
   tap(b,false);b.fireTimer(b.run('tutorialRun.transitionTimer'));await c.ready(third);settleTransition(b);page(b,3);tap(b);
   const length=b.run('route.length');for(let i=1;i<length;i++){
    play(b,i);
-   if(i===2){
-    assert.equal(b.run('moveCount'),2);assert(b.run('tutorialRun.imageLoading'));blocked(b);
+   if(i===4){
+    assert.equal(b.run('moveCount'),4);assert(b.run('tutorialRun.imageLoading'));blocked(b);
     const cancelImage=await c.ready('assets/tutorial-two-finger-cancel-78-v1.png');
     assert.equal(b.node('tutorialImage'),cancelImage);assert.equal(b.run('tutorialRun.explanation.id'),'move-cancel');
     tap(b,false);b.fireTimer(b.run('tutorialRun.transitionTimer'));assert(b.run('tutorialRun.imageLoading'));blocked(b);

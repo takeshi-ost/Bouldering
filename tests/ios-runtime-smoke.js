@@ -167,7 +167,8 @@
                     ensure(tutorialRun.explanation.id===id,'move-help-order-changed');
                     node('tutorialContinue').click();
                     node('tutorialDialog').click();node('tutorialDialog').click();
-                    ensure(tutorialRun.explanation.id===id,'move-help-repeat-skipped-page');
+                    if(id==='move-cancel')ensure(tutorialRun.explanation?.id===id,'move-help-repeat-skipped-page');
+                    else ensure(!tutorialInstructionsOpen(),'move-help-final-page-not-closed');
                 }
                 await wait(()=>!tutorialInstructionsOpen(),'move-help-not-dismissed');
                 ensure(pose()===helpPose&&resources()===helpResources,'move-help-dismiss-mutated-gameplay');
