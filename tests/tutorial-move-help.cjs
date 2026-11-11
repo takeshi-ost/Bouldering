@@ -7,17 +7,17 @@ for(const [lang,cancel,undo] of [
  ['ja','2本タップで移動をキャンセルできます','ボディを短くタップすると1ムーブ戻せます'],
  ['en','Tap with two fingers to cancel your current move','Briefly tap the body to undo one move']]) {
  const b=boot(new Map([['ascent.language.v1',lang],['ascent.tutorial-stage0.v1',JSON.stringify({version:1,status:'pending',reason:'test'})]]));start(b);
- move(b,1);assert(!b.run('tutorialInstructionsOpen()'));
- move(b,2,true);assert.equal(b.run('moveCount'),1);assert(!b.run('tutorialInstructionsOpen()'));
- move(b,2);assert.equal(b.run('moveCount'),2);assert.equal(b.node('tutorialText').textContent,cancel);
+ for(let i=1;i<=3;i++){move(b,i);assert.equal(b.run('moveCount'),i);assert(!b.run('tutorialInstructionsOpen()'),'no help before confirmed move four');}
+ move(b,4,true);assert.equal(b.run('moveCount'),3);assert(!b.run('tutorialInstructionsOpen()'));
+ move(b,4);assert.equal(b.run('moveCount'),4);assert.equal(b.node('tutorialText').textContent,cancel);
  assert.equal(b.node('tutorialImage').src,'assets/tutorial-two-finger-cancel-78-v1.png');
  const frozen=b.run('JSON.stringify({body,grips,stamina,moveCount,runElapsedMs})');
  b.advance(5000);b.run('undoMove();down({clientX:200,clientY:500});release();tutorialTrigger("move");');
  assert.equal(b.run('JSON.stringify({body,grips,stamina,moveCount,runElapsedMs})'),frozen);
  assert.equal(b.run('tutorialRun.queue.length'),1);tap(b);
  assert.equal(b.node('tutorialText').textContent,undo);assert.equal(b.node('tutorialImage').src,'assets/help-body-tap-78-v1.png');tap(b);
- assert(b.run('undoMove()'));move(b,2);assert(!b.run('tutorialInstructionsOpen()'),'undo/recommit must not repeat either page');
- b.run('showTitleScreen();');const reloaded=boot(b.data);start(reloaded);move(reloaded,1);move(reloaded,2);assert.equal(reloaded.node('tutorialText').textContent,cancel,'interrupted tutorial restarts with help intact');
+ assert(b.run('undoMove()'));move(b,4);assert(!b.run('tutorialInstructionsOpen()'),'undo/recommit must not repeat either page');
+ b.run('showTitleScreen();');const reloaded=boot(b.data);start(reloaded);for(let i=1;i<=4;i++)move(reloaded,i);assert.equal(reloaded.node('tutorialText').textContent,cancel,'interrupted tutorial restarts with help intact');
 }
 // The last goal tap cannot dismiss the Stage 1 backdrop; explicit Close still works.
 for(const close of ['backdrop','button','normal']) {
@@ -31,4 +31,4 @@ for(const close of ['backdrop','button','normal']) {
  else {b.node('closeStageStart').onclick();b.run('openStageStart(1);');backdrop();assert(!b.node('stageStartDialog').open,'ordinary stage selection has no guard');}
 }
 const png=fs.readFileSync('assets/tutorial-two-finger-cancel-78-v1.png');assert.equal(png.readUInt32BE(16),78);assert.equal(png.readUInt32BE(20),78);
-console.log('PASS confirmed 2-move JA/EN help, cancel, pause, undo/recommit, restart and scoped 400ms backdrop guard');
+console.log('PASS confirmed 4-move JA/EN help, cancel, pause, undo/recommit, restart and scoped 400ms backdrop guard');

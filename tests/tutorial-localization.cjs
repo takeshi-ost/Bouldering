@@ -44,7 +44,7 @@ function intro(b,language) {for(let i=0;i<3;i++){readyPage(b,i,language);tap(b);
 function goal(b) {
  for(let i=1;i<b.run('route.length');i++) {
   b.run(`camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);var p=route[${i}];assert(validFingerAction(p.action));down({clientX:200,clientY:500});for(const delta of p.action.points)move({clientX:200+delta.dx,clientY:500+delta.dy});release();`);
-  if(i===2) {
+  if(i===4) {
    for(const id of ['move-cancel','move-undo']) {
     assert.equal(b.run('tutorialRun.explanation.id'),id);
     assert.equal(b.node('tutorialText').textContent,b.run(`gameText('tutorial.move.${id==='move-cancel'?'cancel':'undo'}')`));

@@ -136,7 +136,7 @@
         node('closeSettings').click();await wait(()=>!settingsOpen&&!node('settingsDialog').open,'settings-not-closed');
         checks.push('stage-settings-language-sound-help-scroll-return');
         phase='programmatic-gameplay';
-        let goalSeen=false;
+        let goalSeen=false,moveHelpSeen=false;
         ensure(!holds.some(h=>h.wide&&h.type!=='start'),'tutorial-nonstart-wide');
         ensure(stamina===activeCourseGeneration.report.initialStamina,'tutorial-stamina-mismatch');
         const routePoints=route.slice(1);ensure(routePoints.length>0&&routePoints.length<=20,'unexpected-tutorial-route');
@@ -150,12 +150,37 @@
             release();
             await wait(()=>moveCount===beforeMoves+1,'programmatic-move-not-committed',3000);
             ensure(grips.every((h,index)=>h?.id===target.grips[index]&&limbReachable(body,h,index)),'programmatic-route-contacts-mismatch');
+            if(moveCount<4)ensure(!tutorialInstructionsOpen(),'move-help-opened-before-four');
+            if(moveCount===4){
+                ensure(!moveHelpSeen,'move-help-repeated');
+                phase='fourth-move-help';
+                const helpPose=pose(),helpResources=resources();
+                for(const [id,imagePath] of [
+                    ['move-cancel','assets/tutorial-two-finger-cancel-78-v1.png'],
+                    ['move-undo','assets/help-body-tap-78-v1.png']]){
+                    await readyPage(id); // Includes JA/EN title/text and decoded image assertions.
+                    ensure(new URL(node('tutorialImage').src).pathname.endsWith('/'+imagePath),'move-help-image-mismatch');
+                    ensure(moveCount===4&&pose()===helpPose&&resources()===helpResources,'move-help-mutated-gameplay');
+                    const helpElapsed=runTimeMs();await delay(200);
+                    undoMove();down(client(body));release();tutorialTrigger('move');
+                    ensure(pose()===helpPose&&resources()===helpResources&&runTimeMs()===helpElapsed,'move-help-input-not-paused');
+                    ensure(tutorialRun.explanation.id===id,'move-help-order-changed');
+                    node('tutorialContinue').click();
+                    node('tutorialDialog').click();node('tutorialDialog').click();
+                    ensure(tutorialRun.explanation.id===id,'move-help-repeat-skipped-page');
+                }
+                await wait(()=>!tutorialInstructionsOpen(),'move-help-not-dismissed');
+                ensure(pose()===helpPose&&resources()===helpResources,'move-help-dismiss-mutated-gameplay');
+                moveHelpSeen=true;
+                checks.push('fourth-confirmed-move-two-help-pages-ja-en-decoded-pause-repeat-guard');
+                phase='programmatic-gameplay';
+            }
             if(tutorialRun?.explanation?.id==='goal-fixed'){
                 await tapPage('goal-fixed');await readyPage('goal-finish');goalSeen=true;await tapPage('goal-finish');break;
             }
             await delay(200);
         }
-        ensure(goalSeen,'required-route-pages-missing');
+        ensure(moveHelpSeen&&goalSeen,'required-route-pages-missing');
         ensure(stamina===8,'tutorial-route-stamina-margin');
         phase='map';await wait(()=>state==='map'&&stageStartContext?.n===1&&node('stageStartDialog').open,'map-stage1-not-ready',15000);
         ensure(!isTutorialRun()&&!tutorialPending(),'tutorial-not-completed');

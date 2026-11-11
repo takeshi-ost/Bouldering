@@ -51,6 +51,7 @@ assert.match(script,/tutorial-language-mutated-gameplay/);
 // Keep the real WebKit Worker flow in the instrumented smoke. These static
 // requirements do not substitute for executing it in the disposable simulator.
 for(const marker of [
+    'fourth-confirmed-move-two-help-pages-ja-en-decoded-pause-repeat-guard',
     'same-origin-capacitor-worker-bootstrap',
     'cold-worker-pending-ui-timer-heartbeat',
     'pending-worker-close-terminates-without-resource-spend',
