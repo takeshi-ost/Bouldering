@@ -160,7 +160,6 @@ ui.next.onclick = () => {
 };
 ui.retry.onclick=()=>{
     if(activeDebugScoreTrial()){startDebugScoreTrial(debugCourseTrial.score);return;}
-    if(activeDebugCourse()){const trial=debugCourseTrial;startDebugCourse(trial.typeId,trial.lengthCategory);return;}
     if(state!=='lost')return;
     if(dailyRun)continueDailyResult(true);
     else continueAfterNormalAd(()=>restartNormalStage());
@@ -252,7 +251,12 @@ ui.overlay.addEventListener('click',e=>{
 });
 ui.closeStageStart.onclick=closeStageStart;
 ui.stageStartDialog.addEventListener('cancel',e=>{e.preventDefault();closeStageStart();});
-dismissOutside(ui.stageStartDialog,closeStageStart);
+dismissOutside(ui.stageStartDialog,()=>{
+    // Only shield the backdrop from the tap that finished the tutorial.
+    // Explicit Close / Start and all ordinary stage selections stay responsive.
+    if(performance.now()<(stageStartContext?.ignoreBackdropUntil??0))return;
+    closeStageStart();
+});
 ui.closeLife.onclick=cancelLifePrompt;
 dismissOutside(ui.lifeDialog,cancelLifePrompt,true);
 

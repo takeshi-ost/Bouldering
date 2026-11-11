@@ -16,76 +16,14 @@ const window = {addEventListener(){}, devicePixelRatio:1};
 function requestAnimationFrame(){}
 `;
 new Function('assert', environment + source + `
-assert.equal(state, 'choosing');
-draw(0); down({clientX:200,clientY:400}); assert.equal(drag,null);
-startCourse('existing');ui.mapSettingsButton.onclick();ui.mapDebugMode.checked=true;ui.mapDebugMode.onchange();ui.prototypeCourse.onclick();assert.equal(state,'map');assert(selectStage(1));
-assert.equal(courseMode,'prototype'); assert.equal(state,'playing');
-const report=[];
-for (let n=1;n<=20;n++) {
-    reset(n);
-    assert(holds.every(h=>h.x-(h.wide?30:15)>=STAGE_SAFE_WIDTH && h.x+(h.wide?30:15)<=W-STAGE_SAFE_WIDTH),'Prototype hold overlaps safe area');
-    assert(route.every(p=>p.x>=STAGE_SAFE_WIDTH+TORSO.width/2 && p.x<=W-STAGE_SAFE_WIDTH-TORSO.width/2),'Solved body path overlaps safe area');
-    assert(grips[0]===grips[1] && grips[0].wide,'Hands must share starting bar');
-    assert(grips[2]!==grips[3] && grips[2].y===grips[3].y,'Feet must have separate bottom holds');
-    assert(grips[2].y===HEIGHT-HOLD_CONFIG.bottomMargin,'Feet not on bottom row');
-    assert(holds.every(h=>h===grips[2] || h===grips[3] || h.y<grips[2].y),'Other hold below starting feet');
-    assert(grips.every((h,i)=>limbReachable(body,h,i)),'Unreachable starting limb');
-    assert(new Set(holds.map(h=>h.id)).size===holds.length,'Duplicate hold IDs');
-    assert(holds.every(h=>h.type==='start' || !insideStartTriangle(h,grips)),'Hold inside starting triangle');
-    const snapshot=JSON.stringify({holds,route,hearts});
-    assert.equal(stamina,stageStamina(route.length-1));
-    const bodyPath=route.map(p=>({x:p.x,y:p.y}));
-    assert(replayRoute(route));
-    const complete=holds;
-    // Optional paid shortcuts may replace contacts; check pruning on the free base graph.
-    const ordinary=complete.filter(h=>h.type!=='hazard');
-    for (const hold of ordinary) {
-        if (hold.type !== 'normal') continue;
-        holds=ordinary.filter(h=>h!==hold);
-        const replayed=replayRoute(route);
-        assert(!replayed || replayed.length!==route.length, 'Redundant hold '+n+'/'+hold.id);
-    }
-    holds=complete;
-    assert.deepEqual(route.map(p=>({x:p.x,y:p.y})),bodyPath);
-    advanceCameraIntro(0);advanceCameraIntro(1650);
-    for(let i=1;i<route.length;i++) {
-        camera=clamp(body.y-H*.6,0,HEIGHT-H);
-        const origin={...body}, target=route[i], before=[...grips];
-        const event=p=>({clientX:p.x,clientY:p.y-camera});
-        down(event(body));
-        for(let t=1;t<=10;t++) {
-            move(event({x:origin.x+(target.x-origin.x)*t/10,y:origin.y+(target.y-origin.y)*t/10}));
-            if(drag.anchor) assert(drag.anchor.every(k=>grips[k]===before[k] && limbReachable(body,grips[k],k)));
-        }
-        assert(grips.every((h,k)=>h && limbReachable(body,h,k)), 'Foot above shoulders or unreachable contact');
-        assert.deepEqual(drag.anchor,target.anchor);
-        draw(2000);release();
-        assert.equal(moveCount,i,'Failed move '+n+'/'+i);
-        assert.deepEqual(grips.map(h=>h.id),target.grips);
-    }
-    assert.equal(state,'won');assert.equal(stamina,stageStamina(route.length-1)-(route.length-1)+hearts.filter(h=>h.collected).length*2);
-    assert(hearts.every(h=>h.collected),'Missed recovery on validated route');
-    ui.retry.onclick();assert.equal(JSON.stringify({holds,route,hearts}),snapshot);
-    assert(holds.filter(h=>h.wide).length<=3);
-    report.push({level:n,holds:holds.length,wide:holds.filter(h=>h.wide).length,moves:route.length-1});
-}
-assert(report.some(p=>p.wide>0),'Wide holds never survive pruning');
-state='won';ui.next.onclick();assert.equal(state,'map');advanceLevelMap(0);advanceLevelMap(650);assert.equal(mapSelected,21);closeStageStart();assert(selectStage(21));assert.equal(level,21);assert.equal(courseMode,'prototype');
-showTitleScreen();assert.equal(state,'choosing');assert.equal(drag,null);
-startCourse('existing');assert.equal(state,'map');assert(selectStage(1));assert.equal(courseMode,'existing');assert.equal(level,1);
-const original=JSON.stringify({holds,route});
-showTitleScreen();startCourse('prototype');assert(selectStage(1));
+assert.equal(state,'choosing');
+assert.equal(typeof ui.prototypeCourse,'undefined');
+assert.equal(typeof preparePrototypeStage,'undefined');
+startCourse('prototype');assert.equal(courseMode,'existing');
+assert.equal(state,'map');assert(selectStage(1));
+const ordinary=JSON.stringify({holds,route,hearts});
 showTitleScreen();startCourse('existing');assert(selectStage(1));
-assert.equal(JSON.stringify({holds,route}),original,'Prototype contaminated existing course');
-// Guide-only generation returns the exact same pre-search guide and start/goal.
-for(let n=1;n<=20;n++) {
-    const generator=createStageGenerator();
-    const existing=generator.generate(n), prototype=generator.generate(n,true);
-    assert.deepEqual(prototype.route,existing.route);
-    assert.deepEqual(prototype.initialGrips,existing.initialGrips);
-    assert.deepEqual(prototype.holds.find(h=>h.type==='goal'),existing.holds.find(h=>h.type==='goal'));
-    assert.equal(prototype.HEIGHT,existing.HEIGHT);
-}
-console.log('PASS prototype: 20 levels, real input, irreducible holds, shared guides, retry and course switching');
-console.log(JSON.stringify(report));
+assert.equal(JSON.stringify({holds,route,hearts}),ordinary,'Retired name must use formal generation');
+assert(SixPairSelection.withBaseline(()=>samePairRoute(route,replayRoute(route))));
+console.log('PASS retired prototype entry point: absent controls, legacy-name normalization and formal generation parity');
 `)(assert);

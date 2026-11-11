@@ -37,7 +37,7 @@ assert(!/<(?:script|image)|https?:\/\/(?!www\.w3\.org\/2000\/svg)/.test(gearSvg)
 const files=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>m[1]);
 function boot(data=new Map(),{blocked=false,readBlocked=blocked,writeBlocked=blocked,missingStorage=false,imageClass=null,audioClass=null,locale='ja-JP'}={}){
  const operations=[],elements={},windowEvents={},documentEvents={},timers=new Map(),frames=[];let nextTimer=0,captureFrames=false,clock=1000;
- const node=id=>elements[id]||={id,style:{setProperty(){}},classList:{values:new Set(),toggle(k,v){if(v)this.values.add(k);else this.values.delete(k);},add(k){this.values.add(k);},remove(k){this.values.delete(k);},contains(k){return this.values.has(k);}},querySelector(selector){return node(id+selector);},replaceWith(next){elements[id]=next;next.isConnected=true;},events:{},listeners:{},hidden:false,open:false,value:'',focus(){document.activeElement=this;},blur(){},setAttribute(k,v){this[k]=v;},removeAttribute(k){delete this[k];},addEventListener(k,f){(this.listeners[k]||=[]).push(f);this.events[k]=e=>this.listeners[k].forEach(fn=>fn(e));},showModal(){this.showCount=(this.showCount||0)+1;this.open=true;},close(){this.closeCount=(this.closeCount||0)+1;this.open=false;},contains(){return true;},getContext(){return new Proxy({},{get:(o,k)=>o[k]||(()=>{})});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};
+ const node=id=>elements[id]||={id,style:{setProperty(){}},classList:{values:new Set(),toggle(k,v){if(v)this.values.add(k);else this.values.delete(k);},add(k){this.values.add(k);},remove(k){this.values.delete(k);},contains(k){return this.values.has(k);}},querySelector(selector){return node(id+selector);},replaceWith(next){elements[id]=next;next.isConnected=true;next.replaceWith=this.replaceWith;},events:{},listeners:{},hidden:false,open:false,value:'',focus(){document.activeElement=this;},blur(){},setAttribute(k,v){this[k]=v;},removeAttribute(k){delete this[k];},addEventListener(k,f){(this.listeners[k]||=[]).push(f);this.events[k]=e=>this.listeners[k].forEach(fn=>fn(e));},showModal(){this.showCount=(this.showCount||0)+1;this.open=true;},close(){this.closeCount=(this.closeCount||0)+1;this.open=false;},contains(){return true;},getContext(){return new Proxy({},{get:(o,k)=>o[k]||(()=>{})});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};
  const document={getElementById:node,documentElement:{},addEventListener(k,f){(documentEvents[k]||=[]).push(f);},querySelectorAll(){return [];}};
  const storage={getItem(k){operations.push(['get',k]);if(readBlocked)throw Error('blocked storage');return data.get(k)??null;},setItem(k,v){operations.push(['set',k]);if(writeBlocked)throw Error('blocked storage');data.set(k,String(v));},removeItem(k){operations.push(['remove',k]);if(writeBlocked)throw Error('blocked storage');data.delete(k);},get length(){return data.size;},key:i=>[...data.keys()][i]??null};
  const context=vm.createContext({navigator:{language:locale,languages:[locale]},AudioContext:audioClass||undefined,Image:imageClass||undefined,document,localStorage:missingStorage?undefined:storage,console,performance:{now:()=>clock},Date,Math,assert,URL,Uint8Array,TextEncoder,TextDecoder,atob,setTimeout(fn,delay=0){timers.set(++nextTimer,{fn,at:clock+delay});return nextTimer;},clearTimeout(id){timers.delete(id);},requestAnimationFrame(fn){if(captureFrames)frames.push(fn);return 0;},window:{devicePixelRatio:1,addEventListener(k,f){(windowEvents[k]||=[]).push(f);}}});
@@ -107,18 +107,18 @@ function settleTransition(b){while(b.run('!!tutorialRun?.transition'))b.fireTime
 function tap(b,settle=true){const e=event();b.node('tutorialContinue').onclick(e);assert(e.stopped,'button tap must not bubble and advance twice');if(settle)settleTransition(b);}
 function intros(b){for(let n=1;n<=3;n++){page(b,n);tap(b);}assert.equal(b.run('tutorialInstructionsOpen()'),false);assert.equal(b.run('cameraIntro'),null);assert.notEqual(b.run('runStartedAt'),null);}
 // Actions are cumulative logical screen deltas, independent of camera recentering.
-function play(b,index,cancel=false){b.run(`var targetForModalTest=route[${index}];assert(validFingerAction(targetForModalTest.action));assert.equal(targetForModalTest.action.bodyMotion,COUPLED_BODY_MODEL);down({clientX:200,clientY:500});for(const p of targetForModalTest.action.points)move({clientX:200+p.dx,clientY:500+p.dy});release(${cancel});`);}
+function play(b,index,cancel=false){b.run(`var targetForModalTest=route[${index}];assert(validFingerAction(targetForModalTest.action));assert.equal(targetForModalTest.action.bodyMotion,COUPLED_BODY_MODEL);down({clientX:200,clientY:500});for(const p of targetForModalTest.action.points)move({clientX:200+p.dx,clientY:500+p.dy});release(${cancel});`);if(!cancel && b.run('tutorialRun?.explanation?.id')==='move-cancel'){tap(b);tap(b);}}
 // Fixed failure-cycle fixture uses its authored baseline controls. Success
 // play() above still exercises current live selection and all tutorial messages.
-function exhaust(b){b.run(`SixPairSelection.withBaseline(()=>{const budget=stamina,cycle=[];assert.equal(budget,stageStamina(routeExpectedMoves())+TUTORIAL_COURSE_CONFIG.extraStamina);assert(fingerAimEnabled());assert(coupledBodyEnabled());for(let i=0;i<budget;i++){assert(isTutorialRun());const sign=i%2?1:-1;down({clientX:200,clientY:500});move({clientX:200+30*sign,clientY:500+90*sign});release();assert.equal(moveCount,i+1);assert.equal(stamina,budget-i-1);assert(grips.every((h,k)=>h&&limbReachable(body,h,k)));assert(!bothHandsOnGoal());assert.deepEqual(grips.slice(0,2).map(h=>h.id),i%2?[2,2]:[3,4]);if(i<2)cycle.push({...body});else assert.deepEqual(body,cycle[i%2]);}assert.equal(stamina,0);});`);}
+function exhaust(b){b.run(`tutorialRun.seen.add("move-cancel");tutorialRun.seen.add("move-undo");SixPairSelection.withBaseline(()=>{const budget=stamina,cycle=[];assert.equal(budget,stageStamina(routeExpectedMoves())+TUTORIAL_COURSE_CONFIG.extraStamina);assert(fingerAimEnabled());assert(coupledBodyEnabled());for(let i=0;i<budget;i++){assert(isTutorialRun());const sign=i%2?1:-1;down({clientX:200,clientY:500});move({clientX:200+30*sign,clientY:500+90*sign});release();assert.equal(moveCount,i+1);assert.equal(stamina,budget-i-1);assert(grips.every((h,k)=>h&&limbReachable(body,h,k)));assert(!bothHandsOnGoal());assert.deepEqual(grips.slice(0,2).map(h=>h.id),i%2?[2,2]:[3,4]);if(i<2)cycle.push({...body});else assert.deepEqual(body,cycle[i%2]);}assert.equal(stamina,0);});`);}
 
 function completed(b,reason){assert.equal(b.run('isTutorialRun()'),false);assert.equal(b.run('tutorialPending()'),false);assert.equal(b.run('AscentTutorialState.snapshot().reason'),reason);assert.equal(b.run('state'),'map');assert.equal(b.run('stageStartContext?.n'),1);assert(b.node('stageStartDialog').open);assert(!b.node('tutorialDialog').open);assert.equal(b.run('stageRecords.existing[0]'),undefined);}
 function runModalTests(){
 // Both selections show their own reviewed copy and matching language metadata.
 for(const language of ['ja','en']){
  const b=boot(new Map([['ascent.language.v1',language],['ascent.tutorial-stage0.v1',JSON.stringify({version:1,status:'pending',reason:'test-language'})]]));assert.equal(b.run('GAME_TEXT_LANGUAGE'),language);const resources=snapshot(b);start(b);
- assert.equal(b.run('TUTORIAL_CONFIG.steps.length'),5);
- assert.equal(b.run('JSON.stringify(TUTORIAL_CONFIG.steps.filter(s=>s.image).map(s=>s.id))'),'["intro-welcome","intro-movement","intro-goal","goal-fixed","goal-finish"]');
+ assert.equal(b.run('TUTORIAL_CONFIG.steps.length'),7);
+ assert.equal(b.run('JSON.stringify(TUTORIAL_CONFIG.steps.filter(s=>s.image).map(s=>s.id))'),'["intro-welcome","intro-movement","intro-goal","move-cancel","move-undo","goal-fixed","goal-finish"]');
  const bodyKeys=['tutorial.intro.welcome','tutorial.intro.movement','tutorial.intro.goal','tutorial.goal.fixed','tutorial.goal.finish'];
  const catalog=language==='ja'?'GAME_TEXT_JA':'GAME_TEXT_EN',expected=localizedPages[language];
  for(const [i,key] of bodyKeys.entries()){assert.equal(b.run('Object.hasOwn('+catalog+','+JSON.stringify(key)+')'),true);assert.equal(b.run(catalog+'['+JSON.stringify(key)+']'),expected[i][1]);}
@@ -131,15 +131,15 @@ for(const language of ['ja','en']){
  }
  assert.equal(b.run('tutorialInstructionsOpen()'),false);assert.equal(snapshot(b),resources);
 }
-// Full native gesture progression has no mid-course explanation: all ordinary
-// hand placements remain playable until the two valid-goal pages.
+// Full live gesture progression dismisses the two new move-help pages in play(),
+// then continues to the two valid-goal pages. Dedicated move-help tests inspect them.
 {
  const b=boot(),resources=snapshot(b);start(b);intros(b);
  const count=b.run('route.length'),budget=b.run('stamina');
  for(let i=1;i<count;i++){
   play(b,i);assert.equal(b.run('moveCount'),i);assert.equal(b.run('stamina'),budget-i);
   assert(b.run('grips.every((h,k)=>h&&limbReachable(body,h,k))'));
-  if(i<count-1)assert.equal(b.run('tutorialInstructionsOpen()'),false,'ordinary course movement has no middle page');
+  if(i<count-1)assert.equal(b.run('tutorialInstructionsOpen()'),false,'no undismissed page remains after the move-help pair');
  }
  assert.equal(b.run('bothHandsOnGoal()'),true);assert.equal(b.run('grips.every(h=>h!==null)'),true);page(b,4);assert.equal(b.run('tutorialPending()'),true);assert.equal(b.run('state'),'playing');assert.equal(b.run('stageStartContext'),null);assert.equal(snapshot(b),resources);
  const goalTime=b.run('runTimeMs()');b.advance(60000);assert.equal(b.run('runTimeMs()'),goalTime);
@@ -218,7 +218,7 @@ assert(/prefers-reduced-motion:reduce[^}]*tutorial-page-closing \.card[^}]*trans
  const again=boot(b.data);start(again);page(again,1);tap(again);page(again,2);again.node('tutorialDialog').events.close(event());page(again,2);assert.equal(again.run('isTutorialRun()'),true,'queued old close must not interrupt reopened/current dialog');again.node('tutorialDialog').close();again.node('tutorialDialog').events.close(event());assert.equal(again.run('isTutorialRun()'),false);assert.equal(again.run('tutorialPending()'),true);assert.equal(again.run('state'),'choosing');start(again);page(again,1);
  const old=boot(new Map([['ascent.player-uuid.v1','0']]));assert.equal(old.run('tutorialPending()'),false);old.run('titleReady=true;');old.node('titleScreen').onclick();assert.equal(old.run('isTutorialRun()'),false);assert.equal(old.node('tutorialDialog').open,false);
 }
-console.log('PASS five exact JA/EN tutorial pages and language metadata, scroll-complete boundary, close/reopen visual queues with uninterrupted input/time pause, transition interruption/repeat protection, committed explicit-ID HAND once across Undo, valid goal before completion, native clear/exhaustion, pointer advance/native cancel, interruption/reload/existing skip');
+console.log('PASS intro/goal JA/EN tutorial pages plus move-help continuation and language metadata, scroll-complete boundary, close/reopen visual queues with uninterrupted input/time pause, transition interruption/repeat protection, committed explicit-ID HAND once across Undo, valid goal before completion, native clear/exhaustion, pointer advance/native cancel, interruption/reload/existing skip');
 
 }
 if(require.main===module)runModalTests();

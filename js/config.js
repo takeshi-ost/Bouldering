@@ -4,7 +4,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.11';
+const RELEASE_VERSION = '0.5.12';
 // Temporarily disabled for the formal release. Keep historical records and queues.
 const COURSE_RANKINGS_ENABLED = false;
 const GAMEPLAY_TIP_KEYS = [
@@ -39,7 +39,6 @@ const POSE_CONFIG = {
     jointWeights: { inward: 4, spread: 1, overlap: 4, lowHand: .75, kneeBelowFoot: 4, continuity: .03 }
 };
 const HIGH_FOOT_REACH_RATIO = Math.sin(POSE_CONFIG.highFootMinKneeAngle * Math.PI / 360);
-const limbArrows = ["↖", "↗", "↙", "↘"];
 // 初期配置の生成。実際の想定ムーブ数は現行ルールで探索して決定します。
 const STAGE_CONFIG = {
     introGuideSteps: 5,

@@ -1,10 +1,12 @@
 'use strict';
 // Resolve authored copy when displayed, so pending/queued pages follow the
 // current language rather than the language selected during script loading.
-const TUTORIAL_CONFIG={version:'10',steps:[
+const TUTORIAL_CONFIG={version:'11',steps:[
     {id:'intro-welcome',when:{event:'start'},titleKey:'tutorial.title.play',textKey:'tutorial.intro.welcome',image:'assets/tutorial-swipe-78-v1.png'},
     {id:'intro-movement',when:{event:'start'},titleKey:'tutorial.title.play',textKey:'tutorial.intro.movement',image:'assets/tutorial-feet-limit-78-v2.png'},
     {id:'intro-goal',when:{event:'start'},titleKey:'tutorial.title.play',textKey:'tutorial.intro.goal',image:'assets/tutorial-goal-hands-78-v2.png'},
+    {id:'move-cancel',when:{event:'move',count:2},titleKey:'tutorial.title.play',textKey:'tutorial.move.cancel',image:'assets/tutorial-two-finger-cancel-78-v1.png'},
+    {id:'move-undo',when:{event:'move',count:2},titleKey:'tutorial.title.play',textKey:'tutorial.move.undo',image:'assets/help-body-tap-78-v1.png'},
     {id:'goal-fixed',when:{event:'goal'},titleKey:'tutorial.title.complete',textKey:'tutorial.goal.fixed',image:'assets/tutorial-goal-feet-78-v2.png'},
     {id:'goal-finish',when:{event:'goal'},titleKey:'tutorial.title.complete',textKey:'tutorial.goal.finish',image:'assets/settings-gear.svg'}
 ]};
@@ -95,7 +97,9 @@ function finishTutorialRun(won) {
     hideTutorialExplanation();tutorialRun=null;
     undoSnapshot=moveSnapshot=null;drag=null;cameraIntro=null;level=1;
     hideResultModal();
-    showLevelMap({target:1,onReady:()=>openStageStart(1)});
+    showLevelMap({target:1,onReady:()=>{
+        if(openStageStart(1) && stageStartContext)stageStartContext.ignoreBackdropUntil=performance.now()+400;
+    }});
     return true;
 }
 // Steps are data: {id,when:{event:'start'|'move'|'hold'|'goal',count?,hold?},

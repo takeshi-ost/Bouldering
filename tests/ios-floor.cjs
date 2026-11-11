@@ -11,7 +11,7 @@ class Image {
 }
 const source=nativeSource('renderer.js',fs.readFileSync('js/renderer.js','utf8'));
 vm.runInNewContext(source.slice(0,source.indexOf('function isFloorStartHold'))+'\ndrawGymFloor();',{
- Image,W:400,H:700,HEIGHT:1400,HOLD_CONFIG:{bottomMargin:80},ctx:{drawImage:(...a)=>calls.push(a),fillRect(){}}
+ requestStageArtworkRender(){},Image,W:400,H:700,HEIGHT:1400,HOLD_CONFIG:{bottomMargin:80},ctx:{drawImage:(...a)=>calls.push(a),fillRect(){}}
 });
 assert.equal(calls.length,2);
 assert(calls[0][0].path.endsWith('gym-floor.webp'));

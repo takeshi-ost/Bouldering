@@ -264,8 +264,7 @@ function renderLevelMap() {
     ui.openDaily.disabled=!!mapTransition;
     refreshDailyEntry();
     ui.debugStage.disabled = ui.debugPlay.disabled = !!mapTransition;
-    ui.debugControls.hidden = !debugMode;
-    renderDebugCourseChoices();
+    ui.debugControls.hidden = !DEBUG_FEATURES_ALLOWED || !debugMode;
 }
 function showLevelMap({target=null,advanceFrom=null,onReady=null}={}) {
     if(typeof interruptTutorialRun==='function')interruptTutorialRun();

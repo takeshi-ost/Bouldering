@@ -87,7 +87,6 @@ function withPreparedCourse(lease,n,profile,operation) {
 function restartPreparedCourse(lease,n,bonus=0,profile=null) {
     return withPreparedCourse(lease,n,profile,()=>restartInput(n,bonus));
 }
-function cancelCoursePreparations() {for(const job of [...coursePreparationJobs])job.cancel();}
 function prepareCourseAsync(n,profile=null) {
     let request,signature;
     try {request=coursePreparationIdentity(n,profile);signature=refreshAdoptedCourseCacheDependencies();}

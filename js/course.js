@@ -1,7 +1,6 @@
 "use strict";
 // A recipe is fixed before the final search. Search/preview never relocates pickups.
 let generatedCourse=null;
-const COURSE_INTENTS=['basic','choice','consumption','recovery','mixed'];
 function bitCount(mask) {
     let count=0;for(;mask;mask&=mask-1)count++;return count;
 }
@@ -25,9 +24,6 @@ function routeResources(path,{pickups=createHearts(level,path,difficulty),budget
     return {valid:valid && required<=allowance,moves,cost:moves+(costs.at(-1)||0),
         penalties:costs.at(-1)||0,pickupMask:mask,pickups:bitCount(mask),required,
         budget:allowance,remaining:allowance-net};
-}
-function chooseCourseIntent() {
-    return courseTypeRule(courseTypeId).intent;
 }
 // A pickup may occur while dragging even if the player cancels the release.
 // Check a reachable drag segment, using the same support/snapping rules as play.
@@ -54,30 +50,9 @@ function findCourseHeartMove(heart,path) {
         return null;
     } finally {committed=saved.committed;startGrips=saved.startGrips;}
 }
-function recipeHearts(path,intent,salt=0) {
-    if(!difficultyRule(difficulty).hearts || intent==='basic' || intent==='consumption')return [];
-    if(intent==='choice')return makeRouteHearts(level,path,difficulty).map(heart=>{
-        const index=path.findIndex(p=>p.x===heart.x && p.y===heart.y);
-        const p=path[Math.max(1,index)],from=path[Math.max(0,index-1)];
-        const length=distance(from,p)||1,dx=-(p.y-from.y)/length,dy=(p.x-from.x)/length;
-        for(const offset of [48,-48,64,-64]) {
-            const candidate={...heart,x:clamp(p.x+dx*offset,30,W-30),y:clamp(p.y+dy*offset,80,HEIGHT-40)};
-            if(!path.slice(1).some((q,i)=>typeof fingerAimEnabled==='function'&&fingerAimEnabled()?fingerRouteTouchesHeart(path[i],q,candidate):torsoTouchesHeart(path[i],q,candidate)) && findCourseHeartMove(candidate,path))return candidate;
-        }
-        return heart;
-    });
-    const count=intent==='mixed'?2:1;
-    const random=mulberry32(courseSeed() ^ 0x7C1A83D5 ^ salt);
-    const moves=path.length-1;
-    return Array.from({length:count},(_,id)=>{
-        const fraction=(id+1)/(count+2);
-        const step=Math.max(1,Math.min(moves-1,Math.floor(moves*fraction)+(random()<.5?0:1)));
-        return {id,x:path[step].x,y:path[step].y,collected:false};
-    });
-}
-function bindCourseRecipe(intent,path,salt=0) {
+function bindCourseRecipe(intent,path) {
     generatedCourse={level,seed:courseSeed(),difficulty,typeId:courseTypeId,mode:courseMode,holds,intent,
-        hearts:recipeHearts(path,intent,salt),hazardPlacement:{routeIds:[],optionalIds:[]}};
+        hearts:[],hazardPlacement:{routeIds:[],optionalIds:[]}};
 }
 function snapshotCourse(path) {
     return {holds:[...holds],types:holds.map(h=>h.type),path,
@@ -88,32 +63,6 @@ function restoreCourse(snapshot) {
     holds.forEach((h,i)=>h.type=snapshot.types[i]);
     route=snapshot.path;
     generatedCourse={...snapshot.recipe,holds,hearts:snapshot.recipe.hearts.map(h=>({...h}))};
-}
-function applyRouteHazards(path,intent,salt) {
-    const rules=difficultyRule(difficulty);
-    if(rules.hazards==='none')return false;
-    const random=mulberry32(courseSeed() ^ 0x34F62B91 ^ Math.imul(salt+1,0x9E3779B9));
-    const protectedIds=new Set(initialGrips.map(h=>h.id));
-    const used=new Set(path.flatMap(p=>p.grips||[]));
-    const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !protectedIds.has(h.id));
-    const ordered=candidates.filter(h=>used.has(h.id)).map(h=>({h,key:random()}))
-        .sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
-    const lower=intent==='consumption'?3:intent==='mixed'?5:4;
-    const upper=intent==='consumption'?5:intent==='mixed'?7:5;
-    for(const {h} of ordered) {
-        h.type='hazard';
-        const cost=routeHazardCosts(path).at(-1)||0;
-        if(cost>upper){h.type='normal';continue;}
-        if(cost>=lower)break;
-    }
-    const paid=routeHazardCosts(path).at(-1)||0;
-    if(paid<lower || paid>upper)return false;
-    const routeIds=holds.filter(h=>h.type==='hazard').map(h=>h.id);
-    // Difficulty 2 keeps its existing route-consumption recipes.
-    const optionalIds=[];
-    generatedCourse.hazardPlacement={routeIds,optionalIds};
-    densityStats.hazardCount=routeIds.length+optionalIds.length;
-    return true;
 }
 function classifyCourse(path) {
     const resources=routeResources(path),budget=routeStamina(path);
@@ -146,32 +95,23 @@ function classifyCourse(path) {
         // Absence in a bounded search is not a mathematical necessity proof.
         necessityScope:'bounded-search',heartResourceRequired:!routeResources(path,{pickups:[],budget}).valid};
 }
-function finalizeCourseGeneration(intent=chooseCourseIntent()) {
-    if(difficultyRule(difficulty).hazards==='dense')return finalizeConvertedCourse(intent);
-    const began=performance.now(),base=route,baseHolds=[...holds],baseTypes=holds.map(h=>h.type);
+function finalizeCourseGeneration(intent='basic') {
+    // Feature placement is owned by the formal post-process. TYPE-selected
+    // consumption/recovery/dense recipes are retired, not silently reclassified.
+    if(intent!=='basic')throw new RangeError('Legacy TYPE recipes are retired');
+    const began=performance.now(),base=route;
     densityStats.initialRouteOptimization=densityStats.routeOptimization;
     const failures=[];let searchFallback=false,safeFeatureFallback=false;
     // Retain a genuinely cleared safe recipe before attempting any varied recipe.
-    bindCourseRecipe(intent==='basic'?'basic':'choice',base);
+    bindCourseRecipe(intent,base);
     if(!validateRouteBudget(base))throw new Error('Initial route cannot clear its base budget');
     const plain=snapshotCourse(base);
     try {
-        if(difficultyRule(difficulty).hazards==='dense' || ['basic','choice'].includes(intent))addHazardHolds();
+        addHazardHolds();
         if(!validateRouteBudget(base))throw new Error('Initial recipe cannot clear its base budget');
     } catch(error) {failures.push(String(error.message||error));safeFeatureFallback=true;restoreCourse(plain);}
     const safe=snapshotCourse(base);
     let selected=safe,attempts=0;
-    if(['consumption','recovery','mixed'].includes(intent)) {
-        for(let attempt=0;attempt<COURSE_GENERATION_CONFIG.recipeAttempts;attempt++) {
-            attempts++;
-            holds=[...baseHolds];holds.forEach((h,i)=>h.type=baseTypes[i]);route=base;
-            try {
-                bindCourseRecipe(intent,base,attempt);
-                if(!applyRouteHazards(base,intent,attempt) || !validateRouteBudget(base))continue;
-                selected=snapshotCourse(base);break;
-            } catch(error) {failures.push(String(error.message||error));}
-        }
-    }
     restoreCourse(selected);
     const fallback=route;
     if(holds.some(h=>h.type==='hazard') || generatedCourse.hearts.length) {
@@ -189,53 +129,8 @@ function finalizeCourseGeneration(intent=chooseCourseIntent()) {
     const classification=classifyCourse(route);
     classification.requested=intent;
     densityStats.courseGeneration={...classification,recipeAttempts:attempts,recipeLimit:COURSE_GENERATION_CONFIG.recipeAttempts,
-        usedSafeFallback:safeFeatureFallback || (selected===safe && !['basic','choice'].includes(intent)),
+        usedSafeFallback:safeFeatureFallback,
         searchFallback,failures,elapsedMs:performance.now()-began};
-    densityStats.routeBudgetValidated=true;
-    densityStats.hazardCount=holds.filter(h=>h.type==='hazard').length;
-    updateStageDensity();
-}
-
-// Difficulty 3: freeze ordinary geometry and pickups first, then sample types.
-// Never reject a sample just because the original witness now exceeds its budget:
-// search the converted layout first, then validate the path actually selected.
-function finalizeConvertedCourse(intent) {
-    const began=performance.now(),base=route;
-    densityStats.initialRouteOptimization=densityStats.routeOptimization;
-    bindCourseRecipe(intent,base);
-    if(!validateRouteBudget(base))throw new Error('Initial route cannot clear its base budget');
-    const plain=snapshotCourse(base),failures=[];
-    let accepted=false,attempts=0,searchFallback=false;
-    const tryLayout=()=>{
-        const solved=solveCostRoute(base,base.length-1+COURSE_GENERATION_CONFIG.maxDetourMoves);
-        if(!solved)return false;
-        route=optimizeRoute(solved);
-        return validateRouteBudget(route);
-    };
-    for(let attempt=0;attempt<COURSE_GENERATION_CONFIG.recipeAttempts;attempt++) {
-        attempts++;
-        restoreCourse(plain);
-        try {
-            if(convertDenseHazards(base,attempt) && tryLayout()){accepted=true;break;}
-        } catch(error) {failures.push(String(error.message||error));searchFallback=true;}
-    }
-    const usedSafeFallback=!accepted;
-    if(!accepted) {
-        restoreCourse(plain);
-        // Same fixed hearts/geometry and the same percentage bounds. Preserve a
-        // playable witness only after the ordinary random samples were searched.
-        if(!convertDenseHazards(base,attempts,true))throw new Error('Not enough safe holds for fallback hazard ratio');
-        const safe=snapshotCourse(base);
-        try {accepted=tryLayout();}
-        catch(error){failures.push(String(error.message||error));searchFallback=true;}
-        if(!accepted)restoreCourse(safe);
-    }
-    if(!validateRouteBudget(route))throw new Error('Final converted course cannot clear its actual base budget');
-    generatedCourse.requestedIntent=intent;
-    const classification=classifyCourse(route);
-    classification.requested=intent;
-    densityStats.courseGeneration={...classification,recipeAttempts:attempts,recipeLimit:COURSE_GENERATION_CONFIG.recipeAttempts,
-        usedSafeFallback,searchFallback,failures,elapsedMs:performance.now()-began};
     densityStats.routeBudgetValidated=true;
     densityStats.hazardCount=holds.filter(h=>h.type==='hazard').length;
     updateStageDensity();

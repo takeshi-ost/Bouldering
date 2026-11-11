@@ -30,7 +30,8 @@ async function advance(b){
 async function climb(b){
  b.run('titleReady=true;');b.node('titleScreen').onclick();b.run('advanceCameraIntro(0);advanceCameraIntro(100000);');await flush();
  for(let n=1;n<=3;n++){page(b,n);await advance(b);}
- b.run('clearOrder=[];');
+ // Mid-course pages are covered separately; isolate goal/audio ordering.
+ b.run('tutorialRun.seen.add("move-cancel");tutorialRun.seen.add("move-undo");clearOrder=[];');
  const length=b.run('route.length');for(let i=1;i<length;i++)play(b,i);
  assert(b.run('bothHandsOnGoal() && grips.every((h,i)=>h && limbReachable(body,h,i))'));
 }

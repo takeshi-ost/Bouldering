@@ -48,10 +48,10 @@ for(const mode of ['existing']) {
   const budget=stamina;assert.equal(budget,expected+3);
   if(n===6) {
    const preview=stagePreview(n,mode);
-   assert.equal(preview.expectedMoves,expected);assert.equal(preview.stamina,budget);
+   assert.equal(preview.expectedMoves,expected);assert.equal(preview.stamina,defaultBudget);
    assert.equal(JSON.stringify(route),serialized,'Preview contaminated active route');
    reset(n);assert.equal(JSON.stringify(route),serialized,'Retry changed route');
-   assert.equal(stamina,budget);
+   assert.equal(stamina,defaultBudget);if(reduction)reset(n,reduction);assert.equal(stamina,budget);
   }
   cameraIntro=null;hideStageHelp();hideResultModal();settingsOpen=false;state='playing';
   const expectedPath=[...route];

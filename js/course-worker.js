@@ -1,5 +1,5 @@
 'use strict';
-globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"924c86ccb024efc9d87bbbbe22b2c88dfb615dcd685c73bc73aee23f48ebd475","sources":[{"path":"js/text-ja.js","sha256":"8eb16aebcdf6821d81399171c4e2514cf78cac4b3ac3ed848bd43367d72a3513"},{"path":"js/text-en.js","sha256":"7c5616d641af41f74fd16d9f1e52be14d41f0fed8503bbcaeff93899c4c13b40"},{"path":"js/text-dev-ja.js","sha256":"778e1317540d5fd3c6440ecd306a1ffd02328bbe02df5fc3c0c5cc6f99c6602f"},{"path":"js/config.js","sha256":"a15a78eebab337b4384a4a827bb4985aa66f9ff4199e53ffe2a8f335e04bf4df"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"2f355fb52497a23ea8ab8cacbf913b82688e70e64a937763e523114ebf0e067f"},{"path":"js/six-pair-selection.js","sha256":"3001c2472ba388076e3465f499bbd6594eb984b74f7488efa86f89a66350da78"},{"path":"js/game.js","sha256":"6c98f301897ba7249da2e9832be5270539452be5622dd887da801b033f053ef1"},{"path":"js/route.js","sha256":"196fc0f599c3ec9c3ef81e850e1169a55657fcd555483d6b0750b7e823526f46"},{"path":"js/course.js","sha256":"be5a5b1d78a1b5c8ad4c95db8fc3eb5eb991d7dc9fe4153ebe6092ee26b80c98"},{"path":"js/hazards.js","sha256":"26ac55233974a498ae6962cb437a6d6fd777248614bb27e7ae65f94120275157"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"3612d7bedf39c9ea9a6cea6c14d5425e314796b36fc65524ebfa9e8edcc367d2"},{"path":"js/course-adoption.js","sha256":"1db490d2d44ace6f4fcacdd886c36cf29ce8d852601c74b99e06d99642b0773d"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"9b32d03540c4b44950f1ea288e5fb759b3dec719df82ac5a910ec7f3edac8861"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"c830ae65e1e699c280ccdac7b6bcc85ab3f1da3b9adc69e48148359fe6f88aee"}]});
+globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"1c5df31049d7407cd30c009e8130a5490192d89285ac28c0bdf7a5687c1c0fa7","sources":[{"path":"js/text-ja.js","sha256":"b7b388347894b418f375fb293e4722f3fcfe332a0a5d365fae7c86bca70ff707"},{"path":"js/text-en.js","sha256":"776d93c49c11af48d6a5567d83309c3cc83dcb2ea761962b57792197d5ca528c"},{"path":"js/text-dev-ja.js","sha256":"778e1317540d5fd3c6440ecd306a1ffd02328bbe02df5fc3c0c5cc6f99c6602f"},{"path":"js/config.js","sha256":"84e3f708e120c4145f2ccf600e9d08b774b8c6a69580982a6a4d38896699c7f8"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"2f355fb52497a23ea8ab8cacbf913b82688e70e64a937763e523114ebf0e067f"},{"path":"js/six-pair-selection.js","sha256":"3001c2472ba388076e3465f499bbd6594eb984b74f7488efa86f89a66350da78"},{"path":"js/game.js","sha256":"412a2370411e7a55d2727cf04d0a4307cf936e14ebd846e686b8edec1aa06351"},{"path":"js/route.js","sha256":"196fc0f599c3ec9c3ef81e850e1169a55657fcd555483d6b0750b7e823526f46"},{"path":"js/course.js","sha256":"2db489d41b918fa4c39534bf6998121ed30a3a392941da439389c7a3db5f99ae"},{"path":"js/hazards.js","sha256":"26ac55233974a498ae6962cb437a6d6fd777248614bb27e7ae65f94120275157"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"3612d7bedf39c9ea9a6cea6c14d5425e314796b36fc65524ebfa9e8edcc367d2"},{"path":"js/course-adoption.js","sha256":"4116239692a490e82a3870ebda26e86c773449449bad260cfed25f9d764ab9bb"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"dc559f6c5352939b7288e97e4b26ceb9936a28084562e5af585ee7e6ec1ccc6a"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"c830ae65e1e699c280ccdac7b6bcc85ab3f1da3b9adc69e48148359fe6f88aee"}]});
 globalThis.ASCENT_COURSE_WORKER=true;
 let debugAttempt=false;
 function isTutorialRun(){return tutorialRun!==null;}
@@ -37,17 +37,12 @@ const GAME_TEXT_JA = Object.freeze({
     "tutorial.intro.movement": "手足2つが自由に動きます。足は手より高い場所には置けません",
     "tutorial.intro.goal": "スタミナがなくなる前に、ゴールを両手でつかむと登頂成功です",
     "tutorial.wide": "大きなホールドには、両手または両足を置くことができます。",
+    "tutorial.move.cancel": "2本タップで移動をキャンセルできます",
+    "tutorial.move.undo": "ボディを短くタップすると1ムーブ戻せます",
     "tutorial.goal.fixed": "ゴールするには両足もホールドに固定されていないといけません",
     "tutorial.goal.finish": "くわしい操作やルールの説明は歯車アイコンで開くメニューから見ることができます",
 
-    "debug.typeMatched": "要求方針と分類一致（有限探索内）",
-    "debug.typeMismatch": "要求方針と分類が不一致／未確定",
 
-    "debug.trialTitle": "試作 TYPE {value0}",
-    "debug.courseType": "タイプ",
-    "debug.courseLength": "コース長",
-    "debug.generate": "乱数で試作",
-    "debug.regenerate": "別seedで再生成",
     "debug.exit": "試作を終了",
     "debug.trialError": "試作生成失敗：{value0}",
 
@@ -347,17 +342,12 @@ const GAME_TEXT_EN = Object.freeze({
     "tutorial.intro.movement": "Two of your limbs move freely. Your feet cannot be placed higher than your hands",
     "tutorial.intro.goal": "Grab the goal with both hands before your stamina runs out to reach the summit",
     "tutorial.wide": "A large hold can support both hands or both feet.",
+    "tutorial.move.cancel": "Tap with two fingers to cancel your current move",
+    "tutorial.move.undo": "Briefly tap the body to undo one move",
     "tutorial.goal.fixed": "To finish, both feet must also be fixed on holds",
     "tutorial.goal.finish": "Detailed controls and rules are available in the menu opened with the gear icon",
 
-    "debug.typeMatched": "Requested intent matches the classification (within bounded search)",
-    "debug.typeMismatch": "Requested intent and classification do not match / classification undetermined",
 
-    "debug.trialTitle": "TRIAL TYPE {value0}",
-    "debug.courseType": "Type",
-    "debug.courseLength": "Length",
-    "debug.generate": "Generate random trial",
-    "debug.regenerate": "Regenerate with a different seed",
     "debug.exit": "End trial",
     "debug.trialError": "Trial generation failed: {value0}",
 
@@ -714,7 +704,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.11';
+const RELEASE_VERSION = '0.5.12';
 // Temporarily disabled for the formal release. Keep historical records and queues.
 const COURSE_RANKINGS_ENABLED = false;
 const GAMEPLAY_TIP_KEYS = [
@@ -749,7 +739,6 @@ const POSE_CONFIG = {
     jointWeights: { inward: 4, spread: 1, overlap: 4, lowHand: .75, kneeBelowFoot: 4, continuity: .03 }
 };
 const HIGH_FOOT_REACH_RATIO = Math.sin(POSE_CONFIG.highFootMinKneeAngle * Math.PI / 360);
-const limbArrows = ["↖", "↗", "↙", "↘"];
 // 初期配置の生成。実際の想定ムーブ数は現行ルールで探索して決定します。
 const STAGE_CONFIG = {
     introGuideSteps: 5,
@@ -2152,7 +2141,7 @@ const ctx = COURSE_WORKER_MODE ? null : canvas.getContext("2d");
 const ui = COURSE_WORKER_MODE ? null : Object.fromEntries([
     "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "debugSwipeValue", "debugSwipeLess", "debugSwipeMore", "debugSwipeReset", "debugSwipeMode", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapSettingsDebug", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
-    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugCourseType", "debugCourseLength", "debugScoreLoading", "debugScoreCancel", "debugScoreStart", "debugScoreNext", "debugGenerate", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
+    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugScoreLoading", "debugScoreCancel", "debugScoreStart", "debugScoreNext", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "paletteSwatches", "editorRandom", "editorConfirm", "editorCancel",
     "mapSettingsLanguage", "languageChoice", "titleWallpaper", "titleTransfer", "titleScreen", "releaseVersion", "playerUuid", "titleTap", "showHelp", "helpDialog", "helpScroll", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
@@ -2291,8 +2280,15 @@ let courseTypeId = 0;
 let debugCourseTrial = null;
 let debugHelpBefore = null;
 function activeDebugScoreTrial(){return activeDebugCourse()?.kind==='score';}
-function debugCourseTitle(){return activeDebugScoreTrial()?gameText('debug.score.current',{value0:debugCourseTrial.score}):gameText('debug.trialTitle',{value0:courseTypeId});}
-function activeDebugCourse(){return DEBUG_FEATURES_ALLOWED && debugMode && typeof debugAttempt!=='undefined' && debugAttempt && debugCourseTrial;}
+function debugCourseTitle(){return activeDebugScoreTrial()?gameText('debug.score.current',{value0:debugCourseTrial.score}):'';}
+function activeDebugCourse(){
+    const trial=debugCourseTrial;
+    // Only current score trials may override generation identity. Old TYPE-only
+    // runtime objects (or malformed score objects) must never revive the retired path.
+    return DEBUG_FEATURES_ALLOWED && debugMode && typeof debugAttempt!=='undefined' && debugAttempt &&
+        trial?.kind==='score' && Number.isInteger(trial.score) && trial.score>=1 && trial.score<=100 &&
+        trial.seed===trial.score+10 && trial.typeId===generationTypeForScore(trial.score) ? trial : null;
+}
 let holds = [];
 let route = [];
 let hearts = [];
@@ -2347,7 +2343,7 @@ function showResultModal() {
 
 
 function generate(n) {
-    ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n,false,courseSeed(n),dailyRun?.baseSeed??courseSeed(n),activeDebugCourse()?debugCourseDistribution():dailyRun?dailyDistribution():stageDistribution(n)));
+    ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n,false,courseSeed(n),dailyRun?.baseSeed??courseSeed(n),dailyRun?dailyDistribution():stageDistribution(n)));
 }
 
 // Anatomical reach is measured from the shoulder/hip, not the torso center.
@@ -2795,7 +2791,7 @@ function restoreMoveStamina(saved) {
 
 // A date keeps its difficulty even if a layout needs a deterministic retry.
 function prepareCurrentStage() {
-    // Every generation entry, including retained debug types and authored tutorial,
+    // Every generation entry, including score trials and authored tutorial,
     // uses baseline controls. Live six-pair planning must never run inside search.
     return typeof SixPairSelection==='undefined' ? prepareCurrentStageBaseline()
         : SixPairSelection.withBaseline(prepareCurrentStageBaseline);
@@ -2803,22 +2799,7 @@ function prepareCurrentStage() {
 function prepareCurrentStageBaseline() {
     courseMode='existing'; // Old experimental modes cannot enter generation.
     if(typeof isTutorialRun==='function' && isTutorialRun())return prepareTutorialCourse();
-    if(!activeDebugCourse() || activeDebugScoreTrial())return prepareAdoptedCourse();
-    activeCourseGeneration=null;
-    generatedCourse=null;
-    if(dailyRun)dailyRun.seed=dailyRun.baseSeed;
-    const intent=chooseCourseIntent();
-    if(!dailyRun) {
-        prepareStage();
-        route=optimizeRoute(route);updateStageDensity();
-        finalizeCourseGeneration(intent);return;
-    }
-    let failure;
-    for(let attempt=0;attempt<16;attempt++) {
-        dailyRun.seed=(dailyRun.baseSeed+Math.imul(attempt,0x9E3779B9))>>>0;
-        try {prepareStage();route=optimizeRoute(route);updateStageDensity();finalizeCourseGeneration(intent);return;}catch(error){failure=error;}
-    }
-    throw failure;
+    return prepareAdoptedCourse();
 }
 const stagePreviewCache=new Map();
 function stagePreview(n,mode=courseMode,profile=null) {
@@ -2852,6 +2833,11 @@ function reset(n,staminaBonus=0) {
     const tutorial=typeof isTutorialRun==='function' && isTutorialRun();
     if(n===0 && !tutorial)throw new RangeError('Stage 0 is tutorial-only');
     if(tutorial && (n!==0 || staminaBonus!==0))throw new RangeError('Tutorial does not accept normal stages or consumable bonuses');
+    // Trials are runtime-only. Reject stale retired/malformed state without
+    // deleting any saved progress, Daily records, help flags or account data.
+    if(debugCourseTrial && !activeDebugCourse()) {
+        endDebugCourseTrial();debugAttempt=false;
+    }
     courseMode='existing';
     lifeAttemptId++;
     adPlayRecorded=false;
@@ -3687,7 +3673,6 @@ function validateRouteBudget(path) {
 "use strict";
 // A recipe is fixed before the final search. Search/preview never relocates pickups.
 let generatedCourse=null;
-const COURSE_INTENTS=['basic','choice','consumption','recovery','mixed'];
 function bitCount(mask) {
     let count=0;for(;mask;mask&=mask-1)count++;return count;
 }
@@ -3711,9 +3696,6 @@ function routeResources(path,{pickups=createHearts(level,path,difficulty),budget
     return {valid:valid && required<=allowance,moves,cost:moves+(costs.at(-1)||0),
         penalties:costs.at(-1)||0,pickupMask:mask,pickups:bitCount(mask),required,
         budget:allowance,remaining:allowance-net};
-}
-function chooseCourseIntent() {
-    return courseTypeRule(courseTypeId).intent;
 }
 // A pickup may occur while dragging even if the player cancels the release.
 // Check a reachable drag segment, using the same support/snapping rules as play.
@@ -3740,30 +3722,9 @@ function findCourseHeartMove(heart,path) {
         return null;
     } finally {committed=saved.committed;startGrips=saved.startGrips;}
 }
-function recipeHearts(path,intent,salt=0) {
-    if(!difficultyRule(difficulty).hearts || intent==='basic' || intent==='consumption')return [];
-    if(intent==='choice')return makeRouteHearts(level,path,difficulty).map(heart=>{
-        const index=path.findIndex(p=>p.x===heart.x && p.y===heart.y);
-        const p=path[Math.max(1,index)],from=path[Math.max(0,index-1)];
-        const length=distance(from,p)||1,dx=-(p.y-from.y)/length,dy=(p.x-from.x)/length;
-        for(const offset of [48,-48,64,-64]) {
-            const candidate={...heart,x:clamp(p.x+dx*offset,30,W-30),y:clamp(p.y+dy*offset,80,HEIGHT-40)};
-            if(!path.slice(1).some((q,i)=>typeof fingerAimEnabled==='function'&&fingerAimEnabled()?fingerRouteTouchesHeart(path[i],q,candidate):torsoTouchesHeart(path[i],q,candidate)) && findCourseHeartMove(candidate,path))return candidate;
-        }
-        return heart;
-    });
-    const count=intent==='mixed'?2:1;
-    const random=mulberry32(courseSeed() ^ 0x7C1A83D5 ^ salt);
-    const moves=path.length-1;
-    return Array.from({length:count},(_,id)=>{
-        const fraction=(id+1)/(count+2);
-        const step=Math.max(1,Math.min(moves-1,Math.floor(moves*fraction)+(random()<.5?0:1)));
-        return {id,x:path[step].x,y:path[step].y,collected:false};
-    });
-}
-function bindCourseRecipe(intent,path,salt=0) {
+function bindCourseRecipe(intent,path) {
     generatedCourse={level,seed:courseSeed(),difficulty,typeId:courseTypeId,mode:courseMode,holds,intent,
-        hearts:recipeHearts(path,intent,salt),hazardPlacement:{routeIds:[],optionalIds:[]}};
+        hearts:[],hazardPlacement:{routeIds:[],optionalIds:[]}};
 }
 function snapshotCourse(path) {
     return {holds:[...holds],types:holds.map(h=>h.type),path,
@@ -3774,32 +3735,6 @@ function restoreCourse(snapshot) {
     holds.forEach((h,i)=>h.type=snapshot.types[i]);
     route=snapshot.path;
     generatedCourse={...snapshot.recipe,holds,hearts:snapshot.recipe.hearts.map(h=>({...h}))};
-}
-function applyRouteHazards(path,intent,salt) {
-    const rules=difficultyRule(difficulty);
-    if(rules.hazards==='none')return false;
-    const random=mulberry32(courseSeed() ^ 0x34F62B91 ^ Math.imul(salt+1,0x9E3779B9));
-    const protectedIds=new Set(initialGrips.map(h=>h.id));
-    const used=new Set(path.flatMap(p=>p.grips||[]));
-    const candidates=holds.filter(h=>h.type==='normal' && !h.wide && !protectedIds.has(h.id));
-    const ordered=candidates.filter(h=>used.has(h.id)).map(h=>({h,key:random()}))
-        .sort((a,b)=>a.key-b.key || a.h.id-b.h.id);
-    const lower=intent==='consumption'?3:intent==='mixed'?5:4;
-    const upper=intent==='consumption'?5:intent==='mixed'?7:5;
-    for(const {h} of ordered) {
-        h.type='hazard';
-        const cost=routeHazardCosts(path).at(-1)||0;
-        if(cost>upper){h.type='normal';continue;}
-        if(cost>=lower)break;
-    }
-    const paid=routeHazardCosts(path).at(-1)||0;
-    if(paid<lower || paid>upper)return false;
-    const routeIds=holds.filter(h=>h.type==='hazard').map(h=>h.id);
-    // Difficulty 2 keeps its existing route-consumption recipes.
-    const optionalIds=[];
-    generatedCourse.hazardPlacement={routeIds,optionalIds};
-    densityStats.hazardCount=routeIds.length+optionalIds.length;
-    return true;
 }
 function classifyCourse(path) {
     const resources=routeResources(path),budget=routeStamina(path);
@@ -3832,32 +3767,23 @@ function classifyCourse(path) {
         // Absence in a bounded search is not a mathematical necessity proof.
         necessityScope:'bounded-search',heartResourceRequired:!routeResources(path,{pickups:[],budget}).valid};
 }
-function finalizeCourseGeneration(intent=chooseCourseIntent()) {
-    if(difficultyRule(difficulty).hazards==='dense')return finalizeConvertedCourse(intent);
-    const began=performance.now(),base=route,baseHolds=[...holds],baseTypes=holds.map(h=>h.type);
+function finalizeCourseGeneration(intent='basic') {
+    // Feature placement is owned by the formal post-process. TYPE-selected
+    // consumption/recovery/dense recipes are retired, not silently reclassified.
+    if(intent!=='basic')throw new RangeError('Legacy TYPE recipes are retired');
+    const began=performance.now(),base=route;
     densityStats.initialRouteOptimization=densityStats.routeOptimization;
     const failures=[];let searchFallback=false,safeFeatureFallback=false;
     // Retain a genuinely cleared safe recipe before attempting any varied recipe.
-    bindCourseRecipe(intent==='basic'?'basic':'choice',base);
+    bindCourseRecipe(intent,base);
     if(!validateRouteBudget(base))throw new Error('Initial route cannot clear its base budget');
     const plain=snapshotCourse(base);
     try {
-        if(difficultyRule(difficulty).hazards==='dense' || ['basic','choice'].includes(intent))addHazardHolds();
+        addHazardHolds();
         if(!validateRouteBudget(base))throw new Error('Initial recipe cannot clear its base budget');
     } catch(error) {failures.push(String(error.message||error));safeFeatureFallback=true;restoreCourse(plain);}
     const safe=snapshotCourse(base);
     let selected=safe,attempts=0;
-    if(['consumption','recovery','mixed'].includes(intent)) {
-        for(let attempt=0;attempt<COURSE_GENERATION_CONFIG.recipeAttempts;attempt++) {
-            attempts++;
-            holds=[...baseHolds];holds.forEach((h,i)=>h.type=baseTypes[i]);route=base;
-            try {
-                bindCourseRecipe(intent,base,attempt);
-                if(!applyRouteHazards(base,intent,attempt) || !validateRouteBudget(base))continue;
-                selected=snapshotCourse(base);break;
-            } catch(error) {failures.push(String(error.message||error));}
-        }
-    }
     restoreCourse(selected);
     const fallback=route;
     if(holds.some(h=>h.type==='hazard') || generatedCourse.hearts.length) {
@@ -3875,53 +3801,8 @@ function finalizeCourseGeneration(intent=chooseCourseIntent()) {
     const classification=classifyCourse(route);
     classification.requested=intent;
     densityStats.courseGeneration={...classification,recipeAttempts:attempts,recipeLimit:COURSE_GENERATION_CONFIG.recipeAttempts,
-        usedSafeFallback:safeFeatureFallback || (selected===safe && !['basic','choice'].includes(intent)),
+        usedSafeFallback:safeFeatureFallback,
         searchFallback,failures,elapsedMs:performance.now()-began};
-    densityStats.routeBudgetValidated=true;
-    densityStats.hazardCount=holds.filter(h=>h.type==='hazard').length;
-    updateStageDensity();
-}
-
-// Difficulty 3: freeze ordinary geometry and pickups first, then sample types.
-// Never reject a sample just because the original witness now exceeds its budget:
-// search the converted layout first, then validate the path actually selected.
-function finalizeConvertedCourse(intent) {
-    const began=performance.now(),base=route;
-    densityStats.initialRouteOptimization=densityStats.routeOptimization;
-    bindCourseRecipe(intent,base);
-    if(!validateRouteBudget(base))throw new Error('Initial route cannot clear its base budget');
-    const plain=snapshotCourse(base),failures=[];
-    let accepted=false,attempts=0,searchFallback=false;
-    const tryLayout=()=>{
-        const solved=solveCostRoute(base,base.length-1+COURSE_GENERATION_CONFIG.maxDetourMoves);
-        if(!solved)return false;
-        route=optimizeRoute(solved);
-        return validateRouteBudget(route);
-    };
-    for(let attempt=0;attempt<COURSE_GENERATION_CONFIG.recipeAttempts;attempt++) {
-        attempts++;
-        restoreCourse(plain);
-        try {
-            if(convertDenseHazards(base,attempt) && tryLayout()){accepted=true;break;}
-        } catch(error) {failures.push(String(error.message||error));searchFallback=true;}
-    }
-    const usedSafeFallback=!accepted;
-    if(!accepted) {
-        restoreCourse(plain);
-        // Same fixed hearts/geometry and the same percentage bounds. Preserve a
-        // playable witness only after the ordinary random samples were searched.
-        if(!convertDenseHazards(base,attempts,true))throw new Error('Not enough safe holds for fallback hazard ratio');
-        const safe=snapshotCourse(base);
-        try {accepted=tryLayout();}
-        catch(error){failures.push(String(error.message||error));searchFallback=true;}
-        if(!accepted)restoreCourse(safe);
-    }
-    if(!validateRouteBudget(route))throw new Error('Final converted course cannot clear its actual base budget');
-    generatedCourse.requestedIntent=intent;
-    const classification=classifyCourse(route);
-    classification.requested=intent;
-    densityStats.courseGeneration={...classification,recipeAttempts:attempts,recipeLimit:COURSE_GENERATION_CONFIG.recipeAttempts,
-        usedSafeFallback,searchFallback,failures,elapsedMs:performance.now()-began};
     densityStats.routeBudgetValidated=true;
     densityStats.hazardCount=holds.filter(h=>h.type==='hazard').length;
     updateStageDensity();
@@ -5179,9 +5060,9 @@ function adoptedCourseCacheInputs() {
         requiresLegacyTraverse,solveRoute,replayRoute,optimizeRoute,prepareStage,
         samePairRoute,pruneUnusedHolds,updateStageDensity,assignWideHolds,hasHazardFallbackCandidates,
         reserveDenseCandidates,solveCostRoute,validateRouteBudget,bitCount,coursePickupMask,
-        routeResources,chooseCourseIntent,findCourseHeartMove,recipeHearts,bindCourseRecipe,
-        snapshotCourse,restoreCourse,applyRouteHazards,classifyCourse,finalizeCourseGeneration,
-        finalizeConvertedCourse,findHazardMove,addHazardHolds,convertDenseHazards,classifyNativeCourseGeometryRejection,
+        routeResources,findCourseHeartMove,bindCourseRecipe,
+        snapshotCourse,restoreCourse,classifyCourse,finalizeCourseGeneration,
+        findHazardMove,addHazardHolds,convertDenseHazards,classifyNativeCourseGeometryRejection,
         labPrepareSpikes,labStraightDirection,labCreateOriginalLayout,labReplayPartial,labPartialSearch,
         labColumnPartialSearch,labColumnNaturalScatter,labColumnSideSearch,labColumnOffsets,labGenerateBranchSkeleton,
         labContrastGuideCenter,labContrastSpreadMetrics,labContrastProtectedSample,labGenerateContrastSkeleton,labCompositeOriginalLayout,
@@ -5509,7 +5390,6 @@ function withPreparedCourse(lease,n,profile,operation) {
 function restartPreparedCourse(lease,n,bonus=0,profile=null) {
     return withPreparedCourse(lease,n,profile,()=>restartInput(n,bonus));
 }
-function cancelCoursePreparations() {for(const job of [...coursePreparationJobs])job.cancel();}
 function prepareCourseAsync(n,profile=null) {
     let request,signature;
     try {request=coursePreparationIdentity(n,profile);signature=refreshAdoptedCourseCacheDependencies();}

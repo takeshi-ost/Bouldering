@@ -10,68 +10,9 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
 `;
 new Function('assert',env+source+`
 function eventAt(p){return {clientX:p.x,clientY:p.y-camera};}
-function play(i){
- camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const origin={x:body.x,y:body.y-camera};
- const event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
- assert(validFingerAction(route[i].action));down(event({dx:0,dy:0}));
- for(const point of route[i].action.points)move(event(point));release();assert.equal(moveCount,i);
-}
-// Final cost-aware route, playable optional branches, real budget and retry.
-const report=[];
-const applyRecipe=applyRouteHazards;
-let consumptionRecipes=0;
-applyRouteHazards=(path,intent,salt)=>{
- const accepted=applyRecipe(path,intent,salt);
- if(accepted && difficulty===2 && intent==='consumption') {
-  const extra=routeHazardCosts(path).at(-1)||0;
-  assert(extra>=3 && extra<=5,'Consumption recipe must target 3–5 extra stamina');
-  consumptionRecipes++;
- }
- return accepted;
-};
-// Historical generator witnesses and optional-branch searches use baseline
-// controls; manual contact fixtures below retain current live behavior.
-SixPairSelection.withBaseline(()=>{
-for(const mode of ['existing'])for(const n of [19,20,21,22,23]) {
- // Explicit recipe fixtures: selector probabilities are covered by course-types.cjs.
- debugMode=true;debugAttempt=true;debugCourseTrial={typeId:n<20?1:n===20?2:3,lengthCategory:stageLengthRule(n).category,seed:n};
- courseMode=mode;reset(n);cameraIntro=null;
- const hazards=holds.filter(h=>h.type==='hazard');
- assert(hazards.length<=5);if(n<20)assert.equal(hazards.length,0);
-
- assert(hazards.every(h=>!h.wide && h.type!=='start' && !insideStartTriangle(h,initialGrips)));
- const all=holds,saved=JSON.stringify({holds,route,hearts});
- const baseBody={...body},baseCommitted={...committed},baseStance=startGrips;
- assert(samePairRoute(route,replayRoute(route)),'Hazards change the validated free route');
- assert(densityStats.courseGeneration.resources.valid);
- if(mode==='existing' && n===23){assert.equal(hazards.length,3);assert.equal(routeResources(route).penalties,3);}
- assert.deepEqual(body,baseBody);assert.deepEqual(committed,baseCommitted);assert.equal(startGrips,baseStance);
- assert(validateRouteBudget(route));
- assert(densityStats.routeOptimization.costAfter<=densityStats.routeOptimization.costBefore);
- // On Lv20, actually enter one optional branch through down/move/release.
- if(n===20) {
-  const option=findHazardMove(hazards[0]);
-  if(option) {
-  for(let i=1;i<=option.step;i++)play(i);
-  camera=clamp(body.y-H*.6,0,HEIGHT-H);
-  const origin={x:body.x,y:body.y-camera},event=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
-  assert(validFingerAction(option.action));down(event({dx:0,dy:0}));const snapshot=moveSnapshot;
-  for(const point of option.action.points)move(event(point));
-  assert(grips.includes(hazards[0]));const fresh=new Set(grips.filter((h,i)=>h.type==='hazard' && h!==startGrips[i]));
-  const gains=hearts.filter((h,i)=>h.collected&&!snapshot.collectedHearts[i]).length*2;
-  release();assert.equal(stamina,Math.max(0,snapshot.stamina+gains-1-fresh.size*HAZARD_CONFIG.penalty));
-  assert(undoMove());assert.equal(stamina,snapshot.stamina+gains);
-  reset(n);cameraIntro=null;
-  }
- }
- for(let i=1;i<route.length;i++)play(i);
- assert.equal(state,'won');assert.equal(stamina,stageStamina(route.length-1)-(route.length-1)-routeHazardCosts(route).at(-1)+hearts.filter(h=>h.collected).length*2);
- assert(routeResources(route).valid);
- reset(n);assert.equal(JSON.stringify({holds,route,hearts}),saved);
- report.push({mode,level:n,count:hazards.length});
-}
-});
-assert(consumptionRecipes>0);applyRouteHazards=applyRecipe;debugMode=false;debugAttempt=false;debugCourseTrial=null;
+// Legacy TYPE-forced consumption recipes are retired with their entry point.
+// Current sampled spike generation and live contact behavior below remain covered.
+const generationReport=[];
 // Actual v5 sampled features are post-process caps, not legacy dense quotas.
 for(const stage of [1,18,55]){
  reset(stage);const resolved=CourseProgression.resolveStage(stage),recipe=CourseProgression.recipe(resolved),report=activeCourseGeneration.report;
@@ -88,6 +29,7 @@ for(const stage of [1,18,55]){
  assert.equal(generatedCourse.holds,holds,'Post-pruning recipe cache must bind final hold array');
  const adjustment=report.stamina.adjustment;assert.equal(stamina,routeExpectedMoves()+3-adjustment.appliedReduction);assert.equal(adjustment.cap,hearts.length*2+1);
  const fixed=JSON.stringify({holds,route,hearts,stamina});reset(stage);assert.equal(JSON.stringify({holds,route,hearts,stamina}),fixed);
+ generationReport.push({stage,hazards:report.spikes.count,hearts:hearts.length,stamina});
 }
 // Focused new-contact costs: ordinary move +1 per hazard, not per support selection.
 function fixture(two=false) {
@@ -99,7 +41,28 @@ function fixture(two=false) {
  holds=[...hands,...feet,...targets];grips=[...hands,...feet];startGrips=[...grips];initialGrips=[...grips];
  return targets;
 }
-function reach(pair,p){down(eventAt(body));drag.anchor=pair;move(eventAt(p));assert(grips.every(Boolean));}
+// Deterministic contact-boundary fixture: choose a valid support pair and endpoint
+// explicitly, then exercise the production down snapshot / heart collection /
+// release / Undo path. These are not end-to-end direction-selector assertions.
+function reach(pair,p){
+ down(eventAt(body));assert(drag);drag.anchor=pair;
+ assert(pair.every(i=>limbReachable(p,startGrips[i],i)));
+ const next=attachMoving(p,pair);assert(next?.every(Boolean));
+ const previous={...body};body={...p};grips=next;collectHearts(previous,body);
+}
+// Also acquire a hazard through an actual current coupled pointer gesture.
+const gestureTargets=fixture();let hazardAction=null;
+for(let degree=0;degree<360 && !hazardAction;degree+=5)for(const length of [10,20,40,80,120]){
+ const angle=degree*Math.PI/180,action=fingerAction([{dx:Math.cos(angle)*length,dy:Math.sin(angle)*length}]);
+ const result=coupledGestureReplay(body,startGrips,action);
+ if(result?.stance.includes(gestureTargets[0]) && !result.cancelAtOrigin){hazardAction=action;break;}
+}
+assert(hazardAction,'Fixture must expose an actually reachable hazard with the current selector');
+down(eventAt(body));const gestureOrigin={...drag.fingerOrigin};
+for(const p of hazardAction.points)move({clientX:gestureOrigin.x+p.dx,clientY:gestureOrigin.y+p.dy});
+assert(grips.includes(gestureTargets[0]));release();assert.equal(stamina,8);
+assert(lastFingerGesture.accepted);assert(undoMove());assert.equal(stamina,10);
+
 let targets=fixture();reach([0,1],{x:200,y:310});assert(grips.includes(targets[0]));release(true);assert.equal(stamina,10);
 reach([0,1],{x:200,y:310});grips[3]=null;release();assert.equal(stamina,10,'Invalid move charges penalty');
 reach([0,1],{x:200,y:310});release();assert.equal(stamina,8);assert(undoMove());assert.equal(stamina,10);
@@ -163,7 +126,9 @@ drawJaggedHold(100,200,HAZARD_CONFIG.radius,'#9442be');assert.equal(points.lengt
 assert(HAZARD_CONFIG.radius<8);
 points.forEach((p,i)=>assert(Math.abs(distance(p,{x:100,y:200})-HAZARD_CONFIG.radius*(i%2?.66:1))<1e-8));
 const originalPlaySound=playSound,emitted=[];playSound=name=>emitted.push(name);
-fixture();reach([0,1],{x:200,y:310});assert.deepEqual(emitted,[],'No normal preview before hazard confirmation');release();assert.deepEqual(emitted,['hazard'],'Hazard replaces the normal move/contact cue');playSound=originalPlaySound;
-console.log('PASS hazards: isolated legacy0–5 fixtures, optional baseline-input moves, baseline free-route clears; actual v5 spikes preserve reference and heart caps; retry, contact transitions, cancel, stacked costs, zero clamp, Undo and heart recovery; purple penalty and vector loading fallback');
-console.log(JSON.stringify(report));
+fixture();down(eventAt(body));const soundOrigin={...drag.fingerOrigin};
+for(const p of hazardAction.points)move({clientX:soundOrigin.x+p.dx,clientY:soundOrigin.y+p.dy});
+assert.deepEqual(emitted,[],'No normal preview before hazard confirmation');release();assert.deepEqual(emitted,['hazard'],'Hazard replaces the normal move/contact cue');playSound=originalPlaySound;
+console.log('PASS hazards: actual v5 spikes preserve reference and heart caps; deterministic retry, contact transitions, cancel, stacked costs, zero clamp, Undo and heart recovery; purple penalty, sound and vector loading fallback');
+console.log(JSON.stringify(generationReport));
 `)(assert);

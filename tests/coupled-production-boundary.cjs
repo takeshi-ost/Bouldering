@@ -47,9 +47,30 @@ const courseGenerationExceptions={"js/score-metadata.js": "11f4ce6668c512d24a8c7
 // Regression tests enforce the disabled service boundary rather than merely its hash.
 const rankingPauseExceptions={"js/firebase-client.js": "bdd7a4650fe73137c41af7865bd44e9b6aca6c211bb0fb96435a6a182e8a96b9", "js/online-scores.js": "06d0567fa941c6a716013f897ced35a5ee6229f90131470d1ca6c1491494619b"};
 require('./course-rankings-disabled.cjs');
-for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),rankingPauseExceptions[file]||courseGenerationExceptions[file]||preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation and v5 generation '+file);
+// Reviewed TYPE retirement changes only the map's debug-control visibility and
+// the removed selector-render call. Verify the remaining map bytes against the
+// pre-retirement boundary after reversing exactly those two changes below.
+const legacyTypeRetirementExceptions={"js/level-map.js":"023e1f59d9cdc80b602e760c1b9a6cbb86ea30f96a693564f11fbb7321ff5257"};
+// Reviewed reconstruction: refresh the native diagnostics on the rankings-off
+// early return. Assert the rest of the adapter is byte-identical to baseline.
+const nativeDiagnosticRefresh=`        // Rankings-off returns before the legacy presenter below. Refresh the
+        // native diagnostics there too; this does not enable score uploads.
+        source=replaceOnce(source,"        status.hidden=true;status.textContent='';return;",
+            "        status.hidden=true;status.textContent='';globalThis.ASCENT_NATIVE_SYNC_STATUS?.refresh();return;");
+`;
+const nativeAdapter=fs.readFileSync('scripts/native-bundle-source.cjs','utf8');
+assert.equal(nativeAdapter.split(nativeDiagnosticRefresh).length,2);
+assert.equal(crypto.createHash('sha256').update(nativeAdapter.replace(nativeDiagnosticRefresh,'')).digest('hex'),baseline['scripts/native-bundle-source.cjs']);
+const nativeDiagnosticExceptions={'scripts/native-bundle-source.cjs':'de8a34d80d64ca83ab466bdceac062c3c1757611fa8b3d800b7a3fb0099e9920'};
+for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),nativeDiagnosticExceptions[file]||legacyTypeRetirementExceptions[file]||rankingPauseExceptions[file]||courseGenerationExceptions[file]||preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation and v5 generation '+file);
 const map=fs.readFileSync('js/level-map.js','utf8');
-assert.equal(crypto.createHash('sha256').update(map.slice(0,map.indexOf('let stageStartContext='))).digest('hex'),'bcd613a8c17fd53a4691055ee206bf2a8a043bbefad5cc325bd93589483eff40','Map records, rewards, inventory and navigation before the dialog remain byte-identical');
+const currentDebugVisibility='    ui.debugControls.hidden = !DEBUG_FEATURES_ALLOWED || !debugMode;';
+assert.equal(map.split(currentDebugVisibility).length,2);
+assert(!map.includes('renderDebugCourseChoices'));
+const originalMap=map.replace(currentDebugVisibility,'    ui.debugControls.hidden = !debugMode;\n    renderDebugCourseChoices();');
+assert.equal(crypto.createHash('sha256').update(originalMap).digest('hex'),preparationExceptions['js/level-map.js'],'Only the two reviewed TYPE-control lines changed in map source');
+
+assert.equal(crypto.createHash('sha256').update(originalMap.slice(0,originalMap.indexOf('let stageStartContext='))).digest('hex'),'bcd613a8c17fd53a4691055ee206bf2a8a043bbefad5cc325bd93589483eff40','Map records, rewards, inventory and navigation remain byte-identical outside reviewed debug-control retirement');
 const launch=`            restartInput(n,heartsUsed);
             beginLifeAttempt();
             ui.titleScreen.hidden=true;ui.levelMap.hidden=true;

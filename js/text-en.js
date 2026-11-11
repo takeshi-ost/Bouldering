@@ -47,17 +47,12 @@ const GAME_TEXT_EN = Object.freeze({
     "tutorial.intro.movement": "Two of your limbs move freely. Your feet cannot be placed higher than your hands",
     "tutorial.intro.goal": "Grab the goal with both hands before your stamina runs out to reach the summit",
     "tutorial.wide": "A large hold can support both hands or both feet.",
+    "tutorial.move.cancel": "Tap with two fingers to cancel your current move",
+    "tutorial.move.undo": "Briefly tap the body to undo one move",
     "tutorial.goal.fixed": "To finish, both feet must also be fixed on holds",
     "tutorial.goal.finish": "Detailed controls and rules are available in the menu opened with the gear icon",
 
-    "debug.typeMatched": "Requested intent matches the classification (within bounded search)",
-    "debug.typeMismatch": "Requested intent and classification do not match / classification undetermined",
 
-    "debug.trialTitle": "TRIAL TYPE {value0}",
-    "debug.courseType": "Type",
-    "debug.courseLength": "Length",
-    "debug.generate": "Generate random trial",
-    "debug.regenerate": "Regenerate with a different seed",
     "debug.exit": "End trial",
     "debug.trialError": "Trial generation failed: {value0}",
 

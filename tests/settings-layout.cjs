@@ -67,10 +67,10 @@ for(const scene of ['map','daily','normal','daily-play','tutorial']){
 // Newly available in-play language switching must preserve developer trial
 // identity and the existing per-stage display controls, not relabel it STAGE2.
 {
- const b=fixture('map');b.run('setDebugMode(true);assert(startDebugCourse(0,"short",1000));cameraIntro=null;hideStageHelp();openSettings();');
+ const b=fixture('map');b.run('setDebugMode(true);assert(startDebugScoreTrial(1));cameraIntro=null;hideStageHelp();openSettings();');
  assert.equal(b.node('settingsVersionValue').textContent,b.run('RELEASE_VERSION'),'Debug play keeps the common version row');
  assert.equal(b.node('stageDebugDisplay').hidden,false);const before=snapshot(b);
- b.node('languageChoice').value='en';b.node('languageChoice').onchange();assert.equal(b.node('level').textContent,b.run('gameText("debug.trialTitle",{value0:courseTypeId})'));assert.equal(snapshot(b),before);
+ b.node('languageChoice').value='en';b.node('languageChoice').onchange();assert.equal(b.node('level').textContent,b.run('gameText("debug.score.current",{value0:debugCourseTrial.score})'));assert.equal(snapshot(b),before);
  b.node('debugRoute').checked=false;b.node('debugRoute').onchange();assert.equal(b.run('debugDisplay.route'),false);
  b.node('closeSettings').onclick();b.node('debugCourseExit').onclick();assert.equal(b.run('state'),'map');b.run('cancelMapReveal();mapPreparing=false;mapTransition=null;openSettings();');
  b.node('mapDebugMode').checked=false;b.node('mapDebugMode').onchange();assert.equal(b.run('debugMode'),false);assert.equal(b.node('stageDebugDisplay').hidden,true);

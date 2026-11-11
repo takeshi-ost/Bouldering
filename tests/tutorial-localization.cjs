@@ -42,7 +42,16 @@ function tap(b,{settle=true}={}) {
 }
 function intro(b,language) {for(let i=0;i<3;i++){readyPage(b,i,language);tap(b);}assert.equal(b.run('tutorialInstructionsOpen()'),false);}
 function goal(b) {
- b.run(`for(let i=1;i<route.length;i++){camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);const p=route[i];assert(validFingerAction(p.action));down({clientX:200,clientY:500});for(const delta of p.action.points)move({clientX:200+delta.dx,clientY:500+delta.dy});release();}`);
+ for(let i=1;i<b.run('route.length');i++) {
+  b.run(`camera=clamp(body.y-H*.6,cameraTop(),HEIGHT-H);var p=route[${i}];assert(validFingerAction(p.action));down({clientX:200,clientY:500});for(const delta of p.action.points)move({clientX:200+delta.dx,clientY:500+delta.dy});release();`);
+  if(i===2) {
+   for(const id of ['move-cancel','move-undo']) {
+    assert.equal(b.run('tutorialRun.explanation.id'),id);
+    assert.equal(b.node('tutorialText').textContent,b.run(`gameText('tutorial.move.${id==='move-cancel'?'cancel':'undo'}')`));
+    tap(b);
+   }
+  }
+ }
  assert(b.run('bothHandsOnGoal() && grips.every((h,i)=>h && limbReachable(body,h,i))'));
  assert.equal(b.run('tutorialRun.pendingOutcome'),true);
 }
@@ -76,10 +85,10 @@ function controlledImages() {
 }
 (async()=>{
  // Fresh startup selects device language before the tutorial is constructed.
- // The whole unmodified course and all five pages use the initial language.
+ // The whole unmodified course and all seven pages use the initial language.
  for(const [locale,language] of [['ja-JP','ja'],['en-US','en'],['fr-FR','en']]) {
   const b=boot({locale});assert(b.run('AscentTutorialState.snapshot().firstUse'));assert.equal(b.run('GAME_TEXT_LANGUAGE'),language);
-  assert.deepEqual(JSON.parse(b.run('JSON.stringify(TUTORIAL_CONFIG.steps.map(step=>step.id))')),ids);
+  assert.deepEqual(JSON.parse(b.run('JSON.stringify(TUTORIAL_CONFIG.steps.map(step=>step.id))')),['intro-welcome','intro-movement','intro-goal','move-cancel','move-undo','goal-fixed','goal-finish']);
   assert(b.run('TUTORIAL_CONFIG.steps.every(step=>step.titleKey && step.textKey && !Object.hasOwn(step,"language") && !Object.hasOwn(step,"text"))'));
   const resources=resourceState(b);start(b);intro(b,language);goal(b);
   readyPage(b,3,language);tap(b);readyPage(b,4,language);tap(b);
@@ -137,5 +146,5 @@ function controlledImages() {
   tap(b);assert.equal(b.node('tutorialImage').alt,b.run('gameText("tutorial.title.play")'));unchangedLanguageSwitch(b,'ja');assert.equal(b.node('tutorialImage').alt,b.run('gameText("tutorial.title.play")'));
   tap(b);assert.equal(b.node('tutorialTitle').hidden,true);assert.equal(b.node('tutorialText').textContent,'Literal only');assert.equal(b.node('tutorialImage').hidden,true);unchangedLanguageSwitch(b,'en');assert.equal(b.node('tutorialText').lang,'ja');tap(b);assert.equal(b.run('tutorialInstructionsOpen()'),false);
  }
- console.log('PASS tutorial localization: fresh JA/EN/non-JA boot, all five pages and images, pre-start/camera/settings switches, active/queued/closing/loading/opening/goal refresh, image decode and stale interruption safety, literal language/alt preservation, unchanged state/resources/pause/timers/SE');
+ console.log('PASS tutorial localization: fresh JA/EN/non-JA boot, all seven pages and images, pre-start/camera/settings switches, active/queued/closing/loading/opening/goal refresh, image decode and stale interruption safety, literal language/alt preservation, unchanged state/resources/pause/timers/SE');
 })().catch(error=>{console.error(error);process.exitCode=1;});

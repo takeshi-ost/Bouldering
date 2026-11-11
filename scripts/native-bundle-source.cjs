@@ -60,6 +60,10 @@ else {recoverLives();saveLives();}`,`if(globalThis.ASCENT_NATIVE_RESUME?.ready!=
         source=replaceOnce(source,'async function flushOnlineProfile(preferLocal=true) {',"async function flushOnlineProfile(preferLocal=true) {\n    if(globalThis.ASCENT_NATIVE_FIREBASE?.permissions().profileWrites!==true)return;");
     }
     if(name==='online-scores.js') {
+        // Rankings-off returns before the legacy presenter below. Refresh the
+        // native diagnostics there too; this does not enable score uploads.
+        source=replaceOnce(source,"        status.hidden=true;status.textContent='';return;",
+            "        status.hidden=true;status.textContent='';globalThis.ASCENT_NATIVE_SYNC_STATUS?.refresh();return;");
         // Native uses its separate post-enable ledger. Never rewrite historical
         // Web queues, even while loading/normalizing old optional metadata.
         source=replaceOnce(source,"    if(!onlineScores.blocked)try {globalThis.localStorage?.setItem(ONLINE_SCORES_KEY,JSON.stringify({uid:onlineScores.owner,items:[...onlineScores.pending]}));}catch(_) {}",'    // Historical pending storage is immutable in the native wrapper.');

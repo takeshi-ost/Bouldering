@@ -6,7 +6,7 @@ const ctx = COURSE_WORKER_MODE ? null : canvas.getContext("2d");
 const ui = COURSE_WORKER_MODE ? null : Object.fromEntries([
     "rewardDialog", "rewardWheel", "rewardStop", "rewardStatus", "rewardResult", "goalEffects", "closeLife", "closeResult", "staminaGauge", "lifeStatus", "lifeDialog", "lifeQuestion", "lifeWatchAd", "lifeCancel", "dummyAd", "adCounter", "adComplete", "featureHelpDialog", "featureHelpContent", "wall", "level", "stamina", "progress", "overlay", "resultStars",
     "stageStartDialog", "closeStageStart", "stageStartTitle", "stageStartStars", "stageStartRanking", "stageStartLeaderboard", "stageStartLives", "stageStartDifficulty", "stageStartLength", "stageStartStamina", "stageStartButton", "stageHeartCount", "stageHeartValue", "stageHeartReset", "debugSwipeValue", "debugSwipeLess", "debugSwipeMore", "debugSwipeReset", "debugSwipeMode", "stageDebugDisplay", "debugRoute", "debugHoldNumbers", "debugCourseInfo", "resultTitle", "resultTip", "resultTipText", "resultTap", "resultRanking", "resultLeaderboard", "resultDifficulty", "resultStats", "next", "retry", "restart", "hud", "settingsButton", "settingsDialog", "closeSettings", "mapSettingsButton", "mapSettingsControls", "mapSettingsFooter", "mapSettingsDebug", "mapEditCharacter", "mapDebugMode", "mapDebugModeRow",
-    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugCourseType", "debugCourseLength", "debugScoreLoading", "debugScoreCancel", "debugScoreStart", "debugScoreNext", "debugGenerate", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
+    "dailyCalendar", "dailyMonthViewport", "dailySettingsButton", "dailyPlate", "dailySkyDate", "dailyClearRecord", "dailyClearStars", "dailyClearStats", "dailyStartTitle", "dailyStartGift", "dailyStartLabel", "dailyStartDifficulty", "dailyStartLength", "dailyStartButton", "openDaily", "dailyEntryDate", "dailyBack", "dailyMonthTitle", "dailyStreak", "dailyPrev", "dailyNext", "dailyGrid", "dailyError", "levelMap", "mapInventory", "mapItemCount", "mapError", "mapScroll", "mapTrack", "mapScenery", "mapRoad", "mapNodes", "mapPlayers", "mapMarker", "mapPrev", "mapNext", "mapCourses", "debugControls", "debugStage", "debugPlay", "debugScoreLoading", "debugScoreCancel", "debugScoreStart", "debugScoreNext", "debugCourseStatus", "debugRegenerate", "debugCourseReport", "debugCourseExit", "debugCourseVerdict", "debugCourseSummary",
     "characterEditor", "playerName", "playerNameError", "editorPreview", "stripeCount", "stripeCountValue", "bodyStripeControls", "editorPalette", "paletteSwatches", "editorRandom", "editorConfirm", "editorCancel",
     "mapSettingsLanguage", "languageChoice", "titleWallpaper", "titleTransfer", "titleScreen", "releaseVersion", "playerUuid", "titleTap", "showHelp", "helpDialog", "helpScroll", "closeHelp"
 ].map(id => [id, document.getElementById(id)]));
@@ -145,8 +145,15 @@ let courseTypeId = 0;
 let debugCourseTrial = null;
 let debugHelpBefore = null;
 function activeDebugScoreTrial(){return activeDebugCourse()?.kind==='score';}
-function debugCourseTitle(){return activeDebugScoreTrial()?gameText('debug.score.current',{value0:debugCourseTrial.score}):gameText('debug.trialTitle',{value0:courseTypeId});}
-function activeDebugCourse(){return DEBUG_FEATURES_ALLOWED && debugMode && typeof debugAttempt!=='undefined' && debugAttempt && debugCourseTrial;}
+function debugCourseTitle(){return activeDebugScoreTrial()?gameText('debug.score.current',{value0:debugCourseTrial.score}):'';}
+function activeDebugCourse(){
+    const trial=debugCourseTrial;
+    // Only current score trials may override generation identity. Old TYPE-only
+    // runtime objects (or malformed score objects) must never revive the retired path.
+    return DEBUG_FEATURES_ALLOWED && debugMode && typeof debugAttempt!=='undefined' && debugAttempt &&
+        trial?.kind==='score' && Number.isInteger(trial.score) && trial.score>=1 && trial.score<=100 &&
+        trial.seed===trial.score+10 && trial.typeId===generationTypeForScore(trial.score) ? trial : null;
+}
 let holds = [];
 let route = [];
 let hearts = [];
@@ -201,7 +208,7 @@ function showResultModal() {
 
 
 function generate(n) {
-    ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n,false,courseSeed(n),dailyRun?.baseSeed??courseSeed(n),activeDebugCourse()?debugCourseDistribution():dailyRun?dailyDistribution():stageDistribution(n)));
+    ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n,false,courseSeed(n),dailyRun?.baseSeed??courseSeed(n),dailyRun?dailyDistribution():stageDistribution(n)));
 }
 
 // Anatomical reach is measured from the shoulder/hip, not the torso center.
@@ -649,7 +656,7 @@ function restoreMoveStamina(saved) {
 
 // A date keeps its difficulty even if a layout needs a deterministic retry.
 function prepareCurrentStage() {
-    // Every generation entry, including retained debug types and authored tutorial,
+    // Every generation entry, including score trials and authored tutorial,
     // uses baseline controls. Live six-pair planning must never run inside search.
     return typeof SixPairSelection==='undefined' ? prepareCurrentStageBaseline()
         : SixPairSelection.withBaseline(prepareCurrentStageBaseline);
@@ -657,22 +664,7 @@ function prepareCurrentStage() {
 function prepareCurrentStageBaseline() {
     courseMode='existing'; // Old experimental modes cannot enter generation.
     if(typeof isTutorialRun==='function' && isTutorialRun())return prepareTutorialCourse();
-    if(!activeDebugCourse() || activeDebugScoreTrial())return prepareAdoptedCourse();
-    activeCourseGeneration=null;
-    generatedCourse=null;
-    if(dailyRun)dailyRun.seed=dailyRun.baseSeed;
-    const intent=chooseCourseIntent();
-    if(!dailyRun) {
-        prepareStage();
-        route=optimizeRoute(route);updateStageDensity();
-        finalizeCourseGeneration(intent);return;
-    }
-    let failure;
-    for(let attempt=0;attempt<16;attempt++) {
-        dailyRun.seed=(dailyRun.baseSeed+Math.imul(attempt,0x9E3779B9))>>>0;
-        try {prepareStage();route=optimizeRoute(route);updateStageDensity();finalizeCourseGeneration(intent);return;}catch(error){failure=error;}
-    }
-    throw failure;
+    return prepareAdoptedCourse();
 }
 const stagePreviewCache=new Map();
 function stagePreview(n,mode=courseMode,profile=null) {
@@ -706,6 +698,11 @@ function reset(n,staminaBonus=0) {
     const tutorial=typeof isTutorialRun==='function' && isTutorialRun();
     if(n===0 && !tutorial)throw new RangeError('Stage 0 is tutorial-only');
     if(tutorial && (n!==0 || staminaBonus!==0))throw new RangeError('Tutorial does not accept normal stages or consumable bonuses');
+    // Trials are runtime-only. Reject stale retired/malformed state without
+    // deleting any saved progress, Daily records, help flags or account data.
+    if(debugCourseTrial && !activeDebugCourse()) {
+        endDebugCourseTrial();debugAttempt=false;
+    }
     courseMode='existing';
     lifeAttemptId++;
     adPlayRecorded=false;

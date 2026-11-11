@@ -27,72 +27,53 @@ assert(generatedCourse.hazardPlacement.routeIds.length>0);
 assert(generatedCourse.hazardPlacement.optionalIds.length>3);
 assert.equal(JSON.stringify(holds.map(({type,...h})=>h)),geometry);
 
-const report=[];
-for(const mode of ['existing'])for(const n of [40,41,42,45,47,80]) {
- debugMode=true;debugAttempt=true;debugCourseTrial={typeId:6,lengthCategory:stageLengthRule(n).category,seed:n};
- courseMode=mode;reset(n);cameraIntro=null;
- const blue=holds.filter(h=>h.type==='hazard');
- const placement=generatedCourse.hazardPlacement;
- assert(blue.length>=Math.ceil(holds.length*.1));assert(blue.length<=Math.floor(holds.length*.3));
- assert.equal(blue.length,placement.routeIds.length+placement.optionalIds.length);
- assert(initialGrips.every(h=>h.type!=='hazard'));
- assert(blue.every(h=>!h.wide));assert(holds.some(h=>h.type==='goal'));
+// The TYPE-forced dense generator is retired. The sampling primitive above
+// remains a low-level compatibility helper, not a reachable full-course mode.
+assert.equal(typeof startDebugCourse,'undefined');
+assert.equal(typeof debugCourseDistribution,'undefined');
+assert.equal(typeof finalizeConvertedCourse,'undefined');
+assert.equal(typeof applyRouteHazards,'undefined');
+assert.equal(typeof recipeHearts,'undefined');
+// Failed protected conversion must leave each rejected candidate normal.
+const ordinary=holds.map(h=>({...h,type:h.type==='hazard'?'normal':h.type}));
+holds=ordinary.map(h=>({...h}));initialGrips=[holds[0]];generatedCourse={};
+const beforeProtected=JSON.stringify(holds),validate=validateRouteBudget;
+let protectedChecks=0;
+validateRouteBudget=()=>{protectedChecks++;return false;};
+try {assert.equal(convertDenseHazards(reference,0,true),false);} finally {validateRouteBudget=validate;}
+assert(protectedChecks>0);assert.equal(JSON.stringify(holds),beforeProtected);
+// Too few eligible holds cannot satisfy the legacy primitive's minimum.
+holds=[{id:0,type:'normal',x:0,y:0},{id:1,type:'goal',x:100,y:0}];initialGrips=[holds[0]];
+assert.equal(convertDenseHazards([{grips:[0,1]}]),false);
+assert(holds.every(h=>h.type!=='hazard'));
+
+// Current formal stages use sampled caps and preserve the baseline witness,
+// not the obsolete 10–30% dense quota or TYPE-specific moves+3 budget.
+const report=[];let sampledHazards=0;
+for(const n of [40,47,55,80]){
+ debugMode=false;debugAttempt=false;debugCourseTrial=null;reset(n);cameraIntro=null;
+ const blue=holds.filter(h=>h.type==='hazard'),sample=activeCourseGeneration.report.spikes;sampledHazards+=blue.length;
+ assert.equal(blue.length,Math.floor(sample.candidateCount*activeCourseGeneration.recipe.spikePercent/100));
+ assert.deepEqual(blue.map(h=>h.id).sort((a,b)=>a-b),[...sample.selectedIds].sort((a,b)=>a-b));
+ assert(initialGrips.every(h=>h.type!=='hazard'));assert(blue.every(h=>!h.wide));
+ assert(holds.some(h=>h.type==='goal'));assert(sample.referenceContactsUnchanged);
+ assert.equal(sample.referenceHazardCost,0);
  assert(samePairRoute(route,SixPairSelection.withBaseline(()=>replayRoute(route))));
- const saved=JSON.stringify({holds,route,hearts}),starting=stamina;
- // Conversion changes type only; normal geometry replays the identical route.
+ const saved=JSON.stringify({holds,route,hearts,stamina}),starting=stamina;
+ // Changing only hazard types cannot change witness geometry/contacts.
  blue.forEach(h=>h.type='normal');
  const normalReplay=SixPairSelection.withBaseline(()=>replayRoute(route));assert(normalReplay);
  assert(normalReplay.slice(1).every(p=>p.penalty===0));
- assert(samePairRoute(route.map((p,i)=>i?{...p,penalty:0}:p),normalReplay),'Changing hazard types preserves geometry, contacts, actions and trace');
+ assert(samePairRoute(route.map((p,i)=>i?{...p,penalty:0}:p),normalReplay));
  blue.forEach(h=>h.type='hazard');
- const moves=route.length-1,base=stageStamina(moves);
- assert.equal(starting,moves+3);
- assert(densityStats.routeBudgetValidated);assert(SixPairSelection.withBaseline(()=>validateRouteBudget(route)));
- assert(densityStats.costSearch.transitions<=ROUTE_COST_SEARCH_CONFIG.maxTransitions);
- let paid=0,pickups=0;
- // Historical generator witness uses baseline controls. New live controls are
- // covered separately by six-pair-baseline-live.cjs, not this replay.
- SixPairSelection.withBaseline(()=>{
- for(let i=1;i<route.length;i++) {
-  assert(stamina>0,mode+' Lv'+n+' cannot start move '+i);
-  camera=clamp(body.y-H*.6,0,HEIGHT-H);
-  const origin={x:body.x,y:body.y-camera};
-  const eventAt=p=>({clientX:origin.x+p.dx,clientY:origin.y+p.dy});
-  const before=[...grips],beforeStamina=stamina,beforeHearts=hearts.filter(h=>h.collected).length;
-  assert(validFingerAction(route[i].action));down(eventAt({dx:0,dy:0}));
-  for(const point of route[i].action.points)move(eventAt(point));release();
-  assert.equal(moveCount,i);assert.notEqual(state,'lost');
-  const fresh=grips.filter((h,j)=>h.type==='hazard' && before[j]!==h).length;
-  paid+=fresh;
-  const gained=(hearts.filter(h=>h.collected).length-beforeHearts)*2;pickups+=gained;
-  assert.equal(stamina,beforeStamina+gained-1-fresh);
- }
- });
- assert(routeResources(route).valid,'Final route must fit its base budget with actual pickups');
- assert.equal(state,'won');assert.equal(pickups,routeResources(route).pickups*2);
- assert.equal(routeExpectedMoves(),moves);assert.equal(starting,moves+3);
- assert.equal(stamina,3+pickups-paid);
- assert.equal(routeHazardCosts(route).at(-1),paid);
- updateUI();assert(ui.progress.textContent.includes('想定 '+moves+' ムーブ'));
- const expected=moves;
- if(mode==='existing' && n===47) {
-  // Length-first generation no longer promises a fixed 20-move ceiling.
-  assert.equal(moveCount,moves);assert.equal(state,'won');
-  assert(routeResources(route).valid);assert.equal(starting,moves+3);
-  assert.equal(stamina,starting-moves-paid+pickups);
-  assert.equal(clearStars(moves,routeExpectedMoves()),3);
-  const beforePreview=JSON.stringify({holds,route,hearts,stamina});const preview=stagePreview(n,mode);assert.equal(preview.height,stageLengthInfo(n).height);assert.equal(JSON.stringify({holds,route,hearts,stamina}),beforePreview);
- }
- const savedRecords=JSON.stringify(stageRecords);
- for(const [extra,stars] of [[0,3],[1,2],[2,2],[3,1]]) {
-  moveCount=expected+extra;finish(true);
-  assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert.equal(JSON.stringify(stageRecords),savedRecords,'Debug planner must not write normal scores');
- }
-
- reset(n);assert.equal(JSON.stringify({holds,route,hearts}),saved);assert.equal(stamina,starting);
- report.push({mode,level:n,total:holds.length,blue:blue.length,moves,penalties:paid,starting});
+ const beforePreview=JSON.stringify({holds,route,hearts,stamina});
+ const preview=stagePreview(n,'existing');assert.equal(preview.height,HEIGHT);
+ assert.equal(JSON.stringify({holds,route,hearts,stamina}),beforePreview,'Preview must restore live course state');
+ reset(n);assert.equal(JSON.stringify({holds,route,hearts,stamina}),saved);
+ report.push({level:n,total:holds.length,hazards:blue.length,starting});
 }
-debugMode=false;debugAttempt=false;debugCourseTrial=null;generatedCourse=null;
+assert(sampledHazards>0,'Current formal geometry/replay checks must include real sampled hazards');
+generatedCourse=null;
 // Heart placement must not silently enlarge a fixed move-based budget.
 level=40;initialGrips=[];holds=Array.from({length:20},(_,id)=>({id,type:'hazard',x:id,y:0}));
 const path=Array.from({length:11},(_,i)=>({x:200,y:700-i*40,grips:[i*2%20,(i*2+1)%20]}));
@@ -107,6 +88,6 @@ for(let n=40;n<100;n++) {
  }
  assert(items.length<=HEART_CONFIG.maxCount);
 }
-console.log('PASS retained debug dense hazards: seeds40/41/42/45/47/80, 10-30% after fixed geometry/hearts, cost search before acceptance, protected start/wide/goal, unchanged replay, exact baseline-input costs, fixed moves+3 budget, baseline-witness full clears, seeded retries');
+console.log('PASS retired dense TYPE boundary; retained sampling primitive protects geometry/start/wide/goal and rejects unsafe candidates; formal sampled caps/reference/preview/retry; low-level hearts retain fixed budgets');
 console.log(JSON.stringify(report));
 `)(assert);

@@ -1,38 +1,80 @@
 'use strict';
-const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
-const html=fs.readFileSync('index.html','utf8'),source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(m[1],'utf8')).join('\n');
-const env=`const nodes={};const document={getElementById(id){return nodes[id]||={style:{},classList:{toggle(){}},focus(){},blur(){},addEventListener(){},setAttribute(){},removeAttribute(){},showModal(){this.open=true},close(){this.open=false},getContext(){return new Proxy({},{get:(o,k)=>o[k]||(()=>{})})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}}}};const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};function setTimeout(){return 0;}function clearTimeout(){};`;
-const data=new Map(),ctx=vm.createContext({assert,console,performance,localStorage:{getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k)},storageDump:()=>JSON.stringify([...data]),crypto:{getRandomValues(a){a[0]=777;return a;}}});
-vm.runInContext(env+source+`
-assert.equal(COURSE_TYPES.length,10);assert.deepEqual(COURSE_TYPES.map(t=>t.id),[0,1,2,3,4,5,6,7,8,9]);
+// TYPE-selected trials are retired. Keep this registry slot as an explicit
+// retirement/compatibility boundary, not a success claim for removed recipes.
+const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('node:path');
+const html=fs.readFileSync('index.html','utf8');
+const entries=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>({file:m[1],source:fs.readFileSync(m[1],'utf8')}));
+const nativeSource=require('../scripts/native-bundle-source.cjs');
+for(const id of ['debugCourseType','debugCourseLength','debugGenerate'])assert(!html.includes('id="'+id+'"'),id+' must not be a hidden entry');
+const env=`
+const nodes={};const document={getElementById(id){return nodes[id]||={style:{setProperty(){}},classList:{toggle(){}},focus(){},blur(){},addEventListener(){},setAttribute(){},removeAttribute(){},showModal(){this.open=true},close(){this.open=false},getContext(){return new Proxy({},{get:(o,k)=>o[k]||(()=>{})})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700}}}}};
+const window={addEventListener(){},devicePixelRatio:1};function requestAnimationFrame(){};function setTimeout(){return 0;}function clearTimeout(){};
+`;
+const checks=`
+assert.equal(typeof startDebugCourse,'undefined');assert.equal(typeof debugCourseDistribution,'undefined');
+assert.equal(typeof newDebugCourseSeed,'undefined');assert.equal(typeof renderDebugCourseChoices,'undefined');
+assert.equal(typeof applyRouteHazards,'undefined');assert.equal(typeof recipeHearts,'undefined');
+assert.equal(typeof finalizeConvertedCourse,'undefined');assert.equal(typeof chooseCourseIntent,'undefined');
+for(const id of ['debugCourseType','debugCourseLength','debugGenerate'])assert.equal(ui[id],undefined);
+assert.equal(typeof findCourseHeartMove,'function');assert.equal(typeof finalizeCourseGeneration,'function');
+for(const intent of ['choice','consumption','recovery','mixed'])assert.throws(()=>finalizeCourseGeneration(intent),/retired/);
+// Internal IDs/weight mapping remain stable because formal placement consumes
+// these calibration definitions. Removing the UI must not remove array entries.
+assert.deepEqual(COURSE_TYPES.map(t=>t.id),[0,1,2,3,4,5,6,7,8,9]);
 assert.deepEqual(COURSE_TYPES.map(t=>courseTypeLabel(t.id)),['EASY','EASY','NORMAL','NORMAL','NORMAL','NORMAL','HARD','HARD','HARD','HARD']);
-const ordered=Array.from({length:100},(_,seed)=>weightedCourseType([145,55,45,25,20,10,20,25,25,30],seed));COURSE_TYPES.reverse();assert.deepEqual(Array.from({length:100},(_,seed)=>weightedCourseType([145,55,45,25,20,10,20,25,25,30],seed)),ordered,'Definition reordering must preserve stable ID weights');COURSE_TYPES.reverse();
-assert.equal(courseTypeRule(1).generationDifficulty,1);assert(difficultyRule(1).hearts,'EASY label must not disable old-1 hearts');
-const report=[],capture=()=>JSON.stringify({stageProgress,stageRecords,dailyRecords,mapRewards,heartItems,playsSinceAd,lives,help:featureHelpSeen,storage:storageDump()});
-state='map';mapPreparing=false;mapTransition=null;settingsOpen=false;debugMode=true;
-const before=capture();let sent=0;queueOnlineScore=()=>{sent++;};queueOnlineProfileSave=()=>{sent++;};
-// Selecting/canceling an ordinary stage does not start a trial or mutate saves.
-assert(openStageStart(1,true));closeStageStart();assert.equal(debugCourseTrial,null);assert.equal(capture(),before);
-// Validate the baseline generator witness, not unchanged live direction mapping.
-for(const type of COURSE_TYPES){
- state='map';mapPreparing=false;mapTransition=null;assert(startDebugCourse(type.id,'short',1000+type.id),ui.mapError.textContent);
- assert.equal(level,2);assert.equal(courseTypeId,type.id);assert.equal(difficulty,type.generationDifficulty);assert.equal(generatedCourse.intent,type.intent);assert.equal(chooseCourseIntent(),type.intent);assert.equal(HEIGHT,H);assert(debugAttempt);assert(!ui.debugCourseStatus.hidden);assert(SixPairSelection.withBaseline(()=>validateRouteBudget(route)));assert.equal(stamina,routeExpectedMoves()+3);
- const status=JSON.parse(ui.debugCourseReport.textContent);assert.equal(status.seed,1000+type.id);assert.equal(status.typeId,type.id);assert.equal(status.requested,type.intent);assert.equal(status.actual,densityStats.courseGeneration.actual);assert.equal(status.matchesRequested,status.actual===type.intent);assert.equal(status.safeFallback,densityStats.courseGeneration.usedSafeFallback);
- report.push({id:type.id,requested:type.intent,actual:status.actual,fallback:status.safeFallback});
- const fixed=JSON.stringify({holds,route,hearts,stamina});assert(startDebugCourse(type.id,'short',1000+type.id));assert.equal(JSON.stringify({holds,route,hearts,stamina}),fixed);
- cameraIntro=null;hideStageHelp();finish(true);assert(ui.resultRanking.hidden);assert.equal(sent,0);showLevelMap();mapPreparing=false;assert.equal(debugCourseTrial,null);assert(ui.debugCourseStatus.hidden);assert.equal(capture(),before,'Trial mutated normal save state');
+const weights=[145,55,45,25,20,10,20,25,25,30];
+const ordered=Array.from({length:100},(_,seed)=>weightedCourseType(weights,seed));
+COURSE_TYPES.reverse();assert.deepEqual(Array.from({length:100},(_,seed)=>weightedCourseType(weights,seed)),ordered);COURSE_TYPES.reverse();
+assert.equal(courseTypeRule(1).generationDifficulty,1);assert(difficultyRule(1).hearts);
+let sent=0;queueOnlineScore=()=>sent++;queueOnlineProfileSave=()=>sent++;
+const save=()=>JSON.stringify({stageProgress,stageRecords,dailyRecords,mapRewards,heartItems,playsSinceAd,lives,help:featureHelpSeen,storage:[...data]});
+const before=save();
+tutorialRun=null;dailyRun=null;debugCourseTrial=null;debugMode=debugAttempt=false;reset(1);
+const normal=JSON.stringify({holds,route,hearts,HEIGHT,stamina,level,difficulty,courseTypeId});
+for(const invalid of [
+ {typeId:3,lengthCategory:'short',seed:23},
+ {typeId:7,lengthCategory:'long',seed:1007},
+ {kind:'score',score:0,seed:10,typeId:0},
+ {kind:'score',score:101,seed:111,typeId:6},
+ {kind:'score',score:1.5,seed:11.5,typeId:0},
+ {kind:'score',score:1,seed:12,typeId:0},
+ {kind:'score',score:1,seed:11,typeId:3}
+]){
+ debugMode=debugAttempt=true;debugCourseTrial=invalid;
+ assert.equal(activeDebugCourse(),null);assert(!activeDebugScoreTrial());assert.equal(courseSeed(1),CourseProgression.resolveStage(1).seed);
+ updateDebugCourseReport();assert(ui.debugCourseStatus.hidden);assert.equal(debugCourseTitle(),'');
+ debugHelpBefore={...featureHelpSeen};featureHelpSeen.hazard=true;
+ reset(1);assert.equal(debugCourseTrial,null);assert.equal(debugHelpBefore,null);assert.equal(debugAttempt,false);
+ assert.equal(JSON.stringify({holds,route,hearts,HEIGHT,stamina,level,difficulty,courseTypeId}),normal,'Invalid TYPE state cannot change normal geometry');
+ assert.equal(save(),before,'No saved user data or help corruption');
 }
-state='map';mapPreparing=false;assert(startDebugCourse(9,'medium',222));assert.equal(HEIGHT,H*2);const trialBefore=JSON.stringify({debugCourseTrial,courseTypeId,holds,route,hearts,stamina,generatedCourse});const normalPreview=stagePreview(20),day=dailyProfile('2026-02-04'),dayPreview=stagePreview(day.referenceStage,'existing',day);assert.equal(normalPreview.typeId,courseTypeForStage(20));assert.equal(normalPreview.seed,20);assert.equal(dayPreview.typeId,day.typeId);assert.equal(JSON.stringify({debugCourseTrial,courseTypeId,holds,route,hearts,stamina,generatedCourse}),trialBefore,'Normal/Daily preview must not inherit or mutate trial context');const firstSeed=debugCourseTrial.seed;ui.debugRegenerate.onclick();assert.notEqual(debugCourseTrial.seed,firstSeed);const second=debugCourseTrial.seed;ui.debugRegenerate.onclick();assert.notEqual(debugCourseTrial.seed,second,'Repeated crypto output must still produce a new seed');
-// Forced bounded-recipe fallback remains explicit, and requested type never rerolls.
-const convert=convertDenseHazards;convertDenseHazards=(path,salt,safe)=>safe?convert(path,salt,safe):false;
-assert(startDebugCourse(9,'short',333));assert(densityStats.courseGeneration.usedSafeFallback);assert.equal(JSON.parse(ui.debugCourseReport.textContent).safeFallback,true);assert.equal(courseTypeId,9);assert.equal(generatedCourse.intent,'mixed');convertDenseHazards=convert;
-finish(false);cameraIntro=null;ui.retry.onclick();assert(activeDebugCourse());assert.equal(courseTypeId,9);ui.debugCourseExit.onclick();mapPreparing=false;assert.equal(capture(),before);assert.equal(sent,0);
-// Invalid selection safely returns to map and does not leave a trial or stale seed.
-assert.equal(startDebugCourse(99,'short',1),false);mapPreparing=false;assert.equal(debugCourseTrial,null);assert(!ui.mapError.hidden);assert.equal(capture(),before);
-setDebugMode(false);assert(!startDebugCourse(0,'short',1));assert.equal(debugCourseTrial,null);reset(1);assert.equal(courseTypeId,0);assert.equal(level,1);assert.equal(HEIGHT,H);assert(!debugAttempt);assert.equal(sent,0);
-console.log('PASS 10 direct types/trials: labels vs legacy rules, fixed intent/seed/length, deterministic retry, distinct new seeds, requested/actual/fallback report, cancel/exit/normal restore, no progress/items/lives/ads/scores/rewards/help/storage writes');
-console.log(JSON.stringify(report));
-`,ctx);
-const release=vm.createContext({assert,performance,location:{protocol:'capacitor:'},ASCENT_IOS_BUILD:{configuration:'Release',debugAllowed:false}});
-vm.runInContext(env+source+`state='map';mapPreparing=false;debugMode=true;assert(!startDebugCourse(0,'short',1));updateDebugCourseReport();assert(ui.debugCourseStatus.hidden);assert.equal(debugCourseTrial,null);`,release);
-console.log('PASS Release: direct trial calls denied and inspector hidden regardless of old/debug state');
+// Actual score geometry and asynchronous cancellation are tested in
+// debug-score-trial/coupled-course-preparation. Here exercise policy and
+// arbitrary-start lifecycle across Web / native Debug / native Release.
+prepareCurrentStage=()=>SixPairSelection.withBaseline(prepareTutorialCourse);
+state='map';mapPreparing=false;mapTransition=null;settingsOpen=false;debugMode=true;renderLevelMap();
+assert.equal(ui.debugControls.hidden,!DEBUG_FEATURES_ALLOWED);
+if(DEBUG_FEATURES_ALLOWED){
+ assert(startDebugScoreTrial(37));assert(activeDebugScoreTrial());assert.equal(debugCourseTrial.score,37);
+ assert.equal(courseSeed(),47);assert.equal(ui.debugCourseSummary.textContent,'SCORE 37 / 100');
+ assert.equal(rankingAttemptEligible(),false);cameraIntro=null;hideStageHelp();finish(false);ui.retry.onclick();assert.equal(debugCourseTrial.score,37);
+ cameraIntro=null;hideStageHelp();openSettings();ui.debugScoreNext.onclick();assert.equal(debugCourseTrial.score,38);assert(!settingsOpen);
+ ui.debugRegenerate.onclick();assert.equal(debugCourseTrial.score,38);
+ ui.debugCourseExit.onclick();assert.equal(state,'map');assert.equal(debugCourseTrial,null);assert(ui.debugCourseStatus.hidden);
+ assert.equal(save(),before);mapPreparing=false;mapTransition=null;setDebugMode(false);assert.equal(startDebugScoreTrial(1),false);
+}else{
+ assert.equal(startDebugScoreTrial(37),false);
+ debugAttempt=true;debugCourseTrial={kind:'score',score:37,seed:47,typeId:generationTypeForScore(37)};
+ assert.equal(activeDebugCourse(),null);updateDebugCourseReport();assert(ui.debugCourseStatus.hidden);
+ reset(1);assert.equal(debugCourseTrial,null);assert.equal(debugAttempt,false);assert.equal(save(),before);
+}
+assert.equal(sent,0);
+`;
+for(const mode of ['Web','Debug','Release']){
+ const data=new Map([['ascent.tutorial-stage0.v1',JSON.stringify({version:1,status:'completed'})],['unrelated.keep','preserved']]);
+ const global={localStorage:{getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k)}};
+ if(mode!=='Web'){global.location={protocol:'capacitor:'};global.ASCENT_IOS_BUILD={configuration:mode,debugAllowed:mode==='Debug'};}
+ const source=entries.map(({file,source})=>mode==='Web'?source:nativeSource(path.basename(file),source)).join('\n');
+ new Function('assert','globalThis','data',env+source+checks)(assert,global,data);
+ console.log('PASS retired TYPE boundary '+mode+': no old UI/API/recipe builders; stable internal IDs; malformed state rejected; current score lifecycle and saved data protected');
+}

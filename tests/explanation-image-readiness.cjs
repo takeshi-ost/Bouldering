@@ -43,7 +43,17 @@ function blocked(b){const before=frozen(b);b.run('down({clientX:body.x,clientY:b
   tap(b,false);b.fireTimer(b.run('tutorialRun.transitionTimer'));assert.equal(b.run('tutorialRun.transition'),'loading');assert(b.node('tutorialDialog').classList.contains('explanation-image-loading'));blocked(b);tap(b,false);
   await c.ready(second);assert.equal(b.run('tutorialRun.transition'),'opening');settleTransition(b);page(b,2);
   tap(b,false);b.fireTimer(b.run('tutorialRun.transitionTimer'));await c.ready(third);settleTransition(b);page(b,3);tap(b);
-  const length=b.run('route.length');for(let i=1;i<length;i++)play(b,i);
+  const length=b.run('route.length');for(let i=1;i<length;i++){
+   play(b,i);
+   if(i===2){
+    assert.equal(b.run('moveCount'),2);assert(b.run('tutorialRun.imageLoading'));blocked(b);
+    const cancelImage=await c.ready('assets/tutorial-two-finger-cancel-78-v1.png');
+    assert.equal(b.node('tutorialImage'),cancelImage);assert.equal(b.run('tutorialRun.explanation.id'),'move-cancel');
+    tap(b,false);b.fireTimer(b.run('tutorialRun.transitionTimer'));assert(b.run('tutorialRun.imageLoading'));blocked(b);
+    const undoImage=await c.ready('assets/help-body-tap-78-v1.png');settleTransition(b);
+    assert.equal(b.node('tutorialImage'),undoImage);assert.equal(b.run('tutorialRun.explanation.id'),'move-undo');tap(b);
+   }
+  }
   assert(b.run('tutorialRun.imageLoading'));assert.equal(b.run('tutorialRun.pendingOutcome'),true);assert.equal(b.run('state'),'playing');assert.equal(b.run('stageStartContext'),null);blocked(b);
   await c.ready(goal);page(b,4);tap(b,false);b.fireTimer(b.run('tutorialRun.transitionTimer'));assert.equal(b.run('state'),'playing');assert.equal(b.run('tutorialPending()'),true);
   await c.ready(gear);settleTransition(b);page(b,5);tap(b);assert.equal(b.run('state'),'map');assert.equal(b.run('stageStartContext.n'),1);
@@ -116,5 +126,5 @@ function blocked(b){const before=frozen(b);b.run('down({clientX:body.x,clientY:b
   const c=controlledImages(),b=boot(new Map([['ascent.player-uuid.v1','existing']]),{imageClass:c.Image});b.run('reset(1);featureHelpSeen.wide=true;hearts=[{}];showStageHelp();');c.pending(heart).fail();c.pending(heart).fail();assert(b.node('featureHelpDialog').open);assert(b.node('featureHelpContent').querySelector('.course-heart-icon').hidden);b.run('dismissStageHelp();');assert(!b.run('featureHelpOpen'));
   b.run('reset(1);featureHelpSeen.heart=false;hearts=[{}];showStageHelp();showTitleScreen();');await c.ready(heart);assert(!b.node('featureHelpDialog').open);assert(!b.run('featureHelpOpen'));
  }
- console.log('PASS explanation image readiness: shared preload/cache, actual decoded-node mount, all five tutorial pages and wide/heart/hazard barrier, continuous pause/input/goal deferral, decode/error retry, 2×4s timeout, text-only nonblocking fallback, no late insertion, subsequent retry and stale navigation/transition guards (controlled Image/DOM, not browser QA)');
+ console.log('PASS explanation image readiness: shared preload/cache, actual decoded-node mount, all seven tutorial pages and wide/heart/hazard barrier, continuous pause/input/goal deferral, decode/error retry, 2×4s timeout, text-only nonblocking fallback, no late insertion, subsequent retry and stale navigation/transition guards (controlled Image/DOM, not browser QA)');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,6 +1,6 @@
 {
   "name": "ascent-ios-local",
-  "version": "0.5.11",
+  "version": "0.5.12",
   "private": true,
   "description": "Native iOS wrapper for ASCENT; online sync with an explicit offline test mode",
   "engines": {

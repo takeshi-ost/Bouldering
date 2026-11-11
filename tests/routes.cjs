@@ -63,8 +63,11 @@ for(let n=1;n<=20;n++){
         check(labStraightSupportDistance(h,route)<=80+1e-9,'Straight exemption outside actual-route band '+n+'/'+id);
     }
     const ordinary=finalHolds.filter(h=>h.type!=='hazard');
-    for(const id of densityStats.selectionHoldIds) {
+    const selectionIds=densityStats.selectionHoldIds||finalHolds.filter(h=>!usedIds.has(h.id)).map(h=>h.id);
+    for(const id of selectionIds) {
         if(shapeProtected.has(id)||straightProtected.has(id))continue;
+        // Spike contacts were already excluded from this free-graph fixture.
+        if(!ordinary.some(h=>h.id===id))continue;
         holds=ordinary.filter(h=>h.id!==id);
         check(!samePairRoute(route,replayRoute(route)),'Unnecessary selection hold retained '+n+'/'+id);
     }
@@ -106,18 +109,17 @@ for(let n=1;n<=20;n++){
     const swept=hearts.filter(h=>route.slice(1).some((p,i)=>p.action?fingerRouteTouchesHeart(route[i],p,h):torsoTouchesHeart(route[i],p,h))).map(h=>h.id);
     check(JSON.stringify(hearts.filter(h=>h.collected).map(h=>h.id))===JSON.stringify(swept),'Validated route must collect all and only swept recoveries '+n);
     check(holds.filter(h=>h.wide).length<=(activeCourseGeneration.recipe.composition==='pair'?6:3),'Too many wide holds');
-    report.push({level:n,moves:moveCount,holds:holds.length,wide:holds.filter(h=>h.wide).length,selectionHolds:densityStats.selectionHoldIds.length});
+    report.push({level:n,moves:moveCount,holds:holds.length,wide:holds.filter(h=>h.wide).length,selectionHolds:selectionIds.length});
 }
 // Keep native pruning coverage non-vacuous even when formal profile selectors
 // are all intentionally protected: an unreachable unused normal hold is removed.
-debugMode=true;debugAttempt=true;debugCourseTrial={typeId:0,lengthCategory:'short',seed:1};
+debugMode=true;debugAttempt=true;
 reset(1);const nativeRoute=route,redundantId=Math.max(...holds.map(h=>h.id))+1;
 holds.push({id:redundantId,x:-10000,y:HEIGHT+10000,type:'normal',row:null});
 pruneUnusedHolds();
 check(!holds.some(h=>h.id===redundantId),'Native pruning retained a provably redundant hold');
 check(samePairRoute(nativeRoute,replayRoute(route)),'Native pruning changed the route');
-for(const id of densityStats.selectionHoldIds){const saved=holds;holds=saved.filter(h=>h.id!==id);check(!samePairRoute(route,replayRoute(route)),'Native unnecessary selector retained '+id);holds=saved;}
-debugMode=false;debugAttempt=false;debugCourseTrial=null;
+debugMode=false;debugAttempt=false;
 reset(2);hideStageHelp();advanceCameraIntro(0);advanceCameraIntro(1650);
 const origin={...body},before=[...grips],budget=stamina;
 camera=clamp(body.y-H*.6,0,HEIGHT-H);

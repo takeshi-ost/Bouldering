@@ -1,0 +1,186 @@
+{
+  "base": "2f904713170937cb5e4efa6b64f7ad83866b9d6a",
+  "source": "4f5738ade496c5a636ac3b606cf73427e421c828",
+  "scope": "Legacy TYPE debug retirement only; not unpublished0.5.12/13 reconstruction or publication",
+  "equal": true,
+  "aggregateSHA256": "9726496c23db469e2b74b3e003c1213d9db40685f85b8cafb1506144626ab4ac",
+  "rows": [
+    {
+      "kind": "normal",
+      "stage": 1,
+      "sha256": "78e8c9ce99b4577f6ce66fc7ca38474009229b3634ad52f8f0005b9dda585eed",
+      "initialStamina": 9,
+      "moves": 6,
+      "hearts": 0,
+      "spikes": 0,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "normal",
+      "stage": 4,
+      "sha256": "4e9bdaa7d8faa759ca3023ff62cab97cccb313b583692c2b9121c543adcc738b",
+      "initialStamina": 7,
+      "moves": 4,
+      "hearts": 0,
+      "spikes": 0,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "normal",
+      "stage": 23,
+      "sha256": "867d8a3760b7fda213f2b7e0dcea11919f3a3093f205237e55b669300c02e420",
+      "initialStamina": 7,
+      "moves": 7,
+      "hearts": 1,
+      "spikes": 0,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "normal",
+      "stage": 55,
+      "sha256": "5c4c3ca6af90e4bd292357ab16eecb3379938e221a0a894a0fb38a7b5f5b2912",
+      "initialStamina": 37,
+      "moves": 34,
+      "hearts": 0,
+      "spikes": 5,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "normal",
+      "stage": 100,
+      "sha256": "d4e5f6a0471b04b57fe334601a01403d0a740893bfd01698fda906938f8c93c4",
+      "initialStamina": 23,
+      "moves": 31,
+      "hearts": 5,
+      "spikes": 0,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "normal",
+      "stage": 148,
+      "sha256": "e0249bb2329fea8f04cf77335d6a7eb6a87bfa51cc4fd5f31b7e49cfa55d2117",
+      "initialStamina": 12,
+      "moves": 18,
+      "hearts": 4,
+      "spikes": 0,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "daily",
+      "date": "2026-02-04",
+      "sha256": "d1b3891905684d16021a46e7537d5c5b37b152cb2416e17be6b0786ca183f7ea",
+      "initialStamina": 20,
+      "moves": 17,
+      "hearts": 0,
+      "spikes": 4,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "daily",
+      "date": "2026-10-23",
+      "sha256": "0a6a3419488bfc9b6a19d5aafc993b7b1be4a9a68e869970822fcea7f82564cd",
+      "initialStamina": 25,
+      "moves": 26,
+      "hearts": 2,
+      "spikes": 0,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "daily",
+      "date": "2026-11-11",
+      "sha256": "e4a02dd82fabe015a851656aad19ff6dceb02419b8279724db5bb3abea30a17a",
+      "initialStamina": 16,
+      "moves": 16,
+      "hearts": 1,
+      "spikes": 0,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "score",
+      "score": 1,
+      "sha256": "275202653364fb5b5ea1981cc5f8bd37ebed12ad72cfcb2787b3f12070fb7a57",
+      "initialStamina": 9,
+      "moves": 6,
+      "hearts": 0,
+      "spikes": 0,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "score",
+      "score": 37,
+      "sha256": "b1f77ada3a166121a502b423bf99f2a364965f9bec4b5502a5a8ffd2ba745e3f",
+      "initialStamina": 22,
+      "moves": 26,
+      "hearts": 3,
+      "spikes": 0,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "score",
+      "score": 55,
+      "sha256": "15c5139581cf6cce1ec2b2c89831da20d6a7b4ea02d5411dc157d4bd898f47bd",
+      "initialStamina": 37,
+      "moves": 34,
+      "hearts": 0,
+      "spikes": 10,
+      "coldWarmEqual": true
+    },
+    {
+      "kind": "score",
+      "score": 100,
+      "sha256": "79f7f65658b0d3a5c46876bbe2bed348893edf27d1aa032b61ec6df7ad7b0605",
+      "initialStamina": 31,
+      "moves": 32,
+      "hearts": 2,
+      "spikes": 18,
+      "coldWarmEqual": true
+    }
+  ],
+  "passedFocused": [
+    "balance-items",
+    "course-length",
+    "course-types (Web/native Debug/native Release)",
+    "dense-hazards",
+    "difficulty",
+    "course-generation",
+    "hazards",
+    "settings-layout",
+    "six-pair-generation-scope",
+    "debug-score-trial",
+    "coupled-course-preparation",
+    "coupled-course-worker --real --extended (5 real scenarios)",
+    "coupled-production-boundary",
+    "text",
+    "initial-language",
+    "language",
+    "ios-initial-language",
+    "six-pair-cache"
+  ],
+  "notRun": [
+    "full149 on integrated reconstructed release",
+    "real browser for this standalone branch",
+    "physical iOS/Safari/Xcode",
+    "full coupled population sweep"
+  ],
+  "knownExistingObservations": [
+    {
+      "case": "STAGE22 baseline witness",
+      "baseReproduced": true,
+      "moves": 24,
+      "budget": 18,
+      "heartsPlaced": 4,
+      "heartsOnWitness": 0,
+      "scope": "Not proof of unplayability: official stamina report only promises arithmetic, optional heart detours not covered by baseline witness."
+    },
+    {
+      "case": "capacitor Worker without native build policy",
+      "baseReproduced": true,
+      "error": "COURSE_PREPARATION_RESULT",
+      "input": {
+        "n": 2,
+        "score": 1
+      },
+      "scope": "Node worker diagnostic mimics capacitor location and missing build policy, not actual device reproduction. No fix included."
+    }
+  ]
+}

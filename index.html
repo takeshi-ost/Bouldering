@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="styles.css?v=ff7acfe09c90">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
     <script src="js/tutorial-state.js?v=8adae9aa1630" defer></script>
-    <script src="js/text-ja.js?v=8eb16aebcdf6" defer></script>
-    <script src="js/text-en.js?v=7c5616d641af" defer></script>
+    <script src="js/text-ja.js?v=b7b388347894" defer></script>
+    <script src="js/text-en.js?v=776d93c49c11" defer></script>
     <script src="js/text-dev-ja.js?v=778e1317540d" defer></script>
     <script src="js/text.js?v=c7df5d2ebf70" defer></script>
     <script src="js/score-metadata.js?v=11f4ce6668c5" defer></script>
-    <script src="js/config.js?v=a15a78eebab3" defer></script>
+    <script src="js/config.js?v=84e3f708e120" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=3438658870e1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -28,25 +28,25 @@
     <script src="js/finger-aim.js?v=50d41c61ca1f" defer></script>
     <script src="js/finger-route.js?v=2f355fb52497" defer></script>
     <script src="js/six-pair-selection.js?v=3001c2472ba3" defer></script>
-    <script src="js/game.js?v=6c98f301897b" defer></script>
+    <script src="js/game.js?v=412a2370411e" defer></script>
     <script src="js/route.js?v=196fc0f599c3" defer></script>
-    <script src="js/course.js?v=be5a5b1d78a1" defer></script>
+    <script src="js/course.js?v=2db489d41b91" defer></script>
     <script src="js/hazards.js?v=26ac55233974" defer></script>
     <script src="js/course-stamina-settings.js?v=e5a64ef8dafb" defer></script>
     <script src="js/course-generator-core.js?v=3612d7bedf39" defer></script>
-    <script src="js/course-adoption.js?v=1db490d2d44a" defer></script>
-    <script src="js/course-preparation-build.js?v=f7700c808406" defer></script>
-    <script src="js/course-preparation.js?v=9b32d03540c4" defer></script>
+    <script src="js/course-adoption.js?v=4116239692a4" defer></script>
+    <script src="js/course-preparation-build.js?v=817413152447" defer></script>
+    <script src="js/course-preparation.js?v=dc559f6c5352" defer></script>
     <script src="js/tutorial-course.js?v=c846a93a64e8" defer></script>
     <script src="js/map-art.js?v=ba5492a063da" defer></script>
-    <script src="js/level-map.js?v=f7609d5cca82" defer></script>
+    <script src="js/level-map.js?v=023e1f59d9cd" defer></script>
     <script src="js/daily.js?v=7585efffc8e2" defer></script>
     <script src="js/ads.js?v=10c96c8913f3" defer></script>
     <script src="js/lives.js?v=43566a05fc33" defer></script>
     <script src="js/rewards.js?v=bca1d0759442" defer></script>
-    <script src="js/debug-course.js?v=11596ed23b21" defer></script>
+    <script src="js/debug-course.js?v=2dd162027213" defer></script>
     <script src="js/six-pair-angle-overlay.js?v=efe15e773f7e" defer></script>
-    <script src="js/input.js?v=ba912be35c89" defer></script>
+    <script src="js/input.js?v=48cb749cd258" defer></script>
     <script src="js/renderer.js?v=bf46b3e735c9" defer></script>
     <script src="js/help-illustrations.js?v=3aa3b1ddec68" defer></script>
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
@@ -58,7 +58,7 @@
     <script src="js/account-deletion.js?v=a26b680d9a8b" defer></script>
     <script src="js/transfer.js?v=f4d72039a7c9" defer></script>
     <script src="js/language.js?v=a63e0182d0e0" defer></script>
-    <script src="js/tutorial.js?v=7b2ad9ddff49" defer></script>
+    <script src="js/tutorial.js?v=4cd643fd56bf" defer></script>
     <script src="js/main.js?v=d6b3474031a0" defer></script>
     <script type="module" src="js/firebase-client.js?v=bdd7a4650fe7"></script>
 </head>
@@ -147,9 +147,6 @@
                 <form id="debugControls" class="debug-controls" hidden>
                     <button id="debugScoreStart" type="button" data-i18n="debug.score.start"></button>
                     <small data-i18n="debug.score.help"></small>
-                    <label for="debugCourseType" data-i18n="debug.courseType"></label><select id="debugCourseType"></select>
-                    <label for="debugCourseLength" data-i18n="debug.courseLength"></label><select id="debugCourseLength"></select>
-                    <button id="debugGenerate" type="button" data-i18n="debug.generate"></button>
                     <label for="debugStage" data-i18n="ui.debugControls.label"></label>
                     <input id="debugStage" type="number" min="1" step="1" value="1" required inputmode="numeric">
                     <button id="debugPlay" class="map-secondary" type="submit" data-i18n="ui.debugPlay"></button>
@@ -302,7 +299,7 @@
                 <input id="soundVolume" type="range" min="0" max="100" step="1" value="100" data-i18n-aria-label="audio.effectsVolume">
             </div>
             <button id="showHelp" class="secondary" aria-haspopup="dialog" aria-controls="helpDialog" data-i18n="ui.showHelp"></button>
-            <section id="debugCourseStatus" class="debug-course-status" hidden><details><summary id="debugCourseSummary"></summary><strong id="debugCourseVerdict"></strong><pre id="debugCourseReport"></pre></details><button id="debugScoreNext" type="button" hidden data-i18n="debug.score.next"></button><button id="debugRegenerate" type="button" data-i18n="debug.regenerate"></button><button id="debugCourseExit" type="button" data-i18n="debug.exit"></button></section>
+            <section id="debugCourseStatus" class="debug-course-status" hidden><details><summary id="debugCourseSummary"></summary><strong id="debugCourseVerdict"></strong><pre id="debugCourseReport"></pre></details><button id="debugScoreNext" type="button" hidden data-i18n="debug.score.next"></button><button id="debugRegenerate" type="button" data-i18n="debug.score.retry"></button><button id="debugCourseExit" type="button" data-i18n="debug.exit"></button></section>
             <hr id="settingsDivider" class="settings-divider">
             <div id="mapSettingsControls" class="map-settings-controls" hidden>
                 <button id="mapEditCharacter" class="secondary" data-i18n="ui.mapEditCharacter"></button>

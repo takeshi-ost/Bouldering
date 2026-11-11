@@ -11,6 +11,7 @@ const elements={};const document={getElementById(id){return elements[id]||={styl
 const window={devicePixelRatio:1,addEventListener(){}};function requestAnimationFrame(){};function setTimeout(){return 0;}function clearTimeout(){}
 `;
 new Function('assert',env+source+`
+return SixPairSelection.withBaseline(()=>{
 // Historical pre-offset identity fixture; current offset behavior has its own suite.
 const savedNormalSeedOffset=CourseProgressionConfig.normalSeedOffset;
 CourseProgressionConfig.normalSeedOffset=0;
@@ -18,7 +19,7 @@ try {
 const fields=['type','length','composition','secondType','heartsFirst','heartsSecond','spikePercent','generationScore','distributionVersion'];
 const fingerprint=()=>JSON.stringify({holds,route,hearts,stamina,level,difficulty,courseTypeId,seed:courseSeed(),recipe:activeCourseGeneration.recipe,retry:activeCourseGeneration.retry});
 const real=[];
-// Historical course-v2 / distribution-v5 rejection fixtures: preserve the exact old sampled
+// Historical course-v2 / distribution-v5 recipe fixtures: preserve the exact old sampled
 // recipes independently of the current editable progression defaults.
 const currentSegments=CourseProgressionConfig.stageSegments,currentTail=CourseProgressionConfig.afterLastStageScore;
 CourseProgressionConfig.stageSegments=[
@@ -31,7 +32,7 @@ try {
 for(const n of [117,201,261]){
  dailyRun=null;const expected=CourseProgression.recipe(CourseProgression.resolveStage(n));
  reset(n);const retry=activeCourseGeneration.retry;
- assert(retry.attempts>1&&retry.attempts<=32,'historical v2 rejected stage '+n+' must use bounded geometry retry');
+ assert(retry.attempts>=1&&retry.attempts<=32,'historical recipe must remain bounded; newer generator may succeed immediately');
  assert.equal(retry.initialSeed,n);assert.equal(retry.geometrySeed,(n+retry.attempts-1)>>>0);
  for(const key of fields)assert.equal(activeCourseGeneration.recipe[key],expected[key],key+' changed at stage '+n);
  assert.equal(level,n);assert.equal(courseSeed(),n);assert.equal(generatedCourse.level,n);assert.equal(generatedCourse.seed,n);
@@ -46,11 +47,10 @@ for(const n of [117,201,261]){
  real.push({stage:n,score:expected.generationScore,type:expected.type,length:expected.length,...retry});
 }
 } finally {formalLegacySampler=false;CourseProgressionConfig.stageSegments=currentSegments;CourseProgressionConfig.afterLastStageScore=currentTail;}
-// First naturally rejected Daily found after the October/November scan:
-// 2026-01-16 keeps contrast→switchback/long/score26/caps1+2 and uses +1.
+// Historical Daily recipe/identity fixture. New generation need not reject its first seed.
 dailyRun={...dailyProfile('2026-01-16'),returnCourse:'existing'};
 const realDayRecipe=CourseProgression.recipe(CourseProgression.resolveDaily(dailyRun.date));
-reset(dailyRun.referenceStage);assert.equal(activeCourseGeneration.retry.attempts,2);assert.equal(activeCourseGeneration.retry.geometrySeed,20260117);assert.equal(dailyRun.seed,20260116);assert.equal(courseSeed(),20260116);
+reset(dailyRun.referenceStage);assert(activeCourseGeneration.retry.attempts>=1 && activeCourseGeneration.retry.attempts<=32);assert.equal(activeCourseGeneration.retry.geometrySeed,20260116+activeCourseGeneration.retry.attempts-1);assert.equal(dailyRun.seed,20260116);assert.equal(courseSeed(),20260116);
 for(const key of fields)assert.equal(activeCourseGeneration.recipe[key],realDayRecipe[key]);
 const realDayFirst=fingerprint();reset(dailyRun.referenceStage);assert.equal(fingerprint(),realDayFirst);
 const dayGeometry=()=>JSON.stringify({holds,route,HEIGHT,initialGrips,hearts:labHeartsCache,stamina:labStaminaCache});
@@ -104,7 +104,8 @@ try {
  for(const failure of [new Error('unknown exception'),new TypeError('programmer failure')]){let calls=0;labGenerateSkeleton=()=>{calls++;throw failure;};formalRetrySampleCount=0;assert.throws(prepareAdoptedCourse,error=>error===failure);assert.equal(calls,1);assert.equal(formalRetrySampleCount,1);assertPrevious();}
  let calls=0;labGenerateSkeleton=()=>{calls++;};const rounding=CourseProgressionConfig.rounding;try{CourseProgressionConfig.rounding='invalid';assert.throws(prepareAdoptedCourse,/rounding/);assert.equal(calls,0);assertPrevious();}finally{CourseProgressionConfig.rounding=rounding;}
 } finally {({labGenerateSkeleton,labPrepareSpikes,labPrepareHearts,labPrepareStaminaAdjustment}=originals);}
-console.log('PASS fixed-recipe geometry retries: 3 historical v2 rejected stages/direct-core parity, repeat determinism, Daily identity, one sample, ordered +1 and uint32 wrap,32-attempt exhaustion and rollback; no post-reduction solvability claim');
+console.log('PASS fixed-recipe geometry retries: 3 historical v2 recipe regressions/direct-core parity, repeat determinism, Daily identity, one sample, ordered +1 and uint32 wrap,32-attempt exhaustion and rollback; no post-reduction solvability claim');
 console.log(JSON.stringify(real));
 } finally {CourseProgressionConfig.normalSeedOffset=savedNormalSeedOffset;}
+});
 `)(assert);

@@ -30,17 +30,12 @@ const GAME_TEXT_JA = Object.freeze({
     "tutorial.intro.movement": "手足2つが自由に動きます。足は手より高い場所には置けません",
     "tutorial.intro.goal": "スタミナがなくなる前に、ゴールを両手でつかむと登頂成功です",
     "tutorial.wide": "大きなホールドには、両手または両足を置くことができます。",
+    "tutorial.move.cancel": "2本タップで移動をキャンセルできます",
+    "tutorial.move.undo": "ボディを短くタップすると1ムーブ戻せます",
     "tutorial.goal.fixed": "ゴールするには両足もホールドに固定されていないといけません",
     "tutorial.goal.finish": "くわしい操作やルールの説明は歯車アイコンで開くメニューから見ることができます",
 
-    "debug.typeMatched": "要求方針と分類一致（有限探索内）",
-    "debug.typeMismatch": "要求方針と分類が不一致／未確定",
 
-    "debug.trialTitle": "試作 TYPE {value0}",
-    "debug.courseType": "タイプ",
-    "debug.courseLength": "コース長",
-    "debug.generate": "乱数で試作",
-    "debug.regenerate": "別seedで再生成",
     "debug.exit": "試作を終了",
     "debug.trialError": "試作生成失敗：{value0}",
 

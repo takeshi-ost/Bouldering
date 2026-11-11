@@ -7,7 +7,7 @@ const env=`const expectedScore=${scoreFixture.toString()};
 
 let clock=100;const performance={now:()=>clock};
 const elements={};const document={getElementById(id){return elements[id] ||= {
- style:{},classList:{toggle(){}},focus(){document.activeElement=this;},events:{},setAttribute(){},addEventListener(k,fn){this.events[k]=fn;},
+ innerHTML:'',style:{},classList:{toggle(){}},focus(){document.activeElement=this;},events:{},setAttribute(){},addEventListener(k,fn){this.events[k]=fn;},
  showModal(){this.open=true;},close(){this.open=false;},
  getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
@@ -39,7 +39,7 @@ function play(i){return SixPairSelection.withBaseline(()=>{
  assert(validFingerAction(route[i].action));down(e({dx:0,dy:0}));
  for(const point of route[i].action.points)move(e(point));release();assert.equal(moveCount,i);
 });}
-function begin(n=1){hideStageStart();playsSinceAd=0;reset(n);advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);assert(!cameraIntro);}
+function begin(n=1){hideStageStart();playsSinceAd=0;reset(n);hideStageHelp();advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);assert(!cameraIntro);}
 reset(1);assert.equal(runTimeMs(),0);advanceCameraIntro(100);clock=1099;advanceCameraIntro(clock);
 assert(cameraIntro);assert.equal(runStartedAt,null);assert.equal(runTimeMs(),0);
 clock=1100;advanceCameraIntro(clock);assert(!cameraIntro);assert.equal(runStartedAt,1100);
@@ -49,10 +49,10 @@ assert.equal(moveCount,0);assert.equal(runTimeMs(),6000,'Canceled drag must not 
 clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(runTimeMs(),usedTime,'Undo must not erase time');
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
 assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
-assert(ui.resultStats.hidden && !ui.resultStars.hidden && ui.resultDifficulty.hidden);assert(!ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
+assert(!ui.resultStats.hidden && !ui.resultStars.hidden && !ui.resultDifficulty.hidden);assert(ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
 const result=expectedScore({moves:moveCount,timeMs:Math.floor(clock-1100),stars:3,version:COURSE_VERSION},{appVersion:RELEASE_VERSION,platform:'Web',scoreSpecVersion:COURSE_VERSION});
 assert.deepEqual(stageRecords.existing[1],result);
-assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert(ui.resultLeaderboard.innerHTML.includes(formatClearTime(result.timeMs)));assert.equal((ui.resultLeaderboard.innerHTML.match(/class="score-row/g)||[]).length,5);assert.equal((ui.resultLeaderboard.innerHTML.match(/is-player/g)||[]).length,1);
+assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert.equal(ui.resultLeaderboard.innerHTML,'');
 assert.equal(formatClearTime(0),'00:00:00');assert.equal(formatClearTime(999),'00:00:99');
 assert.equal(formatClearTime(60000),'01:00:00');assert.equal(formatClearTime(61029),'01:01:02');
 assert.equal(formatClearTime(3600010),'60:00:01');
@@ -69,7 +69,7 @@ const firstRecord=JSON.stringify(stageRecords.existing[1]);
 begin();stamina=1;clock+=500;play(1);assert.equal(state,'lost');assert(ui.overlay.open);assert(ui.resultStats.hidden);assert(ui.resultTap.hidden && !ui.retry.hidden && !ui.closeResult.hidden);assert(ui.resultStars.hidden);assert.equal(ui.resultStars.textContent,'');
 clock+=5000;assert.equal(runTimeMs(),500);assert.equal(JSON.stringify(stageRecords.existing[1]),firstRecord);
 ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert(!ui.overlay.open && ui.overlay.hidden);assert.equal(runStartedAt,null);assert.equal(runTimeMs(),0);
-advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);
+hideStageHelp();advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);
 for(let i=1;i<route.length;i++){clock+=100;play(i);}
 assert.equal(state,'won');assert.equal(stageRecords.existing[1].timeMs,100*moveCount,'Replay must replace with the latest record');
 assert.notEqual(JSON.stringify(stageRecords.existing[1]),firstRecord);
@@ -97,13 +97,13 @@ new Function('assert','data',env+source+`
 for(const moves of [0,1,5,9,10,20,30,40,100])assert.equal(stageStamina(moves),moves+3);
 for(const [difference,stars] of [[-1,3],[0,3],[1,2],[2,2],[3,1],[8,1]]) {
  reset(1);cameraIntro=null;debugAttempt=true;moveCount=route.length-1+difference;finish(true);
- assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden && !ui.resultRanking.hidden);
+ assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden && ui.resultRanking.hidden);
 }
 // Display labels use the selected rule profile, including daily runs.
 for(const [value,label] of [[0,'EASY'],[1,'EASY'],[2,'NORMAL'],[3,'HARD']]) {
  difficulty=value;courseTypeId=[0,1,2,6][value];finish(true);
  assert.equal(courseTypeLabel(courseTypeId),label);
- assert.equal(ui.resultDifficulty.textContent,label);assert(ui.resultDifficulty.hidden && !ui.resultRanking.hidden);
+ assert.equal(ui.resultDifficulty.textContent,label);assert(!ui.resultDifficulty.hidden && ui.resultRanking.hidden);
  debugMode=true;updateUI();assert(ui.progress.textContent.endsWith('/ '+label));
  dailyRun={...dailyProfile('2026-10-17'),difficulty:value,returnCourse:'existing'};
  finish(true);assert.equal(ui.resultDifficulty.textContent,'10月17日（土）');assert(!ui.resultDifficulty.hidden && ui.resultRanking.hidden);
