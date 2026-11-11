@@ -11,7 +11,7 @@ assert(title.indexOf('class="title-footer"')<title.indexOf('id="playerUuid"'));
 assert(title.indexOf('id="titleTap"')<title.indexOf('class="title-footer"'));
 for(const [file,catalog] of [['js/text-ja.js','GAME_TEXT_JA'],['js/text-en.js','GAME_TEXT_EN']]) {
  const text=require('node:vm').runInNewContext(fs.readFileSync(path.join(root,file),'utf8')+`;${catalog}`);
- assert.equal(text['title.tagline'],'One-swipe bouldering');assert.equal(text['title.publisher'],undefined);
+ assert.equal(text['title.tagline'],'Bouldering Puzzle');assert.equal(text['title.publisher'],undefined);
 }
 assert(title.includes('id="titleTransfer"'));assert(title.includes('id="titleWallpaper"'));assert.equal((title.match(/<button\b/g)||[]).length,1);
 assert(!/id="(?:existingCourse|editCharacter|debugMode)"/.test(html));

@@ -433,7 +433,7 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 /* The title covers a laid-out, decoded map until preparation is complete. */
 .title-screen { outline:none; cursor:default; -webkit-tap-highlight-color:transparent; }
 .title-screen[aria-disabled="false"] { cursor:pointer; }
-.title-content .title-tagline { margin:6px 0 0; font-size:13px; letter-spacing:.4px; }
+.title-content .title-tagline { margin:6px 0 0; font-size:15px; color:#4f5e53; letter-spacing:.4px; }
 /* The wall already uses the safe logical viewport. Equal top/bottom padding
    reserves footer/control clearance without shifting the visible title group. */
 .title-content .brand { margin:0; line-height:1.2; }

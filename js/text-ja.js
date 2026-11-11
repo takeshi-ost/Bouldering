@@ -200,7 +200,7 @@ const GAME_TEXT_JA = Object.freeze({
     "ui.closeHelp.aria-label": "説明を閉じる",
     "title.document": "ASCENT — クライミングパズル",
     "title.brand": "ASCENT",
-    "title.tagline": "One-swipe bouldering",
+    "title.tagline": "Bouldering Puzzle",
     "ui.titleTransfer": "データ引き継ぎ",
     "ui.characterEditor.label": "プレイヤー名",
     "ui.playerNameError": "プレイヤー名を入力してください。",

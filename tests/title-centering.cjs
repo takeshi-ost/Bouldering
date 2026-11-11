@@ -8,7 +8,8 @@ assert.match(screen,/inset:0/);assert.match(screen,/padding:108px 22px;/);assert
 assert(!/env\(|100(?:d|s|l)?vh/.test(screen),'Do not double-charge safe areas or use raw device height');
 assert.match(content,/display:flex;/);assert.match(content,/flex-direction:column;/);assert.match(content,/margin:auto;/);
 assert.match(rule('.title-content .brand'),/margin:0; line-height:1.2;/);
-assert.match(rule('.title-content .title-tagline'),/margin:6px 0 0; font-size:13px;/);
+assert.match(rule('.title-content .title-tagline'),/margin:6px 0 0; font-size:15px;/);
+assert.match(rule('.title-content .title-tagline'),/color:#4f5e53;/);
 assert.match(rule('.title-content p'),/line-height:1.8;/);
 assert.match(rule('.brand'),/font-size:36px;/);
 assert.match(rule('.title-tap'),/margin-top:44px; min-height:34px;/);
@@ -31,12 +32,12 @@ const cases=[
  [320,568,{}],[844,390,{left:47,right:47,bottom:21}],[390,300,{top:47}],
  [1366,768,{}]
 ];
-const padding=108,brand=36*1.2,tagline=6+13*1.8,tap=44+26+8;
+const padding=108,brand=36*1.2,tagline=6+15*1.8,tap=44+26+8;
 for(const [width,height,insets] of cases){
  const frame=context.viewportMetrics(width,height,insets);
  assert(frame.height>=700-1e-8,'Logical viewport has room even on short physical displays');
  for(const textScale of [1,1.5,2]){
-  const group=(brand+13*1.8+26)*textScale+6+44+8;
+  const group=(brand+15*1.8+26)*textScale+6+44+8;
   const available=frame.height-2*padding;
   assert(group<=available,'Content fits between reserved footer/control areas');
   // Flex children keep margins separate; grid centers their complete box.
@@ -48,5 +49,5 @@ for(const [width,height,insets] of cases){
   assert.equal(pendingHeight,readyHeight,'visibility:hidden reserves identical TAP geometry');
  }
 }
-assert.equal(brand+tagline+tap,150.6);
+assert.equal(brand+tagline+tap,154.2);
 console.log('PASS title centering: spacer-free group, reserved hidden TAP, symmetric safe logical viewport; 7 viewport cases × 3 text scales; footer/identity/settings DEBUG control preserved (static/numeric, no browser QA)');
