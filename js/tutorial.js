@@ -5,8 +5,8 @@ const TUTORIAL_CONFIG={version:'11',steps:[
     {id:'intro-welcome',when:{event:'start'},titleKey:'tutorial.title.play',textKey:'tutorial.intro.welcome',image:'assets/tutorial-swipe-78-v1.png'},
     {id:'intro-movement',when:{event:'start'},titleKey:'tutorial.title.play',textKey:'tutorial.intro.movement',image:'assets/tutorial-feet-limit-78-v2.png'},
     {id:'intro-goal',when:{event:'start'},titleKey:'tutorial.title.play',textKey:'tutorial.intro.goal',image:'assets/tutorial-goal-hands-78-v2.png'},
-    {id:'move-cancel',when:{event:'move',count:4},titleKey:'tutorial.title.play',textKey:'tutorial.move.cancel',image:'assets/tutorial-two-finger-cancel-78-v1.png'},
-    {id:'move-undo',when:{event:'move',count:4},titleKey:'tutorial.title.play',textKey:'tutorial.move.undo',image:'assets/help-body-tap-78-v1.png'},
+    {id:'move-cancel',when:{event:'move',count:4},titleKey:'tutorial.title.cancel',textKey:'tutorial.move.cancel',image:'assets/tutorial-two-finger-cancel-78-v1.png'},
+    {id:'move-undo',when:{event:'move',count:4},titleKey:'tutorial.title.undo',textKey:'tutorial.move.undo',image:'assets/help-body-tap-78-v1.png'},
     {id:'goal-fixed',when:{event:'goal'},titleKey:'tutorial.title.complete',textKey:'tutorial.goal.fixed',image:'assets/tutorial-goal-feet-78-v2.png'},
     {id:'goal-finish',when:{event:'goal'},titleKey:'tutorial.title.complete',textKey:'tutorial.goal.finish',image:'assets/settings-gear.svg'}
 ]};

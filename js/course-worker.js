@@ -1,5 +1,5 @@
 'use strict';
-globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"60f1ff82e363e29ed52c996f120d76b69ae3ce57971e377bf2e0fd04aa9a80d8","sources":[{"path":"js/text-ja.js","sha256":"3d448cb076a7e9a4803131a938d7264b608326291b5f58c539b62f1ad5127819"},{"path":"js/text-en.js","sha256":"46badc763de4854e1135989e6721b34c1b77e64e016ad6af430b796d83c1e8fa"},{"path":"js/text-dev-ja.js","sha256":"778e1317540d5fd3c6440ecd306a1ffd02328bbe02df5fc3c0c5cc6f99c6602f"},{"path":"js/config.js","sha256":"3775e699ff0ecd93e594ed810f37dba7cc398ac4ab74040ba78e22dfdfdf194b"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"2f355fb52497a23ea8ab8cacbf913b82688e70e64a937763e523114ebf0e067f"},{"path":"js/six-pair-selection.js","sha256":"3001c2472ba388076e3465f499bbd6594eb984b74f7488efa86f89a66350da78"},{"path":"js/game.js","sha256":"412a2370411e7a55d2727cf04d0a4307cf936e14ebd846e686b8edec1aa06351"},{"path":"js/route.js","sha256":"196fc0f599c3ec9c3ef81e850e1169a55657fcd555483d6b0750b7e823526f46"},{"path":"js/course.js","sha256":"2db489d41b918fa4c39534bf6998121ed30a3a392941da439389c7a3db5f99ae"},{"path":"js/hazards.js","sha256":"26ac55233974a498ae6962cb437a6d6fd777248614bb27e7ae65f94120275157"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"3612d7bedf39c9ea9a6cea6c14d5425e314796b36fc65524ebfa9e8edcc367d2"},{"path":"js/course-adoption.js","sha256":"4116239692a490e82a3870ebda26e86c773449449bad260cfed25f9d764ab9bb"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"dc559f6c5352939b7288e97e4b26ceb9936a28084562e5af585ee7e6ec1ccc6a"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"c830ae65e1e699c280ccdac7b6bcc85ab3f1da3b9adc69e48148359fe6f88aee"}]});
+globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"cc039103b21a3e9b8d210b508348a09bcd4bb0e81aaef3edfd0a824876be521a","sources":[{"path":"js/text-ja.js","sha256":"a390793d04b714373f1c3e6b0049a7ecf1f533039b502ec73f434492d73b575d"},{"path":"js/text-en.js","sha256":"73384f4808dcf4b70bbf4cb211f45e91b6526476784fdfa4a8f05cb2cdcdd0b9"},{"path":"js/text-dev-ja.js","sha256":"778e1317540d5fd3c6440ecd306a1ffd02328bbe02df5fc3c0c5cc6f99c6602f"},{"path":"js/config.js","sha256":"4c79bc53b323a7a665d42ebee90ab09207706feca22fe67e8f36916464540506"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"2f355fb52497a23ea8ab8cacbf913b82688e70e64a937763e523114ebf0e067f"},{"path":"js/six-pair-selection.js","sha256":"3001c2472ba388076e3465f499bbd6594eb984b74f7488efa86f89a66350da78"},{"path":"js/game.js","sha256":"412a2370411e7a55d2727cf04d0a4307cf936e14ebd846e686b8edec1aa06351"},{"path":"js/route.js","sha256":"196fc0f599c3ec9c3ef81e850e1169a55657fcd555483d6b0750b7e823526f46"},{"path":"js/course.js","sha256":"2db489d41b918fa4c39534bf6998121ed30a3a392941da439389c7a3db5f99ae"},{"path":"js/hazards.js","sha256":"26ac55233974a498ae6962cb437a6d6fd777248614bb27e7ae65f94120275157"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"3612d7bedf39c9ea9a6cea6c14d5425e314796b36fc65524ebfa9e8edcc367d2"},{"path":"js/course-adoption.js","sha256":"4116239692a490e82a3870ebda26e86c773449449bad260cfed25f9d764ab9bb"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"dc559f6c5352939b7288e97e4b26ceb9936a28084562e5af585ee7e6ec1ccc6a"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"c830ae65e1e699c280ccdac7b6bcc85ab3f1da3b9adc69e48148359fe6f88aee"}]});
 globalThis.ASCENT_COURSE_WORKER=true;
 let debugAttempt=false;
 function isTutorialRun(){return tutorialRun!==null;}
@@ -29,7 +29,7 @@ const GAME_TEXT_JA = Object.freeze({
     "formal.seed.unsafe": "DEBUG を ON にして、マップで適用してください。",
     "formal.seed.saved": "適用しました。次の検証用ステージから反映します。",
     "formal.seed.unsaved": "このセッションに適用しました。端末への保存はできませんでした。",
-    // Owner-supplied tutorial copy, verbatim; English intentionally falls back to Japanese until a translation is approved.
+    // Owner-supplied Japanese tutorial copy; English translations are in text-en.js.
     "tutorial.title.play": "ASCENTにようこそ！",
     "tutorial.title.complete": "チュートリアル完了",
     "tutorial.title.wide": "大きなホールド",
@@ -37,6 +37,8 @@ const GAME_TEXT_JA = Object.freeze({
     "tutorial.intro.movement": "手足2つが自由に動きます。足は手より高い場所には置けません",
     "tutorial.intro.goal": "スタミナがなくなる前に、ゴールを両手でつかむと登頂成功です",
     "tutorial.wide": "大きなホールドには、両手または両足を置くことができます。",
+    "tutorial.title.cancel": "操作のやり直し",
+    "tutorial.title.undo": "アンドゥ",
     "tutorial.move.cancel": "2本タップで移動をキャンセルできます",
     "tutorial.move.undo": "ボディを短くタップすると1ムーブ戻せます",
     "tutorial.goal.fixed": "ゴールするには両足もホールドに固定されていないといけません",
@@ -342,8 +344,10 @@ const GAME_TEXT_EN = Object.freeze({
     "tutorial.intro.movement": "Two of your limbs move freely. Your feet cannot be placed higher than your hands",
     "tutorial.intro.goal": "Grab the goal with both hands before your stamina runs out to reach the summit",
     "tutorial.wide": "A large hold can support both hands or both feet.",
+    "tutorial.title.cancel": "Cancel Move",
+    "tutorial.title.undo": "Undo",
     "tutorial.move.cancel": "Tap with two fingers to cancel your current move",
-    "tutorial.move.undo": "Briefly tap the body to undo one move",
+    "tutorial.move.undo": "Briefly tap the climber’s back to undo your last move",
     "tutorial.goal.fixed": "To finish, both feet must also be fixed on holds",
     "tutorial.goal.finish": "Detailed controls and rules are available in the menu opened with the gear icon",
 
@@ -704,7 +708,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.14';
+const RELEASE_VERSION = '0.5.15';
 // Temporarily disabled for the formal release. Keep historical records and queues.
 const COURSE_RANKINGS_ENABLED = false;
 const GAMEPLAY_TIP_KEYS = [

@@ -22,7 +22,7 @@ const GAME_TEXT_JA = Object.freeze({
     "formal.seed.unsafe": "DEBUG を ON にして、マップで適用してください。",
     "formal.seed.saved": "適用しました。次の検証用ステージから反映します。",
     "formal.seed.unsaved": "このセッションに適用しました。端末への保存はできませんでした。",
-    // Owner-supplied tutorial copy, verbatim; English intentionally falls back to Japanese until a translation is approved.
+    // Owner-supplied Japanese tutorial copy; English translations are in text-en.js.
     "tutorial.title.play": "ASCENTにようこそ！",
     "tutorial.title.complete": "チュートリアル完了",
     "tutorial.title.wide": "大きなホールド",
@@ -30,6 +30,8 @@ const GAME_TEXT_JA = Object.freeze({
     "tutorial.intro.movement": "手足2つが自由に動きます。足は手より高い場所には置けません",
     "tutorial.intro.goal": "スタミナがなくなる前に、ゴールを両手でつかむと登頂成功です",
     "tutorial.wide": "大きなホールドには、両手または両足を置くことができます。",
+    "tutorial.title.cancel": "操作のやり直し",
+    "tutorial.title.undo": "アンドゥ",
     "tutorial.move.cancel": "2本タップで移動をキャンセルできます",
     "tutorial.move.undo": "ボディを短くタップすると1ムーブ戻せます",
     "tutorial.goal.fixed": "ゴールするには両足もホールドに固定されていないといけません",

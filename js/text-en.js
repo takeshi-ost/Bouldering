@@ -47,8 +47,10 @@ const GAME_TEXT_EN = Object.freeze({
     "tutorial.intro.movement": "Two of your limbs move freely. Your feet cannot be placed higher than your hands",
     "tutorial.intro.goal": "Grab the goal with both hands before your stamina runs out to reach the summit",
     "tutorial.wide": "A large hold can support both hands or both feet.",
+    "tutorial.title.cancel": "Cancel Move",
+    "tutorial.title.undo": "Undo",
     "tutorial.move.cancel": "Tap with two fingers to cancel your current move",
-    "tutorial.move.undo": "Briefly tap the body to undo one move",
+    "tutorial.move.undo": "Briefly tap the climber’s back to undo your last move",
     "tutorial.goal.fixed": "To finish, both feet must also be fixed on holds",
     "tutorial.goal.finish": "Detailed controls and rules are available in the menu opened with the gear icon",
 

@@ -80,6 +80,8 @@
             ensure(node('tutorialTitle').lang===language&&node('tutorialText').lang===language,'tutorial-copy-language');
             ensure(node('tutorialTitle').textContent===GAME_TEXT_LOCALES[language][step.titleKey],'tutorial-title-translation');
             ensure(node('tutorialText').textContent===GAME_TEXT_LOCALES[language][step.textKey],'tutorial-text-translation');
+            const moveTitles={ja:{'move-cancel':'操作のやり直し','move-undo':'アンドゥ'},en:{'move-cancel':'Cancel Move','move-undo':'Undo'}};
+            if(moveTitles[language][id])ensure(node('tutorialTitle').textContent===moveTitles[language][id],'move-help-specific-title');
         }
         setGameLanguage(selectedLanguage);
         ensure(GAME_TEXT_LANGUAGE===selectedLanguage&&node('tutorialTitle').lang===selectedLanguage,'tutorial-language-restore');
