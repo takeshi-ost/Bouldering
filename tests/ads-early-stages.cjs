@@ -49,3 +49,12 @@ test('early replay preserves later debt; zero-life gate skips without resetting;
  }
  `);
 });
+test('suppressing a return ad preserves persistent count and does not change later retry gate',()=>{
+ const data={},run=fixture(data);
+ run(`level=11;playsSinceAd=2;recordAdPlay();assert.equal(playsSinceAd,3);
+  assert.equal(continueAfterNormalAd(()=>{returns++;return 'map';},{showRegularAd:false}),'map');
+  assert.equal(adCalls,0);assert.equal(playsSinceAd,3);assert.equal(settlements,1);
+  leave();assert.equal(adCalls,1);assert.equal(playsSinceAd,3);
+ `);
+ assert.equal(data['ascent.ad-plays.v2'],'3');
+});

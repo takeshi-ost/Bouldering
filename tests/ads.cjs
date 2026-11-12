@@ -31,10 +31,11 @@ for(let i=1;i<=9;i++) {
 reset(1);debugAttempt=true;finish(true);assert.equal(playsSinceAd,0);debugAttempt=false;
 reset(1);dailyRun={...dailyProfile('2026-01-01'),returnCourse:'existing'};finish(true);assert.equal(playsSinceAd,0);dailyRun=null;
 startCourse('prototype');assert.equal(courseMode,'existing');assert.equal(playsSinceAd,0);
-// Losses, retirements and past-level retries count once, and show ads on exit or retry.
+// Losses, retirements and past-level retries count once; only retry/clear shows due ads.
 for(let i=1;i<=3;i++){reset(i%2+11);finish(false);finish(false);assert.equal(playsSinceAd,i);if(i<3)returnFromStage();}
 ui.retry.onclick();assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert.equal(playsSinceAd,0);
-for(let i=1;i<=3;i++){reset(11);ui.restart.onclick();assert.equal(state,'lost');returnFromStage();if(i<3)assert.equal(state,'map');}
+for(let i=1;i<=3;i++){reset(11);ui.restart.onclick();assert.equal(state,'lost');returnFromStage();assert.equal(state,'map');assert.equal(dummyAd,null);assert.equal(playsSinceAd,i);}
+assert.equal(readAdPlayCount(),3);clearStage();assert.equal(playsSinceAd,4);returnFromStage();
 assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert.equal(state,'map');assert.equal(playsSinceAd,0);
 // Shared completion hook runs once before the continuation, and pauses an active timer.
 reset(11);cameraIntro=null;runStartedAt=clock-1234;const order=[];
@@ -45,5 +46,5 @@ for(const bad of ['null','-1','1.2','"5"','{}','{bad']){data[AD_PLAYS_KEY]=bad;a
 const set=storage.setItem;storage.setItem=()=>{throw Error('blocked');};assert.doesNotThrow(resetAdPlayCount);assert.equal(playsSinceAd,0);storage.setItem=set;
 `)(assert,data,storage);
 new Function('assert',env+source+`assert.equal(playsSinceAd,1,'Reload keeps the clear interval');`)(assert);
-console.log('PASS ads: 3rd/6th/9th completed plays, failed/retired replay exits and retries, exclusions, 10-to-0 timer, early/duplicate completion guards, modal/input guards, map hop, shared callbacks, timer pause, persistence and blocked storage');
+console.log('PASS ads: 3rd/6th/9th completed plays, failed/retired no-ad exits with retained count, unchanged retry/clear ads, exclusions, 10-to-0 timer, early/duplicate completion guards, modal/input guards, map hop, shared callbacks, timer pause, persistence and blocked storage');
 }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}

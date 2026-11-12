@@ -153,7 +153,7 @@ ui.next.onclick = () => {
     if(state==='lost') {
         // Ignore queued/hidden clicks while retry confirmation or an ad owns UI.
         if(ui.overlay.hidden || stageStartContext || lifePrompt || dummyAd || adCoverPending)return;
-        returnFromStage();return; // Same settled-life and ad gate as the close button.
+        returnFromStage();return; // Same no-ad failure return as the close button.
     }
     if(dailyRun && ['won','lost'].includes(state))continueDailyResult();
     else if(state==='won')continueNormalClear();
@@ -174,7 +174,7 @@ function returnFromStage() {
     if(dailyRun) {
         if(state==='won')continueDailyResult();else returnDailyWithoutClear();
     } else if(state==='won')continueNormalClear({advance:false});
-    else continueAfterNormalAd(()=>showLevelMap({target:level}));
+    else continueAfterNormalAd(()=>showLevelMap({target:level}),{showRegularAd:state!=='lost'});
 }
 
 function showTitleScreen() {

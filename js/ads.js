@@ -74,8 +74,9 @@ function completeDummyAd() {
 ui.adComplete.onclick=completeDummyAd;
 ui.dummyAd.addEventListener('cancel',e=>e.preventDefault());
 
-// Result dismissal and retry share the same end-of-play ad gate.
-function continueAfterNormalAd(onReturn) {
+// Result dismissal and retry share settlement; callers can suppress the ad
+// without resetting the accumulated play count.
+function continueAfterNormalAd(onReturn,{showRegularAd=true}={}) {
     if(dummyAd || adCoverPending)return false;
     if(courseMode==='existing' && !dailyRun && !debugAttempt) {
         // A direct retirement may not have settled yet; finish() already settles
@@ -83,7 +84,7 @@ function continueAfterNormalAd(onReturn) {
         settleLifeAttempt(state==='won');
         recoverLives();
         // A skipped regular ad stays due; recovery ads do not reset this counter.
-        if(level>=NORMAL_AD_FIRST_STAGE && lives.count>0 && playsSinceAd>=NORMAL_AD_PLAY_INTERVAL)
+        if(showRegularAd && level>=NORMAL_AD_FIRST_STAGE && lives.count>0 && playsSinceAd>=NORMAL_AD_PLAY_INTERVAL)
             return startDummyAd({onComplete:resetAdPlayCount,onReturn});
     }
     return onReturn();

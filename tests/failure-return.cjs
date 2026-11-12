@@ -35,12 +35,26 @@ for(const action of ['next','closeResult','escape','backdrop']){
  b.node('next').onclick();b.node('closeResult').onclick();assert.equal(b.run('lives.count'),2);assert.equal(b.run('lifeAttemptId'),attempt);assert.equal(records(b),before);
  assert.equal(b.run('!!dummyAd || !!lifePrompt || !!rewardSequence'),false);
 }
-// Same regular-ad gate as X, one pending callback, no extra loss/item charge.
+// Every failed-result return path skips a due ad but keeps its count and resources.
+for(const action of ['next','closeResult','escape','backdrop']){
+ const b=context();normal(b,{stage:11,lives:2,plays:2});const before=records(b);failByMove(b);
+ assert.equal(b.run('playsSinceAd'),3);
+ if(action==='escape')b.node('overlay').events.cancel({preventDefault(){}});
+ else if(action==='backdrop')b.node('overlay').events.click({target:b.node('overlay')});
+ else b.node(action).onclick();
+ assert.equal(b.run('state'),'map');assert.equal(b.run('mapSelected'),11);assert.equal(b.run('dummyAd'),null);
+ assert.equal(b.run('playsSinceAd'),3);assert.equal(b.run('lives.count'),1);assert.equal(records(b),before);
+ b.node('next').onclick();b.node('retry').onclick();b.node('closeResult').onclick();
+ assert.equal(b.run('state'),'map');assert.equal(b.run('playsSinceAd'),3);assert.equal(b.run('dummyAd'),null);
+ assert.equal(records(b),before);assert.equal(b.run('lives.count'),1);
+}
+// Retry still displays the due regular ad, then opens its existing start confirmation.
 {
  const b=context();normal(b,{stage:11,lives:2,plays:2});const before=records(b);failByMove(b);
- assert.equal(b.run('playsSinceAd'),3);b.node('next').onclick();assert.equal(b.run('state'),'ad');
- const pending=b.run('dummyAd');b.node('next').onclick();b.node('retry').onclick();assert.equal(b.run('dummyAd'),pending);assert.equal(b.run('lives.count'),1);
- completeAd(b);assert.equal(b.run('state'),'map');assert.equal(b.run('mapSelected'),11);assert.equal(b.run('playsSinceAd'),0);assert.equal(b.run('lives.count'),1);assert.equal(records(b),before);
+ b.node('retry').onclick();assert.equal(b.run('state'),'ad');assert.equal(b.run('playsSinceAd'),3);
+ const pending=b.run('dummyAd');b.node('next').onclick();b.node('retry').onclick();assert.equal(b.run('dummyAd'),pending);
+ completeAd(b);assert.equal(b.run('stageStartContext.retry'),true);assert.equal(b.run('playsSinceAd'),0);
+ assert.equal(b.run('lives.count'),1);assert.equal(records(b),before);
 }
 // Last-life loss returns without forcing a recovery ad; next start still offers it.
 {

@@ -21,14 +21,14 @@ function land(index){
 }
 function resultReturn(){assert.equal(rewardSequence.phase,'result');ui.rewardDialog.events.click();}
 function visibility(hidden){document.hidden=hidden;for(const fn of documentEvents.visibilitychange||[])fn();}
-// Angular area and reward selection share the same 2:2:1:1 geometry.
+// Angular area and reward selection share the same 5:5:1:1 geometry.
 const counts=[0,0,0,0];
 for(let degree=0;degree<360;degree++){
  const index=rewardIndex(-degree-.5);counts[index]++;
  assert.equal(rewardIndex(-degree-.5+720),index);
 }
-assert.deepEqual(counts,[120,120,60,60]);
-assert.deepEqual([0,120,240,300,360].map(degree=>rewardIndex(-degree)),[0,1,2,3,0]);
+assert.deepEqual(counts,[150,150,30,30]);
+assert.deepEqual([0,150,300,330,360].map(degree=>rewardIndex(-degree)),[0,1,2,3,0]);
 const originalIcon=createPlayerIcon;
 createPlayerIcon=()=>({src:'data:image/png;base64,AAAA'});
 const markup=rewardWheelMarkup();
