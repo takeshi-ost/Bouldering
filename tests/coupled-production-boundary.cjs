@@ -62,7 +62,23 @@ const nativeAdapter=fs.readFileSync('scripts/native-bundle-source.cjs','utf8');
 assert.equal(nativeAdapter.split(nativeDiagnosticRefresh).length,2);
 assert.equal(crypto.createHash('sha256').update(nativeAdapter.replace(nativeDiagnosticRefresh,'')).digest('hex'),baseline['scripts/native-bundle-source.cjs']);
 const nativeDiagnosticExceptions={'scripts/native-bundle-source.cjs':'de8a34d80d64ca83ab466bdceac062c3c1757611fa8b3d800b7a3fb0099e9920'};
-for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),nativeDiagnosticExceptions[file]||legacyTypeRetirementExceptions[file]||rankingPauseExceptions[file]||courseGenerationExceptions[file]||preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation and v5 generation '+file);
+// Owner-approved 0.5.16 changes: suppress only failed-result map-return ads,
+// and resize roulette sectors to 150/150/30/30. Reverse those exact edits to
+// prove every other byte of these service boundaries remains unchanged.
+const release0516Exceptions={
+ 'js/ads.js':'1759c21c5a2ff31efcccc4b13fc73ea9b65bff3ceb3556b022d2a17c9e121caf',
+ 'js/rewards.js':'508775b0df95db90773feaed829c45983d7b2c32e61bc25405f317d9f5c44d83'
+};
+const revisedAds=fs.readFileSync('js/ads.js','utf8');
+const originalAds=revisedAds
+ .replace('// Result dismissal and retry share settlement; callers can suppress the ad\n// without resetting the accumulated play count.','// Result dismissal and retry share the same end-of-play ad gate.')
+ .replace('function continueAfterNormalAd(onReturn,{showRegularAd=true}={}) {','function continueAfterNormalAd(onReturn) {')
+ .replace('if(showRegularAd && level>=NORMAL_AD_FIRST_STAGE','if(level>=NORMAL_AD_FIRST_STAGE');
+assert.equal(crypto.createHash('sha256').update(originalAds).digest('hex'),baseline['js/ads.js']);
+const originalRewards=fs.readFileSync('js/rewards.js','utf8')
+ .replace('amount:1,weight:5','amount:1,weight:2').replace('amount:5,weight:5','amount:5,weight:2');
+assert.equal(crypto.createHash('sha256').update(originalRewards).digest('hex'),baseline['js/rewards.js']);
+for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),release0516Exceptions[file]||nativeDiagnosticExceptions[file]||legacyTypeRetirementExceptions[file]||rankingPauseExceptions[file]||courseGenerationExceptions[file]||preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation and v5 generation '+file);
 const map=fs.readFileSync('js/level-map.js','utf8');
 const currentDebugVisibility='    ui.debugControls.hidden = !DEBUG_FEATURES_ALLOWED || !debugMode;';
 assert.equal(map.split(currentDebugVisibility).length,2);
