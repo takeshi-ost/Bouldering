@@ -10,6 +10,12 @@ function courseData(){
  return {lookup:(request,validate,portable)=>courseDataStore.lookup(request,s=>validate(restoreCompactCourse(s,request)),portable),update:()=>courseDataStore.update()};
 }
 function checkCourseDataUpdates(){return courseData()?.update();}
+// Match the established fingerSamePairRoute coordinate tolerance. Only body
+// coordinates may differ by roundoff; inputs, grips and resource state stay exact.
+function sameStoredCourseReplayPoint(actual,expected){
+ const {x:ax,y:ay,trace:unused,...a}=actual,{x:ex,y:ey,trace:ignored,...e}=expected;
+ return [ax,ay,ex,ey].every(Number.isFinite)&&Math.abs(ax-ex)<=1e-7&&Math.abs(ay-ey)<=1e-7&&JSON.stringify(a)===JSON.stringify(e);
+}
 function restoreCompactCourse(snapshot,request){
  if(!snapshot?.labSkeletonReport?.diagnosticsOmitted)return snapshot;
  validatePreparedCourse({...snapshot,route:snapshot.route?.map(p=>({...p,trace:[{x:p.x,y:p.y}]}))},request);
@@ -21,8 +27,7 @@ function restoreCompactCourse(snapshot,request){
   const replay=SixPairSelection.withBaseline(()=>fingerReplayRoute(route));
   if(!replay||replay.length!==route.length)throw Error('Stored route replay failed');
   for(let i=0;i<route.length;i++){
-   const {trace:unused,...actual}=replay[i],{trace:ignored,...expected}=route[i];
-   if(JSON.stringify(actual)!==JSON.stringify(expected))throw Error('Stored route replay mismatch');
+   if(!sameStoredCourseReplayPoint(replay[i],route[i]))throw Error('Stored route replay mismatch');
   }
   return {...snapshot,route:replay};
  }finally{
