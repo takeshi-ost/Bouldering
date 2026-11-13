@@ -58,7 +58,7 @@ assert(!html.includes('native-stage-layout'));
 assert.equal(read('js/viewport.js'), fs.readFileSync(path.join(root,'js/viewport.js'),'utf8'));
 const policy = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
 assert(policy, 'Native bundle must have a CSP');
-const connects="connect-src 'self'"+(firebaseMode!=='offline'?' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com':'');
+const connects="connect-src 'self'"+(firebaseMode!=='offline'?' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://takeshi-ost.github.io/Bouldering/test-course-data/stages-101-150/':'');
 for (const directive of ["default-src 'self'", "script-src 'self'", connects, "frame-src 'none'", "form-action 'none'"]) {
     assert(policy.split(';').some(part => part.trim() === directive));
 }
@@ -72,7 +72,10 @@ for (const match of html.matchAll(/\b(?:src|href)="([^"]+)"/g)) {
 }
 for (const name of fs.readdirSync(path.join(bundle, 'js'))) {
     const source = read(`js/${name}`);
-    assert(!/https?:\/\//i.test(source), `External endpoint in ${name}`);
+    const endpoint='https://takeshi-ost.github.io/Bouldering/test-course-data/stages-101-150/manifest.json';
+    const checked=name==='course-data.js'&&firebaseMode!=='offline'?source.replace(endpoint,''):source;
+    if(name==='course-data.js')assert(source.includes(firebaseMode==='offline'?'remoteManifest:null':`remoteManifest:'${endpoint}'`));
+    assert(!/https?:\/\//i.test(checked), `External endpoint in ${name}`);
     if(name!=='native-firebase-control.js')assert(!/initializeApp\(|signInAnonymously\(|bootFirebase\(/.test(source), `Firebase bootstrap in ${name}`);
 }
 // Exercise the shipped offline bootstrap, without allowing a network primitive.
@@ -86,7 +89,9 @@ assert.equal(calls.length, 1);
 // Only explicitly anchored native adaptations may differ from the Web source.
 for (const name of fs.readdirSync(path.join(root, 'js'))) {
     if (!name.endsWith('.js') || name === 'firebase-client.js') continue;
-    assert.equal(read(`js/${name}`), nativeSource(name, fs.readFileSync(path.join(root, 'js', name),'utf8')));
+    let expected=fs.readFileSync(path.join(root, 'js', name),'utf8');
+    if(name==='course-data.js'&&firebaseMode==='offline')expected=expected.replace("remoteManifest:'https://takeshi-ost.github.io/Bouldering/test-course-data/stages-101-150/manifest.json'",'remoteManifest:null');
+    assert.equal(read(`js/${name}`), nativeSource(name, expected));
 }
 assert.deepEqual(fs.readFileSync(path.join(bundle, 'styles.css')), fs.readFileSync(path.join(root, 'styles.css')));
 for (const entry of fs.readdirSync(path.join(root, 'assets'), {recursive: true, withFileTypes: true})) {
