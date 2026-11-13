@@ -21,22 +21,29 @@ function land(index){
 }
 function resultReturn(){assert.equal(rewardSequence.phase,'result');ui.rewardDialog.events.click();}
 function visibility(hidden){document.hidden=hidden;for(const fn of documentEvents.visibilitychange||[])fn();}
-// Angular area and reward selection share the same 5:5:1:1 geometry.
+// Angular area and reward selection share the same 5:1:5:1 geometry.
+assert.deepEqual(ROULETTE_OPTIONS.map(({kind,amount})=>[kind,amount]),[['hearts',1],['hearts',10],['hearts',3],['life',1]]);
 const counts=[0,0,0,0];
 for(let degree=0;degree<360;degree++){
  const index=rewardIndex(-degree-.5);counts[index]++;
  assert.equal(rewardIndex(-degree-.5+720),index);
 }
-assert.deepEqual(counts,[150,150,30,30]);
-assert.deepEqual([0,150,300,330,360].map(degree=>rewardIndex(-degree)),[0,1,2,3,0]);
+assert.deepEqual(counts,[150,30,150,30]);
+assert.deepEqual([0,150,180,330,360].map(degree=>rewardIndex(-degree)),[0,1,2,3,0]);
 const originalIcon=createPlayerIcon;
 createPlayerIcon=()=>({src:'data:image/png;base64,AAAA'});
 const markup=rewardWheelMarkup();
 assert.equal((markup.match(/<path /g)||[]).length,4);
 assert.equal((markup.match(/<text /g)||[]).length,3,'Life sector has no count');
-assert(markup.includes('>01</text>') && markup.includes('>05</text>') && markup.includes('>10</text>'));
+assert(markup.includes('>01</text>') && markup.includes('>03</text>') && markup.includes('>10</text>'));
 assert(markup.includes('<image href="data:image/png;base64,AAAA"'));
 createPlayerIcon=originalIcon;
+assert.throws(()=>applyRouletteReward({kind:'hearts',amount:5}),TypeError,'Old five-bag reward is no longer valid');
+GAME_TEXT_LANGUAGE='en';
+const englishReward=rewardResultMarkup({kind:'hearts',amount:3});
+assert(englishReward.includes('Chalk Bag') && englishReward.includes('✖️3'));
+assert(rewardWheelMarkup().includes('>03</text>'));
+GAME_TEXT_LANGUAGE='ja';
 startCourse('existing');
 mapPreparing=true;assert(!startRewardSequence());mapPreparing=false;
 assert(openStageStart(1));assert(!startRewardSequence());closeStageStart();
@@ -60,7 +67,7 @@ visibility(true);clock+=50000;visibility(false);assert.equal(rewardSequence.phas
 // Entry ad on play 2; the daily clear opens its roulette without another ad.
 lives.count=3;showDailyCalendar({openFromMap:true});assert(selectDailyDate(today));finish(false);ui.retry.onclick();assert.equal(state,'ad');ad();assert.equal(dailyRun.attempt,2);
 moveCount=1;finish(true);assert.equal(dailyRecords[today].rewardStatus,'pending');ui.overlay.events.click({target:ui.overlay});assert.equal(state,'reward');
-assert(!dummyAd);const beforeDaily=heartItems;land(2);assert.equal(heartItems,beforeDaily+10);assert.equal(dailyRecords[today].rewardStatus,'claimed');resultReturn();assert.equal(state,'daily');assert.equal(dailyRun,null);
+assert(!dummyAd);const beforeDaily=heartItems;land(1);assert.equal(heartItems,beforeDaily+10);assert.equal(dailyRecords[today].rewardStatus,'claimed');resultReturn();assert.equal(state,'daily');assert.equal(dailyRun,null);
 assert.equal(readDailyRecords()[today].rewardStatus,'claimed');assert(!startDailyClearReward(today));assert(!selectDailyDate(today));
 // Earlier dates keep their existing flow and never earn this daily completion reward.
 assert(selectDailyDate('2026-01-01'));moveCount=1;finish(true);assert(!dailyRecords['2026-01-01'].rewardStatus);ui.overlay.events.click({target:ui.overlay});assert.equal(state,'daily');assert(!rewardSequence);
@@ -77,7 +84,7 @@ stageProgress.existing.cleared=3;showLevelMap({target:4});assert(selectStage(4))
 playsSinceAd=2;moveCount=1;finish(true);
 assert.equal(mapRewards[4].status,'pending');assert(!mapRewards[4].adRequired);assert.equal(playsSinceAd,2);
 ui.overlay.events.click({target:ui.overlay});assert.equal(state,'reward');assert(!dummyAd);assert(!mapRewards[4].adCompleted);assert.equal(playsSinceAd,2);
-const mapBefore=heartItems;land(1);assert.equal(heartItems,mapBefore+5);assert.equal(mapRewards[4].status,'claimed');
+const mapBefore=heartItems;land(2);assert.equal(heartItems,mapBefore+3);assert.equal(mapRewards[4].status,'claimed');
 assert(!hasMapReward(4));assert(hasMapReward(20));assert.deepEqual(readMapRewards(),mapRewards);
 resultReturn();assert.equal(state,'map');assert.deepEqual([mapTransition.from,mapTransition.to],[4,5]);
 assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,4);assert.equal((ui.mapNodes.innerHTML.match(/map-reward-gift/g)||[]).length,4);
