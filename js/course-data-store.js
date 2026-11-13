@@ -34,7 +34,7 @@
  function decode(data){
   if(data?.format==='ascent-compact-1'){
    // JSON clone also isolates bundled records from live mutations.
-   const p=JSON.parse(JSON.stringify(data)),report={source:'precomputed',diagnosticsOmitted:true};
+   const p=JSON.parse(JSON.stringify(data)),report={source:'precomputed',diagnosticsOmitted:true,traceOmitted:true};
    if(!Array.isArray(p.holds)||!Array.isArray(p.initialGripIds))fail();
    return {holds:p.holds,HEIGHT:p.HEIGHT,initialGrips:p.initialGripIds.map(id=>p.holds.find(h=>h.id===id)),
     route:p.route,densityStats:{source:'precomputed',diagnosticsOmitted:true},
@@ -90,8 +90,8 @@
   };
   return {get:key=>transact('readonly',key),put:(key,v)=>transact('readwrite',key,v)};
  }
- function create({buildId,minGenerationVersion=MIN_GENERATOR_VERSION,runtimeSignature=null,bundleManifest,remoteManifest=null,baseURL,fetcher=root.fetch?.bind(root),disk=storage(),digest=sha,onUpdate=()=>{}}){
-  let bundled=null,updating=null;const loaded=new Map();
+ function create({buildId,minGenerationVersion=MIN_GENERATOR_VERSION,runtimeSignature=null,bundleManifest,bundledManifestData=null,remoteManifest=null,baseURL,fetcher=root.fetch?.bind(root),disk=storage(),digest=sha,onUpdate=()=>{}}){
+  let bundled=null,updating=null;const loaded=new Map(),loading=new Map(),writes=new Set();
   const compatible=m=>compatibleGeneration(m,minGenerationVersion);
   const storageKey=id=>`schema-${SCHEMA}:`+id;
   function manifest(m){
@@ -103,15 +103,21 @@
    }
    return m;
   }
-  async function read(url,max=MAX_BYTES){
+  async function read(url,max=MAX_BYTES,{cache='no-store',timeout=30000}={}){
    if(!fetcher)throw Error('Course data fetch unavailable');
-   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
-   try {const r=await fetcher(url,{signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});if(!r.ok)throw Error('Course data HTTP '+r.status);
+   const controller=new AbortController();let timer;
+   try {return await Promise.race([(async()=>{
+    const r=await fetcher(url,{signal:controller.signal,cache,credentials:'omit',redirect:'error'});if(!r.ok)throw Error('Course data HTTP '+r.status);
     if(Number(r.headers?.get('content-length')||0)>max)fail();
-    const s=await r.text();if(new TextEncoder().encode(s).length>max)fail();return s;
-   } finally {clearTimeout(timer);}
+    const text=await r.text();if(new TextEncoder().encode(text).length>max)fail();return text;
+   })(),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('Course data fetch timeout'));},timeout);})]);
+   }finally{clearTimeout(timer);}
   }
-  async function bundle(){if(!bundled)bundled=read(new URL(bundleManifest,baseURL).href,1024*1024).then(s=>manifest(JSON.parse(s))).catch(()=>null);return bundled;}
+  async function bundle(){
+   if(!bundled)bundled=(bundledManifestData?Promise.resolve().then(()=>manifest(bundledManifestData)):
+    read(new URL(bundleManifest,baseURL).href,1024*1024,{cache:'force-cache',timeout:2000}).then(s=>manifest(JSON.parse(s)))).catch(()=>null);
+   return bundled;
+  }
   function packBody(p,descriptor){
    if(!compatible(p)||p.id!==descriptor.id||p.generatedAt!==descriptor.generatedAt||!Array.isArray(p.courses)||p.courses.length!==descriptor.count)fail();
    const keys=new Set();
@@ -123,24 +129,61 @@
    return p;
   }
   async function checked(text,descriptor){if(new TextEncoder().encode(text).length!==descriptor.bytes||await digest(text)!==descriptor.sha256)fail();return packBody(JSON.parse(text),descriptor);}
-  async function diskPack(id){try {const d=await disk.get(storageKey(id));if(!d)return null;manifest({...JSON.parse(d.text),packs:[d.descriptor]});return {descriptor:d.descriptor,pack:await checked(d.text,d.descriptor)};}catch{return null;}}
-  async function loadBundle(descriptor){
-   const key=descriptor.sha256;if(!loaded.has(key))loaded.set(key,read(new URL(descriptor.file,new URL(bundleManifest,baseURL)).href).then(s=>checked(s,descriptor)).catch(()=>null));
-   return loaded.get(key);
+  async function diskRecord(key,expectedHash=null){try{
+   const d=await disk.get(key);if(!d||expectedHash&&d.descriptor.sha256!==expectedHash)return null;
+   manifest({...JSON.parse(d.text),packs:[d.descriptor]});return {descriptor:d.descriptor,pack:await checked(d.text,d.descriptor)};
+  }catch{return null;}}
+  const diskPack=id=>diskRecord(storageKey(id));
+  const bundleKey=d=>`schema-${SCHEMA}:bundle:`+d.sha256;
+  async function cachedBundle(d){
+   if(loaded.has(d.sha256))return loaded.get(d.sha256);
+   const saved=await diskRecord(bundleKey(d),d.sha256);if(!saved)return null;
+   // Validate against the app's own descriptor, not merely the saved record.
+   try{const p=packBody(saved.pack,d);loaded.set(d.sha256,p);return p;}catch{return null;}
+  }
+  async function loadBundle(d){
+   const key=d.sha256;if(loaded.has(key))return loaded.get(key);
+   if(!loading.has(key))loading.set(key,(async()=>{
+    try{
+     const saved=await cachedBundle(d);if(saved)return saved;
+     const text=await read(new URL(d.file,new URL(bundleManifest,baseURL)).href,MAX_BYTES,{cache:'force-cache',timeout:30000}),p=await checked(text,d);
+     loaded.set(key,p);
+     const write=Promise.resolve().then(()=>disk.put(bundleKey(d),{descriptor:d,text})).catch(()=>{});
+     writes.add(write);void write.finally(()=>writes.delete(write));
+     return p;
+    }catch{return null;}finally{loading.delete(key);}
+   })());
+   return loading.get(key);
+  }
+  async function warmup(){
+   const m=await bundle();if(!m)return {loaded:0};
+   const packs=await Promise.all(m.packs.map(loadBundle));await Promise.all([...writes]);
+   return {loaded:packs.filter(Boolean).length};
   }
   async function lookup(request,validate,portable){
-   const where=location(request);if(!where)return null;
-   try {
-    if(typeof portable!=='string')return null;
-    const runtimeHash=await digest(portable);
-    const m=await bundle();
-    // The range convention is stable even when a pack is absent from the bundle.
-    const {id}=where;
-    const d=m?.packs.find(p=>p.id===id),stored=await diskPack(id),sources=[];
-    if(stored)sources.push({date:stored.descriptor.generatedAt,pack:stored.pack});
-    if(d){const p=await loadBundle(d);if(p)sources.push({date:d.generatedAt,pack:p});}
-    sources.sort((a,b)=>b.date.localeCompare(a.date));
-    for(const source of sources){const c=source.pack.courses.find(c=>requestKey(c.request)===requestKey(request)&&c.runtimeHash===runtimeHash);if(c)try{return validate(decode(c.snapshot));}catch{/* Try intact older data before generation. */}}
+   const where=location(request);if(!where||typeof portable!=='string')return null;
+   try{
+    const runtimeHash=await digest(portable),storedPromise=diskPack(where.id);
+    // Embedded metadata avoids a manifest request on the critical start path.
+    const m=await bundle(),d=m?.packs.find(p=>p.id===where.id);
+    const [stored,cached]=await Promise.all([storedPromise,d?cachedBundle(d):null]);
+    const sources=[];if(stored)sources.push({date:stored.descriptor.generatedAt,pack:stored.pack});
+    if(cached)sources.push({date:d.generatedAt,pack:cached});
+    const select=items=>{
+     items.sort((a,b)=>b.date.localeCompare(a.date));
+     for(const source of items){const c=source.pack.courses.find(c=>requestKey(c.request)===requestKey(request)&&c.runtimeHash===runtimeHash);
+      if(c)try{return validate(decode(c.snapshot));}catch{/* Try intact older data before generation. */}}
+     return null;
+    };
+    const local=select(sources);if(local)return local;
+    // Only a cache miss waits for bounded immutable asset retrieval, never updates.
+    if(d&&!cached){
+     // Keep background retrieval alive for slow connections; bound only this start.
+     let timer;try{
+      const fetched=await Promise.race([loadBundle(d),new Promise(resolve=>{timer=setTimeout(()=>resolve(null),2000);})]);
+      if(fetched)return select([{date:d.generatedAt,pack:fetched}]);
+     }finally{clearTimeout(timer);}
+    }
    }catch{/* Corrupt/incompatible/unavailable data falls through to generation. */}
    return null;
   }
@@ -169,7 +212,7 @@
     return {updated,failures};
    })().finally(()=>{updating=null;});return updating;
   }
-  return Object.freeze({lookup,update});
+  return Object.freeze({lookup,update,warmup});
  }
  root.AscentCourseData=Object.freeze({schema:SCHEMA,minimumGenerationVersion:MIN_GENERATOR_VERSION,compatibleGeneration,location,encode,compact,decode,create});
 })(globalThis);
