@@ -256,6 +256,7 @@ const GAME_TEXT_JA = Object.freeze({
     "help.controls.move": "画面をスワイプして体を動かします。2本の手足で支え、残りの2本は近くのホールドへ自動で移ります。",
     "help.controls.commit": "手足4本がホールドに届く位置で指を離すと、1ムーブが決まります。届かない位置で離すと、移動前の位置へ戻ります。",
     "help.controls.undo": "ボディを短くタップすると、直前の1ムーブだけ元に戻せます。",
+    "help.controls.cancel": "そうさ中に別のゆびでタッチすると、うごきをキャンセルできます",
     "help.controls.scroll": "2本指スワイプ、または画面の左右端をスワイプすると、壁を上下にスクロールできます。",
     "help.holds.heading": "ホールドとアイテム",
     "help.holds.normalLabel": "ホールド",

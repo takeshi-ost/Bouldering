@@ -9,6 +9,7 @@ assert.deepEqual(entries,[
  ['assets/tutorial-swipe-78-v1.png','image'],
  ['assets/tutorial-feet-limit-78-v2.png','image'],
  ['assets/help-body-tap-78-v1.png','image'],
+ ['assets/tutorial-two-finger-cancel-78-v1.png','image'],
  ['assets/hold-shapes-gray-contrast.webp','normal'],
  ['assets/hold-wide-flat.webp','wide'],
  ['assets/hold-hazard-source.webp','hazard'],
@@ -28,9 +29,9 @@ for(const [path,hash] of [
  ['assets/help-character-editor-v1.jpg','24ee6b6531f9f1736a46fae5bc258f567311b304310ded0a1691956ed6d06a6a']
 ])assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path)).digest('hex'),hash,'Exact supplied image / deterministically sized approved illustration');
 const tap=fs.readFileSync('assets/help-body-tap-78-v1.png');assert.equal(tap.readUInt32BE(16),78);assert.equal(tap.readUInt32BE(20),78);
-for(const [file,key] of [['help-stamina-lives-v1.jpg','help.rules.stamina'],['help-body-tap-78-v1.png','help.controls.undo'],["help-stage-map-v1.jpg", "help.map.select"],["help-daily-challenge-v1.jpg", "help.daily.select"],["help-character-editor-v1.jpg", "help.editor.customize"]])
+for(const [file,key] of [['help-stamina-lives-v1.jpg','help.rules.stamina'],['help-body-tap-78-v1.png','help.controls.undo'],['tutorial-two-finger-cancel-78-v1.png','help.controls.cancel'],["help-stage-map-v1.jpg", "help.map.select"],["help-daily-challenge-v1.jpg", "help.daily.select"],["help-character-editor-v1.jpg", "help.editor.customize"]])
  assert(help.includes('data-help-image="assets/'+file+'" data-help-art="image" hidden></canvas></span><p class="help-illustrated-copy" data-i18n="'+key+'"></p>'),'Image stays with its exact requested paragraph');
-assert.equal((help.match(/class="help-illustration" aria-hidden="true"/g)||[]).length,13,'Decorative images never duplicate the adjacent accessible explanation');
+assert.equal((help.match(/class="help-illustration" aria-hidden="true"/g)||[]).length,14,'Decorative images never duplicate the adjacent accessible explanation');
 assert(!/<canvas[^>]*tabindex/.test(help),'Artwork never steals focus/keyboard scrolling');
 assert(help.includes('class="help-illustrated-row" data-help-if-text="help.controls.feet"'));
 assert(/\.help-illustrated-row\s*\{[^}]*flex-wrap:wrap;/.test(css));
@@ -67,8 +68,8 @@ function boot(){
 }
 const tick=async()=>{await Promise.resolve();await Promise.resolve();};
 async function main(){
- const b=boot();assert.equal(b.images.length,12,'Normal/goal share the same pending decoded atlas');
- assert(b.nodes.every(n=>n.hidden));b.run('prepareHelpIllustrations()');assert.equal(b.images.length,12);
+ const b=boot();assert.equal(b.images.length,13,'Normal/goal share the same pending decoded atlas');
+ assert(b.nodes.every(n=>n.hidden));b.run('prepareHelpIllustrations()');assert.equal(b.images.length,13);
  for(const image of b.images)image.load();await tick();assert(b.nodes.every(n=>n.hidden),'Wait for decode, not just network load');
  for(const image of b.images)image.decoded();await tick();assert(b.nodes.every(n=>!n.hidden));assert.equal(b.timers.size,0);
  assert(b.run('[holdTintAtlases,wideHoldTintAtlases,goalHoldTintAtlas,hazardHoldTintAtlas].every(atlas=>atlas===null)'),'Help never fills/replaces any world renderer atlas');
@@ -77,13 +78,14 @@ async function main(){
  assert.equal(lastDraw(1).at(-1),156);assert(Math.abs(lastDraw(1).at(-2)-156*243/247)<1e-10,'Stamina/lives keeps its original 243:247 ratio without crop or stretch');
  assert(Math.abs(lastDraw(1).at(-4)-(156-156*243/247)/2)<1e-10,'Nonsquare source is centered');
  assert.deepEqual(lastDraw(4).slice(-4),[0,0,156,156],'78px body-tap art fills the 78px CSS plate');
- assert.deepEqual(lastDraw(5).slice(2,6),[0,0,128,128],'Only the first real normal-hold atlas tile is shown');
- assert.deepEqual(lastDraw(6).slice(-2),[124.80000000000001,62.400000000000006],'Wide art preserves its native 2:1 aspect');
- assert(b.nodes[7].paint.calls.some(c=>c[0]==='rotate'&&c[1]===-Math.PI/2),'Real sharp-hold orientation is retained');
- assert.deepEqual(lastDraw(8)[1].paint.calls.find(c=>c[0]==='pixels'),['pixels',221,161,31,255],'Goal uses actual metallic gold palette');
- assert(Math.abs(lastDraw(9).at(-1)/lastDraw(9).at(-2)-.9)<1e-10,'Heart preserves original 100:90 ratio');
- assert.deepEqual(lastDraw(5)[1].paint.calls.find(c=>c[0]==='pixels'),['pixels',130,129,143,255],'Normal uses existing first pastel game tint');
- for(const [index,width,height] of [[10,326,318],[11,350,340],[12,1170,1252]]){
+ assert.deepEqual(lastDraw(5).slice(-4),[0,0,156,156],'Existing tutorial cancel art fills the same plate');
+ assert.deepEqual(lastDraw(6).slice(2,6),[0,0,128,128],'Only the first real normal-hold atlas tile is shown');
+ assert.deepEqual(lastDraw(7).slice(-2),[124.80000000000001,62.400000000000006],'Wide art preserves its native 2:1 aspect');
+ assert(b.nodes[8].paint.calls.some(c=>c[0]==='rotate'&&c[1]===-Math.PI/2),'Real sharp-hold orientation is retained');
+ assert.deepEqual(lastDraw(9)[1].paint.calls.find(c=>c[0]==='pixels'),['pixels',221,161,31,255],'Goal uses actual metallic gold palette');
+ assert(Math.abs(lastDraw(10).at(-1)/lastDraw(10).at(-2)-.9)<1e-10,'Heart preserves original 100:90 ratio');
+ assert.deepEqual(lastDraw(6)[1].paint.calls.find(c=>c[0]==='pixels'),['pixels',130,129,143,255],'Normal uses existing first pastel game tint');
+ for(const [index,width,height] of [[11,326,318],[12,350,340],[13,1170,1252]]){
   const draw=lastDraw(index),scale=Math.min(156/width,156/height);
   assert.deepEqual(draw.slice(2,6),[0,0,width,height],'New original JPEG is never cropped');
   for(const [actual,expected] of [[draw.at(-2),width*scale],[draw.at(-1),height*scale],[draw.at(-4),(156-width*scale)/2],[draw.at(-3),(156-height*scale)/2]])assert(Math.abs(actual-expected)<1e-10,'Original aspect and centered containment');
@@ -98,10 +100,10 @@ async function main(){
  const count=failed.images.length;failed.run('prepareHelpIllustrations();prepareHelpIllustrations();');assert.equal(failed.images.length,count+1,'Reopen retries only failed art; repeated opens do not fork pending loads');
  const recovered=failed.images.at(-1);recovered.load();recovered.decoded();await tick();assert(!failed.nodes[0].hidden);
  const timeout=boot();for(let attempt=0;attempt<2;attempt++){const timers=[...timeout.timers.values()];for(const timer of timers){assert.equal(timer.ms,4000);timer.fn();}}
- assert.equal(timeout.timers.size,0);assert(timeout.nodes.every(n=>n.hidden));assert.equal(timeout.images.length,24,'All twelve sources stop after exactly two bounded attempts');
+ assert.equal(timeout.timers.size,0);assert(timeout.nodes.every(n=>n.hidden));assert.equal(timeout.images.length,26,'All thirteen sources stop after exactly two bounded attempts');
  assert.doesNotThrow(()=>vm.runInNewContext(fs.readFileSync('js/help-illustrations.js','utf8'),{document:{}}),'Minimal/non-DOM hosts omit optional art safely');
  // Ordinary game calls retain their default source and draw coordinates.
  const r=fs.readFileSync('js/renderer.js','utf8');assert(r.includes('goalHoldTintAtlas ??= createMetallicGoalAtlas();'));assert(r.includes('ctx.drawImage(goalHoldTintAtlas,0,0,128,128,h.x-15,h.y-15,30,30);'));
- console.log('PASS help illustrations: 13 requested mappings, decorative accessibility, 78px responsive plates, decoded-only rendering, real game tints/crops/rotation, preserved aspect ratios, shared-cache node safety, bounded failures/reopen recovery and unchanged goal geometry (no browser rendering)');
+ console.log('PASS help illustrations: 14 requested mappings, decorative accessibility, 78px responsive plates, decoded-only rendering, real game tints/crops/rotation, preserved aspect ratios, shared-cache node safety, bounded failures/reopen recovery and unchanged goal geometry (no browser rendering)');
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

@@ -67,7 +67,7 @@ const nativeDiagnosticExceptions={'scripts/native-bundle-source.cjs':'de8a34d80d
 // prove every other byte of these service boundaries remains unchanged.
 const release0516Exceptions={
  'js/ads.js':'1759c21c5a2ff31efcccc4b13fc73ea9b65bff3ceb3556b022d2a17c9e121caf',
- 'js/rewards.js':'7b2d0e2cdb1ea3096a7b3f8da50804aca141db7f5e7073f7818992553e3044b6'
+ 'js/rewards.js':'274b1e4011fc92e88e49b3a38bdbf03ecff6e655928fdf4f727b5a3dcc1709bb'
 };
 const revisedAds=fs.readFileSync('js/ads.js','utf8');
 const originalAds=revisedAds
@@ -77,6 +77,9 @@ const originalAds=revisedAds
 assert.equal(crypto.createHash('sha256').update(originalAds).digest('hex'),baseline['js/ads.js']);
 // 0.5.17: restore the exact prior order and five-bag quantity before baseline comparison.
 const originalRewards=fs.readFileSync('js/rewards.js','utf8')
+ // Restore only this request's exact roulette table before earlier normalization.
+ .replace("amount:1,weight:6","amount:1,weight:5")
+ .replace("Object.freeze({kind:'hearts',amount:3,weight:3}),\n    Object.freeze({kind:'hearts',amount:5,weight:2}),","Object.freeze({kind:'hearts',amount:10,weight:1}),\n    Object.freeze({kind:'hearts',amount:3,weight:5}),")
  .replace("Object.freeze({kind:'hearts',amount:10,weight:1}),\n    Object.freeze({kind:'hearts',amount:3,weight:5}),","Object.freeze({kind:'hearts',amount:5,weight:5}),\n    Object.freeze({kind:'hearts',amount:10,weight:1}),")
  .replace('amount:1,weight:5','amount:1,weight:2').replace('amount:5,weight:5','amount:5,weight:2');
 assert.equal(crypto.createHash('sha256').update(originalRewards).digest('hex'),baseline['js/rewards.js']);

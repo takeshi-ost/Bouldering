@@ -48,5 +48,5 @@ assert(/\.help-dialog \.help-heading\s*\{[^}]*flex:0 0 auto;/.test(css));
 assert(/\.help-scroll \.help-divider\s*\{[^}]*border-top:1px solid #dce0d4;/.test(css));
 assert(css.includes('.help-dialog .help-heading h2 { overflow-wrap:anywhere; }'));
 assert(!/<table\b/.test(help),'Help remains a responsive document, not a fixed-width table');
-assert.equal((help.match(/data-help-image=/g)||[]).length,13,'Thirteen requested illustrations supplement the complete text');
+assert.equal((help.match(/data-help-image=/g)||[]).length,14,'Fourteen requested illustrations supplement the complete text');
 console.log('PASS detailed help: exact title, intro-first, 7 ordered/nested headings and dividers, no contents, JA/EN bindings and real UI names, matching current items/Daily/lives copy and omissions, trial-only notice, native touch/wheel bounded vertical scroll and wrapping (structural, not browser rendering)');

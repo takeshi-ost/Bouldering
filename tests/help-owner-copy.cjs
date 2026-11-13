@@ -31,6 +31,7 @@ const expected=[
  '手足4本がホールドに届く位置で指を離すと、1ムーブが決まります。届かない位置で離すと、移動前の位置へ戻ります。',
  '足を手より高い位置に置くことはできません。',
  'ボディを短くタップすると、直前の1ムーブだけ元に戻せます。',
+ 'そうさ中に別のゆびでタッチすると、うごきをキャンセルできます',
  '2本指スワイプ、または画面の左右端をスワイプすると、壁を上下にスクロールできます。',
  'ホールド\n手足を1本置くことができます。',
  '大きなホールド\n両手または両足を置くことができます。手と足を一緒に置くことはできません。',
@@ -56,6 +57,7 @@ const expectedEnglish=[
  'Release where all four limbs can reach holds to complete one move. Release where they cannot reach, and you return to your previous position.',
  'Your feet cannot be placed higher than your hands.',
  'Tap your body briefly to undo only your last move.',
+ 'While moving, touch the screen with another finger to cancel the move.',
  'Swipe with two fingers, or along the left or right edge of the screen, to scroll the wall up and down.',
  'Hold\nSupports one hand or foot.',
  'Large Hold\nCan support both hands or both feet. A hand and a foot cannot share it.',
@@ -74,7 +76,7 @@ const omittedKeys=['help.rules.tutorial','help.holds.chalkLabel','help.holds.cha
 function test(){
  const b=boot();assert.deepEqual(b.blocks(),expected,'Visible authored JA text/order/punctuation/newlines must match without old extra paragraphs');
  const trial=b.doc.getElementById('helpTrialNote');assert(trial.hidden);
- assert.equal(expected.length,21);assert.equal(expectedEnglish.length,21);
+ assert.equal(expected.length,22);assert.equal(expectedEnglish.length,22);
  for(const catalog of ['GAME_TEXT_JA','GAME_TEXT_EN']){
   const empty=Array.from(b.run('Object.keys('+catalog+').filter(key=>key.startsWith("help.") && '+catalog+'[key]==="")'));
   assert.deepEqual(empty.sort(),[...omittedKeys].sort(),'Current omitted help blocks must match in '+catalog);
@@ -91,7 +93,7 @@ function test(){
  assert.deepEqual(b.blocks(),[...expected,b.run('GAME_TEXT_JA["help.trialNote"]')]);
  const css=read('styles.css');assert(css.includes('.help-scroll p { white-space:pre-line; }'));assert(css.includes('html[lang="ja"] .help-scroll .help-item-gap { margin-top:16px; }'));
  assert.equal(b.run('GAME_TEXT_JA["help.rules.stamina"]'),expected[2]);
- console.log('PASS owner help copy: exact independent 21-block JA/EN fixtures, punctuation/line breaks/order, matching nine omitted entries, goal/stamina labels, repeated locale switches, no extra English rules, preserved footer trial-note gate and paragraph spacing (no browser rendering)');
+ console.log('PASS owner help copy: exact independent 22-block JA/EN fixtures, punctuation/line breaks/order, matching nine omitted entries, goal/stamina labels, repeated locale switches, no extra English rules, preserved footer trial-note gate and paragraph spacing (no browser rendering)');
 }
 if(require.main===module)test();
 module.exports={boot};

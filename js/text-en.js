@@ -301,6 +301,7 @@ const GAME_TEXT_EN = Object.freeze({
     "help.controls.move": "Swipe the screen to move your body. Two limbs support you while the other two automatically move to nearby holds.",
     "help.controls.commit": "Release where all four limbs can reach holds to complete one move. Release where they cannot reach, and you return to your previous position.",
     "help.controls.undo": "Tap your body briefly to undo only your last move.",
+    "help.controls.cancel": "While moving, touch the screen with another finger to cancel the move.",
     "help.controls.scroll": "Swipe with two fingers, or along the left or right edge of the screen, to scroll the wall up and down.",
     "help.holds.heading": "Holds and Items",
     "help.holds.normalLabel": "Hold",

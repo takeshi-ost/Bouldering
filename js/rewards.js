@@ -54,9 +54,9 @@ function continueNormalClear({advance=true}={}) {
     else resume();
 }
 const ROULETTE_OPTIONS=Object.freeze([
-    Object.freeze({kind:'hearts',amount:1,weight:5}),
-    Object.freeze({kind:'hearts',amount:10,weight:1}),
-    Object.freeze({kind:'hearts',amount:3,weight:5}),
+    Object.freeze({kind:'hearts',amount:1,weight:6}),
+    Object.freeze({kind:'hearts',amount:3,weight:3}),
+    Object.freeze({kind:'hearts',amount:5,weight:2}),
     Object.freeze({kind:'life',amount:1,weight:1})
 ]);
 const ROULETTE_SEGMENTS=Object.freeze(ROULETTE_OPTIONS.map((item,i)=>{
