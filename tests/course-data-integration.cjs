@@ -3,7 +3,7 @@ const fs=require('node:fs'),run=require('./coupled-production-harness.cjs');
 const manifest=JSON.parse(fs.readFileSync('course-data/manifest.json')),descriptor=manifest.packs.find(p=>p.id==='stages-00001-01000');
 if(!descriptor)throw Error('Integration requires the bundled stage sample');
 const pack=JSON.parse(fs.readFileSync('course-data/'+descriptor.file));
-const courses=[1,4,26].map(n=>pack.courses.find(c=>c.request.level===n&&c.request.date===null));
+const courses=[1,4,26,78].map(n=>pack.courses.find(c=>c.request.level===n&&c.request.date===null));
 if(courses.some(c=>!c))throw Error('Integration requires sample stages 1, 4, 26');
 const dailyDescriptor=manifest.packs.find(p=>p.id.startsWith('daily-'));
 const dailyCourse=dailyDescriptor?JSON.parse(fs.readFileSync('course-data/'+dailyDescriptor.file)).courses[0]:null;
@@ -83,5 +83,36 @@ run(`return (async()=>{
  courseDataStore={lookup:async(request,validate)=>{const bad=globalThis.AscentCourseData.decode(courses[0].snapshot);bad.route[1].x+=1;return validate(bad);}};
  const corrupt=prepareCourseAsync(1);await tick();assert.equal(workerCount,3,'Invalid witness triggers generator');assert.equal(holds,saved.holds);assert.equal(route,saved.route);corrupt.cancel();await assert.rejects(corrupt.promise);
  courseDataStore=real;
+
+ // Coordinate roundoff alone is tolerated. Every non-coordinate field is exact.
+ {
+  const point={x:0,y:0,grips:[1,2,3,4],anchor:[0,1],action:{points:[{dx:0,dy:-240}]},penalty:0,pickupMask:0};
+  assert(sameStoredCourseReplayPoint({...point,x:1e-7,y:-1e-7},point));
+  for(const change of [{x:1.01e-7},{y:-1.01e-7},{x:NaN},{y:Infinity},{x:'0'},
+   {grips:[2,1,3,4]},{anchor:[2,3]},{action:{points:[{dx:0,dy:-239.999999999}]}},
+   {penalty:1},{pickupMask:1},{extra:1}])
+   assert(!sameStoredCourseReplayPoint({...point,...change},point),'Reject changed state '+JSON.stringify(change));
+  const c=courses.find(c=>c.request.level===78),snapshot=globalThis.AscentCourseData.decode(c.snapshot);
+  const signature=coursePreparationPortableSignature(),saved=adoptedCourseSnapshot(),originalHypot=Math.hypot;
+  try {
+   // Equivalent floating-point calculation emulates cross-engine roundoff.
+   Math.hypot=(...v)=>Math.sqrt(v.reduce((sum,n)=>sum+n*n,0));
+   const restored=restoreCompactCourse(snapshot,c.request);
+   assert.equal(restored.route.length,snapshot.route.length);
+   assert(restored.route.some((p,i)=>p.x!==snapshot.route[i].x||p.y!==snapshot.route[i].y),'Fixture exercises real rounding differences');
+   assert(restored.route.every((p,i)=>sameStoredCourseReplayPoint(p,snapshot.route[i])));
+   validatePreparedCourse(restored,c.request);
+  }finally{Math.hypot=originalHypot;}
+  assert.equal(holds,saved.holds);assert.equal(route,saved.route);
+  assert.equal(coursePreparationPortableSignature(),signature,'Restore does not change generation rules');
+  const originalReplay=fingerReplayRoute;
+  try {
+   for(const change of [{x:snapshot.route[1].x+1e-5},{grips:[-1,-1,-1,-1]},{penalty:999},{pickupMask:999}]){
+    fingerReplayRoute=(...args)=>{const result=originalReplay(...args);result[1]={...result[1],...change};return result;};
+    assert.throws(()=>restoreCompactCourse(snapshot,c.request),/Stored route replay mismatch/);
+    assert.equal(holds,saved.holds);assert.equal(route,saved.route);
+   }
+  }finally{fingerReplayRoute=originalReplay;}
+ }
  console.log('PASS course-data integration: playable stored samples with zero Worker runs; exact geometry/resources/guide markers; trace reconstruction; missing/corrupt/database failure fallback; canceled-load guard; preserved live globals');
 })()`);
