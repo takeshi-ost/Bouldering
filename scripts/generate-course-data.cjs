@@ -46,17 +46,18 @@ function optionsFrom(args){
  return o;
 }
 function generate(item,built,codec,existing=null){return new Promise((resolve,reject)=>{
- const source=`const {parentPort}=require('node:worker_threads');globalThis.postMessage=()=>{};\n${codec}\n${built.output['js/course-worker.js']}\n
+ const source=`const {parentPort}=require('node:worker_threads');globalThis.postMessage=()=>{};\n${codec}\n${built.output['js/course-worker.js']}\n${require('./course-data-validation-source.cjs')}\n
  try {
   const item=${JSON.stringify(item)},existing=${JSON.stringify(existing)};
   const profile=typeof item==='string'?{date:item,typeId:generationTypeForScore(CourseProgression.resolveDaily(item).score)}:null;
   const request=coursePreparationIdentity(typeof item==='number'?item:1,profile);
   const runtimeHash=require('node:crypto').createHash('sha256').update(coursePreparationPortableSignature()).digest('hex');
-  if(existing&&existing.generationVersion===RELEASE_VERSION&&existing.runtimeHash===runtimeHash&&JSON.stringify(existing.request)===JSON.stringify(request)){
+  if(existing&&existing.snapshot?.format==='ascent-compact-1'&&existing.generationVersion===RELEASE_VERSION&&existing.runtimeHash===runtimeHash&&JSON.stringify(existing.request)===JSON.stringify(request)){
+   adminValidateStoredCourse(globalThis.AscentCourseData.decode(existing.snapshot),request);
    parentPort.postMessage({course:existing,skipped:true});
   }else{
    level=request.level;difficulty=request.difficulty;courseTypeId=request.courseTypeId;courseMode='existing';dailyRun=profile;tutorialRun=null;debugCourseTrial=null;debugMode=debugAttempt=false;
-   prepareAdoptedCourse();const snapshot=validatePreparedCourse(adoptedCourseSnapshot(),request);
+   prepareAdoptedCourse();const snapshot=adminValidateStoredCourse(validatePreparedCourse(adoptedCourseSnapshot(),request),request);
    parentPort.postMessage({course:{generationVersion:RELEASE_VERSION,request,runtimeHash,snapshot:globalThis.AscentCourseData.compact(snapshot)},moves:snapshot.route.length-1,stamina:snapshot.activeCourseGeneration.initialStamina});
   }
  }catch(e){parentPort.postMessage({error:String(e.stack||e)});}`;
