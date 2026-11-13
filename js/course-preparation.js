@@ -55,12 +55,14 @@ function validatePreparedCourse(snapshot,request) {
         !Number.isSafeInteger(a.initialStamina)||a.initialStamina<=0||
         a.initialStamina!==snapshot.labStaminaCache?.initialStamina||
         JSON.stringify(a.resolved)!==JSON.stringify(request.resolved))fail();
+    // Generation-only sweep traces are not needed for an authenticated compact snapshot.
+    const traceOmitted=snapshot.labSkeletonReport?.source==='precomputed'&&snapshot.labSkeletonReport.traceOmitted===true;
     const ids=new Set(h.map(p=>p.id));
     for(const [index,p] of r.entries()){
         if((index || p.grips) && (!Array.isArray(p.grips)||p.grips.length!==4||!p.grips.every(id=>ids.has(id))))fail();
         if(index && (!validFingerAction(p.action)||p.action.bodyMotion!==COUPLED_BODY_MODEL||p.action.gain!==fingerAimGain()||
             !Array.isArray(p.anchor)||p.anchor.length!==2||new Set(p.anchor).size!==2||!p.anchor.every(i=>Number.isInteger(i)&&i>=0&&i<4)||
-            !Array.isArray(p.trace)||!p.trace.length||!p.trace.every(point)))fail();
+            !(traceOmitted&&p.trace===undefined)&&(!Array.isArray(p.trace)||!p.trace.length||!p.trace.every(point))))fail();
     }
     const retry=a.retry;
     if(retry.version!==COURSE_RETRY_CONFIG.version||retry.initialSeed!==request.resolved.seed||
