@@ -77,3 +77,13 @@ test('initial language uses only current Pages namespace and persists before Sta
   assert.equal(b.run('stageProgress.existing.cleared'),9);assert(!existing.has(prefix+'ascent.language.v1'));
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+test('bundled course data remains compatible with the formal storage transform',()=>{
+ const {dir}=build();try{
+  const manifest=JSON.parse(fs.readFileSync(path.join(dir,'course-data/manifest.json'))),p=manifest.packs.find(p=>p.id.startsWith('stages-'));
+  const course=JSON.parse(fs.readFileSync(path.join(dir,'course-data',p.file))).courses[0];
+  const app=boot(dir,new Map());
+  assert.equal(crypto.createHash('sha256').update(app.run('coursePreparationPortableSignature()')).digest('hex'),course.runtimeHash);
+  const result=app.run(`(()=>{const c=${JSON.stringify(course)};const s=restoreCompactCourse(AscentCourseData.decode(c.snapshot),c.request);validatePreparedCourse(s,c.request);return {moves:s.route.length-1,stamina:s.activeCourseGeneration.initialStamina};})()`);
+  assert.equal(result.moves,course.snapshot.route.length-1);assert.equal(result.stamina,course.snapshot.active.initialStamina);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
