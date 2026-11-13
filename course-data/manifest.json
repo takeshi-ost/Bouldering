@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "generationVersion": "0.5.17",
+  "buildId": "38cea959ad93c188251bda8dd8c12c9781a79722799b45d032eaac530e3a9973",
+  "generatedAt": "2026-11-13T01:17:34.215Z",
+  "packs": [
+    {
+      "id": "daily-20001-21000",
+      "start": 20001,
+      "end": 21000,
+      "count": 61,
+      "generatedAt": "2026-11-13T01:17:34.210Z",
+      "file": "daily-20001-21000-16b81094dfb5.json",
+      "bytes": 516823,
+      "sha256": "16b81094dfb5b96d94e1ff1660b981d20c56296db177108bbfdd3e2755f64f9c"
+    },
+    {
+      "id": "stages-00001-01000",
+      "start": 1,
+      "end": 1000,
+      "count": 100,
+      "generatedAt": "2026-11-13T01:09:47.676Z",
+      "file": "stages-00001-01000-a8a50e254698.json",
+      "bytes": 817577,
+      "sha256": "a8a50e254698bbb19eece9067a7fb1c8ac6d75b379d497dff2c22be969806f69"
+    }
+  ]
+}
