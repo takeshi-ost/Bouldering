@@ -158,9 +158,9 @@ for(const won of [true,false]) {
 }
 // Saved roulette inventory and life rewards are retained after the attempt ends.
 {
-    const b=boot();normal(b);b.run("moveCount=8;finish(true);applyRouletteReward({kind:'hearts',amount:5});applyRouletteReward({kind:'life',amount:1});");
+    const b=boot();normal(b);b.run("moveCount=8;finish(true);applyRouletteReward({kind:'hearts',amount:3});applyRouletteReward({kind:'life',amount:1});");
     const before=saved(b),resumed=boot(b.data,{token:'after-reward'});
-    assert.equal(resumed.run('heartItems'),22);assert.equal(resumed.run('lives.count'),4);assert.deepEqual(saved(resumed),before);
+    assert.equal(resumed.run('heartItems'),20);assert.equal(resumed.run('lives.count'),4);assert.deepEqual(saved(resumed),before);
 }
 // Daily and fresh tutorial runs never create normal-attempt receipts and do not
 // refund Daily attempts or fabricate normal life/chalk credits on a long boot.
