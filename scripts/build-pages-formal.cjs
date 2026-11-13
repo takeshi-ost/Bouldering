@@ -5,7 +5,7 @@ const {buildCourseWorker}=require('./build-course-worker.cjs');
 const ROOT=path.resolve(__dirname,'..'),hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 function formalStorageSource(source,name){
  const all=(source.match(/\blocalStorage\b/g)||[]).length,qualified=(source.match(/globalThis\.localStorage/g)||[]).length;
- if(all!==qualified||/\b(sessionStorage|indexedDB)\b/.test(source))throw Error('Unreviewed gameplay storage: '+name);
+ if(all!==qualified||(/\bsessionStorage\b/.test(source)||(/\bindexedDB\b/.test(source)&&name!=='js/course-data-store.js')))throw Error('Unreviewed gameplay storage: '+name);
  return source.replaceAll('globalThis.localStorage','ASCENT_FORMAL_STORAGE');
 }
 function buildPagesFormal({outputDir,allowDirty=false}={}){
@@ -35,6 +35,7 @@ function buildPagesFormal({outputDir,allowDirty=false}={}){
  let assetText=html;
  for(const file of scripts){const source=read(file).toString();assetText+='\n'+source;files.set(file,Buffer.from(formalStorageSource(source,file)));}
  files.set('js/course-worker.js',read('js/course-worker.js'));
+ for(const [file,bytes]of require('./course-data-files.cjs')(ROOT))files.set(file,bytes);
  for(const source of workerBuild.manifest.sources)if(!sources.some(item=>item.path===source.path))read(source.path);
  // Only the normal settings DEBUG utility is added to the original game.
  const debug=read('scripts/formal-debug-seed.js');files.set('js/formal-debug-seed.js',debug);assetText+='\n'+debug;
