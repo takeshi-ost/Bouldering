@@ -25,6 +25,7 @@ function prepareTitleMapLayout() {
     ui.mapScroll.scrollTop=Math.max(0,viewportHeight*.2+mapPoint(mapSelected).y-viewportHeight/2);
 }
 async function beginTitlePreparation() {
+    if(typeof checkCourseDataUpdates==='function')void checkCourseDataUpdates();
     const ticket=++titlePreparation;
     titleReady=false;ui.titleTap.hidden=true;
     ui.titleScreen.setAttribute('aria-disabled','true');
