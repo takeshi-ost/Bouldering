@@ -329,7 +329,7 @@
         await wait(()=>!!bundleContext.prepared||!!bundleContext.error,'bundled-stage1-read-timeout',15000);
         ensure(!bundleContext.error&&bundleContext.prepared&&workerObservations.length===2,'bundled-stage1-used-worker');
         const bundleSnapshot=bundleContext.prepared.snapshot;
-        ensure(bundleSnapshot.labSkeletonReport?.diagnosticsOmitted===true&&bundleSnapshot.route.slice(1).every(p=>p.trace?.length>0),'bundled-stage1-replay-not-restored');
+        ensure(bundleSnapshot.labSkeletonReport?.diagnosticsOmitted===true&&bundleSnapshot.labSkeletonReport.traceOmitted===true&&bundleSnapshot.route.every(p=>p.trace===undefined),'bundled-stage1-replay-not-restored');
         ensure(resources()===bundleResources&&!node('stageStartButton').disabled,'bundled-stage1-preparation-charged-resources');
         node('stageStartButton').click();
         await wait(()=>state==='playing'&&level===1&&!stageStartContext,'bundled-stage1-not-started');
@@ -340,9 +340,20 @@
         const stage78Request=coursePreparationIdentity(78),stage78Resources=resources(),stage78Pose=pose(),liveHolds=holds,liveRoute=route;
         const stage78Snapshot=await courseData().lookup(stage78Request,s=>validatePreparedCourse(s,stage78Request),coursePreparationPortableSignature());
         ensure(stage78Snapshot&&stage78Snapshot.labSkeletonReport?.diagnosticsOmitted===true,'bundled-stage78-direct-lookup-failed');
-        ensure(stage78Snapshot.route.length>1&&stage78Snapshot.route.slice(1).every(p=>p.trace?.length>0),'bundled-stage78-route-not-restored');
+        ensure(stage78Snapshot.route.length>1&&stage78Snapshot.labSkeletonReport.traceOmitted===true&&stage78Snapshot.route.every(p=>p.trace===undefined),'bundled-stage78-route-not-restored');
         ensure(resources()===stage78Resources&&pose()===stage78Pose&&holds===liveHolds&&route===liveRoute&&workerObservations.length===2,'bundled-stage78-lookup-mutated-live-state');
         checks.push('bundled-stage78-direct-lookup-without-generation');
+        phase='bundled-stage78-indexeddb-reopen';
+        await bundledCourseDataStore.warmup();
+        let offlineFetches=0;
+        const reopenedStore=AscentCourseData.create({minGenerationVersion:COURSE_DATA_CONFIG.minGenerationVersion,
+            bundleManifest:COURSE_DATA_CONFIG.bundleManifest,bundledManifestData:COURSE_BUNDLED_MANIFEST,
+            remoteManifest:null,baseURL:document.baseURI,fetcher:async()=>{offlineFetches++;throw Error('offline');}});
+        const persistedStage78=await reopenedStore.lookup(stage78Request,s=>validatePreparedCourse(restoreCompactCourse(s,stage78Request),stage78Request),coursePreparationPortableSignature());
+        ensure(persistedStage78&&offlineFetches===0,'bundled-stage78-indexeddb-reopen-failed');
+        ensure(JSON.stringify(persistedStage78.route)===JSON.stringify(stage78Snapshot.route)&&resources()===stage78Resources&&holds===liveHolds&&route===liveRoute,'bundled-stage78-indexeddb-reopen-mutated-state');
+        // New store instance in the same WebKit document, not a full app restart.
+        checks.push('bundled-stage78-indexeddb-new-store-offline');
         finish(true);
     } catch(error){
         // Do not return exception messages, URLs, identifiers or saved data.
