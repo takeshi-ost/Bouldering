@@ -1,0 +1,31 @@
+{
+  "verifiedAt": "2026-11-13T05:22:03.925Z",
+  "runtimeHash": "b7b248fe44517992c76a49fedeac546d66ce58b1e7c3b198319d72de96c26448",
+  "dir": "course-data",
+  "report": [
+    {
+      "id": "daily-20001-21000",
+      "count": 61,
+      "oldBytes": 516823,
+      "newBytes": 516822,
+      "oldFile": "daily-20001-21000-16b81094dfb5.json",
+      "newFile": "daily-20001-21000-df44eed1bf08.json",
+      "oldSha256": "16b81094dfb5b96d94e1ff1660b981d20c56296db177108bbfdd3e2755f64f9c",
+      "newSha256": "df44eed1bf08d5d1773f431baa5d932da450419c8016528859fb18180fdf9ad9",
+      "allCoursesReplayVerified": true,
+      "allSnapshotFieldsIdentical": true
+    },
+    {
+      "id": "stages-00001-01000",
+      "count": 100,
+      "oldBytes": 817577,
+      "newBytes": 817576,
+      "oldFile": "stages-00001-01000-a8a50e254698.json",
+      "newFile": "stages-00001-01000-d55450ae271d.json",
+      "oldSha256": "a8a50e254698bbb19eece9067a7fb1c8ac6d75b379d497dff2c22be969806f69",
+      "newSha256": "d55450ae271dcdadd4e3759b4de970d30b5d973720b44c6fff6f1b4af748ef3f",
+      "allCoursesReplayVerified": true,
+      "allSnapshotFieldsIdentical": true
+    }
+  ]
+}
