@@ -52,6 +52,27 @@ const lookup=(s,r=request,p=portable)=>s.lookup(r,x=>x,p);
   r=await bounded(s.update());assert.equal(r.updated,0);assert(r.failures.length);assert(transactions>=2);
   e=environment();e.files.clear();assert.equal(await bounded(lookup(e.create({disk:undefined}))),null,'missing bundle must permit generation fallback');
  }finally{if(originalIDB===undefined)delete globalThis.indexedDB;else globalThis.indexedDB=originalIDB;}
+ // Embedded metadata + SHA-keyed bundle persistence allow offline instance restart.
+ e=environment();const embedded=fixture().manifest;s=e.create({bundledManifestData:embedded});
+ assert.equal((await s.warmup()).loaded,1);assert(!e.calls.some(u=>u.includes('bundle/manifest')));
+ assert([...e.saved.keys()].some(k=>k.startsWith('schema-1:bundle:')));
+ await s.update();e.setOffline(true);e.calls.length=0;
+ const offlineStore=e.create({bundledManifestData:embedded});
+ assert.equal((await lookup(offlineStore)).marker,'remote');assert.equal(e.calls.length,0,'Saved candidates require no HTTP');
+ // Removing downloaded data still leaves the independent bundled pack intact.
+ e.saved.delete('schema-1:stages-00001-01000');assert.equal((await lookup(offlineStore)).marker,'bundle');assert.equal(e.calls.length,0);
+ // Slow initial retrieval outlives the bounded lookup, then serves later starts.
+ e=environment();let resolvePack,aborted=false;const policies=[];
+ const slow=e.create({bundledManifestData:embedded,fetcher:async(url,opts)=>{
+  policies.push(opts.cache);opts.signal.addEventListener('abort',()=>aborted=true);
+  return new Promise(resolve=>{resolvePack=()=>resolve({ok:true,text:async()=>fixture().text});});
+ }});
+ const pendingWarm=slow.warmup(),t=Date.now();assert.equal(await lookup(slow),null);
+ assert(Date.now()-t<5000,'Start must not wait 30s');assert.equal(aborted,false,'Lookup deadline must not abort warmup');
+ resolvePack();assert.equal((await pendingWarm).loaded,1);assert.equal((await lookup(slow)).marker,'bundle');assert.deepEqual(policies,['force-cache']);
+ // Corrupt persisted bundle is rejected; an intact asset can repair it.
+ const bundleEntry=[...e.saved.entries()].find(([k])=>k.startsWith('schema-1:bundle:'));bundleEntry[1].text=bundleEntry[1].text.replace('bundle','broken');
+ assert.equal((await lookup(e.create({bundledManifestData:embedded}))).marker,'bundle');
  const daily={level:1,date:'2026-11-13',resolved:{kind:'daily',date:'2026-11-13',seed:20261113}};
  const f=fixture({req:daily,marker:'daily'});e=environment(f,f);assert.equal((await lookup(e.create(),daily)).marker,'daily');assert.equal(await lookup(e.create()),null,'normal stage does not alias daily');
  assert.equal(A.location({...daily,date:'2026-02-30',resolved:{kind:'daily',date:'2026-02-30'}}),null);
