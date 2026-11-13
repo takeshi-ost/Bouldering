@@ -24,10 +24,10 @@ function verify(dir,args=[]){
    const key=(c.request.date?'daily:':'stage:')+item;assert(!seen.has(key),'Duplicate course '+key);seen.add(key);
   }
   const started=Date.now();
-  run(`const courses=${JSON.stringify(p.courses)};for(const c of courses){
+  run(`${require('./course-data-validation-source.cjs')}\nconst courses=${JSON.stringify(p.courses)};for(const c of courses){
    const profile=c.request.date?dailyProfile(c.request.date):null;
    assert.equal(JSON.stringify(coursePreparationIdentity(c.request.level,profile)),JSON.stringify(c.request));
-   const snapshot=restoreCompactCourse(globalThis.AscentCourseData.decode(c.snapshot),c.request);
+   const snapshot=adminValidateStoredCourse(globalThis.AscentCourseData.decode(c.snapshot),c.request);
    validatePreparedCourse(snapshot,c.request);
   }`);
   const row={id:d.id,count:d.count,bytes:raw.length,verifyMs:Date.now()-started};rows.push(row);console.log(JSON.stringify(row));
