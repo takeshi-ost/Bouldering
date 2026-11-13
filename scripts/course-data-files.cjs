@@ -3,6 +3,8 @@ const fs=require('fs'),path=require('path'),crypto=require('crypto');require('..
 module.exports=function courseDataFiles(root){
  const dir=path.join(root,'course-data'),file=path.join(dir,'manifest.json');if(!fs.existsSync(file))return [];
  const bytes=fs.readFileSync(file),m=JSON.parse(bytes);if(!globalThis.AscentCourseData.compatibleGeneration(m)||!Array.isArray(m.packs))throw Error('Incompatible bundled course metadata');
+ const embedded=fs.readFileSync(path.join(root,'js/course-data.js'),'utf8').match(/const COURSE_BUNDLED_MANIFEST=(.*);/);
+ if(!embedded||JSON.stringify(JSON.parse(embedded[1]))!==JSON.stringify(m))throw Error('Bundled manifest metadata is stale in js/course-data.js');
  const files=[['course-data/manifest.json',bytes]];
  for(const d of m.packs){
   if(!/^[\w.-]+\.json$/.test(d.file))throw Error('Invalid pack name');
