@@ -16,12 +16,15 @@ const firebaseMode=process.env.ASCENT_FIREBASE_MODE || 'auto-sync';
 if(!['offline','read-only','auto-sync'].includes(firebaseMode))throw Error('Unsupported native Firebase mode');
 fs.rmSync(out, {recursive: true, force: true});
 fs.mkdirSync(path.join(out, 'js'), {recursive: true});
+for(const [file,bytes]of require('./course-data-files.cjs')(root)){fs.mkdirSync(path.dirname(path.join(out,file)),{recursive:true});fs.writeFileSync(path.join(out,file),bytes);}
 for (const name of ['styles.css', 'assets']) {
     fs.cpSync(path.join(root, name), path.join(out, name), {recursive: true});
 }
 for (const name of fs.readdirSync(path.join(root, 'js'))) {
     if (!name.endsWith('.js') || name === 'firebase-client.js') continue;
-    fs.writeFileSync(path.join(out, 'js', name), nativeSource(name, fs.readFileSync(path.join(root, 'js', name), 'utf8')));
+    let source=fs.readFileSync(path.join(root, 'js', name), 'utf8');
+    if(name==='course-data.js'&&firebaseMode==='offline')source=source.replace("remoteManifest:'https://takeshi-ost.github.io/Bouldering/test-course-data/stages-101-150/manifest.json'", 'remoteManifest:null');
+    fs.writeFileSync(path.join(out, 'js', name), nativeSource(name, source));
 }
 let html = nativeSettingsLayout(fs.readFileSync(path.join(root, 'index.html'), 'utf8'));
 const firebaseTag = /<script\s+type="module"\s+src="js\/firebase-client\.js(?:\?[^"\s]*)?"\s*><\/script>/g;
@@ -40,9 +43,9 @@ html = html.replace('</head>', '    <script src="js/native-audio-lifecycle.js" d
 buildNativeFirebase(root,out,firebaseMode);
 html = html.replace('<p id="onlineStatus"', '<p hidden id="onlineStatus"');
 html = html.replace('</head>','    <script src="js/native-firebase-control.js" defer></script>\n</head>');
-// Local media fetch stays available. Only explicitly enabled Firebase hosts may
+// Local media fetch stays available. Only enabled Firebase and course-feed hosts may
 // connect; external scripts, frames and form submissions always stay blocked.
-const connections=firebaseMode!=='offline'?" https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com":'';
+const connections=firebaseMode!=='offline'?" https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://takeshi-ost.github.io/Bouldering/test-course-data/stages-101-150/":'';
 const policy = "default-src 'self'; script-src 'self'; worker-src 'self'; connect-src 'self'"+connections+"; " +
     "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; " +
     "media-src 'self' data: blob:; font-src 'self' data:; " +
