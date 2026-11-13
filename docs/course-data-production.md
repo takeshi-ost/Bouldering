@@ -1,4 +1,4 @@
-# Pregenerated courses (0.5.18)
+# Pregenerated courses (0.5.19)
 
 Bundled: STAGE1–100 and Daily2026-10-14–2026-12-13 (61 dates), generated with0.5.17.
 Remote test feed: https://takeshi-ost.github.io/Bouldering/test-course-data/stages-101-150/manifest.json (STAGE101–150).
@@ -9,4 +9,8 @@ Update skip uses the downloaded pack date only: a newer partial bundle must not 
 
 Downloads use approved HTTPS, omit credentials, reject redirects, and have bounded request time and size. Native default builds allow the specific feed directory; explicit offline CI builds remove the remote URL and retain network-blocking CSP. Course data preparation is independent of app builds; builds package existing manifest-referenced data.
 
-Compact data retains game geometry, actions/limb positions, hearts and stamina; traces are reconstructed and diagnostic reports are omitted. Guide-only stamina checks exclude deliberate off-guide heart pickup detours. All50 remote courses passed production down/move/release replays with reachable pickup drags and cancel, under the generation baseline selector. This is not a physical-device or new-selector input test. Real browser IndexedDB/WKWebView persistence and iPhone testing remain separate.
+Compact data retains game geometry, actions/limb positions, hearts and stamina; generation-only sweep traces and diagnostic reports are omitted. Loading never replays gestures or compares poses. Administrative generation/repacking validates the reference route before saving. The saved body positions and limb/anchor IDs retain the body guide line and numbered hold guide. Guide-only stamina checks exclude deliberate off-guide heart pickup detours. All50 remote courses passed production down/move/release replays with reachable pickup drags and cancel, under the generation baseline selector. This is not a physical-device or new-selector input test. Real browser IndexedDB/WKWebView persistence and iPhone testing remain separate.
+
+0.5.19: The bundled manifest is embedded and build-checked against the JSON manifest. Title preparation preloads bundled packs without blocking title/play and stores them under SHA-specific IndexedDB keys, separate from downloaded partial packs. Saved valid data is selected before network retrieval. If no local copy exists, start waits at most 2 seconds for the immutable pack; retrieval continues in the background for up to 30 seconds, then a later start can use it. This first-ever Web fetch is not an instantaneous/offline guarantee. Native bundles already contain the assets. Online updates remain asynchronous and affect future preparations only; an active run's geometry/resources are never replaced.
+
+The 211 repacked courses retain every prior stored snapshot field exactly. No geometry, seed, stamina or heart rules changed. Their generation timestamp is advanced for the verified repack so older downloaded records can be replaced. Detailed pre-save replay audits are in docs/verification.
