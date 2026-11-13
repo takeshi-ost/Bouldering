@@ -80,7 +80,33 @@ const originalRewards=fs.readFileSync('js/rewards.js','utf8')
  .replace("Object.freeze({kind:'hearts',amount:10,weight:1}),\n    Object.freeze({kind:'hearts',amount:3,weight:5}),","Object.freeze({kind:'hearts',amount:5,weight:5}),\n    Object.freeze({kind:'hearts',amount:10,weight:1}),")
  .replace('amount:1,weight:5','amount:1,weight:2').replace('amount:5,weight:5','amount:5,weight:2');
 assert.equal(crypto.createHash('sha256').update(originalRewards).digest('hex'),baseline['js/rewards.js']);
-for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),release0516Exceptions[file]||nativeDiagnosticExceptions[file]||legacyTypeRetirementExceptions[file]||rankingPauseExceptions[file]||courseGenerationExceptions[file]||preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation and v5 generation '+file);
+// Reviewed course-data additions only. Reverse exact insertions and prove the
+// remaining builders are byte-identical to their previously reviewed hashes.
+const courseDataBuildExceptions={};
+const dataCopies={
+ 'scripts/build-ios-assets.cjs':"for(const [file,bytes]of require('./course-data-files.cjs')(root)){fs.mkdirSync(path.dirname(path.join(out,file)),{recursive:true});fs.writeFileSync(path.join(out,file),bytes);}",
+ 'scripts/build-pages-formal.cjs':" for(const [file,bytes]of require('./course-data-files.cjs')(ROOT))files.set(file,bytes);"
+};
+for(const [file,insertion]of Object.entries(dataCopies)){
+ const current=fs.readFileSync(file,'utf8');assert.equal(current.split(insertion+'\n').length,2,'Exactly one reviewed data copy '+file);
+ let restored=current.replace(insertion+'\n','');
+ if(file==='scripts/build-ios-assets.cjs'){
+  const after1="    let source=fs.readFileSync(path.join(root, 'js', name), 'utf8');\n    if(name==='course-data.js'&&firebaseMode==='offline')source=source.replace(\"remoteManifest:'https://takeshi-ost.github.io/Bouldering/test-course-data/stages-101-150/manifest.json'\", 'remoteManifest:null');\n    fs.writeFileSync(path.join(out, 'js', name), nativeSource(name, source));\n",before1="    fs.writeFileSync(path.join(out, 'js', name), nativeSource(name, fs.readFileSync(path.join(root, 'js', name), 'utf8')));\n";
+  assert.equal(restored.split(after1).length,2,'Exact native feed allowance change 1');restored=restored.replace(after1,before1);
+  const after3="// Local media fetch stays available. Only enabled Firebase and course-feed hosts may\n",before3="// Local media fetch stays available. Only explicitly enabled Firebase hosts may\n";
+  assert.equal(restored.split(after3).length,2,'Exact native feed allowance change 3');restored=restored.replace(after3,before3);
+  const after5="const connections=firebaseMode!=='offline'?\" https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://takeshi-ost.github.io/Bouldering/test-course-data/stages-101-150/\":'';\n",before5="const connections=firebaseMode!=='offline'?\" https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com\":'';\n";
+  assert.equal(restored.split(after5).length,2,'Exact native feed allowance change 5');restored=restored.replace(after5,before5);
+ }
+ if(file==='scripts/build-pages-formal.cjs'){
+  const revised=" if(all!==qualified||(/\\bsessionStorage\\b/.test(source)||(/\\bindexedDB\\b/.test(source)&&name!=='js/course-data-store.js')))throw Error('Unreviewed gameplay storage: '+name);";
+  const original=" if(all!==qualified||/\\b(sessionStorage|indexedDB)\\b/.test(source))throw Error('Unreviewed gameplay storage: '+name);";
+  assert.equal(restored.split(revised).length,2,'Only the course-data store may use IndexedDB');restored=restored.replace(revised,original);
+ }
+ assert.equal(crypto.createHash('sha256').update(restored).digest('hex'),courseGenerationExceptions[file]||preparationExceptions[file],'All other builder bytes unchanged '+file);
+ courseDataBuildExceptions[file]=crypto.createHash('sha256').update(current).digest('hex');
+}
+for(const [file,hash]of Object.entries(baseline))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),courseDataBuildExceptions[file]||release0516Exceptions[file]||nativeDiagnosticExceptions[file]||legacyTypeRetirementExceptions[file]||rankingPauseExceptions[file]||courseGenerationExceptions[file]||preparationExceptions[file]||hash,'0.5.1 boundary / reviewed preparation and v5 generation '+file);
 const map=fs.readFileSync('js/level-map.js','utf8');
 const currentDebugVisibility='    ui.debugControls.hidden = !DEBUG_FEATURES_ALLOWED || !debugMode;';
 assert.equal(map.split(currentDebugVisibility).length,2);
