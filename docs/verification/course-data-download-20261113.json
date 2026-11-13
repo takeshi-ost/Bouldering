@@ -1,0 +1,19 @@
+{
+  "verifiedAt": "2026-11-13T05:22:05.607Z",
+  "runtimeHash": "b7b248fe44517992c76a49fedeac546d66ce58b1e7c3b198319d72de96c26448",
+  "dir": "test-course-data/stages-101-150",
+  "report": [
+    {
+      "id": "stages-00001-01000",
+      "count": 50,
+      "oldBytes": 571169,
+      "newBytes": 571168,
+      "oldFile": "stages-00001-01000-1786d94cfec9.json",
+      "newFile": "stages-00001-01000-9a117c64b356.json",
+      "oldSha256": "1786d94cfec9f845e6ed9e4c3e27c90a92f2e1b09157b65932037e5d9766dc89",
+      "newSha256": "9a117c64b356d787ff4b5a10b2291473c42c0f8475bb5621f3821ed5e2d2ee36",
+      "allCoursesReplayVerified": true,
+      "allSnapshotFieldsIdentical": true
+    }
+  ]
+}
