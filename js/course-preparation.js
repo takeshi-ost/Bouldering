@@ -106,6 +106,8 @@ function prepareCourseAsync(n,profile=null) {
     coursePreparationJobs.add(job);
     const cached=key===null?null:adoptedCourseCache.get(key);
     if(cached){cacheAdoptedCourseSnapshot(key,cached);settle(null,cached);return job;}
+    const generate=()=>{
+    if(settled||job.cancelled)return;
     const build=globalThis.ASCENT_COURSE_BUILD;
     if(signature===null||typeof globalThis.Worker!=='function'||!build?.id){
         settle(coursePreparationError('COURSE_PREPARATION_UNAVAILABLE'));return job;
@@ -139,6 +141,15 @@ function prepareCourseAsync(n,profile=null) {
         };
         job.worker.postMessage({protocol:COURSE_PREPARATION_PROTOCOL,buildId:build.id,requestId,request,portable,runtime});
     } catch(error){settle(error);}
+    };
+    const data=typeof courseData==='function'?courseData():null;
+    if(data){
+        data.lookup(request,snapshot=>validatePreparedCourse(snapshot,request),coursePreparationPortableSignature()).then(snapshot=>{
+            if(settled||job.cancelled)return;
+            if(!snapshot){generate();return;}
+            try{assertPreparedCourse(job,n,profile);const frozen=freezeAdoptedCourse(snapshot);cacheAdoptedCourseSnapshot(key,frozen);settle(null,frozen);}catch(error){settle(error);}
+        }).catch(()=>generate());
+    }else generate();
     return job;
 }
 
