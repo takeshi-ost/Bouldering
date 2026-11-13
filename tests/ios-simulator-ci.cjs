@@ -52,6 +52,8 @@ assert.match(script,/tutorial-language-mutated-gameplay/);
 // requirements do not substitute for executing it in the disposable simulator.
 for(const marker of [
     'fourth-confirmed-move-two-help-pages-ja-en-decoded-pause-repeat-guard',
+    'bundled-stage1-replay-and-start-without-worker',
+    'bundled-stage78-direct-lookup-without-generation',
     'same-origin-capacitor-worker-bootstrap',
     'cold-worker-pending-ui-timer-heartbeat',
     'pending-worker-close-terminates-without-resource-spend',
@@ -61,6 +63,12 @@ for(const marker of [
     'normal-stage1-coupled-action-through-dom-input',
     'normal-stage1-return-settles-one-life-without-stale-worker'
 ])assert(script.includes("'"+marker+"'"),'Missing real WebKit worker smoke check: '+marker);
+assert(script.includes("bundleManifest:'course-data/runtime-smoke-missing/manifest.json'"),'Worker path requires an explicitly absent local data fixture');
+assert(script.includes("await wait(()=>!!cancelledJob?.worker"),'Worker creation follows asynchronous data lookup');
+assert(script.includes('bundleSnapshot.labSkeletonReport?.diagnosticsOmitted===true'),'Bundled path must prove restored compact data');
+assert(script.includes('restoreCourseData();clearAdoptedCourseCache();'),'Bundled path must restore the real store and clear geometry cache');
+assert(script.includes('courseData().lookup(stage78Request,s=>validatePreparedCourse(s,stage78Request),coursePreparationPortableSignature())'),'Stage78 must exercise the genuine compact decoder and replay directly, without generation fallback');
+assert(script.includes('stage78Snapshot&&stage78Snapshot.labSkeletonReport?.diagnosticsOmitted===true'),'Stage78 null lookup must fail the WebKit smoke');
 assert.match(script,/new NativeWorker\(url,options\)/,'Observe the actual platform Worker instead of a synthetic implementation');
 assert.match(script,/clearAdoptedCourseCache\(\);/);
 assert.match(script,/adoptedCourseCache\.size===0&&stagePreviewCache\.size===0/,'Cold worker smoke must clear both geometry and preview caches');
