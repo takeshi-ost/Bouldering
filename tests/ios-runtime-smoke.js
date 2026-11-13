@@ -7,10 +7,10 @@
     const bridge=globalThis.webkit?.messageHandlers?.ascentRuntimeSmoke;
     if(!bridge)return;
     const checks=[],captures=[],started=performance.now(),deadline=started+90000;
-    let finished=false,phase='startup',restoreWorkerObservation=()=>{};
+    let finished=false,phase='startup',restoreWorkerObservation=()=>{},restoreCourseData=()=>{};
     const post=value=>bridge.postMessage(value);
     const finish=(ok,error='')=>{
-        if(finished)return;finished=true;clearTimeout(watchdog);restoreWorkerObservation();
+        if(finished)return;finished=true;clearTimeout(watchdog);restoreWorkerObservation();restoreCourseData();
         post({kind:'result',report:{ok,checks,error,phase,captures,
             automation:'DOM events and programmatic gameplay; not physical touches',
             elapsedMs:Math.round(performance.now()-started)}});
@@ -206,8 +206,18 @@
         const workerObservations=observeCourseWorkers(),normalResources=resources(),normalNonConsumables=nonConsumables();
         const normalItems=heartItems,normalLives=lives.count,normalAttempt=lifeAttemptId;
         ensure(normalItems>=2&&normalLives>0&&!lives.inProgress&&lifeRunId===null,'normal-stage-starting-resources-invalid');
+        // Disposable missing-data fixture: real fetch of an absent local path,
+        // real IndexedDB, and the unchanged production fallback/Worker pipeline.
+        // Keep the genuine bundled store for the explicit loaded-data start below.
+        courseData();const bundledCourseDataStore=courseDataStore;
+        ensure(bundledCourseDataStore,'bundled-course-store-missing');
+        courseDataStore=AscentCourseData.create({minGenerationVersion:COURSE_DATA_CONFIG.minGenerationVersion,
+            bundleManifest:'course-data/runtime-smoke-missing/manifest.json',remoteManifest:null,
+            baseURL:document.baseURI,runtimeSignature:()=>coursePreparationPortableSignature()});
+        restoreCourseData=()=>{courseDataStore=bundledCourseDataStore;};
         ensure(openStageStart(1),'cold-stage1-modal-not-opened');
         const cancelledContext=stageStartContext,cancelledJob=cancelledContext.preparation;
+        await wait(()=>!!cancelledJob?.worker||!!cancelledContext.error,'missing-data-worker-not-started');
         ensure(workerObservations.length===1&&cancelledJob?.worker===workerObservations[0].worker,'cold-stage1-did-not-start-worker');
         const cancelledWorker=workerObservations[0];verifyWorkerOrigin(cancelledWorker);
         ensure(node('stageStartDialog').open&&node('stageStartButton').disabled&&!cancelledContext.prepared,'cold-stage1-start-not-gated');
@@ -242,6 +252,7 @@
         ensure(openStageStart(1),'stage1-reopen-failed');
         const readyContext=stageStartContext,readyJob=readyContext.preparation;
         ensure(readyContext!==cancelledContext&&readyJob!==cancelledJob&&readyJob.requestId!==cancelledJob.requestId,'stage1-reopen-reused-cancelled-job');
+        await wait(()=>!!readyJob.worker||!!readyContext.error,'missing-data-reopen-worker-not-started');
         ensure(workerObservations.length===2&&readyJob.worker===workerObservations[1].worker,'stage1-reopen-did-not-start-worker');
         const readyWorker=workerObservations[1];verifyWorkerOrigin(readyWorker);
         await wait(()=>!!readyContext.prepared||!!readyContext.error,'stage1-worker-generation-timeout',45000);
@@ -310,6 +321,28 @@
         ensure(nonConsumables()===normalNonConsumables&&coursePreparationJobs.size===0&&workerObservations.length===2,'normal-return-mutated-records-or-leaked-worker');
         ensure(JSON.parse(localStorage.getItem(LIVES_KEY)).count===normalLives-1&&JSON.parse(localStorage.getItem(LIVES_KEY)).inProgress===false,'normal-return-life-settlement-not-persisted');
         checks.push('normal-stage1-return-settles-one-life-without-stale-worker');
+        phase='normal-stage-bundled-start';
+        restoreCourseData();clearAdoptedCourseCache();
+        const bundleResources=resources(),bundleAttempt=lifeAttemptId,bundleItems=heartItems;
+        ensure(openStageStart(1),'bundled-stage1-modal-not-opened');
+        const bundleContext=stageStartContext;
+        await wait(()=>!!bundleContext.prepared||!!bundleContext.error,'bundled-stage1-read-timeout',15000);
+        ensure(!bundleContext.error&&bundleContext.prepared&&workerObservations.length===2,'bundled-stage1-used-worker');
+        const bundleSnapshot=bundleContext.prepared.snapshot;
+        ensure(bundleSnapshot.labSkeletonReport?.diagnosticsOmitted===true&&bundleSnapshot.route.slice(1).every(p=>p.trace?.length>0),'bundled-stage1-replay-not-restored');
+        ensure(resources()===bundleResources&&!node('stageStartButton').disabled,'bundled-stage1-preparation-charged-resources');
+        node('stageStartButton').click();
+        await wait(()=>state==='playing'&&level===1&&!stageStartContext,'bundled-stage1-not-started');
+        ensure(workerObservations.length===2&&JSON.stringify(route)===JSON.stringify(bundleSnapshot.route)&&JSON.stringify(holds)===JSON.stringify(bundleSnapshot.holds),'bundled-stage1-did-not-use-loaded-course');
+        ensure(moveCount===0&&heartItems===bundleItems&&lifeAttemptId===bundleAttempt+1&&lives.inProgress&&stamina===bundleSnapshot.activeCourseGeneration.initialStamina,'bundled-stage1-start-resources-invalid');
+        checks.push('bundled-stage1-replay-and-start-without-worker');
+        phase='bundled-stage78-direct-lookup';
+        const stage78Request=coursePreparationIdentity(78),stage78Resources=resources(),stage78Pose=pose(),liveHolds=holds,liveRoute=route;
+        const stage78Snapshot=await courseData().lookup(stage78Request,s=>validatePreparedCourse(s,stage78Request),coursePreparationPortableSignature());
+        ensure(stage78Snapshot&&stage78Snapshot.labSkeletonReport?.diagnosticsOmitted===true,'bundled-stage78-direct-lookup-failed');
+        ensure(stage78Snapshot.route.length>1&&stage78Snapshot.route.slice(1).every(p=>p.trace?.length>0),'bundled-stage78-route-not-restored');
+        ensure(resources()===stage78Resources&&pose()===stage78Pose&&holds===liveHolds&&route===liveRoute&&workerObservations.length===2,'bundled-stage78-lookup-mutated-live-state');
+        checks.push('bundled-stage78-direct-lookup-without-generation');
         finish(true);
     } catch(error){
         // Do not return exception messages, URLs, identifiers or saved data.
