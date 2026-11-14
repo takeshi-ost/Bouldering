@@ -49,10 +49,10 @@ assert.equal(moveCount,0);assert.equal(runTimeMs(),6000,'Canceled drag must not 
 clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(runTimeMs(),usedTime,'Undo must not erase time');
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
 assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
-assert(!ui.resultStats.hidden && !ui.resultStars.hidden && !ui.resultDifficulty.hidden);assert(ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
+assert(ui.resultStats.hidden && !ui.resultStars.hidden && ui.resultDifficulty.hidden);assert(!ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
 const result=expectedScore({moves:moveCount,timeMs:Math.floor(clock-1100),stars:3,version:COURSE_VERSION},{appVersion:RELEASE_VERSION,platform:'Web',scoreSpecVersion:COURSE_VERSION});
 assert.deepEqual(stageRecords.existing[1],result);
-assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert.equal(ui.resultLeaderboard.innerHTML,'');
+assert.equal(ui.resultStats.textContent,formatStageRecord(result));assert(ui.resultLeaderboard.innerHTML.includes('score-row'));
 assert.equal(formatClearTime(0),'00:00:00');assert.equal(formatClearTime(999),'00:00:99');
 assert.equal(formatClearTime(60000),'01:00:00');assert.equal(formatClearTime(61029),'01:01:02');
 assert.equal(formatClearTime(3600010),'60:00:01');
@@ -97,13 +97,13 @@ new Function('assert','data',env+source+`
 for(const moves of [0,1,5,9,10,20,30,40,100])assert.equal(stageStamina(moves),moves+3);
 for(const [difference,stars] of [[-1,3],[0,3],[1,2],[2,2],[3,1],[8,1]]) {
  reset(1);cameraIntro=null;debugAttempt=true;moveCount=route.length-1+difference;finish(true);
- assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden && ui.resultRanking.hidden);
+ assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden && !ui.resultRanking.hidden);
 }
 // Display labels use the selected rule profile, including daily runs.
 for(const [value,label] of [[0,'EASY'],[1,'EASY'],[2,'NORMAL'],[3,'HARD']]) {
  difficulty=value;courseTypeId=[0,1,2,6][value];finish(true);
  assert.equal(courseTypeLabel(courseTypeId),label);
- assert.equal(ui.resultDifficulty.textContent,label);assert(!ui.resultDifficulty.hidden && ui.resultRanking.hidden);
+ assert.equal(ui.resultDifficulty.textContent,label);assert(ui.resultDifficulty.hidden && !ui.resultRanking.hidden);
  debugMode=true;updateUI();assert(ui.progress.textContent.endsWith('/ '+label));
  dailyRun={...dailyProfile('2026-10-17'),difficulty:value,returnCourse:'existing'};
  finish(true);assert.equal(ui.resultDifficulty.textContent,'10月17日（土）');assert(!ui.resultDifficulty.hidden && ui.resultRanking.hidden);

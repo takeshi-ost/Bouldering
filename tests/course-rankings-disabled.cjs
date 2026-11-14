@@ -1,7 +1,9 @@
 'use strict';
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const read=p=>fs.readFileSync(p,'utf8');
-const config=read('js/config.js').match(/const COURSE_RANKINGS_ENABLED = false;/)?.[0];assert(config);
+assert.match(read('js/config.js'), /const COURSE_RANKINGS_ENABLED = true;/);
+// Keep testing the explicit disabled fallback independently of the restored default.
+const config='const COURSE_RANKINGS_ENABLED = false;';
 const raw=JSON.stringify({uid:'old-owner',items:[['v4_existing_26',{moves:19,timeMs:1000}]]});
 const data=new Map([['ascent.pending-scores.v1',raw]]),elements={},calls=[];
 const c=vm.createContext({console,localStorage:{getItem:k=>data.get(k)??null,setItem:(k,v)=>{calls.push('write');data.set(k,v);}},elements,calls});
