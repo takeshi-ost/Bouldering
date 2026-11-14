@@ -28,6 +28,12 @@ const out=path.resolve(args[0]);
 if(fs.existsSync(out)&&fs.readdirSync(out).length)throw Error('Site directory must be new or empty');
 const {manifest}=buildPagesFormal({outputDir:path.join(out,'balance-trial')});
 copyTestCourseData(path.resolve(__dirname,'..'),out);
+// Standalone approved privacy page; never load game or ad SDKs here.
+const privacySource=path.resolve(__dirname,'../privacy/index.html');
+const privacyOutput=path.join(out,'privacy');
+fs.mkdirSync(privacyOutput,{recursive:true});
+fs.copyFileSync(privacySource,path.join(privacyOutput,'index.html'));
+
 fs.writeFileSync(path.join(out,'.nojekyll'),'');
 fs.writeFileSync(path.join(out,'index.html'),`<!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'none'"><meta http-equiv="refresh" content="0;url=./balance-trial/"><title>ASCENT ${manifest.release}</title></head><body><p><a href="./balance-trial/">ASCENT ${manifest.release}を開く</a></p><p>現在のブラウザ内の進行を引き継ぎ、接続時にオンラインへ同期します。</p></body></html>
