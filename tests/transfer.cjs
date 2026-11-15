@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
 const source=[...fs.readFileSync('index.html','utf8').matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(m[1],'utf8')).join('\n');
 const scoreFixture=require('./helpers/score-fixtures.cjs').scoreFixture;
 const env=`const expectedScore=${scoreFixture.toString()};const elements={};const document={getElementById(id){return elements[id]||={style:{},classList:{toggle(){}},focus(){},setAttribute(){},removeAttribute(){},events:{},addEventListener(k,f){this.events[k]=f;},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(){return function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};let reloads=0;const window={addEventListener(){},devicePixelRatio:1,location:{reload(){reloads++;}}};function requestAnimationFrame(){};`;
-const data={anotherApp:'keep'},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v,removeItem:k=>delete data[k]};
+const data={anotherApp:'keep'},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v,removeItem:k=>delete data[k],key:i=>Object.keys(data)[i],get length(){return Object.keys(data).length;}};
 const scope={localStorage:storage,navigator:{language:'ja-JP'},crypto:require('node:crypto').webcrypto};
 (async()=>{
  await new Function('assert','data','storage','globalThis',env+source+`;return (async()=>{
@@ -18,20 +18,21 @@ const scope={localStorage:storage,navigator:{language:'ja-JP'},crypto:require('n
  online.uid=currentUid;online.ready=true;online.dirty=false;updateTitleUid();assert.equal(ui.playerUuid.textContent,'UID source-uid');
  ui.titleTransfer.onclick({stopPropagation(){}});titleReady=true;enterPreparedMap();assert.equal(state,'choosing');assert(transferElement('transferDialog').open);
  playerName='引き継ぎ';playerColors=['#123456','#abcdef'];playerHeadColor='#ffffff';
- stageProgress={existing:{cleared:23},prototype:{cleared:4}};
- stageRecords={existing:{23:{moves:23,timeMs:5678,stars:3,version:COURSE_VERSION},24:expectedScore({moves:11,timeMs:4567,stars:2,version:'v1'},{appVersion:'0.3.14',buildNumber:'7',platform:'iOS',scoreSpecVersion:'v1'})},prototype:{}};
- stageRecords.existing[23].previousVersions={v1:expectedScore({moves:9,timeMs:1234,stars:3,version:'v1'}),v2:expectedScore({moves:12,timeMs:2345,stars:3,version:'v2'},{appVersion:'0.4.10',buildNumber:'18',platform:'iOS',scoreSpecVersion:'v2'})};
+ stageProgress={recordVersion:RECORD_VERSION,existing:{cleared:23},prototype:{cleared:4}};
+ stageRecords={existing:{23:{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:23,timeMs:5678,stars:3,version:COURSE_VERSION},24:expectedScore({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:11,timeMs:4567,stars:2,version:'v1'},{appVersion:'0.3.14',buildNumber:'7',platform:'iOS',scoreSpecVersion:'v1'})},prototype:{}};
+ stageRecords.existing[23].previousVersions={v1:expectedScore({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:9,timeMs:1234,stars:3,version:'v1'}),v2:expectedScore({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:12,timeMs:2345,stars:3,version:'v2'},{appVersion:'0.4.10',buildNumber:'18',platform:'iOS',scoreSpecVersion:'v2'})};
  heartItems=9;lives={count:2,recoveryAt:Date.now()-1000,inProgress:false};
- dailyRecords={'2026-10-23':{moves:10,timeMs:1000,stars:3,clearedOn:'2026-10-23',rewardStatus:'claimed'}};
+ dailyRecords={'2026-10-23':{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:10,timeMs:1000,stars:3,clearedOn:'2026-10-23',rewardStatus:'claimed'}};
  dailyAttempts={'2026-10-23':2};dailyPlayAdState={plays:1,adPaid:true};
  mapRewards={4:{status:'claimed',adRequired:false,adCompleted:false}};
  featureHelpSeen={heart:true,hazard:true,wide:true};soundEnabled=false;musicEnabled=true;musicVolume=.35;soundVolume=.7;playsSinceAd=2;
- onlineScores.pending.set(scoreBoardKey(23,'existing'),{moves:23,timeMs:5678});
- onlineScores.pending.set('v1_existing_24',{moves:11,timeMs:4567,scoreSpecVersion:'v1'});
- onlineScores.pending.set('v2_existing_23',{moves:12,timeMs:2345,...scoreMetadata({appVersion:'0.4.10',buildNumber:'18',platform:'iOS',scoreSpecVersion:'v2'})});
+ storage.setItem('ascent.reward-claims.v1.r2',JSON.stringify({map:['8'],daily:['2026-10-20']}));
+ onlineScores.pending.set(scoreBoardKey(23,'existing'),{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:23,timeMs:5678});
+ onlineScores.pending.set('r1_v1_existing_24',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:11,timeMs:4567,scoreSpecVersion:'v1'});
+ onlineScores.pending.set('r1_v2_existing_23',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:12,timeMs:2345,...scoreMetadata({recordVersion:RECORD_VERSION,appVersion:'0.4.10',buildNumber:'18',platform:'iOS',scoreSpecVersion:'v2'})});
  online.saving=true;const inFlight=exportTransferFile();await Promise.resolve();assert(transferBusy());assert.equal(prepared,0);resumeOnline();await startOnline(online.adapter);assert.equal(authentications,0,'Focus/online events must not reconnect during transfer');online.saving=false;
  const exported=await inFlight;assert.equal(prepared,1);assert.equal(exported.identity.uid,'source-uid');
- assert.equal(exported.data.featureHelpSeen.wide,true);
+ assert.equal(exported.data.featureHelpSeen.wide,true);assert(exported.data.rewardClaims.map.includes('8'));assert(exported.data.rewardClaims.daily.includes('2026-10-20'));
  const oldHelp=JSON.parse(JSON.stringify(exported));delete oldHelp.data.featureHelpSeen.wide;assert.doesNotThrow(()=>validateTransferFile(oldHelp));
  for(const wide of [null,1,'true',{}]){const bad=JSON.parse(JSON.stringify(exported));bad.data.featureHelpSeen.wide=wide;assert.throws(()=>validateTransferFile(bad));}
  assert.deepEqual(exported.data.audioSettings,{musicEnabled:true,musicVolume:.35,soundVolume:.7});
@@ -44,16 +45,17 @@ const scope={localStorage:storage,navigator:{language:'ja-JP'},crypto:require('n
  const again=await exportTransferFile();assert.deepEqual(again.identity,exported.identity,'Re-export must preserve working credentials');
  for(const mutate of [f=>f.identity.project='other',f=>f.data.heartItems=-1,f=>f.data.lives.count=6,
   f=>f.data.records.existing[23].timeMs=-1,f=>f.data.dailyRecords['2026-10-23'].clearedOn='bad',
-  f=>f.data.pendingScores=[['bad',{moves:1,timeMs:0}]]]) {
+  f=>f.data.pendingScores=[['bad',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:1,timeMs:0}]]]) {
   const bad=JSON.parse(JSON.stringify(exported));mutate(bad);assert.throws(()=>validateTransferFile(bad));
  }
  assert(transferErrorMessage({code:'auth/operation-not-allowed'}).includes('メール／パスワード'));
  closeTransferDialog();assert(!transferElement('transferDialog').open);
  // Destination's unrelated data and existing game save survive rejected files/auth.
  currentUid='destination-uid';online.uid=currentUid;online.dirty=false;
+ storage.setItem('ascent.map-rewards.v1',JSON.stringify({16:{status:'claimed'}}));
  storage.setItem(PROGRESS_KEY,JSON.stringify({existing:{cleared:1},prototype:{cleared:0}}));
  const original=JSON.stringify(data);
- assert.equal(exported.data.progressVersion,'v4');
+ assert.equal(exported.data.progressVersion,'r1');
  for(const version of [undefined,null,'v1','v3','v5']) {
   const old=JSON.parse(JSON.stringify(exported));if(version===undefined)delete old.data.progressVersion;else old.data.progressVersion=version;
   await assert.rejects(importTransferFile(old),error=>error.code==='ascent/legacy-progress-transfer');
@@ -85,7 +87,7 @@ const scope={localStorage:storage,navigator:{language:'ja-JP'},crypto:require('n
  assert.deepEqual(readStageProgress(),exported.data.progress);const expectedRecords=JSON.parse(JSON.stringify(exported.data.records));for(const mode of ['existing','prototype'])for(const [key,record] of Object.entries(expectedRecords[mode]))expectedRecords[mode][key]=expectedScore(record);assert.deepEqual(readStageRecords(),expectedRecords);
  assert.deepEqual(readAppearance(),{colors:exported.data.profile.colors,headColor:exported.data.profile.headColor});
  assert.deepEqual(JSON.parse(storage.getItem(MUSIC_KEY)),{enabled:true,volume:.35});assert.equal(JSON.parse(storage.getItem(SOUND_VOLUME_KEY)),.7);
- assert.equal(readHeartItems(),9);const expectedDaily=JSON.parse(JSON.stringify(exported.data.dailyRecords));for(const [key,record] of Object.entries(expectedDaily))expectedDaily[key]=expectedScore(record);assert.deepEqual(readDailyRecords(),expectedDaily);
+ assert.equal(readHeartItems(),9);assert.equal(previouslyClaimedReward('ascent.map-rewards.v1',16),false);assert.equal(JSON.parse(storage.getItem(REWARD_HISTORY_SCOPE_KEY)).ownerUid,'source-uid');assert.equal(storage.getItem('ascent.map-rewards.v1'),JSON.stringify({16:{status:'claimed'}}));const expectedDaily=JSON.parse(JSON.stringify(exported.data.dailyRecords));for(const [key,record] of Object.entries(expectedDaily))expectedDaily[key]=expectedScore(record);assert.deepEqual(readDailyRecords(),expectedDaily);
  assert.equal(readFeatureHelpSeen().wide,true);assert.deepEqual(readMapRewards(),exported.data.mapRewards);assert.deepEqual(readTransferIdentity(),exported.identity);
  assert.equal(JSON.parse(storage.getItem(ONLINE_SCORES_KEY)).uid,'source-uid');assert.deepEqual(JSON.parse(storage.getItem(ONLINE_SCORES_KEY)).items,exported.data.pendingScores);assert.equal(storage.getItem(ONLINE_PROFILE_KEY),null);assert.equal(data.anotherApp,'keep');
  assert.equal(ui.playerUuid.textContent,'UID source-uid');online.uid=null;updateTitleUid();assert.equal(ui.playerUuid.textContent,'UID source-uid','Known imported UID must be visible before auth reconnects');assert.equal(syncs,0);

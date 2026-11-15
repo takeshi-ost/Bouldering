@@ -11,7 +11,7 @@ vm.runInContext(config+`const COURSE_VERSION='v5';const document={getElementById
 (async()=>{
  await vm.runInContext(`(async()=>{connectOnlineScores('new-owner');await flushOnlineScores();if(queueOnlineScore(1,'existing',{moves:2,timeMs:2})!==false)throw Error('queued');onlineStageScores(1,'existing');renderStageLeaderboard();renderStageStartRecord({n:1,mode:'existing'});persistPendingScores();})()`,c);
  assert.equal(data.get('ascent.pending-scores.v1'),raw);assert.deepEqual(calls,[]);
- assert.equal(vm.runInContext('onlineScores.pending.size',c),1);
+ assert.equal(vm.runInContext('onlineScores.pending.size',c),0);
  assert(vm.runInContext('ui.resultRanking.hidden && ui.stageStartRanking.hidden && !ui.stageStartStars.hidden',c));
  assert(elements.onlineScoreStatus.hidden);
  const fb=read('js/firebase-client.js');assert.match(fb,/async saveScore\(uid,board,score\) \{\s*if\(!COURSE_RANKINGS_ENABLED\)return null;/);assert.match(fb,/async scores\(uid,board\) \{\s*if\(!COURSE_RANKINGS_ENABLED\)return \[\];/);

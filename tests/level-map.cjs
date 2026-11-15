@@ -107,12 +107,12 @@ startCourse('existing');assert.equal(unlockedLevel(),2);
 // A new browser session will load the same course-specific completion data.
 assert.deepEqual(readStageProgress(),stageProgress);
 const saved=data[PROGRESS_KEY];
-data[PROGRESS_KEY]='{bad json';assert.deepEqual(readStageProgress(),{existing:{cleared:0},prototype:{cleared:0}});
+data[PROGRESS_KEY]='{bad json';assert.deepEqual(readStageProgress(),{recordVersion:RECORD_VERSION,existing:{cleared:0},prototype:{cleared:0}});
 data[PROGRESS_KEY]=JSON.stringify({existing:{cleared:-3},prototype:{cleared:2.5}});
-assert.deepEqual(readStageProgress(),{existing:{cleared:0},prototype:{cleared:0}});
+assert.deepEqual(readStageProgress(),{recordVersion:RECORD_VERSION,existing:{cleared:0},prototype:{cleared:0}});
 data[PROGRESS_KEY]=saved;
 const get=storage.getItem;storage.getItem=()=>{throw Error('Storage blocked');};
-assert.deepEqual(readStageProgress(),{existing:{cleared:0},prototype:{cleared:0}});storage.getItem=get;
+assert.deepEqual(readStageProgress(),{recordVersion:RECORD_VERSION,existing:{cleared:0},prototype:{cleared:0}});storage.getItem=get;
 const set=storage.setItem;storage.setItem=()=>{throw Error('Storage full');};
 level=2;assert.doesNotThrow(()=>recordStageClear());assert.equal(unlockedLevel(),3);storage.setItem=set;
 // Crossing page boundaries keeps a visible single-step 20 -> 21 hop.

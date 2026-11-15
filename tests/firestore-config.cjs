@@ -19,7 +19,7 @@ const workflow=fs.readFileSync('.github/workflows/firestore-rules.yml','utf8');
 const ci=parse(workflow);
 const exactKeys=(value,keys,label)=>assert.deepEqual(Object.keys(value).sort(),keys.slice().sort(),label);
 exactKeys(ci,['name','on','permissions','concurrency','jobs'],'No unreviewed top-level CI behavior');
-assert.deepEqual(ci.on,{push:{branches:['feature/formal-integration','feature/coupled-production-integration']}});
+assert.deepEqual(ci.on,{push:{branches:['feature/formal-integration','feature/coupled-production-integration','release/record-generation-0522']}});
 assert.deepEqual(ci.permissions,{contents:'read'});
 assert.deepEqual(ci.concurrency,{group:'firestore-rules-${{ github.ref }}','cancel-in-progress':true});
 exactKeys(ci.jobs,['rules','web','coupled-native'],'Every independent scope remains required');
@@ -79,6 +79,7 @@ assert(!fs.readFileSync('.github/workflows/pages.yml','utf8').includes('coupled-
 // Independent exhaustive registry: the fixed shards must run every original Web
 // suite plus all four semantic seed-offset partitions exactly once in their union.
 const expectedWebSuites=`pages-formal-runtime pages-storage-deletion formal-debug-ranking formal-v4-preservation course-version-compat score-metadata online online-progress-generation online-scores firebase-client account-deletion transfer settings-connection settings-layout language initial-language text button-theme pointer-only-ui title-centering tutorial-course tutorial-lifecycle tutorial-modals tutorial-localization tutorial-clear-sound explanation-image-readiness hazard-image-readiness hazard-game-rendering explanation-feedback feature-help feature-help-localization help-dialog help-document help-owner-copy help-layout stage-start failure-return level-map map-players daily rewards ads ads-early-stages course-progression formal-course-seed-offset formal-course-seed-offset-daily-march formal-course-seed-offset-daily-january-zero formal-course-seed-offset-daily-january-high course-rankings-disabled profile-sync-status release-050-ui bgm audio-settings audio-files audio hazard-modal-rendering render-scheduling debug-score-trial coupled-course-preparation swipe-comparison six-pair-selection six-pair-continuous six-pair-cache six-pair-angle-input six-pair-generation-scope six-pair-course-gate course-data-store course-data-integration course-data-production-store course-data-daily-resource pages-test-course-data`.split(' ');
+expectedWebSuites.push('record-generation','record-reward-compat');
 const runner=require('../scripts/test-web-integration.cjs');
 assert.deepEqual(runner.suites,expectedWebSuites);assert.equal(runner.shardCount,2);
 assert.equal(new Set(expectedWebSuites).size,expectedWebSuites.length);

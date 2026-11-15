@@ -26,15 +26,15 @@ test('minimal artifact preserves original order and includes existing Firebase m
   console.log('PASS minimal formal artifact: '+manifest.files.length+' files / '+manifest.totalBytes+' bytes, Firebase packaged but not executed in tests');
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
-test('existing prefixed save continues in place; raw unrelated data untouched and local TAP does not await Firebase',()=>{
+test('current prefixed save continues; legacy trial records stay historical; raw data untouched and local TAP does not await Firebase',()=>{
  const {dir}=build();try{
   const raw=[['ascent.progress.v1','raw-formal-preserve'],['unrelated','keep']],data=new Map(raw);
-  data.set(prefix+'ascent.progress.v1',JSON.stringify({existing:{cleared:12},prototype:{cleared:0}}));
+  data.set(prefix+'ascent.progress.v1.r1',JSON.stringify({recordVersion:'r1',existing:{cleared:12},prototype:{cleared:0}}));
   const records=JSON.stringify({existing:{1:{version:'trial-d7-offset10',scoreSpecVersion:'trial-d7-offset10',moves:8,timeMs:1234,stars:3,appVersion:'0.4.45'}},prototype:{}});
   data.set(prefix+'ascent.records.v1',records);data.set(prefix+'ascent.ad-plays.v2','2');
   data.set(prefix+'ascent.heart-items.v1','17');
   data.set(prefix+'ascent.daily-records.v1',JSON.stringify({'2026-10-30':{moves:10,timeMs:1000,stars:3,scoreSpecVersion:'trial-d6-0.4.12',clearedOn:'2026-10-30',rewardStatus:'claimed'}}));
-  const b=boot(dir,data);assert.equal(b.run('stageProgress.existing.cleared'),12);assert.equal(b.run('heartItems'),17);assert.equal(b.run('dailyRecords["2026-10-30"].moves'),10);assert.equal(b.run('tutorialPending()'),false);assert.equal(b.run('stageRecords.existing[1].moves'),8);assert.equal(data.get(prefix+'ascent.records.v1'),records);assert.equal(b.run('playsSinceAd'),2);
+  const b=boot(dir,data);assert.equal(b.run('stageProgress.existing.cleared'),12);assert.equal(b.run('heartItems'),17);assert.equal(b.run('dailyRecords["2026-10-30"]'),undefined);assert.equal(b.run('tutorialPending()'),false);assert.equal(b.run('stageRecords.existing[1]'),undefined);assert.equal(data.get(prefix+'ascent.records.v1'),records);assert.equal(b.run('playsSinceAd'),2);
   assert.equal(b.run('state'),'choosing');b.run('titleReady=true;ui.titleScreen.onclick();');assert.equal(b.run('state'),'map');
   assert.equal(b.run('online.adapter'),null);assert.equal(b.run('CourseProgression.resolveStage(1).seed'),11);
   for(const [key,value]of raw)assert.equal(data.get(key),value);
@@ -72,7 +72,7 @@ test('initial language uses only current Pages namespace and persists before Sta
    assert.equal(next.run('GAME_TEXT_LANGUAGE'),expected,'Saved choice wins after interruption and OS change');
    assert.equal(next.run('tutorialPending()'),true);
   }
-  const existing=new Map([[prefix+'ascent.progress.v1',JSON.stringify({existing:{cleared:9},prototype:{cleared:0}})]]);
+  const existing=new Map([[prefix+'ascent.progress.v1.r1',JSON.stringify({recordVersion:'r1',existing:{cleared:9},prototype:{cleared:0}})]]);
   const b=boot(dir,existing,{language:'en-US'});assert.equal(b.run('GAME_TEXT_LANGUAGE'),'ja');
   assert.equal(b.run('stageProgress.existing.cleared'),9);assert(!existing.has(prefix+'ascent.language.v1'));
  }finally{fs.rmSync(dir,{recursive:true,force:true});}

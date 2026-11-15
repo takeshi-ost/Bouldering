@@ -1,7 +1,7 @@
 "use strict";
-const DAILY_RECORDS_KEY='ascent.daily-records.v1';
-const DAILY_ATTEMPTS_KEY='ascent.daily-attempts.v1';
-const DAILY_PLAY_AD_KEY='ascent.daily-play-ad.v1';
+const DAILY_RECORDS_KEY=recordStorageKey('ascent.daily-records.v1');
+const DAILY_ATTEMPTS_KEY=recordStorageKey('ascent.daily-attempts.v1');
+const DAILY_PLAY_AD_KEY=recordStorageKey('ascent.daily-play-ad.v1');
 function utcToday(now=new Date()) {return now.toISOString().slice(0,10);}
 function localToday(now=new Date()) {
     return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -60,7 +60,7 @@ function readDailyRecords() {
         const saved=JSON.parse(globalThis.localStorage?.getItem(DAILY_RECORDS_KEY)||'null');
         if(!saved || typeof saved!=='object' || Array.isArray(saved))return records;
         for(const [date,record] of Object.entries(saved)) {
-            if(validDailyDate(date) && Number.isSafeInteger(record?.moves) && record.moves>0 &&
+            if(currentRecord(record) && validDailyDate(date) && Number.isSafeInteger(record?.moves) && record.moves>0 &&
                 Number.isSafeInteger(record?.timeMs) && record.timeMs>=0 &&
                 Number.isInteger(record?.stars) && record.stars>=1 && record.stars<=3) {
                 records[date]={moves:record.moves,timeMs:record.timeMs,stars:record.stars,...scoreMetadata(record)};
@@ -82,8 +82,9 @@ function saveDailyRecords() {
 }
 function startDailyClearReward(date) {
     const record=dailyRecords[date];
-    if(record?.rewardStatus!=='pending' || rewardSequence || state==='ad')return false;
+    if(previouslyClaimedReward('ascent.daily-records.v1',date,true) || record?.rewardStatus!=='pending' || rewardSequence || state==='ad')return false;
     const launch=()=>startRewardSequence({
+        canGrant:()=>{if(!previouslyClaimedReward('ascent.daily-records.v1',date,true))return true;record.rewardStatus='claimed';return false;},
         onGrant:()=>{record.rewardStatus='claimed';saveDailyRecords();},
         onReturn:()=>showDailyCalendar()
     });
@@ -112,7 +113,7 @@ function recordDailyClear() {
     const stars=clearStars(moveCount,routeExpectedMoves());
     const clearedOn=localToday();
     dailyRecords[date]={moves:moveCount,timeMs:Math.floor(runElapsedMs),stars,clearedOn,...currentDailyScoreMetadata()};
-    if(date===clearedOn)dailyRecords[date].rewardStatus='pending';
+    if(date===clearedOn && !previouslyClaimedReward('ascent.daily-records.v1',date,true))dailyRecords[date].rewardStatus='pending';
     saveDailyRecords();
 }
 function dailyMedal(date,record) {
@@ -181,7 +182,7 @@ function renderDailyStart() {
     ui.dailyStartDifficulty.textContent=profile?courseTypeLabel(profile.typeId):'—';
     ui.dailyStartLength.textContent=profile?courseLengthLabel(resolvedCourseLengthInfo(CourseProgression.resolveDaily(profile.date)).category):'—';
     const record=profile && dailyRecords[profile.date];
-    ui.dailyStartGift.hidden=!(profile?.date===localToday() && (!record || record.rewardStatus==='pending'));
+    ui.dailyStartGift.hidden=!(profile?.date===localToday() && !previouslyClaimedReward('ascent.daily-records.v1',profile.date,true) && (!record || record.rewardStatus==='pending'));
     ui.dailyStartButton.hidden=!!record;
     ui.dailyStartButton.disabled=!profile || !!record;
     ui.dailyClearRecord.hidden=!record;
@@ -255,7 +256,7 @@ function showDailyCalendar({openFromMap=false}={}) {
     ui.wall.classList.toggle('map-open',true);
     ui.restart.disabled=true;
     renderDailyCalendar();
-    const pending=Object.keys(dailyRecords).sort().find(date=>dailyRecords[date].rewardStatus==='pending');
+    const pending=Object.keys(dailyRecords).sort().find(date=>dailyRecords[date].rewardStatus==='pending' && !previouslyClaimedReward('ascent.daily-records.v1',date,true));
     if(pending){cancelDailyPreparation();startDailyClearReward(pending);}
 }
 function reportDailyGenerationError(error) {

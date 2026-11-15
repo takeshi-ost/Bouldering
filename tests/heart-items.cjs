@@ -3,7 +3,7 @@ const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const env=`
 // Normal-flow fixture: recognised existing save, not a first-launch tutorial.
-const storage={'ascent.progress.v1':JSON.stringify({existing:{cleared:0},prototype:{cleared:0}})};const globalThis={localStorage:{getItem:k=>storage[k]??null,setItem:(k,v)=>storage[k]=v}};
+const storage={'ascent.progress.v1.r1':JSON.stringify({recordVersion:'r1',existing:{cleared:0},prototype:{cleared:0}})};const globalThis={localStorage:{getItem:k=>storage[k]??null,setItem:(k,v)=>storage[k]=v}};
 const elements={},timers=[];
 const document={getElementById(id){return elements[id] ||= {
  style:{},classList:{toggle(){}},events:{},focus(){},setAttribute(k,v){this[k]=v;},removeAttribute(k){delete this[k];},contains(){return true;},

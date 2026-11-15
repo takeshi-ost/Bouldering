@@ -2,6 +2,8 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function currentRecordVersion() { return 'r1'; }
+
     function signedIn() {
       return request.auth != null;
     }
@@ -23,13 +25,13 @@ service cloud.firestore {
     function validProfile(data) {
       return data.keys().hasAll([
           'name', 'colors', 'headColor',
-          'reachedLevel', 'reachedPrototypeLevel', 'updatedAt'
+          'reachedLevel', 'reachedPrototypeLevel', 'updatedAt', 'recordVersion', 'progressVersion'
         ])
         && data.keys().hasOnly([
           'name', 'colors', 'headColor',
-          'reachedLevel', 'reachedPrototypeLevel', 'updatedAt', 'progressVersion'
+          'reachedLevel', 'reachedPrototypeLevel', 'updatedAt', 'recordVersion', 'progressVersion'
         ])
-        && (!('progressVersion' in data) || data.progressVersion == 'v4')
+        && data.progressVersion == currentRecordVersion() && data.recordVersion == currentRecordVersion()
         && data.name is string
         && data.name.size() >= 1
         && data.name.size() <= 40
@@ -54,25 +56,10 @@ service cloud.firestore {
         && data.updatedAt == request.time;
     }
 
+    // Legacy profiles remain readable/deletable. Retired clients cannot publish.
     match /players/{uid} {
       allow get: if signedIn();
-
-      allow list: if signedIn()
-        && request.query.limit <= 100;
-
-      allow create: if activeAccount()
-        && request.auth.uid == uid
-        && validProfile(request.resource.data);
-
-      // Adoption may replace legacy reached levels with the current local save.
-      // Once adopted, old clients must not strip its generation and restore old progress.
-      allow update: if activeAccount()
-        && request.auth.uid == uid
-        && validProfile(request.resource.data)
-        && (!('progressVersion' in resource.data)
-          || ('progressVersion' in request.resource.data
-            && request.resource.data.progressVersion == resource.data.progressVersion));
-
+      allow list: if signedIn() && request.query.limit <= 100;
       allow delete: if signedIn() && request.auth.uid == uid;
     }
 
@@ -86,31 +73,35 @@ service cloud.firestore {
     match /stageScores/{board}/entries/{uid} {
       function validScore() {
         let data = request.resource.data;
-        return board.matches('^(v1_(existing|prototype)|v[2345]_existing)_[1-9][0-9]{0,5}$')
-          && data.keys().hasAll(['moves', 'timeMs', 'updatedAt'])
+        return board.matches('^' + currentRecordVersion() + '_v[12345]_existing_[1-9][0-9]{0,5}$')
+          && data.keys().hasAll(['moves', 'timeMs', 'updatedAt', 'recordVersion', 'scoreSpecVersion'])
           && data.keys().hasOnly(['moves', 'timeMs', 'updatedAt',
-            'appVersion', 'buildNumber', 'platform', 'scoreSpecVersion'])
+            'appVersion', 'buildNumber', 'platform', 'scoreSpecVersion', 'recordVersion'])
+          && data.recordVersion == currentRecordVersion()
           && optionalScoreText(data, 'appVersion', 64, '^[0-9]+[.][0-9]+[.][0-9]+$')
           && optionalScoreText(data, 'buildNumber', 32, '^[0-9]+([.][0-9]+){0,2}$')
           && optionalScoreText(data, 'platform', 32, '^(iOS|Web)$')
           && optionalScoreText(data, 'scoreSpecVersion', 32, '^v[12345]$')
-          && (!('scoreSpecVersion' in data) || data.scoreSpecVersion == null
-            || (data.scoreSpecVersion == 'v1' && board.matches('^v1_.*$'))
-            || (data.scoreSpecVersion == 'v2' && board.matches('^v2_.*$'))
-            || (data.scoreSpecVersion == 'v3' && board.matches('^v3_.*$'))
-            || (data.scoreSpecVersion == 'v4' && board.matches('^v4_.*$'))
-            || (data.scoreSpecVersion == 'v5' && board.matches('^v5_.*$')))
+          && ((data.scoreSpecVersion == 'v1' && board.matches('^' + currentRecordVersion() + '_v1_.*$'))
+            || (data.scoreSpecVersion == 'v2' && board.matches('^' + currentRecordVersion() + '_v2_.*$'))
+            || (data.scoreSpecVersion == 'v3' && board.matches('^' + currentRecordVersion() + '_v3_.*$'))
+            || (data.scoreSpecVersion == 'v4' && board.matches('^' + currentRecordVersion() + '_v4_.*$'))
+            || (data.scoreSpecVersion == 'v5' && board.matches('^' + currentRecordVersion() + '_v5_.*$')))
           && data.moves is int && data.moves >= 1 && data.moves <= 1000000
           && data.timeMs is int && data.timeMs >= 0 && data.timeMs <= 604800000
           && data.updatedAt == request.time;
       }
       allow get: if signedIn();
       allow list: if signedIn() && request.query.limit <= 100;
-      allow create: if activeAccount() && request.auth.uid == uid && validScore();
-      allow update: if activeAccount() && request.auth.uid == uid && validScore()
-        && (request.resource.data.moves < resource.data.moves
-          || (request.resource.data.moves == resource.data.moves
-            && request.resource.data.timeMs < resource.data.timeMs));
+      // Profiles use a reserved public board so retired clients' all-board
+      // deletion scans remove these too. It is never a score/ranking board.
+      allow create: if activeAccount() && request.auth.uid == uid
+        && (board == currentRecordVersion() + '_players' ? validProfile(request.resource.data) : validScore());
+      allow update: if activeAccount() && request.auth.uid == uid
+        && (board == currentRecordVersion() + '_players' ? validProfile(request.resource.data)
+          : (validScore() && (request.resource.data.moves < resource.data.moves
+            || (request.resource.data.moves == resource.data.moves
+              && request.resource.data.timeMs < resource.data.timeMs))));
       allow delete: if signedIn() && request.auth.uid == uid;
     }
 

@@ -89,7 +89,8 @@ async function bootFirebase() {
                 await authSDK.deleteUser(auth.currentUser);
             },
             async sync(uid,local,preferLocal) {
-                const ref=dbSDK.doc(db,'players',uid);
+                if(!currentOnlineProgress(local))throw Error('Invalid record generation');
+                const ref=dbSDK.doc(db,'stageScores',RECORD_VERSION+'_players','entries',uid);
                 return dbSDK.runTransaction(db,async transaction=>{
                     const snapshot=await transaction.get(ref);
                     const remote=snapshot.exists()?onlineProfileFrom(snapshot.data()):null;
@@ -102,6 +103,7 @@ async function bootFirebase() {
             },
             async saveScore(uid,board,score) {
                 if(!COURSE_RANKINGS_ENABLED)return null;
+                if(!scoreMatchesBoard(board,score))throw Error('Invalid record generation');
                 const ref=dbSDK.doc(db,'stageScores',board,'entries',uid);
                 return dbSDK.runTransaction(db,async transaction=>{
                     const snapshot=await transaction.get(ref),previous=snapshot.exists()?snapshot.data():null;
@@ -119,7 +121,7 @@ async function bootFirebase() {
                 const rows=snapshot.docs.map(doc=>({...doc.data(),id:doc.id}));
                 if(own.exists() && !rows.some(row=>row.id===uid))rows.push({...own.data(),id:uid});
                 const ids=rows.filter(row=>row.id!==uid).slice(0,5).map(row=>row.id);
-                const profiles=await Promise.all(ids.map(id=>dbSDK.getDoc(dbSDK.doc(db,'players',id))));
+                const profiles=await Promise.all(ids.map(id=>dbSDK.getDoc(dbSDK.doc(db,'stageScores',RECORD_VERSION+'_players','entries',id))));
                 profiles.forEach((profile,i)=>{const row=rows.find(row=>row.id===ids[i]);row.profile=profile.exists()?profile.data():null;});
                 return rows;
             },
@@ -133,7 +135,7 @@ async function bootFirebase() {
                 await Promise.all(Array.from({length:Math.min(4,last-first+1)},async()=>{
                     while(next<=last) {
                         const n=next++;
-                        const query=dbSDK.query(dbSDK.collection(db,'players'),dbSDK.where(field,'==',n),dbSDK.where('progressVersion','==',ONLINE_PROGRESS_VERSION),dbSDK.limit(6));
+                        const query=dbSDK.query(dbSDK.collection(db,'stageScores',RECORD_VERSION+'_players','entries'),dbSDK.where(field,'==',n),dbSDK.where('progressVersion','==',ONLINE_PROGRESS_VERSION),dbSDK.limit(6));
                         const snapshot=await dbSDK.getDocs(query);
                         rows.push(...snapshot.docs.map(doc=>({...doc.data(),id:doc.id})));
                     }

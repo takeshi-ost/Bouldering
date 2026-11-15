@@ -20,17 +20,17 @@ client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\
    getDocFromServer:async id=>({exists:()=>store.has(id),data:()=>store.get(id)}),
    collectionGroup:(db,name)=>'group:'+name,documentId:()=>'__name__',startAfter:doc=>({after:doc.ref.path}),
    async getDocsFromServer(query){assert.equal(query[0],'group:entries');assert.deepEqual(query[1],{limit:100});cleanupPages++;const after=query[2]?.after || '';return {docs:[...store.keys()].filter(k=>k.includes('/entries/') && k>after).sort().slice(0,100).map(k=>({id:k.split('/').at(-1),ref:{path:k}}))};},
-   writeBatch(){const pending=[];return {delete(ref){assert(ref.path.endsWith('/existing-user'));assert(ref.path.startsWith('stageScores/'));pending.push(ref.path);},async commit(){if(failCleanup)throw new Error('cleanup offline');pending.forEach(k=>store.delete(k));}};},
+   writeBatch(){const pending=[];return {delete(ref){assert(ref.path.endsWith('/existing-user'));assert(/^(stageScores|recordPlayers)\//.test(ref.path));pending.push(ref.path);},async commit(){if(failCleanup)throw new Error('cleanup offline');pending.forEach(k=>store.delete(k));}};},
    async deleteDoc(ref){calls.push('profile-delete');store.delete(ref);},orderBy:field=>({orderBy:field}),
    serverTimestamp:()=>({serverTime:true}),async runTransaction(db,fn){return fn({async get(id){return {exists:()=>store.has(id),data:()=>store.get(id)};},set(id,data){store.set(id,data);}});},
    collection:(db,...parts)=>parts.join('/'),where:(field,op,n)=>({field,op,n}),limit:n=>({limit:n}),query:(...parts)=>parts,
    async getDocs(query){
-    if(query[0]!=='players') {
+    if(query[0]!=='stageScores/r1_players/entries') {
      assert.deepEqual(query.slice(1),[{orderBy:'moves'},{orderBy:'timeMs'},{limit:100}]);
      return {docs:[...store.entries()].filter(([key])=>key.startsWith(query[0]+'/'))
       .map(([key,value])=>({id:key.split('/').at(-1),data:()=>value})).sort((a,b)=>a.data().moves-b.data().moves || a.data().timeMs-b.data().timeMs).slice(0,100)};
     }
-    const [,where,generation,limit]=query;assert.equal(limit.limit,6);assert.equal(where.op,'==');assert.deepEqual(generation,{field:'progressVersion',op:'==',n:'v4'});
+    const [,where,generation,limit]=query;assert.equal(limit.limit,6);assert.equal(where.op,'==');assert.deepEqual(generation,{field:'progressVersion',op:'==',n:'r1'});
     active++;peak=Math.max(peak,active);await new Promise(r=>setImmediate(r));active--;
     return {docs:[{id:'p'+where.n,data:()=>({name:'Player',reachedLevel:where.n})}]};}
   }
@@ -48,20 +48,20 @@ client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\
  assert(adapter);const user=await adapter.authenticate();assert.equal(user.uid,'existing-user');assert.equal(signIns,0);assert.deepEqual(calls,['persist','restore']);
  restoredUser=null;assert.equal((await adapter.authenticate()).uid,'new-user');assert.equal(signIns,1);
  rejectPersistence=true;await assert.rejects(adapter.authenticate(),/Storage disabled/);assert.equal(signIns,1,'No throwaway identity when persistence is unavailable');rejectPersistence=false;
- const profile={name:'Player',colors:['#123456'],headColor:'#abcdef',reachedLevel:2,reachedPrototypeLevel:1};
+ const profile={recordVersion:'r1',progressVersion:'r1',name:'Player',colors:['#123456'],headColor:'#abcdef',reachedLevel:2,reachedPrototypeLevel:1};
  assert.deepEqual(await adapter.sync(user.uid,profile,true),profile);
- assert.deepEqual(store.get('players/existing-user'),{...profile,updatedAt:{serverTime:true}});
- const saved=store.get('players/existing-user');await adapter.sync(user.uid,profile,true);assert.equal(store.get('players/existing-user'),saved,'Unchanged login does not write again');
+ assert.deepEqual(store.get('stageScores/r1_players/entries/existing-user'),{...profile,updatedAt:{serverTime:true}});
+ const saved=store.get('stageScores/r1_players/entries/existing-user');await adapter.sync(user.uid,profile,true);assert.equal(store.get('stageScores/r1_players/entries/existing-user'),saved,'Unchanged login does not write again');
  const rows=await adapter.players(1,20,'existing');assert.equal(rows.length,20);assert.equal(new Set(rows.map(p=>p.id)).size,20);assert(peak<=4);
- const board='v1_existing_1',score={moves:10,timeMs:1000,appVersion:'0.3.14',buildNumber:null,platform:'Web',scoreSpecVersion:'v1'};
+ const board='r1_v1_existing_1',score={recordVersion:'r1',moves:10,timeMs:1000,appVersion:'0.3.14',buildNumber:null,platform:'Web',scoreSpecVersion:'v1'};
  await adapter.saveScore(user.uid,board,score);
  const scorePath='stageScores/'+board+'/entries/'+user.uid;
  const savedScore=store.get(scorePath);assert.deepEqual(savedScore,{...score,updatedAt:{serverTime:true}});
- await adapter.saveScore(user.uid,board,{moves:11,timeMs:1});assert.equal(store.get(scorePath),savedScore);
- await adapter.saveScore(user.uid,board,{moves:10,timeMs:999});assert.equal(store.get(scorePath).timeMs,999);
- await adapter.saveScore(user.uid,board,{moves:9,timeMs:20000});assert.equal(store.get(scorePath).moves,9);
+ await adapter.saveScore(user.uid,board,{recordVersion:'r1',scoreSpecVersion:'v1',moves:11,timeMs:1});assert.equal(store.get(scorePath),savedScore);
+ await adapter.saveScore(user.uid,board,{recordVersion:'r1',scoreSpecVersion:'v1',moves:10,timeMs:999});assert.equal(store.get(scorePath).timeMs,999);
+ await adapter.saveScore(user.uid,board,{recordVersion:'r1',scoreSpecVersion:'v1',moves:9,timeMs:20000});assert.equal(store.get(scorePath).moves,9);
  store.set('stageScores/'+board+'/entries/other',{moves:8,timeMs:500});
- store.set('players/other',{name:'Other',colors:['#123456'],headColor:'#ffffff',reachedLevel:2,reachedPrototypeLevel:1});
+ store.set('stageScores/r1_players/entries/other',{name:'Other',colors:['#123456'],headColor:'#ffffff',reachedLevel:2,reachedPrototypeLevel:1});
  const ranking=await adapter.scores(user.uid,board);assert.equal(ranking.length,2);assert.equal(ranking[0].id,'other');assert.equal(ranking[0].profile.name,'Other');
  assert.equal(ranking.filter(row=>row.id===user.uid).length,1);
  restoredUser={uid:'existing-user'};
@@ -85,7 +85,7 @@ client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\
  store.set('stageScores/v2_prototype_999/entries/existing-user',{moves:10,timeMs:100});
  store.set('anotherCollection/example/entries/existing-user',{private:true});
  restoredUser.providerData=[{providerId:'password'}];hooks.transferIdentity=identity;
- failCleanup=true;await assert.rejects(adapter.deleteAccount(user.uid),/cleanup offline/);assert.equal(restoredUser.uid,user.uid);assert(store.has('players/'+user.uid),'Never remove auth/profile after a failed score delete');
+ failCleanup=true;await assert.rejects(adapter.deleteAccount(user.uid),/cleanup offline/);assert.equal(restoredUser.uid,user.uid);assert(store.has('stageScores/r1_players/entries/'+user.uid),'Never remove auth/profile after a failed score delete');
  failCleanup=false;await adapter.deleteAccount(user.uid);assert(cleanupPages>=3);assert.equal(restoredUser,null);
  assert(store.has('stageScores/'+board+'/entries/other'));assert(store.has('anotherCollection/example/entries/existing-user'));assert(store.has('accountDeletionLocks/'+user.uid));
  assert.deepEqual(calls.slice(-2),['profile-delete','auth-delete']);

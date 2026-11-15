@@ -27,6 +27,7 @@ const {createNativeAutoSync}=require('./scripts/native-auto-sync.cjs');
 const {createNativeAccountDeletion}=require('./scripts/native-account-deletion.cjs');
 const {createNativeSyncStatus}=require('./scripts/native-sync-status.cjs');
 const mode=${JSON.stringify(mode)},config=${JSON.stringify(config)||'undefined'};
+const rankingsEnabled=typeof COURSE_RANKINGS_ENABLED==='boolean' && COURSE_RANKINGS_ENABLED;
 const courseVersion=typeof COURSE_VERSION==='string'?COURSE_VERSION:'v1';
 let storage;try{storage=globalThis.localStorage;}catch(_){}
 function pendingValue(){try{return storage?.getItem('ascent.pending-scores.v1');}catch(_){return 'unavailable';}}
@@ -39,7 +40,7 @@ function publish(report,stats=sync?.report()||{}){
  const safe={...report,...stats,pendingUnchanged:pendingValue()===baseline};
  globalThis.webkit?.messageHandlers?.ascentFirebaseReport?.postMessage(safe);
 }
-const controller=createNativeFirebaseController({mode,config,policy:()=>globalThis.ASCENT_IOS_BUILD,
+const controller=createNativeFirebaseController({mode,config,rankingsEnabled,policy:()=>({...globalThis.ASCENT_IOS_BUILD,firebaseEnabled:globalThis.ASCENT_IOS_BUILD?.firebaseEnabled===true && globalThis.ASCENT_TERMS_NETWORK?.accepted===true}),
  storage,loadSDK:()=>import('../vendor/firebase-sdk.js'),
  connectionEpoch:()=>globalThis.ASCENT_SETTINGS_CONNECTION?.ticket(),
  knownUid:()=>{
@@ -48,7 +49,9 @@ const controller=createNativeFirebaseController({mode,config,policy:()=>globalTh
   return known[0]||null;
  },onReport:publish});
 Object.defineProperty(globalThis,'ASCENT_NATIVE_FIREBASE',{value:controller,writable:false,configurable:false});
-const deletion=createNativeAccountDeletion({controller,storage,sync:()=>sync,resume:()=>globalThis.ASCENT_NATIVE_RESUME,game:{
+const deletion=createNativeAccountDeletion({controller,storage,sync:()=>sync,resume:()=>globalThis.ASCENT_NATIVE_RESUME,consent:{pause:()=>globalThis.Capacitor.Plugins.AscentAnalytics.beginAccountDeletion(),reset:deletionID=>globalThis.Capacitor.Plugins.AscentAnalytics.completeAccountDeletion({deletionID}),refresh:()=>globalThis.ASCENT_TERMS_NETWORK.refresh()},game:{
+ clearMarker:()=>{accountDeletion.marker=null;},
+ returnToTitle:()=>{deleteUserElement('deleteUserDialog').close?.();showTitleScreen();const note=document.getElementById('nativeDeletionNotice')||document.createElement('p');note.id='nativeDeletionNotice';note.textContent=typeof GAME_TEXT_LANGUAGE!=='undefined'&&GAME_TEXT_LANGUAGE==='en'?'Account deleted. To play again, accept the Terms of Use again.':'アカウントを削除しました。再開には利用規約への再同意が必要です。';ui.titleScreen.appendChild(note);},
  marker:()=>typeof accountDeletion==='undefined'?null:accountDeletion.marker,
  mark:(uid,phase)=>markAccountDeletion(uid,phase),ready:value=>{online.ready=value;},
  uid:value=>{online.uid=value;},adapter:value=>{online.adapter=value;},
@@ -56,13 +59,15 @@ const deletion=createNativeAccountDeletion({controller,storage,sync:()=>sync,res
  clearGame:()=>clearLocalGameData(),failed:error=>{const message=gameText(error?.code==='native-firebase/deletion-auth-unconfirmed'?'account-deletion.deleteCurrentAccount.2':'account-deletion.restoreDeletionSession');deleteUserElement('deleteUserStatus').textContent=message;setOnlineStatus(message);console.warn('Native deletion:',error?.code || error?.message);}
 }});
 Object.defineProperty(globalThis,'ASCENT_NATIVE_ACCOUNT_DELETION',{value:deletion,writable:false,configurable:false});
-if(controller.permissions().automaticSync){
+if(mode==='auto-sync' && globalThis.ASCENT_IOS_BUILD?.firebaseAutomaticSyncAllowed===true){
  let owner=null;try{owner=storage?.getItem('ascent.native-firebase.identity-check.v1')||null;}catch(_){}
- sync=createNativeAutoSync({storage,owner,controller,courseVersion,startPaused:true,onReport:stats=>publish(controller.report(),stats)});
+ sync=createNativeAutoSync({storage,owner,controller,courseVersion,rankingsEnabled,startPaused:true,onReport:stats=>publish(controller.report(),stats)});
  Object.defineProperty(globalThis,'ASCENT_NATIVE_SYNC',{value:sync,writable:false,configurable:false});
 }
 let connectionFlight=null;
 function connectNative(){
+ if(controller.deletionState()?.phase==='done')return deletion.completeConfirmedDeletion().catch(error=>{online.ready=false;console.warn('Deletion completion retry required');});
+ if(globalThis.ASCENT_TERMS_NETWORK?.accepted!==true)return;
  if(connectionFlight)return connectionFlight;
  if(!controller.permissions().network && !deletion.hasMarker())return;
  connectionFlight=(async()=>{
@@ -79,13 +84,13 @@ function connectNative(){
   if(sync){sync.queueProfile(onlineProfile());await sync.flush();}
   await controller.players(1,1,'existing');
   const firstBoard=typeof scoreBoardKey==='function'?scoreBoardKey(1,'existing'):courseVersion+'_existing_1';
-  await controller.scores(user.uid,firstBoard);
+  if(rankingsEnabled)await controller.scores(user.uid,firstBoard);
  }catch(error){online.ready=false;setOnlineStatus('オンライン接続なし / Offline');console.warn('Native Firebase:',controller.report().lastError || 'native-firebase/read-unavailable');}
  })().finally(()=>{connectionFlight=null;});
  return connectionFlight;
 }
-if(controller.permissions().network || deletion.hasMarker()){
- for(const event of ['online','focus','ascent-native-resume'])window.addEventListener(event,()=>{void connectNative();});
+{
+ for(const event of ['online','focus','ascent-native-resume','ascent-terms-ready'])globalThis.addEventListener?.(event,()=>{void connectNative();});
  void connectNative();
 }`;
     esbuild.buildSync({stdin:{contents:entry,resolveDir:root},bundle:true,format:'iife',platform:'browser',target:'ios15',

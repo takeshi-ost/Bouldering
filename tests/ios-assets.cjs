@@ -73,8 +73,13 @@ for (const match of html.matchAll(/\b(?:src|href)="([^"]+)"/g)) {
 for (const name of fs.readdirSync(path.join(bundle, 'js'))) {
     const source = read(`js/${name}`);
     const endpoint='https://takeshi-ost.github.io/Bouldering/test-course-data/stages-101-150/manifest.json';
-    const checked=name==='course-data.js'&&firebaseMode!=='offline'?source.replace(endpoint,''):source;
+    let checked=name==='course-data.js'&&firebaseMode!=='offline'?source.replace(endpoint,''):source;
     if(name==='course-data.js')assert(source.includes(firebaseMode==='offline'?'remoteManifest:null':`remoteManifest:'${endpoint}'`));
+    if(name==='native-terms-document.js') {
+        const expected={version:'2026-11-15',privacyHTML:fs.readFileSync(path.join(root,'privacy/index.html'),'utf8'),ja:fs.readFileSync(path.join(root,'legal/terms-ja.txt'),'utf8'),en:fs.readFileSync(path.join(root,'legal/terms-en.txt'),'utf8')};
+        assert.equal(source,'globalThis.ASCENT_REVIEWED_TERMS=Object.freeze('+JSON.stringify(expected)+');','Legal document must be exact inert approved text, not executable network code');
+        checked=''; // Policy references are displayed via textContent, not fetched.
+    }
     assert(!/https?:\/\//i.test(checked), `External endpoint in ${name}`);
     if(name!=='native-firebase-control.js')assert(!/initializeApp\(|signInAnonymously\(|bootFirebase\(/.test(source), `Firebase bootstrap in ${name}`);
 }

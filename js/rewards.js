@@ -1,7 +1,7 @@
 "use strict";
 // A reusable interstitial: callers supply grant/return callbacks, not a destination screen.
 // Map milestones are earned once per stage, independently of daily rewards.
-const MAP_REWARDS_KEY='ascent.map-rewards.v1';
+const MAP_REWARDS_KEY=recordStorageKey('ascent.map-rewards.v1');
 const MAP_REWARD_INTERVAL=4;
 function readMapRewards() {
     const records={};
@@ -23,7 +23,7 @@ function saveMapRewards() {
     try {globalThis.localStorage?.setItem(MAP_REWARDS_KEY,JSON.stringify(mapRewards));}catch(_) {}
 }
 function hasMapReward(n) {
-    return Number.isSafeInteger(n) && n>=1 && !(typeof isTutorialRun==='function' && isTutorialRun()) && courseMode==='existing' && n%MAP_REWARD_INTERVAL===0 && mapRewards[n]?.status!=='claimed';
+    return Number.isSafeInteger(n) && n>=1 && !(typeof isTutorialRun==='function' && isTutorialRun()) && courseMode==='existing' && n%MAP_REWARD_INTERVAL===0 && mapRewards[n]?.status!=='claimed' && !previouslyClaimedReward('ascent.map-rewards.v1',n);
 }
 function recordMapRewardClear() {
     if(dailyRun || debugAttempt || !hasMapReward(level) || mapRewards[level])return;
@@ -32,8 +32,9 @@ function recordMapRewardClear() {
 }
 function startMapClearReward(n,onReturn=()=>showLevelMap({target:n+1})) {
     const record=mapRewards[n];
-    if(courseMode!=='existing' || record?.status!=='pending' || rewardSequence || state==='ad')return false;
+    if(previouslyClaimedReward('ascent.map-rewards.v1',n) || courseMode!=='existing' || record?.status!=='pending' || rewardSequence || state==='ad')return false;
     const launch=()=>startRewardSequence({
+        canGrant:()=>{if(!previouslyClaimedReward('ascent.map-rewards.v1',n))return true;record.status='claimed';return false;},
         onGrant:()=>{record.status='claimed';saveMapRewards();},onReturn
     });
     if(n<NORMAL_AD_FIRST_STAGE || !record.adRequired || record.adCompleted)return launch();
@@ -43,7 +44,7 @@ function startMapClearReward(n,onReturn=()=>showLevelMap({target:n+1})) {
 }
 function resumePendingMapReward() {
     if(courseMode!=='existing' || mapTransition || stageStartContext)return false;
-    const pending=Object.keys(mapRewards).map(Number).sort((a,b)=>a-b).find(n=>mapRewards[n].status==='pending');
+    const pending=Object.keys(mapRewards).map(Number).sort((a,b)=>a-b).find(n=>mapRewards[n].status==='pending' && !previouslyClaimedReward('ascent.map-rewards.v1',n));
     return pending===undefined?false:startMapClearReward(pending);
 }
 function continueNormalClear({advance=true}={}) {
@@ -106,8 +107,8 @@ function requestRewardFrame() {
     if(rewardSequence && rewardSequence.phase!=='result' && !document.hidden && rewardFrame===null)
         rewardFrame=requestAnimationFrame(advanceRewardSequence);
 }
-function startRewardSequence({onGrant=()=>{},onReturn=null}={}) {
-    if(typeof onGrant!=='function' || (onReturn!==null && typeof onReturn!=='function'))
+function startRewardSequence({onGrant=()=>{},onReturn=null,canGrant=()=>true}={}) {
+    if(typeof canGrant!=='function' || typeof onGrant!=='function' || (onReturn!==null && typeof onReturn!=='function'))
         throw new TypeError('Reward callbacks must be functions');
     if(rewardSequence || rewardCoverPending || state==='ad' || state==='life-prompt' || (state==='map' && (mapPreparing || mapTransition || stageStartContext)))return false;
     const previousState=state,wasResultOpen=!!ui.overlay.open,wasTiming=runStartedAt!==null;
@@ -115,7 +116,7 @@ function startRewardSequence({onGrant=()=>{},onReturn=null}={}) {
     release(true);endPan();bodyTap=null;touchId=null;ignoreTouches=false;
     hideSettings();hideResultModal();
     rewardSequence={phase:'spinning',angle:Math.random()*360,clickTravel:0,lastTime:performance.now(),
-        previousState,wasResultOpen,wasTiming,onGrant,onReturn};
+        previousState,wasResultOpen,wasTiming,onGrant,onReturn,canGrant};
     state='reward';
     ui.rewardWheel.innerHTML=rewardWheelMarkup();
     ui.rewardWheel.style.transform=`rotate(${rewardSequence.angle}deg)`;
@@ -168,7 +169,13 @@ function advanceRewardSequence(now=performance.now()) {
     ui.rewardWheel.style.transform=`rotate(${sequence.angle}deg)`;
     if(sequence.phase==='braking' && sequence.brakeElapsed===ROULETTE_BRAKE_MS) {
         sequence.phase='result';
-        sequence.reward=applyRouletteReward(ROULETTE_OPTIONS[rewardIndex(sequence.angle)]);
+        const option=ROULETTE_OPTIONS[rewardIndex(sequence.angle)];
+        // Another context/season may have claimed while this dialog was open.
+        // Check persisted evidence immediately before any inventory mutation.
+        if(!sequence.canGrant()) {
+            sequence.reward={...option,amount:0};finishRewardSequence();return;
+        }
+        sequence.reward=applyRouletteReward(option);
         sequence.onGrant(sequence.reward);
         ui.rewardStop.hidden=true;ui.rewardResult.hidden=false;
         ui.rewardResult.innerHTML=rewardResultMarkup(sequence.reward);

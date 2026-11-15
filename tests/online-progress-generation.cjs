@@ -8,7 +8,7 @@ client=client.slice(0,client.indexOf("window.addEventListener('online'"));
 client=client.replace(/import\('https:\/\/www\.gstatic\.com\/firebasejs\/12\.11\.0\/firebase-(app|auth|firestore)\.js'\)/g,(_,name)=>`Promise.resolve(sdk.${name})`);
 const profile=(extra={})=>({name:'Old cloud name',colors:['#abcdef'],headColor:'#aabbcc',reachedLevel:31,reachedPrototypeLevel:70,...extra});
 function harness(remote=profile()) {
- const docs=new Map(remote?[['players/synthetic-owner',remote]]:[]),storage=new Map();
+ const docs=new Map(remote?[[remote.recordVersion==='r1'?'stageScores/r1_players/entries/synthetic-owner':'players/synthetic-owner',remote]]:[]),storage=new Map();
  const calls={authCreates:0,writes:[],queries:[]};let fail=false;
  const auth={currentUser:{uid:'synthetic-owner'},authStateReady:async()=>{}};
  const snapshot=id=>({exists:()=>docs.has(id),data:()=>docs.get(id)});
@@ -34,12 +34,12 @@ function harness(remote=profile()) {
  await x.run('bootFirebase()');assert.equal(x.result().uid,'synthetic-owner');assert.equal(x.calls.authCreates,0);
  assert.equal(x.result().progress.existing.cleared,20);assert.equal(x.result().progress.prototype.cleared,0);
  assert.equal(x.result().name,'Trial name');assert.deepEqual(x.result().colors,['#112233']);
- let saved=x.docs.get('players/synthetic-owner');assert.equal(saved.reachedLevel,21);assert.equal(saved.reachedPrototypeLevel,1);assert.equal(saved.progressVersion,'v4');
+ let saved=x.docs.get('stageScores/r1_players/entries/synthetic-owner');assert.equal(saved.reachedLevel,21);assert.equal(saved.reachedPrototypeLevel,1);assert.equal(saved.progressVersion,'r1');
  assert.equal(x.docs.get('stageScores/v1_existing_31/entries/synthetic-owner').moves,1);
- assert.equal(x.calls.writes.length,1);assert.equal(x.calls.writes[0].id,'players/synthetic-owner');
+ assert.equal(x.calls.writes.length,1);assert.equal(x.calls.writes[0].id,'stageScores/r1_players/entries/synthetic-owner');
  // A canonical profile key is stable after parser readback, avoiding repeat writes.
  await x.run('online.ready=false;startOnline(online.adapter)');assert.equal(x.calls.writes.length,1);
- x.docs.set('players/synthetic-owner',{...saved,name:'Same generation remote edit'});
+ x.docs.set('stageScores/r1_players/entries/synthetic-owner',{...saved,name:'Same generation remote edit'});
  await x.run('online.ready=false;startOnline(online.adapter)');assert.equal(x.result().name,'Same generation remote edit');assert.equal(x.calls.writes.length,1);
  console.log('PASS legacy adoption: trial progress/appearance + same UID, no score deletion, stable checkpoint/no repeat write');
  // A clear after adoption and subsequent reconnect cannot merge a legacy high value.
@@ -47,25 +47,25 @@ function harness(remote=profile()) {
  await x.run('stageProgress.existing.cleared=21;queueOnlineProfileSave();flushOnlineProfile()');
  // queueOnlineProfileSave starts an asynchronous flush; wait for its transaction.
  for(let i=0;i<30;i++)await Promise.resolve();
- assert.equal(x.result().progress.existing.cleared,21);assert.equal(x.docs.get('players/synthetic-owner').reachedLevel,22);
+ assert.equal(x.result().progress.existing.cleared,21);assert.equal(x.docs.get('stageScores/r1_players/entries/synthetic-owner').reachedLevel,22);
  x.run("applyOnlineProfile({name:'Legacy',colors:['#112233'],headColor:'#445566',reachedLevel:500,reachedPrototypeLevel:500},true)");assert.equal(x.result().progress.existing.cleared,21);
  console.log('PASS clear/retry and defensive readback cannot reimport unversioned progress');
  // A temporarily rejected write leaves local play intact; next retry uses latest local.
  const failed=harness();failed.fail(true);await failed.run('bootFirebase()');assert(failed.result().dirty);assert.equal(failed.result().progress.existing.cleared,20);assert.equal(failed.calls.writes.length,0);
- failed.run('stageProgress.existing.cleared=22');failed.fail(false);await failed.run('flushOnlineProfile()');assert.equal(failed.docs.get('players/synthetic-owner').reachedLevel,23);assert.equal(failed.result().progress.existing.cleared,22);
+ failed.run('stageProgress.existing.cleared=22');failed.fail(false);await failed.run('flushOnlineProfile()');assert.equal(failed.docs.get('stageScores/r1_players/entries/synthetic-owner').reachedLevel,23);assert.equal(failed.result().progress.existing.cleared,22);
  console.log('PASS failed initial write and offline clear retry retain current progress');
  // Same generation still synchronizes maximum values in either direction.
- for(const [remoteReached,expected] of [[31,30],[5,20]]){const h=harness(profile({progressVersion:'v4',reachedLevel:remoteReached,reachedPrototypeLevel:1}));await h.run('bootFirebase()');assert.equal(h.result().progress.existing.cleared,expected);assert.equal(h.docs.get('players/synthetic-owner').reachedLevel,expected+1);}
- const resumed=harness(profile({progressVersion:'v4',reachedPrototypeLevel:1}));resumed.run("localStorage.setItem(ONLINE_PROFILE_KEY,JSON.stringify({uid:'synthetic-owner',key:onlineProfileKey(onlineProfile())}))");await resumed.run('bootFirebase()');assert.equal(resumed.result().name,'Old cloud name');assert.equal(resumed.result().progress.existing.cleared,30);
+ for(const [remoteReached,expected] of [[31,30],[5,20]]){const h=harness(profile({recordVersion:'r1',progressVersion:'r1',reachedLevel:remoteReached,reachedPrototypeLevel:1}));await h.run('bootFirebase()');assert.equal(h.result().progress.existing.cleared,expected);assert.equal(h.docs.get('stageScores/r1_players/entries/synthetic-owner').reachedLevel,expected+1);}
+ const resumed=harness(profile({recordVersion:'r1',progressVersion:'r1',reachedPrototypeLevel:1}));resumed.run("localStorage.setItem(ONLINE_PROFILE_KEY,JSON.stringify({uid:'synthetic-owner',key:onlineProfileKey(onlineProfile())}))");await resumed.run('bootFirebase()');assert.equal(resumed.result().name,'Old cloud name');assert.equal(resumed.result().progress.existing.cleared,30);
  console.log('PASS same-generation max sync and known-checkpoint appearance restore');
  // Server query excludes legacy rows before limit(6); UI also independently filters.
- for(let i=0;i<8;i++)x.docs.set('players/legacy-'+i,profile({reachedLevel:2}));
- x.docs.set('players/current',profile({progressVersion:'v4',reachedLevel:2}));
+ for(let i=0;i<8;i++)x.docs.set('stageScores/r1_players/entries/legacy-'+i,profile({reachedLevel:2}));
+ x.docs.set('stageScores/r1_players/entries/current',profile({recordVersion:'r1',progressVersion:'r1',reachedLevel:2}));
  const rows=await x.run("online.adapter.players(2,2,'existing')");assert.equal(JSON.stringify(rows.map(r=>r.id)),JSON.stringify(['current']));
- assert(x.calls.queries.at(-1).some(q=>q.field==='progressVersion'&&q.value==='v4'));
- x.run("online.pages.clear();online.adapter.players=async()=>[{id:'legacy',name:'Old',colors:['#112233'],headColor:'#445566',reachedLevel:2,reachedPrototypeLevel:1},{id:'current',name:'Now',colors:['#112233'],headColor:'#445566',reachedLevel:2,reachedPrototypeLevel:1,progressVersion:'v4'}];onlineMapPlayers(1,20,'existing')");
+ assert(x.calls.queries.at(-1).some(q=>q.field==='progressVersion'&&q.value==='r1'));
+ x.run("online.pages.clear();online.adapter.players=async()=>[{id:'legacy',name:'Old',colors:['#112233'],headColor:'#445566',reachedLevel:2,reachedPrototypeLevel:1},{id:'current',name:'Now',colors:['#112233'],headColor:'#445566',reachedLevel:2,reachedPrototypeLevel:1,recordVersion:'r1',progressVersion:'r1'}];onlineMapPlayers(1,20,'existing')");
  for(let i=0;i<30;i++)await Promise.resolve();assert.equal(x.run("onlineMapPlayers(1,20,'existing').length"),1);assert.equal(x.run("onlineMapPlayers(1,20,'existing')[0].id"),'current');
  console.log('PASS current-generation map query limit and independent display guard');
- const future=harness(profile({progressVersion:'v5'}));await future.run('bootFirebase()');assert.equal(future.calls.writes.length,0);assert.equal(future.result().progress.existing.cleared,20);assert(future.result().dirty);
+ const future=harness(profile({recordVersion:'r1',progressVersion:'v5'}));await future.run('bootFirebase()');assert.equal(future.calls.writes.length,0);assert.equal(future.result().progress.existing.cleared,20);assert(future.result().dirty);
  console.log('PASS unknown generation fails safely without replacing stored profile');
 })().catch(e=>{console.error(e);process.exitCode=1});

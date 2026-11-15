@@ -1,8 +1,8 @@
 "use strict";
-const ONLINE_SCORES_KEY='ascent.pending-scores.v1';
+const ONLINE_SCORES_KEY=recordStorageKey('ascent.pending-scores.v1');
 const onlineScores={pending:new Map(),owner:null,saving:false,boards:new Map(),blocked:null};
 function scoreBoardKey(stage,mode) {
-    return `${COURSE_VERSION}_${mode}_${stage}`;
+    return recordScoreBoard(COURSE_VERSION,mode,stage);
 }
 function validStageScore(score) {
     return score && Number.isSafeInteger(score.moves) && score.moves>=1 && score.moves<=1000000 &&
@@ -78,7 +78,7 @@ async function flushOnlineScores() {
     try {
         while(onlineScores.pending.size && !accountDeletion.marker && !(typeof transferBusy==='function' && transferBusy())) {
             // Retain retired-mode entries locally, without sending or blocking normal scores.
-            const next=[...onlineScores.pending].find(([key])=>validScoreBoard(key) && key.split('_')[1]==='existing');
+            const next=[...onlineScores.pending].find(([key])=>validScoreBoard(key) && scoreBoardParts(key)[1]==='existing');
             if(!next)break;
             const [board,score]=next;
             if(onlineScores.owner!==online.uid)return;
@@ -88,7 +88,7 @@ async function flushOnlineScores() {
             if(!validStageScore(saved) || !scoreMatchesBoard(board,saved))throw new Error('Invalid saved score');
             globalThis.ASCENT_SETTINGS_CONNECTION?.success(connectionTicket);
             if(onlineScores.pending.get(board)===score)onlineScores.pending.delete(board);
-            const [version,mode,n]=board.split('_'),stage=Number(n);
+            const [version,mode,n]=scoreBoardParts(board),stage=Number(n);
             // A legacy upload must never replace a newer-generation local best.
             if(version===COURSE_VERSION) {
                 const previous=stageRecords[mode][stage];
@@ -132,7 +132,7 @@ function onlineStageScores(stage,mode) {
     if(online.ready && online.adapter.scores && !page.pending && Date.now()-page.at>=ONLINE_CACHE_MS) {
         page.pending=true;page.at=Date.now();page.error=false;
         void online.adapter.scores(online.uid,board).then(rows=>{
-            page.rows=rows.filter(row=>typeof row.id==='string' && validStageScore(row)).map(row=>{
+            page.rows=rows.filter(row=>typeof row.id==='string' && validStageScore(row) && scoreMatchesBoard(board,row)).map(row=>{
                 const profile=onlineProfileFrom(row.profile);
                 return {id:row.id,moves:row.moves,timeMs:row.timeMs,...scoreMetadata(row),name:profile?.name || gameText("online-scores.onlineStageScores"),
                     appearance:profile?{colors:profile.colors,headColor:profile.headColor}:null};

@@ -32,9 +32,9 @@ assert.equal(playsSinceAd,4);completeAd();assert.equal(state,'map');assert.equal
 // Retry also bypasses the regular ad but still offers the recovery ad.
 prepare(1);finish(false);finish(false);assert.equal(lives.count,0);assert.equal(playsSinceAd,3);ui.retry.onclick();assert.equal(state,'life-prompt');assert(!dummyAd);
 ui.lifeWatchAd.onclick();assert.equal(state,'ad');completeAd();assert.equal(lives.count,1);assert(ui.stageStartDialog.open);assert.equal(playsSinceAd,3);hideStageStart();showLevelMap();
-// Remaining lives retain the original post-result timing and completion reset.
+// Failed map return suppresses ads even with remaining lives; retry retains cadence.
 prepare(2);finish(false);assert.equal(lives.count,1);assert.equal(state,'lost');assert(!dummyAd);assert.equal(playsSinceAd,3);
-ui.closeResult.onclick();assert.equal(state,'ad');assert.equal(lives.count,1);assert.equal(playsSinceAd,3);assert(!completeDummyAd());completeAd();assert.equal(state,'map');assert.equal(playsSinceAd,0);
+ui.closeResult.onclick();assert.equal(state,'map');assert.equal(lives.count,1);assert.equal(playsSinceAd,3);assert(!dummyAd);assert(!completeDummyAd());
 prepare(2);finish(false);ui.retry.onclick();assert.equal(state,'ad');completeAd();assert(ui.stageStartDialog.open);assert.equal(lives.count,1);hideStageStart();showLevelMap();
 // Below the threshold no ad is introduced; direct retirement settles before gate.
 prepare(2,0);finish(false);ui.closeResult.onclick();assert.equal(state,'map');assert.equal(playsSinceAd,1);assert(!dummyAd);

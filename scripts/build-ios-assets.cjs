@@ -34,6 +34,16 @@ if ([...html.matchAll(firebaseTag)].length !== 1) {
 html = html.replace(firebaseTag, firebaseMode==='offline'?'<script src="js/native-offline.js" defer></script>':'');
 fs.writeFileSync(path.join(out,'js/native-resume-preboot.js'),`'use strict';\n(${installNativeResume.toString()})(${createNativeResumeStore.toString()});\n`);
 fs.copyFileSync(path.join(root,'scripts/native-resume-runtime.js'),path.join(out,'js/native-resume-runtime.js'));
+fs.copyFileSync(path.join(root,'scripts/native-ads-runtime.js'),path.join(out,'js/native-ads-runtime.js'));
+fs.copyFileSync(path.join(root,'scripts/native-analytics-runtime.js'),path.join(out,'js/native-analytics-runtime.js'));
+const reviewedTerms={version:'2026-11-15',privacyHTML:fs.readFileSync(path.join(root,'privacy/index.html'),'utf8'),ja:fs.readFileSync(path.join(root,'legal/terms-ja.txt'),'utf8'),en:fs.readFileSync(path.join(root,'legal/terms-en.txt'),'utf8')};
+fs.writeFileSync(path.join(out,'js/native-terms-document.js'),'globalThis.ASCENT_REVIEWED_TERMS=Object.freeze('+JSON.stringify(reviewedTerms)+');');
+html=html.replace('<head>','<head>\n    <script src="js/native-terms-document.js" defer></script>');
+const {createFirstRun}=require('./native-first-run.cjs');
+fs.writeFileSync(path.join(out,'js/native-first-run.js'),'const createFirstRun='+createFirstRun.toString()+';\n'+fs.readFileSync(path.join(root,'scripts/native-first-run-runtime.js'),'utf8'));
+html = html.replace(/(<script src="js\/main\.js[^"]*" defer><\/script>)/,'$1\n    <script src="js/native-first-run.js" defer></script>');
+html = html.replace(/(<script src="js\/main\.js[^"]*" defer><\/script>)/,'<script src="js/native-analytics-runtime.js" defer></script>\n    $1');
+html = html.replace(/(<script src="js\/main\.js[^"]*" defer><\/script>)/,'<script src="js/native-ads-runtime.js" defer></script>\n    $1');
 html = html.replace('    <!-- classic scripts','    <script src="js/native-resume-preboot.js" defer></script>\n    <!-- classic scripts');
 html = html.replace(/(<script src="js\/main\.js[^"]*" defer><\/script>)/,'<script src="js/native-resume-runtime.js" defer></script>\n    $1');
 html = html.replace('    <!-- classic scripts', '    <script src="js/native-audio-fetch.js" defer></script>\n    <!-- classic scripts');
@@ -42,6 +52,8 @@ fs.copyFileSync(path.join(root, 'scripts/native-audio-lifecycle.js'), path.join(
 html = html.replace('</head>', '    <script src="js/native-audio-lifecycle.js" defer></script>\n</head>');
 buildNativeFirebase(root,out,firebaseMode);
 html = html.replace('<p id="onlineStatus"', '<p hidden id="onlineStatus"');
+fs.copyFileSync(path.join(root,'scripts/native-terms-preboot.js'),path.join(out,'js/native-terms-preboot.js'));
+html = html.replace('<head>','<head>\n    <script src="js/native-terms-preboot.js" defer></script>');
 html = html.replace('</head>','    <script src="js/native-firebase-control.js" defer></script>\n</head>');
 // Local media fetch stays available. Only enabled Firebase and course-feed hosts may
 // connect; external scripts, frames and form submissions always stay blocked.

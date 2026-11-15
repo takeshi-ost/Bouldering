@@ -6,13 +6,13 @@
     <title data-i18n="title.document"></title>
     <link rel="stylesheet" href="styles.css?v=5fc2b16c184c">
     <!-- classic scripts + defer: file:// で開いても実行でき、記載順に初期化します。 -->
-    <script src="js/tutorial-state.js?v=8adae9aa1630" defer></script>
+    <script src="js/score-metadata.js?v=839fbc4ab53f" defer></script>
+    <script src="js/tutorial-state.js?v=5022c46a7838" defer></script>
     <script src="js/text-ja.js?v=fc84c7393b20" defer></script>
-    <script src="js/text-en.js?v=c7eca3760107" defer></script>
-    <script src="js/text-dev-ja.js?v=778e1317540d" defer></script>
+    <script src="js/text-en.js?v=355085af06fb" defer></script>
+    <script src="js/text-dev-ja.js?v=09599be7b418" defer></script>
     <script src="js/text.js?v=c7df5d2ebf70" defer></script>
-    <script src="js/score-metadata.js?v=11f4ce6668c5" defer></script>
-    <script src="js/config.js?v=f698e1fac1c1" defer></script>
+    <script src="js/config.js?v=9adc37dd0a49" defer></script>
     <script src="js/explanation-images.js?v=94512cc965b7" defer></script>
     <script src="js/course-progression-config.js?v=3438658870e1" defer></script>
     <script src="js/course-distribution-config.js?v=a7e767c2872a" defer></script>
@@ -35,17 +35,17 @@
     <script src="js/course-stamina-settings.js?v=e5a64ef8dafb" defer></script>
     <script src="js/course-generator-core.js?v=3612d7bedf39" defer></script>
     <script src="js/course-adoption.js?v=4116239692a4" defer></script>
-    <script src="js/course-preparation-build.js?v=c7ee0143fce8" defer></script>
+    <script src="js/course-preparation-build.js?v=69ee6fbed5b6" defer></script>
     <script src="js/course-preparation.js?v=54df1a6db6f7" defer></script>
     <script src="js/course-data-store.js?v=e0306c365a0c" defer></script>
     <script src="js/course-data.js?v=f0f779f5d6df" defer></script>
     <script src="js/tutorial-course.js?v=c846a93a64e8" defer></script>
     <script src="js/map-art.js?v=ba5492a063da" defer></script>
-    <script src="js/level-map.js?v=023e1f59d9cd" defer></script>
-    <script src="js/daily.js?v=7585efffc8e2" defer></script>
+    <script src="js/level-map.js?v=e2f7508212f6" defer></script>
+    <script src="js/daily.js?v=ea03a26757b8" defer></script>
     <script src="js/ads.js?v=1759c21c5a2f" defer></script>
     <script src="js/lives.js?v=43566a05fc33" defer></script>
-    <script src="js/rewards.js?v=274b1e4011fc" defer></script>
+    <script src="js/rewards.js?v=7de753566fcc" defer></script>
     <script src="js/debug-course.js?v=2dd162027213" defer></script>
     <script src="js/six-pair-angle-overlay.js?v=efe15e773f7e" defer></script>
     <script src="js/input.js?v=6a3d906f3dec" defer></script>
@@ -54,15 +54,15 @@
     <script src="js/player-icon.js?v=13022791fa50" defer></script>
     <script src="js/appearance.js?v=97d112b38c0e" defer></script>
     <script src="js/leaderboard.js?v=d2ac7a9dc830" defer></script>
-    <script src="js/online.js?v=5dbe4738c12d" defer></script>
-    <script src="js/online-scores.js?v=06d0567fa941" defer></script>
+    <script src="js/online.js?v=80bd661683f6" defer></script>
+    <script src="js/online-scores.js?v=98e5e66b0758" defer></script>
     <script src="js/settings-connection.js?v=3f225b2b37d6" defer></script>
-    <script src="js/account-deletion.js?v=a26b680d9a8b" defer></script>
-    <script src="js/transfer.js?v=f4d72039a7c9" defer></script>
+    <script src="js/account-deletion.js?v=5ebc69340c0d" defer></script>
+    <script src="js/transfer.js?v=68b4e6d4c478" defer></script>
     <script src="js/language.js?v=a63e0182d0e0" defer></script>
     <script src="js/tutorial.js?v=2432f6fd3053" defer></script>
     <script src="js/main.js?v=e1581440910c" defer></script>
-    <script type="module" src="js/firebase-client.js?v=bdd7a4650fe7"></script>
+    <script type="module" src="js/firebase-client.js?v=a3a99a1f7f53"></script>
 </head>
 <body>
     <main>
@@ -310,9 +310,9 @@
                 <button id="mapCourses" class="secondary" data-i18n="ui.mapCourses"></button>
             </div>
             <button id="restart" data-i18n="ui.restart"></button>
+            <button id="debugDeleteUser" class="account-delete-button" aria-haspopup="dialog" aria-controls="deleteUserDialog" data-i18n="ui.debugDeleteUser"></button>
             <div id="mapSettingsDebug" class="map-settings-debug" hidden>
                 <label id="mapDebugModeRow" class="settings-row" for="mapDebugMode" hidden><span data-i18n="ui.mapSettingsFooter.label.span"></span><input id="mapDebugMode" type="checkbox"></label>
-                <button id="debugDeleteUser" class="account-delete-button" hidden data-i18n="ui.debugDeleteUser"></button>
             </div>
             <div id="stageDebugDisplay" hidden>
                 <fieldset class="debug-swipe-settings">

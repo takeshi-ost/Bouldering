@@ -9,6 +9,10 @@ function wrapNativeEnd(source,name) {
         'function '+name+'(...args) {\n    const commit=()=>nativeResume_'+name+'(...args);\n    return globalThis.ASCENT_NATIVE_RESUME ? globalThis.ASCENT_NATIVE_RESUME.endAttempt(commit) : commit();\n}\nfunction nativeResume_'+name+'(');
 }
 module.exports = function nativeSource(name, source) {
+    if(name==='course-data.js') {
+        source=replaceOnce(source,'function checkCourseDataUpdates(){',"function checkCourseDataUpdates(){if(globalThis.ASCENT_TERMS_NETWORK?.accepted!==true)return;");
+    }
+
     if(name==='level-map.js') {
         source=replaceOnce(source,'function saveHeartItems() {',"function saveHeartItems() {\n    if(globalThis.ASCENT_NATIVE_RESUME?.ready===false)return;");
         const before=`            restartInput(n,heartsUsed);
@@ -106,6 +110,14 @@ else {recoverLives();saveLives();}`,`if(globalThis.ASCENT_NATIVE_RESUME?.ready!=
     accountDeletion.busy=true;online.ready=false;`);
         source=replaceOnce(source,'        await online.adapter.lockDeletion(uid);',`        await globalThis.ASCENT_NATIVE_ACCOUNT_DELETION?.beforeDelete();
         await online.adapter.lockDeletion(uid);`);
+        source=replaceOnce(source,'        ui.playerUuid.textContent=gameText("account-deletion.deleteCurrentAccount.3");showDeleteUserDialog();',`        if(await globalThis.ASCENT_NATIVE_ACCOUNT_DELETION?.completeConfirmedDeletion())return;
+        ui.playerUuid.textContent=gameText("account-deletion.deleteCurrentAccount.3");showDeleteUserDialog();`);
+        source=replaceOnce(source,"deleteUserElement('deleteUserNew').onclick=()=>{",`deleteUserElement('deleteUserNew').onclick=async()=>{
+    try {if(await globalThis.ASCENT_NATIVE_ACCOUNT_DELETION?.completeConfirmedDeletion())return;}
+    catch(error){deleteUserElement('deleteUserStatus').textContent=typeof GAME_TEXT_LANGUAGE!=='undefined'&&GAME_TEXT_LANGUAGE==='en'?'Unable to finish local reset. Try again.':'同意状態のリセットを完了できません。再試行してください。';return;}`);
+        source=replaceOnce(source,'function showDeleteUserDialog() {',`function showDeleteUserDialog() {
+    const en=typeof GAME_TEXT_LANGUAGE!=='undefined'&&GAME_TEXT_LANGUAGE==='en';
+    deleteUserElement('deleteUserWarning').textContent=gameText('ui.deleteUserWarning')+(en?' After deletion completes, Terms acceptance is reset and analytics stops. You return to the title and must accept the Terms again to play. Advertising choices are retained; previously sent analytics data is not deleted by this action.':' 削除完了後は利用規約の同意をリセットし、分析を停止してタイトルに戻ります。再開には再同意が必要です。広告の同意は保持し、送信済みの分析データはこの操作では削除されません。');`);
         source=replaceOnce(source,'function clearLocalGameData() {',`function clearLocalGameData() {
     globalThis.ASCENT_NATIVE_ACCOUNT_DELETION?.clearLocal();`);
         source=replaceOnce(source,'    for(const key of keys)globalThis.localStorage?.removeItem(key);',`    for(const key of keys){

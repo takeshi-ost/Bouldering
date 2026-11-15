@@ -7,7 +7,7 @@ const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/sc
 const prefix='ascent.pages-trial.0.4.12.d6.';
 const original={'ascent.progress.v1':'{"existing":{"cleared":99}}','ascent.player-uuid.v1':'raw-formal-owner','ascent.transfer-identity.v1':'raw-formal-secret','ascent.account-deletion.v1':'{"uid":"unrelated-raw","phase":"pending"}',otherApplication:'keep','firebase:authUser:fixture':'keep-sdk-auth'};
 const values=new Map(Object.entries(original));
-for(const [key,value]of Object.entries({'ascent.progress.v1':'{"existing":{"cleared":20}}','ascent.heart-items.v1':'7','ascent.ad-plays.v1':'2','ascent.ad-plays.v2':'1','ascent.formal-debug-seed.v1':'10','ascent.transfer-identity.v1':'{"uid":"owner"}'}))values.set(prefix+key,value);
+for(const [key,value]of Object.entries({'ascent.progress.v1.r1':'{"recordVersion":"r1","existing":{"cleared":20}}','ascent.heart-items.v1':'7','ascent.ad-plays.v1':'2','ascent.ad-plays.v2':'1','ascent.formal-debug-seed.v1':'10','ascent.transfer-identity.v1':'{"uid":"owner"}'}))values.set(prefix+key,value);
 const raw={get length(){return values.size;},key:i=>[...values.keys()][i]??null,getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};
 let reloads=0;
 const host={localStorage:raw,location:{reload(){reloads++;}}};
@@ -24,7 +24,7 @@ await new Function('assert','globalThis','ASCENT_FORMAL_STORAGE','raw',env+sourc
  assert.equal(accountDeletion.marker,null,'Unrelated raw deletion marker is outside this save scope');
  showDeleteUserDialog();deleteUserElement('deleteUserCancel').onclick();assert.equal(calls.length,0,'Cancellation has no destructive effects');
  await deleteCurrentAccount();assert.equal(accountDeletion.marker.phase,'pending');assert.equal(calls.filter(x=>x==='delete').length,1);
- assert.equal(ASCENT_FORMAL_STORAGE.getItem(PROGRESS_KEY),'{"existing":{"cleared":20}}','Failed server deletion preserves gameplay save');
+ assert.equal(ASCENT_FORMAL_STORAGE.getItem(PROGRESS_KEY),'{"recordVersion":"r1","existing":{"cleared":20}}','Failed server deletion preserves gameplay save');
  assert(!online.ready);assert(deleteUserElement('deleteUserStatus').textContent.includes('削除が完了していません'));
  await startOnline(online.adapter);assert.equal(calls.at(-1),'authenticate:false','Pending resume never makes a new anonymous account');assert.equal(calls.filter(x=>x==='delete').length,1,'Notice/resume does not automatically retry deletion');
  fail=false;await deleteCurrentAccount();assert.equal(accountDeletion.marker.phase,'done');

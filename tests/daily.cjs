@@ -113,8 +113,8 @@ ui.openDaily.onclick();const originalReset=reset;reset=()=>{throw Error('fixture
 const beforeMedals=JSON.stringify(dailyRecords),beforeMedalTime=nowIso;
 nowIso='2026-10-17T23:59:59Z';dailyMonth='2026-10';
 dailyRecords={
- '2026-10-15':{moves:2,timeMs:100,stars:3,rewardStatus:'claimed'},
- '2026-10-16':{moves:2,timeMs:100,stars:3,rewardStatus:'pending'}
+ '2026-10-15':{recordVersion:RECORD_VERSION,moves:2,timeMs:100,stars:3,rewardStatus:'claimed'},
+ '2026-10-16':{recordVersion:RECORD_VERSION,moves:2,timeMs:100,stars:3,rewardStatus:'pending'}
 };
 saveDailyRecords();dailyRecords=readDailyRecords();
 assert.equal(dailyMedal('2026-10-15',dailyRecords['2026-10-15']),'silver');
@@ -136,13 +136,13 @@ assert.equal(dailyMedal('2026-10-17',dailyRecords['2026-10-17']),'gold','Gold pe
 const earnedGold=JSON.stringify(dailyRecords['2026-10-17']);dailyRun=dailyProfile('2026-10-17');recordDailyClear();
 assert.equal(JSON.stringify(dailyRecords['2026-10-17']),earnedGold);
 for(const clearedOn of ['bad','2026-02-30','2026-10-13']) {
- data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-10-14':{moves:2,timeMs:100,stars:3,clearedOn}});
+ data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-10-14':{recordVersion:RECORD_VERSION,moves:2,timeMs:100,stars:3,clearedOn}});
  const record=readDailyRecords()['2026-10-14'];assert.equal(record.clearedOn,undefined);assert.equal(dailyMedal('2026-10-14',record),'silver');
 }
 dailyRecords=JSON.parse(beforeMedals);saveDailyRecords();nowIso=beforeMedalTime;
 // Only the currently unbroken chain of same-day clears earns streak bands.
 const beforeStreak=JSON.stringify(dailyRecords),beforeStreakTime=nowIso;
-const gold=date=>({moves:2,timeMs:100,stars:3,clearedOn:date});
+const gold=date=>({recordVersion:RECORD_VERSION,moves:2,timeMs:100,stars:3,clearedOn:date});
 dailyRecords={};nowIso='2026-10-18T12:00:00Z';
 assert.deepEqual(currentDailyStreak(),{count:0,start:null,end:null});
 dailyRecords['2026-10-17']=gold('2026-10-17');
@@ -153,7 +153,7 @@ nowIso='2026-10-20T00:00:00Z';assert.equal(currentDailyStreak().count,0);
 dailyRecords['2026-10-19']={...gold('2026-10-19'),clearedOn:'2026-10-20'};
 assert.equal(currentDailyStreak().count,0,'Backfill cannot repair a broken streak');
 dailyRecords['2026-10-20']=gold('2026-10-20');assert.equal(currentDailyStreak().count,1);
-dailyRecords['2026-10-20']={moves:2,timeMs:100,stars:3};assert.equal(currentDailyStreak().count,0,'Legacy clears cannot count');
+dailyRecords['2026-10-20']={recordVersion:RECORD_VERSION,moves:2,timeMs:100,stars:3};assert.equal(currentDailyStreak().count,0,'Legacy clears cannot count');
 // Crossing a week and month produces separate rounded row segments.
 dailyRecords={};for(const date of ['2026-09-30','2026-10-01','2026-10-02','2026-10-03','2026-10-04','2026-10-05'])dailyRecords[date]=gold(date);
 nowIso='2026-10-05T12:00:00Z';dailyMonth='2026-10';renderDailyCalendar();
@@ -171,7 +171,7 @@ assert.equal(previousDailyDate('2024-03-01'),'2024-02-29');assert.equal(previous
 dailyRecords={'2026-12-31':gold('2026-12-31'),'2027-01-01':gold('2027-01-01')};assert.equal(currentDailyStreak('2027-01-01').count,2);
 dailyRecords=JSON.parse(beforeStreak);saveDailyRecords();nowIso=beforeStreakTime;
 const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]='{bad';assert.deepEqual(readDailyRecords(),{});
-data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-02-30':{moves:1,timeMs:2,stars:3},'2026-01-01':{moves:0,timeMs:2,stars:3},'2026-01-02':{moves:1,timeMs:-1,stars:3},'2026-01-03':{moves:1,timeMs:2,stars:4}});assert.deepEqual(readDailyRecords(),{});data[DAILY_RECORDS_KEY]=saved;
+data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-02-30':{recordVersion:RECORD_VERSION,moves:1,timeMs:2,stars:3},'2026-01-01':{recordVersion:RECORD_VERSION,moves:0,timeMs:2,stars:3},'2026-01-02':{recordVersion:RECORD_VERSION,moves:1,timeMs:-1,stars:3},'2026-01-03':{recordVersion:RECORD_VERSION,moves:1,timeMs:2,stars:4}});assert.deepEqual(readDailyRecords(),{});data[DAILY_RECORDS_KEY]=saved;
 const savedGet=storage.getItem;storage.getItem=()=>{throw Error('blocked');};assert.deepEqual(readDailyRecords(),{});storage.getItem=savedGet;
 // Unknown exceptions fail fast without substituting another date/seed/score;
 // typed finite geometry retries are covered in formal-course-retry.cjs.
@@ -196,7 +196,7 @@ for(const [zone,before,after] of [
 ]) {
  process.env.TZ=zone;
  new Function('assert','before','after','html',env+source+`
- dailyRecords={'2026-10-30':{moves:1,timeMs:1,stars:3,clearedOn:'2026-10-30'}};
+ dailyRecords={'2026-10-30':{recordVersion:RECORD_VERSION,moves:1,timeMs:1,stars:3,clearedOn:'2026-10-30'}};
  nowIso=before;assert.equal(currentDailyStreak().count,1);
  nowIso=after;assert.equal(currentDailyStreak().count,0);
  dailyRecords={};

@@ -15,8 +15,9 @@ function markAccountDeletion(uid,phase) {
 function deleteUserElement(id) {return document.getElementById(id);}
 function updateDeleteUserButton() {
     const button=deleteUserElement('debugDeleteUser');
-    button.hidden=!debugMode;
+    button.hidden=false;
     button.disabled=!online.uid || !online.adapter?.deleteAccount || accountDeletion.busy;
+    button.disabled=button.disabled || !['map','daily'].includes(state);
 }
 function showDeleteUserDialog() {
     const done=accountDeletion.marker?.phase==='done';
@@ -57,11 +58,15 @@ function clearLocalGameData() {
         PROGRESS_KEY,RECORDS_KEY,HEART_ITEMS_KEY,LIVES_KEY,MAP_REWARDS_KEY,FEATURE_HELP_KEY,SOUND_KEY,MUSIC_KEY,SOUND_VOLUME_KEY,
         LANGUAGE_KEY,AD_PLAYS_KEY,DAILY_RECORDS_KEY,DAILY_ATTEMPTS_KEY,DAILY_PLAY_AD_KEY,
         'ascent.tutorial-stage0.v1','ascent.ad-clears.v1','ascent.ad-plays.v1','ascent.daily-entry-ad.v1','ascent.transfer-identity.v1','ascent.formal-debug-seed.v1'];
+    const recordKeys=/^ascent\.(reward-history-scope|reward-claims|progress|records|daily-records|daily-attempts|daily-play-ad|map-rewards|pending-scores|online-profile|native-sync\.after-enable)\.v1(?:\.r[1-9][0-9]*)?$/;
+    for(let i=0;i<(globalThis.localStorage?.length||0);i++) {
+        const key=globalThis.localStorage.key(i);if(recordKeys.test(key) && !keys.includes(key))keys.push(key);
+    }
     for(const key of keys)globalThis.localStorage?.removeItem(key);
 }
 async function deleteCurrentAccount() {
     if(accountDeletion.busy || accountDeletion.marker?.phase==='done' || !online.uid || !online.adapter?.deleteAccount)return;
-    if(!accountDeletion.marker && (!debugMode || !settingsOpen || !['map','daily'].includes(state)))return;
+    if(!accountDeletion.marker && (!settingsOpen || !['map','daily'].includes(state)))return;
     const uid=accountDeletion.marker?.uid || online.uid;
     if(online.uid!==uid)return;
     accountDeletion.busy=true;markAccountDeletion(uid,'pending');online.ready=false;
@@ -88,7 +93,7 @@ async function deleteCurrentAccount() {
     }
 }
 deleteUserElement('debugDeleteUser').onclick=()=>{
-    if(debugMode && settingsOpen && ['map','daily'].includes(state) && online.uid && online.adapter?.deleteAccount)showDeleteUserDialog();
+    if(settingsOpen && ['map','daily'].includes(state) && online.uid && online.adapter?.deleteAccount)showDeleteUserDialog();
 };
 deleteUserElement('deleteUserConfirm').onclick=deleteCurrentAccount;
 deleteUserElement('deleteUserCancel').onclick=()=>{if(!accountDeletion.busy && !accountDeletion.marker)deleteUserElement('deleteUserDialog').close?.();};

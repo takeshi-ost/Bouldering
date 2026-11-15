@@ -2,16 +2,30 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>ASCENTBuildConfiguration</key>
-    <string>$(CONFIGURATION)</string>
-    <key>ASCENTFirebaseMode</key>
-    <string>$(ASCENT_FIREBASE_MODE)</string>
-  <key>CAPACITOR_DEBUG</key>
+	<key>ASCENTBuildConfiguration</key>
+	<string>$(CONFIGURATION)</string>
+	<key>ASCENTFirebaseMode</key>
+	<string>$(ASCENT_FIREBASE_MODE)</string>
+	<key>AscentAdsPrivacyFlowReviewed</key>
+	<false/>
+	<key>AscentAdsTestEnabled</key>
+	<false/>
+	<key>AscentAdsUnityOnlyTestVerified</key>
+	<false/>
+	<key>AscentAnalyticsPrivacyReviewed</key>
+	<true/>
+	<key>AscentInterstitialAdUnitID</key>
+	<string>mcvp39ofxq8rgj2u</string>
+	<key>AscentLevelPlayAppKey</key>
+	<string>297a9328d</string>
+	<key>AscentRewardedAdUnitID</key>
+	<string>4feejmppfayydxdf</string>
+	<key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>ASCENT Local</string>
+	<string>ASCENT Local</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -26,26 +40,45 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+	<false/>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-6956225483374699~8202082669</string>
+	<key>GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS</key>
+	<false/>
+	<key>GOOGLE_ANALYTICS_IDFV_COLLECTION_ENABLED</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>su67r6k2v3.skadnetwork</string>
+		</dict>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>4dzt52r2t5.skadnetwork</string>
+		</dict>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
-    <false/>
-    <key>UISceneConfigurations</key>
-    <dict>
-      <key>UIWindowSceneSessionRoleApplication</key>
-      <array>
-        <dict>
-            <key>UISceneConfigurationName</key>
-            <string>Default Configuration</string>
-            <key>UISceneDelegateClassName</key>
-            <string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-            <key>UISceneStoryboardFile</key>
-            <string>Main</string>
-        </dict>
-      </array>
-    </dict>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
 	</dict>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
@@ -70,5 +103,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>AscentFirstRunTermsReviewed</key>
+	<true/>
+	<key>AscentTermsVersion</key>
+	<string>2026-11-15</string>
+	<key>AscentPublishedPrivacyVersion</key>
+	<string>2026-11-15</string>
 </dict>
 </plist>

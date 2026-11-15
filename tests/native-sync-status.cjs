@@ -47,7 +47,7 @@ const historical=JSON.stringify({uid:'mock-owner',items:Array.from({length:6},(_
 const data=new Map([['ascent.pending-scores.v1',historical]]),scope={localStorage:{getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v)},ASCENT_IOS_BUILD:{configuration:'Debug',syncStatusAllowed:true,debugAllowed:false,firebaseMode:'auto-sync',firebaseEnabled:true,firebaseAutomaticSyncAllowed:true}};
 const env=`const elements={};const document={documentElement:{},getElementById(id){return elements[id]||={style:{},classList:{toggle(){}},events:{},focus(){},setAttribute(k,v){this[k]=v;},removeAttribute(){},addEventListener(k,fn){this.events[k]=fn;},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(){return function(){};}})},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};const window={devicePixelRatio:1,addEventListener(){}};function requestAnimationFrame(){}`;
 new Function('assert','createNativeSyncStatus','globalThis',env+nativeScripts+`
-assert.equal(onlineScores.pending.size,6);
+assert.equal(onlineScores.pending.size,0);
 Object.assign(globalThis.ASCENT_IOS_BUILD,{appVersion:'0.4.6',version:'0.4.6',CFBundleShortVersionString:'0.4.6'});refreshSettingsConnection();
 assert.equal(document.getElementById('settingsVersionValue').textContent,RELEASE_VERSION);
 assert.equal(document.getElementById('onlineScoreStatus').textContent,'');assert(document.getElementById('onlineScoreStatus').hidden);
@@ -87,8 +87,8 @@ assert(nativeSource('level-map.js',fs.readFileSync('js/level-map.js','utf8')).in
  policy={...policy,configuration:'Debug',syncStatusAllowed:true};lang='ja';
  const controller={permissions:()=>({automaticSync:true}),authenticate:async()=>{if(offline)throw {code:'auth/network-request-failed'};},syncFreshScore:async()=>({written:false}),syncAutomaticProfile:async()=>({written:false})};
  const queue=createNativeAutoSync({storage:queueStorage,owner:'mock-owner',controller,onReport:stats=>presenter.update({authenticated:!offline},stats)});
- queue.recordClear(11,'existing',{moves:6,timeMs:5411,version:'v1'});await queue.flush();
- assert.equal(queue.pendingForBoard('v1_existing_11'),true);assert(elements.onlineScoreStatus.textContent.includes('1件'));assert(elements.onlineStatus.textContent.includes('auth/network-request-failed'));
- offline=false;await queue.flush();assert.equal(queue.pendingForBoard('v1_existing_11'),false);assert(elements.onlineScoreStatus.textContent.includes('0件'));assert(!elements.onlineStatus.textContent.includes('error'));
+ queue.recordClear(11,'existing',{recordVersion:'r1',scoreSpecVersion:'v1',moves:6,timeMs:5411,version:'v1'});await queue.flush();
+ assert.equal(queue.pendingForBoard('r1_v1_existing_11'),true);assert(elements.onlineScoreStatus.textContent.includes('1件'));assert(elements.onlineStatus.textContent.includes('auth/network-request-failed'));
+ offline=false;await queue.flush();assert.equal(queue.pendingForBoard('r1_v1_existing_11'),false);assert(elements.onlineScoreStatus.textContent.includes('0件'));assert(!elements.onlineStatus.textContent.includes('error'));
  console.log('PASS native sync diagnostics: legacy six excluded; startup/result/language share real queue; offline/recovery/skip acknowledgement; verified response/epoch settings state, auth-only offline and stale-success rejection; safe errors; Debug independent of game toggle; Release always hidden even with old true flag and language switch; temporary override removed; Web source untouched');
 })().catch(e=>{console.error(e);process.exitCode=1;});

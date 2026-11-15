@@ -23,7 +23,7 @@ function deletionUI(fixture) {
  const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
  const source=require('../scripts/native-bundle-source.cjs')('account-deletion.js',fs.readFileSync(path.join(__dirname,'../js/account-deletion.js'),'utf8'));
  const keys=['APPEARANCE_KEY','PLAYER_NAME_KEY','PLAYER_UUID_KEY','ONLINE_PROFILE_KEY','ONLINE_SCORES_KEY','PROGRESS_KEY','RECORDS_KEY','HEART_ITEMS_KEY','LIVES_KEY','MAP_REWARDS_KEY','FEATURE_HELP_KEY','SOUND_KEY','MUSIC_KEY','SOUND_VOLUME_KEY','LANGUAGE_KEY','AD_PLAYS_KEY','DAILY_RECORDS_KEY','DAILY_ATTEMPTS_KEY','DAILY_PLAY_AD_KEY'];
- const elements={},context=vm.createContext({console:{warn(){}},localStorage:fixture.storage,document:{getElementById:id=>elements[id]||={addEventListener(){},showModal(){this.open=true;}}},window:{addEventListener(){}},debugMode:true,settingsOpen:true,state:'map',playerName:'Owner',online:{uid:'owner',adapter:fixture.adapter,ready:true,pages:new Map()},onlineScores:{pending:new Map(),boards:new Map()},ui:{playerUuid:{}},setOnlineStatus(){},persistPendingScores(){},gameText:k=>k,ASCENT_NATIVE_FIREBASE:fixture.control,...Object.fromEntries(keys.map(k=>[k,k]))});
+ const elements={},context=vm.createContext({console:{warn(){}},localStorage:fixture.storage,document:{getElementById:id=>elements[id]||={addEventListener(){},showModal(){this.open=true;}}},window:{addEventListener(){}},debugMode:false,settingsOpen:true,state:'map',playerName:'Owner',online:{uid:'owner',adapter:fixture.adapter,ready:true,pages:new Map()},onlineScores:{pending:new Map(),boards:new Map()},ui:{playerUuid:{}},setOnlineStatus(){},persistPendingScores(){},gameText:k=>k,ASCENT_NATIVE_FIREBASE:fixture.control,...Object.fromEntries(keys.map(k=>[k,k]))});
  vm.runInContext(source,context);
  const game=vm.runInContext('({marker:()=>accountDeletion.marker,mark:markAccountDeletion,ready:v=>{online.ready=v},uid:v=>{online.uid=v},adapter:v=>{online.adapter=v},show:showDeleteUserDialog,updateButton:updateDeleteUserButton,clearGame:clearLocalGameData,failed:()=>{}})',context);
  context.ASCENT_NATIVE_ACCOUNT_DELETION=require('../scripts/native-account-deletion.cjs').createNativeAccountDeletion({controller:fixture.control,storage:fixture.storage,game});
@@ -33,14 +33,14 @@ function deletionUI(fixture) {
  for(const mode of ['offline','read-only']) {
   const x=fixture({mode});await assert.rejects(x.adapter.lockDeletion('owner'),/deletion-disabled/);await assert.rejects(x.adapter.deleteAccount('owner'),/deletion-disabled/);assert.deepEqual(x.calls,[]);
  }
- const remote=new Map([['players/owner',{}],['players/other',{}],['unrelated/one/entries/owner',{}]]);
+ const remote=new Map([['players/owner',{}],['stageScores/r1_players/entries/owner',{}],['stageScores/r2_players/entries/owner',{}],['stageScores/r1_players/entries/other',{}],['players/other',{}],['unrelated/one/entries/owner',{}]]);
  for(let n=0;n<205;n++){remote.set(`stageScores/legacy_${String(n).padStart(3,'0')}/entries/owner`,{});remote.set(`stageScores/legacy_${String(n).padStart(3,'0')}/entries/other`,{});}
  const x=fixture({remote});await x.adapter.lockDeletion('owner');assert.equal(x.control.permissions().automaticSync,false);assert.equal(x.control.permissions().create,false);
  await assert.rejects(x.control.syncAutomaticProfile('owner',{}),/automatic-sync-disabled/);
  await x.adapter.deleteAccount('owner');
- assert.equal(x.calls.filter(x=>x==='score-delete').length,205);assert(x.calls.filter(x=>x==='page').length>=5);
- assert.equal(remote.has('players/owner'),false);assert(remote.has('players/other'));assert(remote.has('unrelated/one/entries/owner'));assert(remote.has('accountDeletionLocks/owner'));
- assert.equal([...remote.keys()].filter(p=>p.endsWith('/entries/other')).length,205);assert.equal(x.calls.at(-1),'auth-delete');assert.equal(x.control.deletionState().phase,'done');assert.equal(x.data.get(IDENTITY_KEY),'owner');
+ assert.equal(x.calls.filter(x=>x==='score-delete').length,207);assert(x.calls.filter(x=>x==='page').length>=5);
+ assert.equal(remote.has('players/owner'),false);assert(!remote.has('stageScores/r1_players/entries/owner'));assert(!remote.has('stageScores/r2_players/entries/owner'));assert(remote.has('stageScores/r1_players/entries/other'));assert(remote.has('players/other'));assert(remote.has('unrelated/one/entries/owner'));assert(remote.has('accountDeletionLocks/owner'));
+ assert.equal([...remote.keys()].filter(p=>p.endsWith('/entries/other')).length,206);assert.equal(x.calls.at(-1),'auth-delete');assert.equal(x.control.deletionState().phase,'done');assert.equal(x.data.get(IDENTITY_KEY),'owner');
  await x.adapter.lockDeletion('owner');await x.adapter.deleteAccount('owner');assert.equal(x.calls.filter(c=>c==='auth-delete').length,1);
  x.control.resetDeletion();assert.equal(x.data.has(DELETION_KEY),false);assert.equal(x.data.has(ATTEMPT_KEY),false);assert.equal(x.data.has(IDENTITY_KEY),false);
  const fresh=fixture({data:x.data});assert.equal((await fresh.control.authenticate({createAnonymous:true})).uid,'new-owner');

@@ -360,6 +360,8 @@ class AscentBridgeViewController: CAPBridgeViewController {
 
     override func capacitorDidLoad() {
         super.capacitorDidLoad()
+        bridge?.registerPluginInstance(AscentAdsPlugin())
+        bridge?.registerPluginInstance(AscentAnalyticsPlugin())
         webView?.isUserInteractionEnabled = false
         webView?.configuration.userContentController.add(ResumeMessageHandler(self), name: "ascentResume")
         installResumeUserScript()

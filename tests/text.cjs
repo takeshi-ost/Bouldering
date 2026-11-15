@@ -68,7 +68,7 @@ for(const node of nodes)for(const [attribute,key]of Object.entries(node.attrs))i
 assert(bindings>100);
 for(const key of Object.keys(devCatalog))assert(!Object.hasOwn(playerCatalog,key));
 const scripts=[...html.matchAll(/<script(?: type="module")? src="([^"?]+)/g)].map(m=>m[1]);
-assert.deepEqual(scripts.slice(0,7),['js/tutorial-state.js','js/text-ja.js','js/text-en.js','js/text-dev-ja.js','js/text.js','js/score-metadata.js','js/config.js']);
+assert.deepEqual(scripts.slice(0,7),['js/score-metadata.js','js/tutorial-state.js','js/text-ja.js','js/text-en.js','js/text-dev-ja.js','js/text.js','js/config.js']);
 assert(scripts.indexOf('js/course-progression-config.js')>scripts.indexOf('js/config.js'));assert(scripts.indexOf('js/difficulty-config.js')>scripts.indexOf('js/course-progression.js'));assert(scripts.indexOf('js/difficulty-config.js')<scripts.indexOf('js/difficulty.js'));
 for(const file of scripts.filter(p=>!['js/text-ja.js','js/text-en.js','js/text-dev-ja.js'].includes(p))) {
  const source=read(file);

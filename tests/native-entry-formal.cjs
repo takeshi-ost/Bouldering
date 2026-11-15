@@ -4,9 +4,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('nod
 const root=path.resolve(__dirname,'..'),build=require('../scripts/build-native-firebase.cjs'),nativeSource=require('../scripts/native-bundle-source.cjs');
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'ascent-native-entry-')),emitted={};
 for(const mode of ['offline','read-only','auto-sync']){const out=path.join(temp,mode);build(root,out,mode);const source=fs.readFileSync(path.join(out,'js/native-firebase-control.js'),'utf8');assert.equal(source.split('import("../vendor/firebase-sdk.js")').length,2,'Exactly one reviewed SDK loader seam');emitted[mode]=source.replace('import("../vendor/firebase-sdk.js")','__loadMockSDK()');}
-const KEY='ascent.native-firebase.identity-check.v1',ATTEMPT_KEY='ascent.native-firebase.auth-attempt.v1',SYNC_KEY='ascent.native-sync.after-enable.v1';
-const profile={name:'Local name',colors:['#123456'],headColor:'#abcdef',progressVersion:'v4',reachedLevel:4,reachedPrototypeLevel:1};
-const score={version:'v4',scoreSpecVersion:'v4',moves:6,timeMs:2000,platform:'iOS'};
+const KEY='ascent.native-firebase.identity-check.v1',ATTEMPT_KEY='ascent.native-firebase.auth-attempt.v1',SYNC_KEY='ascent.native-sync.after-enable.v1.r1';
+const profile={name:'Local name',colors:['#123456'],headColor:'#abcdef',recordVersion:'r1',progressVersion:'r1',reachedLevel:4,reachedPrototypeLevel:1};
+const score={recordVersion:'r1',version:'v4',scoreSpecVersion:'v4',moves:6,timeMs:2000,platform:'iOS'};
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
 const settle=async()=>{for(let i=0;i<250;i++)await Promise.resolve();};
 const ledger=(owner=null)=>({version:1,owner,activatedAt:123,sequence:0,name:'',profile:null,events:[]});
@@ -17,8 +17,8 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
  if(initialLedger!==undefined)data.set(SYNC_KEY,typeof initialLedger==='string'?initialLedger:JSON.stringify(initialLedger));
  let user=uid?{uid}:null,epoch=7,currentProfile={...localProfile};
  const calls={loads:0,creates:0,initializes:0,persistence:0,authReady:0,reads:[],writes:[],transactions:0,storage:0,success:[]};
- const remote=new Map([['players/owner',{...profile,name:'Server name'}]]);
- if(legacyProgress){const old=remote.get('players/owner');delete old.progressVersion;old.reachedLevel=900;old.reachedPrototypeLevel=800;}
+ const remote=new Map([['stageScores/r1_players/entries/owner',{...profile,name:'Server name'}]]);
+ if(legacyProgress){const old=remote.get('stageScores/r1_players/entries/owner');delete old.progressVersion;old.reachedLevel=900;old.reachedPrototypeLevel=800;remote.set('players/owner',old);remote.delete('stageScores/r1_players/entries/owner');}
  const storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>{calls.storage++;data.set(k,String(v));},removeItem:k=>data.delete(k)};
  const snap=key=>({exists:()=>remote.has(key),data:()=>remote.get(key)});
  const beforeRead=key=>{calls.reads.push(key);if(failReads-->0)throw {code:'unavailable'};};
@@ -29,28 +29,29 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
  };
  const reports=[],listeners=new Map(),policy={configuration:'Debug',syncStatusAllowed:true,firebaseMode:mode,firebaseEnabled:enabled,firebaseAuthAllowed:true,firebaseAnonymousAllowed:true,firebaseReadsAllowed:true,firebaseAutomaticSyncAllowed:true};
  const deleteStatus={};
- const env={gameText:key=>key,deleteUserElement:()=>deleteStatus,COURSE_VERSION:'v4',DAILY_COURSE_VERSION:'v3',ASCENT_IOS_BUILD:policy,ASCENT_SETTINGS_CONNECTION:{ticket:()=>epoch,success:n=>calls.success.push(n),failure(){}},document:{getElementById:()=>null},window:{addEventListener:(name,handler)=>{if(!listeners.has(name))listeners.set(name,[]);listeners.get(name).push(handler);}},navigator:{onLine:online},console:{warn(){}},online:{ready:false},onlineScores:{owner:scoresOwner},readOnlineCheckpoint:()=>checkpoint?{uid:checkpoint}:null,accountDeletion:{marker:JSON.parse(data.get('ascent.account-deletion.v1')||'null')},scoreBoardKey:(n,mode)=>'v4_'+mode+'_'+n,setOnlineStatus(){},updateDeleteUserButton(){},showDeleteUserDialog(){calls.dialogs=(calls.dialogs||0)+1;},markAccountDeletion(uid,phase){storage.setItem('ascent.account-deletion.v1',JSON.stringify({uid,phase}));env.accountDeletion.marker={uid,phase};},clearLocalGameData(){env.ASCENT_NATIVE_ACCOUNT_DELETION.clearLocal();},renderTransferAvailability(){},renderMapPlayers(){},onlineProfile:()=>({...currentProfile,colors:[...currentProfile.colors]}),webkit:{messageHandlers:{ascentFirebaseReport:{postMessage:r=>reports.push(r)}}},__loadMockSDK:async()=>{calls.loads++;if(sdkGate)await sdkGate.promise;if(failLoads-->0)throw Error('SDK import unavailable');return sdk;},fetch(){throw Error('No live traffic permitted');}};
+ const env={COURSE_RANKINGS_ENABLED:true,ASCENT_TERMS_NETWORK:{accepted:true,refresh:async()=>{}},Capacitor:{Plugins:{AscentAnalytics:{beginAccountDeletion:async()=>{},completeAccountDeletion:async()=>({reset:true})}}},gameText:key=>key,deleteUserElement:()=>deleteStatus,COURSE_VERSION:'v4',DAILY_COURSE_VERSION:'v3',ASCENT_IOS_BUILD:policy,ASCENT_SETTINGS_CONNECTION:{ticket:()=>epoch,success:n=>calls.success.push(n),failure(){}},ui:{titleScreen:{appendChild(){}}},showTitleScreen(){calls.titleReturns=(calls.titleReturns||0)+1;},document:{getElementById:()=>null,createElement:()=>({})},window:{addEventListener:(name,handler)=>{if(!listeners.has(name))listeners.set(name,[]);listeners.get(name).push(handler);}},navigator:{onLine:online},console:{warn(){}},online:{ready:false},onlineScores:{owner:scoresOwner},readOnlineCheckpoint:()=>checkpoint?{uid:checkpoint}:null,accountDeletion:{marker:JSON.parse(data.get('ascent.account-deletion.v1')||'null')},scoreBoardKey:(n,mode)=>'r1_v4_'+mode+'_'+n,setOnlineStatus(){},updateDeleteUserButton(){},showDeleteUserDialog(){calls.dialogs=(calls.dialogs||0)+1;},markAccountDeletion(uid,phase){storage.setItem('ascent.account-deletion.v1',JSON.stringify({uid,phase}));env.accountDeletion.marker={uid,phase};},clearLocalGameData(){env.ASCENT_NATIVE_ACCOUNT_DELETION.clearLocal();},renderTransferAvailability(){},renderMapPlayers(){},onlineProfile:()=>({...currentProfile,colors:[...currentProfile.colors]}),webkit:{messageHandlers:{ascentFirebaseReport:{postMessage:r=>reports.push(r)}}},__loadMockSDK:async()=>{calls.loads++;if(sdkGate)await sdkGate.promise;if(failLoads-->0)throw Error('SDK import unavailable');return sdk;},fetch(){throw Error('No live traffic permitted');}};
+ env.addEventListener=env.window.addEventListener;
  if(missingStorage)Object.defineProperty(env,'localStorage',{get(){throw Error('Storage denied');}});else env.localStorage=storage;
  vm.runInNewContext(emitted[mode],env);
  await settle();
  return {env,calls,data,remote,reports,listeners,settle,nextEpoch(){epoch++;},setUser(value){user=value?{uid:value}:null;},setProfile(value){currentProfile={...value};},dispatch(...events){for(const event of events)for(const listener of listeners.get(event)||[])listener();}};
 }
 (async()=>{try{
- for(const mode of ['offline','read-only','auto-sync']){const f=await boot({mode,enabled:false});assert.equal(f.calls.loads,0);assert.equal(f.calls.creates,0);assert.equal(f.calls.storage,0);assert.deepEqual(f.calls.writes,[]);assert.equal(f.data.get('ascent.pending-scores.v1'),'unchanged legacy queue');}
+ for(const mode of ['offline','read-only','auto-sync']){const f=await boot({mode,enabled:false});assert.equal(f.calls.loads,0);assert.equal(f.calls.creates,0);assert.equal(f.calls.storage,mode==='auto-sync'?1:0,'Only the local empty queue boundary may persist; disabled services issue no SDK/network calls');assert.deepEqual(f.calls.writes,[]);assert.equal(f.data.get('ascent.pending-scores.v1'),'unchanged legacy queue');}
  for(const mode of ['read-only','auto-sync']){const f=await boot({mode,missingStorage:true});assert.equal(f.calls.loads,0);assert.equal(f.calls.creates,0);assert.equal(f.env.online.ready,false);assert.equal(f.calls.writes.length,0);}
- const fresh=await boot({uid:null,known:null});assert.equal(fresh.calls.creates,1);assert.equal(fresh.env.online.uid,'new-owner');assert(fresh.calls.reads.includes('stageScores/v4_existing_1/entries'));assert.equal(fresh.calls.writes.length,0);
- const restored=await boot();assert.equal(restored.calls.creates,0);assert.equal(restored.env.online.uid,'owner');assert(restored.calls.reads.includes('stageScores/v4_existing_1/entries'));assert(!restored.calls.reads.some(x=>x.includes('v1_existing')));assert(restored.calls.success.includes(7));assert.equal(restored.calls.writes.length,0);
+ const fresh=await boot({uid:null,known:null});assert.equal(fresh.calls.creates,1);assert.equal(fresh.env.online.uid,'new-owner');assert(fresh.calls.reads.includes('stageScores/r1_v4_existing_1/entries'));assert.equal(fresh.calls.writes.length,0);
+ const restored=await boot();assert.equal(restored.calls.creates,0);assert.equal(restored.env.online.uid,'owner');assert(restored.calls.reads.includes('stageScores/r1_v4_existing_1/entries'));assert(!restored.calls.reads.some(x=>x.includes('v1_existing')));assert(restored.calls.success.includes(7));assert.equal(restored.calls.writes.length,0);
  for(const method of ['prepareTransferIdentity','importTransferIdentity','saveScore','sync'])await assert.rejects(restored.env.ASCENT_NATIVE_FIREBASE.adapter()[method](),/write-disabled/);
  for(const method of ['deleteAccount','lockDeletion'])await assert.rejects(restored.env.ASCENT_NATIVE_FIREBASE.adapter()[method](),/deletion-disabled/);
  const mismatch=await boot({uid:'other',known:'owner'});assert.equal(mismatch.env.online.ready,false);assert.equal(mismatch.calls.creates,0);assert.equal(mismatch.calls.reads.length,0);assert.equal(mismatch.data.get(KEY),'owner');
  const deleting=await boot({deleting:true});assert.equal(deleting.calls.loads,0);assert.equal(deleting.calls.creates,0);
- const noIdentity=await boot({mode:'auto-sync',uid:null,known:null});assert.equal(noIdentity.calls.creates,1);assert.equal(noIdentity.env.online.uid,'new-owner');assert.equal(noIdentity.env.online.ready,true);assert.equal(noIdentity.remote.get('players/new-owner').name,profile.name);assert.equal(noIdentity.remote.get('players/new-owner').progressVersion,'v4');assert.equal(noIdentity.data.get(KEY),'new-owner');assert.equal(JSON.parse(noIdentity.data.get(SYNC_KEY)).owner,'new-owner');
- assert.equal(noIdentity.env.ASCENT_NATIVE_SYNC.recordClear(1,'existing',score),true);await noIdentity.env.ASCENT_NATIVE_SYNC.flush();assert.equal(noIdentity.remote.get('stageScores/v4_existing_1/entries/new-owner').scoreSpecVersion,'v4');assert.equal(noIdentity.calls.creates,1,'Fresh automatic profile and score share one new identity');
- const auto=await boot({mode:'auto-sync'});assert.equal(auto.env.online.uid,'owner');assert.equal(auto.calls.creates,0);assert.equal(auto.remote.get('players/owner').name,'Server name','Automatic startup preserves server name');assert(auto.calls.reads.includes('stageScores/v4_existing_1/entries'));
- const adopted=await boot({mode:'auto-sync',legacyProgress:true});assert.equal(adopted.remote.get('players/owner').progressVersion,'v4');assert.equal(adopted.remote.get('players/owner').reachedLevel,4);assert.equal(adopted.remote.get('players/owner').reachedPrototypeLevel,1);assert.equal(adopted.remote.get('players/owner').name,'Server name');
+ const noIdentity=await boot({mode:'auto-sync',uid:null,known:null});assert.equal(noIdentity.calls.creates,1);assert.equal(noIdentity.env.online.uid,'new-owner');assert.equal(noIdentity.env.online.ready,true);assert.equal(noIdentity.remote.get('stageScores/r1_players/entries/new-owner').name,profile.name);assert.equal(noIdentity.remote.get('stageScores/r1_players/entries/new-owner').progressVersion,'r1');assert.equal(noIdentity.data.get(KEY),'new-owner');assert.equal(JSON.parse(noIdentity.data.get(SYNC_KEY)).owner,'new-owner');
+ assert.equal(noIdentity.env.ASCENT_NATIVE_SYNC.recordClear(1,'existing',score),true);await noIdentity.env.ASCENT_NATIVE_SYNC.flush();assert.equal(noIdentity.remote.get('stageScores/r1_v4_existing_1/entries/new-owner').scoreSpecVersion,'v4');assert.equal(noIdentity.calls.creates,1,'Fresh automatic profile and score share one new identity');
+ const auto=await boot({mode:'auto-sync'});assert.equal(auto.env.online.uid,'owner');assert.equal(auto.calls.creates,0);assert.equal(auto.remote.get('stageScores/r1_players/entries/owner').name,'Server name','Automatic startup preserves server name');assert(auto.calls.reads.includes('stageScores/r1_v4_existing_1/entries'));
+ const adopted=await boot({mode:'auto-sync',legacyProgress:true});assert.equal(adopted.remote.get('stageScores/r1_players/entries/owner').progressVersion,'r1');assert.equal(adopted.remote.get('stageScores/r1_players/entries/owner').reachedLevel,4);assert.equal(adopted.remote.get('stageScores/r1_players/entries/owner').reachedPrototypeLevel,1);assert.equal(adopted.remote.get('stageScores/r1_players/entries/owner').name,profile.name);
  const sync=auto.env.ASCENT_NATIVE_SYNC;
  assert.equal(sync.recordClear(1,'existing',{...score,rankingEligible:false}),false);assert.equal(sync.recordClear(1,'existing',{...score,version:'v3',scoreSpecVersion:'v3'}),false);assert.equal(sync.recordClear(1,'daily',{...score,version:'v3',scoreSpecVersion:'v3'}),false);
- assert.equal(sync.recordClear(1,'existing',score),true);await sync.flush();assert.equal(auto.remote.get('stageScores/v4_existing_1/entries/owner').scoreSpecVersion,'v4');assert.equal(auto.data.get('ascent.pending-scores.v1'),'unchanged legacy queue');assert.equal(auto.data.get('ascent.records.v1'),'unchanged legacy bests');
+ assert.equal(sync.recordClear(1,'existing',score),true);await sync.flush();assert.equal(auto.remote.get('stageScores/r1_v4_existing_1/entries/owner').scoreSpecVersion,'v4');assert.equal(auto.data.get('ascent.pending-scores.v1'),'unchanged legacy queue');assert.equal(auto.data.get('ascent.records.v1'),'unchanged legacy bests');
  auto.nextEpoch();await auto.env.ASCENT_NATIVE_FIREBASE.players(1,1,'existing');assert.equal(auto.reports.at(-1).connectionEpoch,8);assert(auto.calls.success.includes(8));
  // A first-use queue exists before either SDK loading or auth restoration finishes.
  const sdkGate=deferred(),authGate=deferred(),delayed=await boot({mode:'auto-sync',uid:null,known:null,sdkGate,authGate});
@@ -67,8 +68,8 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
  delayed.dispatch('online','focus','ascent-native-resume');await settle();assert.equal(delayed.calls.authReady,1,'Reconnect events share pending auth restoration');
  assert.equal(delayed.calls.writes.length,0);authGate.resolve();await settle();
  assert.equal(delayed.calls.creates,1);assert.equal(delayed.calls.initializes,1);assert.equal(delayed.env.online.ready,true);
- assert.equal(delayed.remote.get('players/new-owner').name,earlyProfile.name);assert.equal(delayed.remote.get('players/new-owner').reachedLevel,9);
- assert.equal(delayed.remote.get('stageScores/v4_existing_3/entries/new-owner').moves,6);
+ assert.equal(delayed.remote.get('stageScores/r1_players/entries/new-owner').name,earlyProfile.name);assert.equal(delayed.remote.get('stageScores/r1_players/entries/new-owner').reachedLevel,9);
+ assert.equal(delayed.remote.get('stageScores/r1_v4_existing_3/entries/new-owner').moves,6);
  assert.equal(JSON.parse(delayed.data.get(SYNC_KEY)).events.length,0);assert.equal(delayed.env.ASCENT_NATIVE_SYNC.report().freshDelivered,1);
  const deliveredWrites=delayed.calls.writes.length;
  for(let i=0;i<3;i++){delayed.dispatch('online','focus','ascent-native-resume');await settle();}
@@ -86,8 +87,8 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
  const reload=await boot({mode:'auto-sync',uid:null,known:null,online:false,storageData:offline.data,localProfile:offlineProfile});
  assert.equal(reload.data.get(SYNC_KEY),offlineLedger,'Reload cannot replace an unbound ledger');assert.equal(reload.calls.creates,0);assert.equal(reload.calls.writes.length,0);
  reload.env.navigator.onLine=true;reload.dispatch('online','focus','ascent-native-resume');await settle();
- assert.equal(reload.calls.creates,1);assert.equal(reload.env.online.ready,true);assert.equal(reload.remote.get('players/new-owner').name,offlineProfile.name);
- assert.equal(reload.remote.get('stageScores/v4_existing_4/entries/new-owner').moves,7);assert.equal(JSON.parse(reload.data.get(SYNC_KEY)).owner,'new-owner');assert.equal(JSON.parse(reload.data.get(SYNC_KEY)).events.length,0);
+ assert.equal(reload.calls.creates,1);assert.equal(reload.env.online.ready,true);assert.equal(reload.remote.get('stageScores/r1_players/entries/new-owner').name,offlineProfile.name);
+ assert.equal(reload.remote.get('stageScores/r1_v4_existing_4/entries/new-owner').moves,7);assert.equal(JSON.parse(reload.data.get(SYNC_KEY)).owner,'new-owner');assert.equal(JSON.parse(reload.data.get(SYNC_KEY)).events.length,0);
  assert.equal(reload.data.get('ascent.pending-scores.v1'),'unchanged legacy queue');assert.equal(reload.data.get('ascent.records.v1'),'unchanged legacy bests');
 
  // Reconnect reruns the full startup, including a failed dynamic import and
@@ -96,11 +97,11 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
  assert.equal(importRetry.calls.loads,1);assert.equal(importRetry.calls.creates,0);assert.equal(importRetry.env.online.ready,false);assert.equal(importRetry.data.has(ATTEMPT_KEY),false);
  assert.equal(importRetry.env.ASCENT_NATIVE_SYNC.recordClear(5,'existing',score),true);
  importRetry.dispatch('online','focus','ascent-native-resume');await settle();
- assert.equal(importRetry.calls.loads,2);assert.equal(importRetry.calls.creates,1);assert.equal(importRetry.env.online.ready,true);assert(importRetry.remote.has('stageScores/v4_existing_5/entries/new-owner'));
+ assert.equal(importRetry.calls.loads,2);assert.equal(importRetry.calls.creates,1);assert.equal(importRetry.env.online.ready,true);assert(importRetry.remote.has('stageScores/r1_v4_existing_5/entries/new-owner'));
  const readRetry=await boot({mode:'auto-sync',uid:null,known:null,failReads:1});
  assert.equal(readRetry.env.online.ready,false);assert.equal(readRetry.calls.creates,1);
  readRetry.dispatch('online','focus','ascent-native-resume');await settle();
- assert.equal(readRetry.env.online.ready,true);assert.equal(readRetry.calls.creates,1);assert(readRetry.calls.reads.includes('stageScores/v4_existing_1/entries'));
+ assert.equal(readRetry.env.online.ready,true);assert.equal(readRetry.calls.creates,1);assert(readRetry.calls.reads.includes('stageScores/r1_v4_existing_1/entries'));
 
  // Identity sources must agree before a newly queued event can acquire an owner.
  for(const options of [
@@ -121,7 +122,7 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
   assert.equal(denied.calls.creates,0);assert.equal(denied.calls.reads.length,0);assert.equal(denied.calls.writes.length,0);assert.equal(denied.data.get(KEY),savedIdentity);assert.equal(denied.data.get(SYNC_KEY),savedLedger,'Retry cannot relabel a mismatched or invalid ledger');
  }
  const noMarker=await boot({mode:'auto-sync',uid:'owner',known:null});
- assert.equal(noMarker.calls.creates,0);assert.equal(noMarker.env.online.uid,'owner');assert.equal(noMarker.env.online.ready,true);assert.equal(noMarker.data.get(KEY),'owner');assert.equal(JSON.parse(noMarker.data.get(SYNC_KEY)).owner,'owner');assert.equal(noMarker.remote.get('players/owner').name,'Server name');
+ assert.equal(noMarker.calls.creates,0);assert.equal(noMarker.env.online.uid,'owner');assert.equal(noMarker.env.online.ready,true);assert.equal(noMarker.data.get(KEY),'owner');assert.equal(JSON.parse(noMarker.data.get(SYNC_KEY)).owner,'owner');assert.equal(noMarker.remote.get('stageScores/r1_players/entries/owner').name,'Server name');
 
  // Deletion blocks initial bootstrap and reconnects, including when it becomes
  // pending during an in-flight auth restore. Queued data remains unactivated.
@@ -153,7 +154,7 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
  const completedData=new Map([[KEY,'owner'],[ATTEMPT_KEY,'completed'],[SYNC_KEY,JSON.stringify(ledger('owner'))],['ascent.native-resume.v1','old receipt'],
   ['ascent.account-deletion.v1',JSON.stringify({uid:'owner',phase:'pending'})],['ascent.native-firebase.deletion.v1',JSON.stringify({uid:'owner',phase:'done'})]]);
  const completed=await boot({mode:'auto-sync',uid:null,storageData:completedData});
- assert.equal(completed.calls.loads,0);assert.equal(completed.calls.creates,0);assert.equal(completed.env.online.ready,false);assert.equal(completed.env.accountDeletion.marker.phase,'done');assert.equal(completed.env.online.uid,null);assert(completed.calls.dialogs>0);
+ assert.equal(completed.calls.loads,0);assert.equal(completed.calls.creates,0);assert.equal(completed.env.online.ready,false);assert.equal(completed.env.accountDeletion.marker.phase,'done');assert.equal(completed.env.online.uid,null);assert.equal(completed.calls.titleReturns,1);
  assert(!completedData.has(SYNC_KEY));assert(!completedData.has('ascent.native-resume.v1'));
  completed.env.ASCENT_NATIVE_ACCOUNT_DELETION.startNewUser();
  for(const key of [KEY,ATTEMPT_KEY,'ascent.account-deletion.v1','ascent.native-firebase.deletion.v1'])assert(!completedData.has(key));
@@ -169,7 +170,7 @@ async function boot({mode='read-only',enabled=true,uid='owner',known='owner',ide
  const uncertainReload=await boot({mode:'auto-sync',uid:null,known:null,storageData:uncertain.data});
  assert.equal(uncertainReload.calls.creates,0);assert.equal(uncertainReload.calls.writes.length,0);assert.equal(JSON.parse(uncertainReload.data.get(SYNC_KEY)).events.length,1);
  uncertainReload.setUser('eventually-restored');uncertainReload.dispatch('online','focus','ascent-native-resume');await settle();
- assert.equal(uncertainReload.calls.creates,0);assert.equal(uncertainReload.env.online.uid,'eventually-restored');assert.equal(uncertainReload.env.online.ready,true);assert.equal(uncertainReload.data.get(KEY),'eventually-restored');assert(uncertainReload.remote.has('stageScores/v4_existing_7/entries/eventually-restored'));
+ assert.equal(uncertainReload.calls.creates,0);assert.equal(uncertainReload.env.online.uid,'eventually-restored');assert.equal(uncertainReload.env.online.ready,true);assert.equal(uncertainReload.data.get(KEY),'eventually-restored');assert(uncertainReload.remote.has('stageScores/r1_v4_existing_7/entries/eventually-restored'));
  // Native wrapping cannot change Daily identity or reset the game's assistance latch.
  for(const name of ['config.js','daily.js','score-metadata.js']){const source=fs.readFileSync(path.join(root,'js',name),'utf8');assert.equal(nativeSource(name,source),source,name+' remains byte-identical');}
  const level=nativeSource('level-map.js',fs.readFileSync(path.join(root,'js/level-map.js'),'utf8'));

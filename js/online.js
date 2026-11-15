@@ -1,6 +1,6 @@
 "use strict";
 // Public profiles. Scores have their own queue; inventory/lives/rewards stay local.
-const ONLINE_PROFILE_KEY='ascent.online-profile.v1',ONLINE_CACHE_MS=60000;
+const ONLINE_PROFILE_KEY=recordStorageKey('ascent.online-profile.v1'),ONLINE_CACHE_MS=60000;
 const online={adapter:null,uid:null,ready:false,connecting:false,saving:false,dirty:false,
     revision:0,pages:new Map(),status:gameText("online")};
 function onlineProfile() {
@@ -8,10 +8,10 @@ function onlineProfile() {
     const name=Array.from(normalizedPlayerName(playerName)).slice(0,40).join('');
     return {name,colors:[...playerColors],headColor:playerHeadColor,
         reachedLevel:Math.min(1000000,stageProgress.existing.cleared+1),
-        reachedPrototypeLevel:Math.min(1000000,stageProgress.prototype.cleared+1),progressVersion:ONLINE_PROGRESS_VERSION};
+        reachedPrototypeLevel:Math.min(1000000,stageProgress.prototype.cleared+1),recordVersion:RECORD_VERSION,progressVersion:ONLINE_PROGRESS_VERSION};
 }
 function onlineProfileFrom(data) {
-    if(!data || ('progressVersion' in data && !currentOnlineProgress(data)) || typeof data.name!=='string' || !normalizedPlayerName(data.name) ||
+    if(!data || !currentOnlineProgress(data) || typeof data.name!=='string' || !normalizedPlayerName(data.name) ||
         Array.from(data.name).length>40 || !Array.isArray(data.colors) ||
         data.colors.length<1 || data.colors.length>8 || !data.colors.every(validBodyColor) ||
         !validBodyColor(data.headColor) || ![data.reachedLevel,data.reachedPrototypeLevel]
@@ -19,7 +19,7 @@ function onlineProfileFrom(data) {
     return {name:normalizedPlayerName(data.name),colors:data.colors.map(c=>c.toLowerCase()),
         headColor:data.headColor.toLowerCase(),reachedLevel:data.reachedLevel,
         reachedPrototypeLevel:data.reachedPrototypeLevel,
-        ...(currentOnlineProgress(data)?{progressVersion:ONLINE_PROGRESS_VERSION}:{})};
+        ...(currentOnlineProgress(data)?{recordVersion:RECORD_VERSION,progressVersion:ONLINE_PROGRESS_VERSION}:{})};
 }
 function onlineProfileKey(profile) {return JSON.stringify(profile);}
 function readOnlineCheckpoint() {
@@ -50,7 +50,7 @@ function mergeOnlineProfile(local,remote,preferLocal) {
     // A legacy profile can supply appearance, never progress in this generation.
     // This is applied on every transaction/retry, not only the first login.
     const sameGeneration=currentOnlineProgress(remote);
-    return {...(preferLocal?local:remote),progressVersion:ONLINE_PROGRESS_VERSION,
+    return {...(preferLocal?local:remote),recordVersion:RECORD_VERSION,progressVersion:ONLINE_PROGRESS_VERSION,
         reachedLevel:Math.max(local.reachedLevel,sameGeneration?remote.reachedLevel:1),
         reachedPrototypeLevel:Math.max(local.reachedPrototypeLevel,sameGeneration?remote.reachedPrototypeLevel:1)};
 }

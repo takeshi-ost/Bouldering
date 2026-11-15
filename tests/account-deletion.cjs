@@ -17,9 +17,9 @@ online.uid='owner';online.ready=true;online.adapter={
  async lockDeletion(uid){assert.equal(uid,'owner');calls.push('lock');},
  async deleteAccount(uid,progress){assert.equal(uid,'owner');assert(!online.saving && !onlineScores.saving);calls.push('delete');progress(2);if(fail)throw {code:'permission-denied'};}
 };
-state='map';settingsOpen=true;debugMode=false;updateDeleteUserButton();assert(deleteUserElement('debugDeleteUser').hidden);
-deleteUserElement('debugDeleteUser').onclick();assert(!deleteUserElement('deleteUserDialog').open);
-debugMode=true;updateDeleteUserButton();assert(!deleteUserElement('debugDeleteUser').hidden && !deleteUserElement('debugDeleteUser').disabled);
+state='map';settingsOpen=true;debugMode=false;updateDeleteUserButton();assert(!deleteUserElement('debugDeleteUser').hidden && !deleteUserElement('debugDeleteUser').disabled);
+settingsOpen=false;deleteUserElement('debugDeleteUser').onclick();assert(!deleteUserElement('deleteUserDialog').open);settingsOpen=true;
+assert.equal(calls.length,0,'Settings entry never deletes without confirmation');
 deleteUserElement('debugDeleteUser').onclick();assert(deleteUserElement('deleteUserDialog').open);assert(deleteUserElement('deleteUserSummary').textContent.includes('UID: owner'));
 deleteUserElement('deleteUserCancel').onclick();assert(!deleteUserElement('deleteUserDialog').open);assert.equal(calls.length,0,'Cancel performs no deletion');assert(!accountDeletion.marker);
 // Wait for a profile request already in flight; its result must never recreate local data.
@@ -43,7 +43,9 @@ deleteUserElement('deleteUserNew').onclick();assert.equal(accountDeletion.marker
 // Missing original auth must not be replaced by another anonymous account.
 markAccountDeletion('lost-user','pending');online.uid=null;let createOption;
 await restoreDeletionSession({async authenticate(create){createOption=create;return null;}});assert.equal(createOption,false);assert.equal(online.uid,null);assert.equal(accountDeletion.marker.uid,'lost-user');
-console.log('PASS debug self-deletion: debug-only entry, target UID/confirmation/cancel, in-flight save fence, blocked queues, failure/retry, no automatic auth, scoped local cleanup, done guard, explicit restart and missing-auth recovery');
+console.log('PASS self-deletion: ordinary settings entry without debug, target UID/confirmation/cancel, in-flight save fence, blocked queues, failure/retry, no automatic auth, scoped local cleanup, done guard, explicit restart and missing-auth recovery');
 })();`)(assert,data,{localStorage:storage,location:{reload(){reloads++;}}});
 assert.equal(reloads,1);
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
+{const html=require('node:fs').readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');const start=html.indexOf('<dialog id="settingsDialog"'),button=html.indexOf('id="debugDeleteUser"'),debug=html.indexOf('id="mapSettingsDebug"');assert(start<button && button<debug,'Delete entry is outside Debug-only container');assert(!html.slice(button,html.indexOf('</button>',button)).includes('hidden'));}

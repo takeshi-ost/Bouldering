@@ -2,7 +2,7 @@ name: Offline iOS simulator build and runtime smoke
 
 on:
   push:
-    branches: [feature/formal-integration, feature/coupled-production-integration]
+    branches: [feature/formal-integration, feature/coupled-production-integration, release/record-generation-0522]
 
 permissions:
   contents: read

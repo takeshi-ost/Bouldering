@@ -20,13 +20,14 @@ function saveHeartItems() {
 }
 saveHeartItems();
 // Retired-mode buckets are retained only for old saves/imports/deletion.
-const PROGRESS_KEY = 'ascent.progress.v1';
+const PROGRESS_KEY = recordStorageKey('ascent.progress.v1');
 const MAP_PAGE_SIZE = 20;
 const MAP_HOP_DURATION = 650;
 function readStageProgress() {
-    const result = {existing:{cleared:0},prototype:{cleared:0}};
+    const result = {recordVersion:RECORD_VERSION,existing:{cleared:0},prototype:{cleared:0}};
     try {
         const saved = JSON.parse(globalThis.localStorage?.getItem(PROGRESS_KEY) || 'null');
+        if(!currentRecord(saved))return result;
         for (const mode of ['existing','prototype']) {
             const n = saved?.[mode]?.cleared;
             if (Number.isSafeInteger(n) && n >= 0 && n < Number.MAX_SAFE_INTEGER)
@@ -35,7 +36,7 @@ function readStageProgress() {
     } catch (_) { /* Storage may be disabled; keep progress for this session. */ }
     return result;
 }
-const RECORDS_KEY='ascent.records.v1';
+const RECORDS_KEY=recordStorageKey('ascent.records.v1');
 function readStageRecords() {
     const result={existing:{},prototype:{}};
     try {
@@ -46,7 +47,7 @@ function readStageRecords() {
             for(const [key,value] of Object.entries(records)) {
                 const n=Number(key);
                 if(!/^[1-9]\d*$/.test(key) || !Number.isSafeInteger(n) || n>=Number.MAX_SAFE_INTEGER)continue;
-                if(Number.isSafeInteger(value?.moves) && value.moves>0 &&
+                if(currentRecord(value) && Number.isSafeInteger(value?.moves) && value.moves>0 &&
                     Number.isSafeInteger(value?.timeMs) && value.timeMs>=0) {
                     result[mode][key]={moves:value.moves,timeMs:value.timeMs,...scoreMetadata(value)};
                     if(value.rankingEligible===false)result[mode][key].rankingEligible=false;

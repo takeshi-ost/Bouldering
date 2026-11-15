@@ -81,10 +81,10 @@ assert.equal(readDailyRecords()[today].rewardStatus,'claimed');assert(!startDail
 // Earlier dates keep their existing flow and never earn this daily completion reward.
 assert(selectDailyDate('2026-01-01'));moveCount=1;finish(true);assert(!dailyRecords['2026-01-01'].rewardStatus);ui.overlay.events.click({target:ui.overlay});assert.equal(state,'daily');assert(!rewardSequence);
 // A reload after the ad resumes an unclaimed roulette without another ad.
-dailyRecords['2026-10-19']={moves:1,timeMs:100,stars:3,rewardStatus:'pending',rewardAdCompleted:true};saveDailyRecords();dailyRecords=readDailyRecords();showDailyCalendar();assert.equal(state,'reward');assert(!dummyAd);land(0);resultReturn();assert.equal(dailyRecords['2026-10-19'].rewardStatus,'claimed');
+dailyRecords['2026-10-19']={recordVersion:RECORD_VERSION,moves:1,timeMs:100,stars:3,rewardStatus:'pending',rewardAdCompleted:true};saveDailyRecords();dailyRecords=readDailyRecords();showDailyCalendar();assert.equal(state,'reward');assert(!dummyAd);land(0);resultReturn();assert.equal(dailyRecords['2026-10-19'].rewardStatus,'claimed');
 // A pending daily reward resumes without a stage-exit ad.
-dailyRecords['2026-10-18']={moves:1,timeMs:100,stars:3,rewardStatus:'pending'};saveDailyRecords();dailyRecords=readDailyRecords();showDailyCalendar();assert.equal(state,'reward');land(2);resultReturn();assert.equal(state,'daily');
-const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-10-01':{rewardStatus:'pending'},'2026-10-02':{moves:1,timeMs:0,stars:3,rewardStatus:'pending'}});assert.deepEqual(Object.keys(readDailyRecords()),['2026-10-02']);data[DAILY_RECORDS_KEY]=saved;
+dailyRecords['2026-10-18']={recordVersion:RECORD_VERSION,moves:1,timeMs:100,stars:3,rewardStatus:'pending'};saveDailyRecords();dailyRecords=readDailyRecords();showDailyCalendar();assert.equal(state,'reward');land(2);resultReturn();assert.equal(state,'daily');
+const saved=data[DAILY_RECORDS_KEY];data[DAILY_RECORDS_KEY]=JSON.stringify({'2026-10-01':{rewardStatus:'pending'},'2026-10-02':{recordVersion:RECORD_VERSION,moves:1,timeMs:0,stars:3,rewardStatus:'pending'}});assert.deepEqual(Object.keys(readDailyRecords()),['2026-10-02']);data[DAILY_RECORDS_KEY]=saved;
 // Map milestones: fixed stage numbers, one grant, shared goal glints, existing ad interval.
 showLevelMap();
 assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,5);assert.equal((ui.mapNodes.innerHTML.match(/map-reward-gift/g)||[]).length,5);

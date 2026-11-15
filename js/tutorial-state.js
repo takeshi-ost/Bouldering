@@ -11,7 +11,7 @@
         'ascent.online-profile.v1','ascent.pending-scores.v1','ascent.transfer-identity.v1',
         'ascent.ad-plays.v1','ascent.ad-plays.v2','ascent.ad-clears.v1','ascent.daily-entry-ad.v1',
         'ascent.sound-enabled.v1','ascent.music-settings.v1','ascent.sound-volume.v1','ascent.language.v1',
-        'ascent.account-deletion.v1'
+        'ascent.account-deletion.v1','ascent.reward-history-scope.v1'
     ];
     let record,persisted=false,firstUse=false;
     function save() {
@@ -35,7 +35,11 @@
             record??={version:1,status:'skipped',reason:'unrecognized-marker'};
             persisted=true;
         } else {
-            const existing=legacyKeys.some(key=>storage.getItem(key)!==null);
+            let existing=legacyKeys.some(key=>storage.getItem(key)!==null || (typeof recordStorageKey==='function' && storage.getItem(recordStorageKey(key))!==null));
+            for(let i=0;!existing && i<(storage.length||0);i++) {
+                const key=storage.key(i),base=key?.replace(/\.r[1-9][0-9]*$/,'');
+                if(base!==key && legacyKeys.includes(base))existing=true;
+            }
             firstUse=!existing;
             record={version:1,status:existing?'skipped':'pending',reason:existing?'legacy-save':'new-player'};
             save();

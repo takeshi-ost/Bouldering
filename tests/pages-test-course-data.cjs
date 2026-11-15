@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const source=fs.readFileSync(path.join(__dirname,'../scripts/build-pages-site.cjs'),'utf8');
 const copy=vm.runInNewContext(source.slice(source.indexOf('// Optional'),source.indexOf('const args='))+';copyTestCourseData',{fs,path,require});
-const root=fs.mkdtempSync(path.join(os.tmpdir(),'ascent-feed-test-')),out=path.join(root,'out'),dir=path.join(root,'test-course-data/stages-101-150');
+const root=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'ascent-feed-test-'))),out=path.join(root,'out'),dir=path.join(root,'test-course-data/stages-101-150');
 try{
  copy(root,out);assert(!fs.existsSync(out),'Absent feed remains optional');fs.mkdirSync(dir,{recursive:true});
  const pack={schema:1,id:'stages-00001-01000',generatedAt:'2026-11-13T00:00:00Z',courses:Array.from({length:50},(_,i)=>({request:{level:101+i,date:null}}))};

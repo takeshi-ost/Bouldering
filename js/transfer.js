@@ -24,8 +24,8 @@ function snapshotTransferData() {
     recoverLives();
     return JSON.parse(JSON.stringify({
         profile:{name:playerName,colors:[...playerColors],headColor:playerHeadColor},
-        progressVersion:ONLINE_PROGRESS_VERSION,
-        progress:stageProgress,records:stageRecords,dailyRecords,dailyAttempts,dailyPlayAdState,
+        recordVersion:RECORD_VERSION,progressVersion:ONLINE_PROGRESS_VERSION,
+        rewardClaims:rewardClaimHistory(),progress:stageProgress,records:stageRecords,dailyRecords,dailyAttempts,dailyPlayAdState,
         heartItems,lives:{...lives,inProgress:false},mapRewards,featureHelpSeen,soundEnabled,audioSettings:{musicEnabled,musicVolume,soundVolume},playsSinceAd,
         pendingScores:[...onlineScores.pending],localId:playerUuid
     }));
@@ -38,7 +38,10 @@ function validateTransferFile(value) {
     const d=value.data,p=d.profile;
     // Do not turn a legacy exported stage reach into current-generation progress.
     // Reject before authentication/storage changes; the original file stays intact.
-    if(!currentOnlineProgress(d))throw Object.assign(Error(gameText("transfer.progressGeneration")),{code:'ascent/legacy-progress-transfer'});
+    if(!currentOnlineProgress(d) || !currentRecord(d.progress))throw Object.assign(Error(gameText("transfer.progressGeneration")),{code:'ascent/legacy-progress-transfer'});
+    if(!transferObject(d.rewardClaims) || !Array.isArray(d.rewardClaims.map) || !Array.isArray(d.rewardClaims.daily) ||
+        d.rewardClaims.map.some(key=>typeof key!=='string' || !/^[1-9][0-9]*$/.test(key)) ||
+        d.rewardClaims.daily.some(key=>!validDailyDate(key)))fail();
     if(!transferObject(p) || typeof p.name!=='string' || !normalizedPlayerName(p.name) || Array.from(p.name).length>40 ||
         !Array.isArray(p.colors) || p.colors.length<1 || p.colors.length>8 || !p.colors.every(validBodyColor) || !validBodyColor(p.headColor))fail();
     for(const mode of ['existing','prototype']) {
@@ -71,12 +74,12 @@ function validateTransferFile(value) {
             typeof reward.adRequired!=='boolean' || typeof reward.adCompleted!=='boolean')fail();
     }
     if(!Array.isArray(d.pendingScores) || d.pendingScores.length>10000 || d.pendingScores.some(entry=>
-        !Array.isArray(entry) || entry.length!==2 || !validScoreBoard(entry[0]) || !validStageScore(entry[1])))fail();
+        !Array.isArray(entry) || entry.length!==2 || !validScoreBoard(entry[0]) || !validStageScore(entry[1]) || !scoreMatchesBoard(entry[0],entry[1])))fail();
     if(d.localId!==undefined && (typeof d.localId!=='string' || !/^[0-9a-f-]{36}$/i.test(d.localId)))fail();
     return value;
 }
 function validTransferRecord(value,allowHistory=true) {
-    return transferObject(value) && transferInteger(value.moves,1) && transferInteger(value.timeMs) &&
+    return transferObject(value) && currentRecord(value) && transferInteger(value.moves,1) && transferInteger(value.timeMs) &&
         (value.stars===undefined || transferInteger(value.stars,1,3)) &&
         (value.rankingEligible===undefined || typeof value.rankingEligible==='boolean') &&
         (value.version===undefined || (typeof value.version==='string' && value.version.length<=40)) &&
@@ -88,7 +91,9 @@ function transferStorageEntries(file) {
     const d=file.data;
     return new Map([
         [APPEARANCE_KEY,{colors:d.profile.colors,headColor:d.profile.headColor}],[PLAYER_NAME_KEY,d.profile.name],
-        [PROGRESS_KEY,d.progress],[RECORDS_KEY,d.records],[DAILY_RECORDS_KEY,d.dailyRecords],
+        [REWARD_HISTORY_SCOPE_KEY,{ownerUid:file.identity.uid,excludedKeys:rewardHistoryKeys().filter(key=>
+            ![MAP_REWARDS_KEY,DAILY_RECORDS_KEY,recordStorageKey('ascent.reward-claims.v1')].includes(key))}],
+        [recordStorageKey('ascent.reward-claims.v1'),d.rewardClaims],[PROGRESS_KEY,d.progress],[RECORDS_KEY,d.records],[DAILY_RECORDS_KEY,d.dailyRecords],
         [DAILY_ATTEMPTS_KEY,d.dailyAttempts],[DAILY_PLAY_AD_KEY,d.dailyPlayAdState],[HEART_ITEMS_KEY,d.heartItems],
         [LIVES_KEY,d.lives],[MAP_REWARDS_KEY,d.mapRewards],[FEATURE_HELP_KEY,d.featureHelpSeen],
         [SOUND_KEY,d.soundEnabled],[MUSIC_KEY,{enabled:d.audioSettings?.musicEnabled ?? d.soundEnabled,volume:d.audioSettings?.musicVolume ?? 1}],

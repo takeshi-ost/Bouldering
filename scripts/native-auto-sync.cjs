@@ -1,12 +1,12 @@
 'use strict';
-const {scoreMetadata,supportedCourseVersion,supportedScoreBoard,scoreMatchesBoard,ONLINE_PROGRESS_VERSION}=require('../js/score-metadata.js');
-const SYNC_KEY='ascent.native-sync.after-enable.v1';
-function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clock=Date.now,courseVersion='v1',startPaused=false}) {
+const {scoreMetadata,supportedCourseVersion,supportedScoreBoard,scoreMatchesBoard,ONLINE_PROGRESS_VERSION,RECORD_VERSION,recordStorageKey,recordScoreBoard,scoreBoardParts,currentOnlineProgress}=require('../js/score-metadata.js');
+const SYNC_KEY=recordStorageKey('ascent.native-sync.after-enable.v1');
+function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clock=Date.now,courseVersion='v1',startPaused=false,rankingsEnabled=true}) {
     let state,flight=null,halted=false,stopped=false,active=!startPaused && !!owner;
     const stats={boundaryPersisted:false,freshPending:0,freshDelivered:0,profilePending:false,profileNamePreserved:true,syncError:''};
     // Retain old queued profiles without sending/relabeling their legacy progress.
-    const currentProfile=()=>!!state?.profile?.value && state.profile.value.progressVersion===ONLINE_PROGRESS_VERSION;
-    const sendable=e=>e && Number.isSafeInteger(e.sequence) && supportedScoreBoard(e.board) && e.board.split('_')[1]==='existing' && e.rankingEligible!==false && e.score?.rankingEligible!==false && scoreMatchesBoard(e.board,e.score) && Number.isSafeInteger(e.score?.moves) && e.score.moves>=1 && e.score.moves<=1000000 && Number.isSafeInteger(e.score.timeMs) && e.score.timeMs>=0 && e.score.timeMs<=604800000;
+    const currentProfile=()=>!!state?.profile?.value && currentOnlineProgress(state.profile.value);
+    const sendable=e=>rankingsEnabled && e && Number.isSafeInteger(e.sequence) && supportedScoreBoard(e.board) && scoreBoardParts(e.board)[1]==='existing' && e.rankingEligible!==false && e.score?.rankingEligible!==false && scoreMatchesBoard(e.board,e.score) && Number.isSafeInteger(e.score?.moves) && e.score.moves>=1 && e.score.moves<=1000000 && Number.isSafeInteger(e.score.timeMs) && e.score.timeMs>=0 && e.score.timeMs<=604800000;
     const notify=()=>{const events=Array.isArray(state?.events)?state.events:[];stats.freshPending=events.filter(sendable).length;stats.retainedEvents=events.length-stats.freshPending;stats.profilePending=currentProfile();stats.retainedProfile=!!state?.profile && !currentProfile();stats.profileNamePreserved=state?.profile?.nameChanged!==true;onReport({...stats});};
     const fail=code=>{stats.syncError=/^[a-z0-9/-]+$/.test(code||'')?code:'native-sync/unavailable';notify();};
     function commit(next){storage.setItem(SYNC_KEY,JSON.stringify(next));if(storage.getItem(SYNC_KEY)!==JSON.stringify(next))throw Error('native-sync/persistence-failed');state=next;stats.boundaryPersisted=true;notify();}
@@ -48,7 +48,7 @@ function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clo
         return flight;
     }
     function queueProfile(profile,nameChanged=false) {
-        if(halted || stopped || profile?.progressVersion!==ONLINE_PROGRESS_VERSION)return false;
+        if(halted || stopped || !currentOnlineProgress(profile))return false;
         try {
             const name=nameChanged || !state.name || state.name==='iOS接続テスト'?profile.name:state.name;
             const explicitName=nameChanged || state.profile?.nameChanged===true;
@@ -58,14 +58,15 @@ function createNativeAutoSync({storage,owner=null,controller,onReport=()=>{},clo
         }catch(e){halted=true;fail(e.message);return false;}
     }
     function recordClear(stage,mode,candidate) {
+        if(!rankingsEnabled)return false;
         if(halted || stopped)return false;
-        if(!Number.isSafeInteger(stage) || stage<1 || stage>999999 || mode!=='existing' || candidate?.rankingEligible===false || candidate?.version!==courseVersion || !scoreMatchesBoard(`${courseVersion}_${mode}_${stage}`,candidate) || !Number.isSafeInteger(candidate.moves) || candidate.moves<1 || candidate.moves>1000000 || !Number.isSafeInteger(candidate.timeMs) || candidate.timeMs<0 || candidate.timeMs>604800000)return false;
+        if(!Number.isSafeInteger(stage) || stage<1 || stage>999999 || mode!=='existing' || candidate?.rankingEligible===false || candidate?.version!==courseVersion || !scoreMatchesBoard(recordScoreBoard(courseVersion,mode,stage),candidate) || !Number.isSafeInteger(candidate.moves) || candidate.moves<1 || candidate.moves>1000000 || !Number.isSafeInteger(candidate.timeMs) || candidate.timeMs<0 || candidate.timeMs>604800000)return false;
         try {
             if(state.events.length>=10000)throw Error('native-sync/queue-full');
             const sequence=state.sequence+1;
             // Capture the actual just-finished run, never stageRecords/local best
             // or the legacy pending queue. Only post-boundary hooks can add here.
-            commit({...state,sequence,events:[...state.events,{sequence,board:`${courseVersion}_${mode}_${stage}`,score:{moves:candidate.moves,timeMs:candidate.timeMs,...scoreMetadata(candidate)}}]});
+            commit({...state,sequence,events:[...state.events,{sequence,board:recordScoreBoard(courseVersion,mode,stage),score:{moves:candidate.moves,timeMs:candidate.timeMs,...scoreMetadata(candidate)}}]});
             void flush();return true;
         }catch(e){halted=true;fail(e.message);return false;}
     }

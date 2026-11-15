@@ -9,7 +9,7 @@ const host=process.env.FIRESTORE_EMULATOR_HOST;
 if(host!=='127.0.0.1:8089')throw Error('Requires local emulator FIRESTORE_EMULATOR_HOST=127.0.0.1:8089; refusing all other targets');
 const toolRequire=createRequire(process.env.ASCENT_EMULATOR_TOOLS?path.resolve(process.env.ASCENT_EMULATOR_TOOLS,'package.json'):import.meta.url);
 const {initializeTestEnvironment,assertSucceeds,assertFails}=toolRequire('@firebase/rules-unit-testing');
-const {doc,setDoc,getDoc,getDocs,deleteDoc,collection,collectionGroup,query,where,limit,serverTimestamp,Timestamp,runTransaction}=toolRequire('firebase/firestore');
+const {doc,setDoc,getDoc,getDocs,deleteDoc,collection,collectionGroup,query,where,limit,serverTimestamp,Timestamp,runTransaction,disableNetwork,enableNetwork,getDocFromCache}=toolRequire('firebase/firestore');
 const current=fs.readFileSync('firestore.rules','utf8');
 // Parent verified this exact revision against Console after the approved deployment.
 // This remains a static fixture, not a live production read in this test.
@@ -45,7 +45,7 @@ const progressExtended=deployed
           || ('progressVersion' in request.resource.data
             && request.resource.data.progressVersion == resource.data.progressVersion));`);
 const courseExtended=progressExtended.replace('v[234]_existing','v[2345]_existing').replace('^v[1234]$','^v[12345]$').replace("|| (data.scoreSpecVersion == 'v4' && board.matches('^v4_.*$')))", ()=>"|| (data.scoreSpecVersion == 'v4' && board.matches('^v4_.*$'))\n            || (data.scoreSpecVersion == 'v5' && board.matches('^v5_.*$')))");
-assert.equal(current,courseExtended,'Unexpected change outside additive v5 course generation extension');
+assert.equal(execFileSync('git',['show','ba4ac60:firestore.rules'],{encoding:'utf8'}),courseExtended,'Pre-season v5 snapshot remains exact');
 console.log('PASS owner Console snapshot hash, deployed snapshot, and exact minimal Rules diffs');
 // Four isolated demo projects; never a production project or production token.
 const environments=[];
@@ -53,7 +53,7 @@ let assertions=0;
 const pass=async p=>{await assertSucceeds(p);assertions++;};
 const deny=async p=>{await assertFails(p);assertions++;};
 try {
- for(const [label,rules] of [['legacy',legacy],['console',consoleSnapshot],['deployed',deployed],['metadata',current]]) {
+ for(const [label,rules] of [['legacy',legacy],['console',consoleSnapshot],['deployed',deployed],['metadata',courseExtended]]) {
   const hasMetadata=label!=='legacy',hasGenerations=label==='metadata'||label==='deployed';
   const env=await initializeTestEnvironment({projectId:`demo-score-${label}`,firestore:{host:'127.0.0.1',port:8089,rules}});
   environments.push(env);
@@ -240,3 +240,57 @@ try {
  // cleanup only closes clients; explicit deletes above target synthetic demo records.
  for(const env of environments)await env.cleanup();
 }
+
+// Current season: old offline writers, queued commits and deletion locks share
+// the same actual candidate Rules. No real accounts/data are used.
+const season=await initializeTestEnvironment({projectId:'demo-record-generation',firestore:{host:'127.0.0.1',port:8089,rules:current}});
+try {
+ const owner=season.authenticatedContext('owner').firestore(),other=season.authenticatedContext('other').firestore();
+ const score=(extra={})=>({moves:12,timeMs:100,recordVersion:'r1',scoreSpecVersion:'v5',updatedAt:serverTimestamp(),...extra});
+ const profile=(extra={})=>({name:'Current',colors:['#123456'],headColor:'#abcdef',reachedLevel:2,reachedPrototypeLevel:1,recordVersion:'r1',progressVersion:'r1',updatedAt:serverTimestamp(),...extra});
+ const path='stageScores/r1_v5_existing_1/entries/owner',player='stageScores/r1_players/entries/owner';
+ await pass(setDoc(doc(owner,path),score()));await pass(setDoc(doc(owner,player),profile()));
+ await deny(setDoc(doc(other,path),score({moves:1})));
+ for(const patch of [{recordVersion:null},{recordVersion:'r0'},{recordVersion:'r2'},{scoreSpecVersion:'v4'},{scoreSpecVersion:null}])await deny(setDoc(doc(owner,'stageScores/r1_v5_existing_2/entries/owner'),score(patch)));
+ await deny(setDoc(doc(owner,'stageScores/v5_existing_3/entries/owner'),{moves:2,timeMs:2,updatedAt:serverTimestamp()}));
+ await deny(setDoc(doc(owner,'players/owner'),{name:'Offline old device',colors:['#123456'],headColor:'#abcdef',reachedLevel:999,reachedPrototypeLevel:1,progressVersion:'v4',updatedAt:serverTimestamp()}));
+ await deny(setDoc(doc(owner,player),profile({recordVersion:'r0'})));
+ await deny(setDoc(doc(owner,'stageScores/r2_players/entries/owner'),profile({recordVersion:'r2',progressVersion:'r2'})));
+ await pass(getDocs(query(collection(owner,'stageScores/r1_players/entries'),where('reachedLevel','==',2),where('progressVersion','==','r1'),limit(6))));
+ await pass(setDoc(doc(owner,player),profile({reachedLevel:3})));
+ await pass(setDoc(doc(owner,path),score({moves:10})));
+ await deny(setDoc(doc(owner,path),score({moves:10}))); // lost ACK/no-op must be handled by transaction
+ await season.withSecurityRulesDisabled(async context=>{
+  const admin=context.firestore();
+  await setDoc(doc(admin,'stageScores/v5_existing_3/entries/owner'),{moves:1,timeMs:1});
+  await setDoc(doc(admin,'stageScores/r0_players/entries/owner'),{name:'History'});
+ });
+ // Lock first; an old offline retry and a current retry are both denied.
+ await pass(setDoc(doc(owner,'accountDeletionLocks/owner'),{requestedAt:serverTimestamp()}));
+ await deny(setDoc(doc(owner,path),score({moves:9})));
+ await deny(setDoc(doc(owner,player),profile({reachedLevel:3})));
+ await deny(setDoc(doc(owner,'stageScores/v5_existing_3/entries/owner'),{moves:1,timeMs:0,updatedAt:serverTimestamp()}));
+ for(const target of [path,player,'stageScores/v5_existing_3/entries/owner','stageScores/r0_players/entries/owner'])await pass(deleteDoc(doc(owner,target)));
+ await deny(deleteDoc(doc(owner,'accountDeletionLocks/owner')));
+ await deny(setDoc(doc(owner,path),score())); // deleted UID cannot resurrect records
+ // A real SDK offline pending write, then a server-side generation switch.
+ const rotating=season.authenticatedContext('rotating').firestore();
+ const stalePath='stageScores/r1_v5_existing_1/entries/rotating';
+ await pass(setDoc(doc(rotating,stalePath),score()));
+ await disableNetwork(rotating);
+ const queued=deny(setDoc(doc(rotating,stalePath),score({moves:8})));
+ const cached=await getDocFromCache(doc(rotating,stalePath));assert(cached.metadata.hasPendingWrites);
+ const next=await initializeTestEnvironment({projectId:'demo-record-generation',firestore:{host:'127.0.0.1',port:8089,rules:current.replace("return 'r1';", "return 'r2';")}});
+ try {
+  await enableNetwork(rotating);await queued;
+  const currentDevice=next.authenticatedContext('rotating').firestore();
+  await pass(setDoc(doc(currentDevice,'stageScores/r2_v5_existing_1/entries/rotating'),score({recordVersion:'r2'})));
+  // Deleted old records cannot be recreated by another old offline retry.
+  await pass(setDoc(doc(currentDevice,'accountDeletionLocks/rotating'),{requestedAt:serverTimestamp()}));
+  await pass(deleteDoc(doc(currentDevice,stalePath)));
+  await pass(deleteDoc(doc(currentDevice,'stageScores/r2_v5_existing_1/entries/rotating')));
+  await deny(setDoc(doc(rotating,stalePath),score({moves:7})));
+  console.log('PASS actual SDK offline queue: r1 pending write rejected after local Rules rotate to r2; r2 accepted; all-generation delete and stale retry cannot resurrect records');
+ } finally {await next.cleanup();}
+ console.log('PASS current Rules: record/course mismatch denied; retired client writes denied; current reads/improvements; generation-wide owner deletion; permanent lock rejects offline queued resurrection');
+} finally {await season.cleanup();}

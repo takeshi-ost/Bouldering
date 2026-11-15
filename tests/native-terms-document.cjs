@@ -1,0 +1,14 @@
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const ctx={};vm.createContext(ctx);vm.runInContext(fs.readFileSync('www/js/native-terms-document.js','utf8'),ctx);
+const d=ctx.ASCENT_REVIEWED_TERMS;
+assert.equal(d.version,'2026-11-15');
+assert.equal(d.ja,fs.readFileSync('legal/terms-ja.txt','utf8'));assert.equal(d.en,fs.readFileSync('legal/terms-en.txt','utf8'));
+assert.equal(d.privacyHTML,fs.readFileSync('privacy/index.html','utf8'));
+assert(d.ja.includes('制定日・版：2026-11-15'));assert(d.en.includes('Effective date/version: 2026-11-15'));
+const plist=fs.readFileSync('ios/App/App/Info.plist','utf8');assert(/<key>AscentTermsVersion<\/key>\s*<string>2026-11-15<\/string>/.test(plist));assert(/<key>AscentFirstRunTermsReviewed<\/key>\s*<true\/>/.test(plist));
+const html=fs.readFileSync('www/index.html','utf8');assert(html.indexOf('native-terms-document.js')<html.indexOf('native-first-run.js'));
+assert(html.indexOf('native-terms-preboot.js')<html.indexOf('native-firebase-control.js'));
+assert(html.indexOf('native-terms-preboot.js')<html.indexOf('js/main.js'));
+assert(fs.readFileSync('www/js/course-data.js','utf8').includes('function checkCourseDataUpdates(){if(globalThis.ASCENT_TERMS_NETWORK?.accepted!==true)return;'));
+console.log('PASS reviewed JP/EN terms and privacy exact packaging; native version matches; preboot ordering');

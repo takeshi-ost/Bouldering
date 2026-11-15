@@ -9,14 +9,14 @@ const data={'ascent.language.v1':'ja'},storage={getItem:k=>data[k]??null,setItem
 const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 (async()=>{try{await new Function('assert','data',env+source+`;return (async()=>{
 const tick=async()=>{for(let i=0;i<30;i++)await Promise.resolve();};
-assert.equal(validStageScore({moves:1,timeMs:0}),true);
-for(const score of [{moves:0,timeMs:10},{moves:1.1,timeMs:10},{moves:1,timeMs:-1},{moves:1,timeMs:Infinity},{moves:1,timeMs:604800001}])assert(!validStageScore(score));
+assert.equal(validStageScore({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:1,timeMs:0}),true);
+for(const score of [{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:0,timeMs:10},{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:1.1,timeMs:10},{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:1,timeMs:-1},{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:1,timeMs:Infinity},{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:1,timeMs:604800001}])assert(!validStageScore(score));
 assert(validScoreBoard(scoreBoardKey(1,'existing')));assert(!validScoreBoard('v0_existing_1'));assert(!validScoreBoard('v1_daily_1'));assert(!validScoreBoard('v1_existing_0'));
 // No old unversioned records are automatically submitted. Only a new clear queues a score.
-stageRecords.existing[1]={moves:1,timeMs:1,stars:3};assert.equal(onlineScores.pending.size,0);
-queueOnlineScore(1,'existing',{moves:12,timeMs:5000});queueOnlineScore(1,'existing',{moves:13,timeMs:100});
-queueOnlineScore(1,'existing',{moves:12,timeMs:4000});
-const board=scoreBoardKey(1,'existing');assert.deepEqual(onlineScores.pending.get(board),{moves:12,timeMs:4000,...scoreMetadata(null)});
+stageRecords.existing[1]={recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:1,timeMs:1,stars:3};assert.equal(onlineScores.pending.size,0);
+queueOnlineScore(1,'existing',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:12,timeMs:5000});queueOnlineScore(1,'existing',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:13,timeMs:100});
+queueOnlineScore(1,'existing',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:12,timeMs:4000});
+const board=scoreBoardKey(1,'existing');assert.deepEqual(onlineScores.pending.get(board),{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:12,timeMs:4000,...scoreMetadata({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION})});
 assert.equal(JSON.parse(data[ONLINE_SCORES_KEY]).items.length,1);
 onlineScores.pending.clear();readPendingScores();assert.equal(onlineScores.pending.size,1,'Offline queue survives reload');
 const stored=new Map();let fail=false,writes=0;
@@ -25,28 +25,28 @@ online.adapter={async saveScore(uid,key,score){assert.equal(uid,'self');if(fail)
  const old=stored.get(key);if(!old || compareStageScores(score,old)<0){stored.set(key,{...score});writes++;}return stored.get(key);
 }};
 await flushOnlineScores();assert.equal(onlineScores.pending.size,0);assert.equal(stored.get(board).timeMs,4000);assert.equal(stageRecords.existing[1].version,COURSE_VERSION);assert.equal(stageRecords.existing[1].stars,undefined,'Unversioned historical stars must not become current stars');
-queueOnlineScore(1,'existing',{moves:15,timeMs:100});await tick();assert.equal(writes,1);assert.equal(stageRecords.existing[1].moves,12,'A worse replay must not replace server best');
-fail=true;queueOnlineScore(1,'existing',{moves:10,timeMs:9000});await tick();assert(onlineScores.pending.has(board));assert.equal(JSON.parse(data[ONLINE_SCORES_KEY]).items.length,1);
+queueOnlineScore(1,'existing',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:15,timeMs:100});await tick();assert.equal(writes,1);assert.equal(stageRecords.existing[1].moves,12,'A worse replay must not replace server best');
+fail=true;queueOnlineScore(1,'existing',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:10,timeMs:9000});await tick();assert(onlineScores.pending.has(board));assert.equal(JSON.parse(data[ONLINE_SCORES_KEY]).items.length,1);
 fail=false;await flushOnlineScores();assert(!onlineScores.pending.size);assert.equal(stored.get(board).moves,10);
 // Improvement submitted during a write is sent afterward without losing it.
 const normalSave=online.adapter.saveScore;let release;
 online.adapter.saveScore=async(...args)=>{await new Promise(r=>release=r);return normalSave(...args);};
-queueOnlineScore(1,'existing',{moves:9,timeMs:9000});queueOnlineScore(1,'existing',{moves:8,timeMs:10000});
+queueOnlineScore(1,'existing',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:9,timeMs:9000});queueOnlineScore(1,'existing',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:8,timeMs:10000});
 release();await tick();assert(onlineScores.saving);release();await tick();assert.equal(stored.get(board).moves,8);assert(!onlineScores.pending.size);
 online.adapter.saveScore=normalSave;
 // An old guest's pending scores never get attributed to a different auth UID.
-online.ready=false;queueOnlineScore(2,'existing',{moves:5,timeMs:100});connectOnlineScores('different');assert.equal(onlineScores.pending.size,1);assert.equal(onlineScores.blocked,'pending-owner-mismatch');assert.equal(onlineScores.owner,'self');connectOnlineScores('self');assert.equal(onlineScores.blocked,null);online.ready=true;
+online.ready=false;queueOnlineScore(2,'existing',{recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:5,timeMs:100});connectOnlineScores('different');assert.equal(onlineScores.pending.size,1);assert.equal(onlineScores.blocked,'pending-owner-mismatch');assert.equal(onlineScores.owner,'self');connectOnlineScores('self');assert.equal(onlineScores.blocked,null);online.ready=true;
 // Real profiles, personal best ordering and one self row, including cloud-only scores.
-const profile={name:'<Other>',colors:['#123456','#abcdef'],headColor:'#445566',reachedLevel:3,reachedPrototypeLevel:1};
-const records=Array.from({length:8},(_,i)=>({id:'p'+i,moves:10+i,timeMs:1000,profile}));
-records.push({id:'self',moves:16,timeMs:500});let loads=0;
+const profile={recordVersion:RECORD_VERSION,progressVersion:RECORD_VERSION,name:'<Other>',colors:['#123456','#abcdef'],headColor:'#445566',reachedLevel:3,reachedPrototypeLevel:1};
+const records=Array.from({length:8},(_,i)=>({id:'p'+i,recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:10+i,timeMs:1000,profile}));
+records.push({id:'self',recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:16,timeMs:500});let loads=0;
 online.adapter.scores=async()=>{loads++;return records;};
 let rows=currentStageScores(3,'existing');assert.equal(rows.length,0);assert.equal(rows.rankingReady,false);await tick();
 rows=currentStageScores(3,'existing');assert(rows.rankingReady);assert.equal(loads,1);
-let shown=stageLeaderboardRows({moves:20,timeMs:100},rows);assert.equal(shown.length,5);assert.equal(shown.at(-1).moves,16);assert.equal(shown.at(-1).rank,7);assert.equal(shown.filter(p=>p.isPlayer).length,1);
+let shown=stageLeaderboardRows({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:20,timeMs:100},rows);assert.equal(shown.length,5);assert.equal(shown.at(-1).moves,16);assert.equal(shown.at(-1).rank,7);assert.equal(shown.filter(p=>p.isPlayer).length,1);
 const markup=stageLeaderboardMarkup(null,rows);assert(markup.includes('&lt;Other&gt;'));assert(markup.includes('#abcdef'));assert(!markup.includes('Dummy'));
-shown=stageLeaderboardRows({moves:1,timeMs:100},rows);assert(shown[0].isPlayer);assert.equal(shown[0].rank,1);
-const longRows=Array.from({length:100},(_,i)=>({id:'p'+i,moves:i+1,timeMs:100}));longRows.push({id:'self',moves:200,timeMs:100});assert.equal(stageLeaderboardRows(null,longRows).at(-1).rank,'100+');
+shown=stageLeaderboardRows({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:1,timeMs:100},rows);assert(shown[0].isPlayer);assert.equal(shown[0].rank,1);
+const longRows=Array.from({length:100},(_,i)=>({id:'p'+i,recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:i+1,timeMs:100}));longRows.push({id:'self',recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:200,timeMs:100});assert.equal(stageLeaderboardRows(null,longRows).at(-1).rank,'100+');
 // Empty boards reserve all five places without inventing players or score values.
 for(let count=0;count<=5;count++) {
  const boardRows=rows.filter(row=>row.id!=='self').slice(0,count);
@@ -57,7 +57,7 @@ for(let count=0;count<=5;count++) {
  for(let rank=count+1;rank<=5;rank++)assert(html.includes('aria-label="'+rank+'位 記録なし"'));
 }
 // Unknown ranks must not claim 1st place while a request is still pending.
-const waiting=Object.defineProperty([],'rankingReady',{value:false});assert(stageLeaderboardMarkup({moves:1,timeMs:0},waiting).includes('score-rank">—</span>'));
+const waiting=Object.defineProperty([],'rankingReady',{value:false});assert(stageLeaderboardMarkup({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:1,timeMs:0},waiting).includes('score-rank">—</span>'));
 // Slow request for one modal cannot repaint the currently selected other stage.
 const resolves=new Map();online.adapter.scores=async(uid,key)=>new Promise(r=>resolves.set(key,r));
 stageProgress.existing.cleared=5;state='map';
@@ -78,17 +78,17 @@ assert.deepEqual(scoreMetadata(onlineScores.pending.get(freshBoard)),meta);
 const captured=JSON.stringify(onlineScores.pending.get(freshBoard));onlineScores.pending.clear();readPendingScores();
 assert.equal(JSON.stringify(onlineScores.pending.get(freshBoard)),captured);
 moveCount=13;runElapsedMs=1;recordStageClear();assert.deepEqual(scoreMetadata(stageRecords.existing[20]),meta);
-const legacy={moves:2,timeMs:20,version:COURSE_VERSION,stars:2};
+const legacy={recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:2,timeMs:20,version:COURSE_VERSION,stars:2};
 data[RECORDS_KEY]=JSON.stringify({existing:{21:legacy},prototype:{}});
-assert.deepEqual(scoreMetadata(readStageRecords().existing[21]),scoreMetadata(null),'Old v1 does not imply captured metadata');
-stageRecords.existing[22]={moves:3,timeMs:30,version:COURSE_VERSION,stars:3,...scoreMetadata(null)};
-level=22;moveCount=4;runElapsedMs=40;recordStageClear();assert.deepEqual(scoreMetadata(stageRecords.existing[22]),scoreMetadata(null),'Worse run does not stamp an old best');
-online.adapter.saveScore=async()=>({moves:3,timeMs:30,...meta});online.ready=true;onlineScores.owner=online.uid;
-await flushOnlineScores();assert.deepEqual(scoreMetadata(stageRecords.existing[22]),scoreMetadata(null),'Equal remote result keeps local best provenance');
+assert.deepEqual(scoreMetadata(readStageRecords().existing[21]),scoreMetadata({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION}),'Old v1 does not imply captured metadata');
+stageRecords.existing[22]={recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:3,timeMs:30,version:COURSE_VERSION,stars:3,...scoreMetadata({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION})};
+level=22;moveCount=4;runElapsedMs=40;recordStageClear();assert.deepEqual(scoreMetadata(stageRecords.existing[22]),scoreMetadata({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION}),'Worse run does not stamp an old best');
+online.adapter.saveScore=async()=>({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:3,timeMs:30,...meta});online.ready=true;onlineScores.owner=online.uid;
+await flushOnlineScores();assert.deepEqual(scoreMetadata(stageRecords.existing[22]),scoreMetadata({recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION}),'Equal remote result keeps local best provenance');
 // A new-generation clear archives both earlier histories without relabeling them.
 online.ready=false;dailyRun=null;debugAttempt=false;level=23;courseMode='existing';
-const priorV1={moves:2,timeMs:200,version:'v1',stars:2,...scoreMetadata({scoreSpecVersion:'v1'})};
-const priorV2={moves:3,timeMs:300,version:'v2',stars:3,...scoreMetadata({appVersion:'0.4.10',buildNumber:'18',platform:'iOS',scoreSpecVersion:'v2'}),previousVersions:{v1:priorV1}};
+const priorV1={recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:2,timeMs:200,version:'v1',stars:2,...scoreMetadata({scoreSpecVersion:'v1'})};
+const priorV2={recordVersion:RECORD_VERSION,scoreSpecVersion:COURSE_VERSION,moves:3,timeMs:300,version:'v2',stars:3,...scoreMetadata({appVersion:'0.4.10',buildNumber:'18',platform:'iOS',scoreSpecVersion:'v2'}),previousVersions:{v1:priorV1}};
 stageRecords.existing[23]=priorV2;moveCount=30;runElapsedMs=1000;recordStageClear();
 assert.equal(stageRecords.existing[23].version,COURSE_VERSION);
 assert.equal(COURSE_VERSION,'v5');

@@ -4,7 +4,7 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.21';
+const RELEASE_VERSION = '0.5.22';
 // Restore normal-stage rankings after production Rules gained v5 support.
 const COURSE_RANKINGS_ENABLED = true;
 const GAMEPLAY_TIP_KEYS = [

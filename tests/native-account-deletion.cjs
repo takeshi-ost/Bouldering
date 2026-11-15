@@ -24,8 +24,8 @@ function fixture(data=new Map(),options={}){
  retry.fail(false);await retry.eval('deleteCurrentAccount()');assert.equal(retry.eval('accountDeletion.marker.phase'),'done');assert(!saved.has(SYNC));assert(!saved.has(RESUME));assert(!saved.has('PROGRESS_KEY'));assert(!saved.has('ascent.tutorial-stage0.v1'));assert.equal(saved.get('other-app'),'preserve');assert(saved.has(JOURNAL));
  const done=fixture(saved);await done.lifecycle.restore();assert.equal(done.eval('online.uid'),null);assert.equal(done.elements.deleteUserNew.hidden,false);assert.equal(done.elements.deleteUserConfirm.hidden,true);assert(!done.calls.includes('delete'));
  saved.set('PROGRESS_KEY','stale progress after interrupted cleanup');
- done.removeFails(true);done.elements.deleteUserNew.onclick();assert.equal(done.reloads(),0);assert(saved.has(SHARED));
- done.removeFails(false);done.elements.deleteUserNew.onclick();assert.equal(done.reloads(),1);assert(!saved.has(JOURNAL));assert(!saved.has(SHARED));assert(!saved.has('ascent.native-firebase.identity-check.v1'));assert(!saved.has('ascent.native-firebase.auth-attempt.v1'));assert(!saved.has('ascent.tutorial-stage0.v1'),'Fresh launch must enter tutorial STAGE0');
+ done.removeFails(true);await done.elements.deleteUserNew.onclick();assert.equal(done.reloads(),0);assert(saved.has(SHARED));
+ done.removeFails(false);await done.elements.deleteUserNew.onclick();assert.equal(done.reloads(),1);assert(!saved.has(JOURNAL));assert(!saved.has(SHARED));assert(!saved.has('ascent.native-firebase.identity-check.v1'));assert(!saved.has('ascent.native-firebase.auth-attempt.v1'));assert(!saved.has('ascent.tutorial-stage0.v1'),'Fresh launch must enter tutorial STAGE0');
  const tutorialEnv=vm.createContext({localStorage:{getItem:k=>saved.get(k)??null,setItem:(k,v)=>saved.set(k,v)}});
  vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../js/tutorial-state.js'),'utf8'),tutorialEnv);
  assert.equal(tutorialEnv.AscentTutorialState.pending(),true);assert.equal(tutorialEnv.AscentTutorialState.snapshot().firstUse,true,'Actual tutorial startup recognizes a new player after reset');

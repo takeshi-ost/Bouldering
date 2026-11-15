@@ -16,6 +16,13 @@
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
+		A5AD00000000000000000001 = {isa = PBXBuildFile; fileRef = A5AD00000000000000000002; };
+		A5AD00000000000000000003 = {isa = PBXBuildFile; productRef = A5AD00000000000000000004; };
+		A5AD00000000000000000005 = {isa = PBXBuildFile; productRef = A5AD00000000000000000006; };
+A5AD00000000000000000011 = {isa = PBXBuildFile; productRef = A5AD00000000000000000012; };
+A5A100000000000000000001 = {isa = PBXBuildFile; fileRef = A5A100000000000000000002; };
+A5A100000000000000000003 = {isa = PBXBuildFile; productRef = A5A100000000000000000004; };
+A5A100000000000000000006 = {isa = PBXBuildFile; fileRef = A5A100000000000000000007; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +37,9 @@
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		A5AD00000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AscentAdsPlugin.swift; sourceTree = "<group>"; };
+A5A100000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AscentAnalyticsPlugin.swift; sourceTree = "<group>"; };
+A5A100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,6 +48,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */,
+                A5AD00000000000000000003,
+                A5AD00000000000000000005,
+                A5AD00000000000000000011,
+                A5A100000000000000000003,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +79,9 @@
 			isa = PBXGroup;
 			children = (
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
+                A5AD00000000000000000002,
+                A5A100000000000000000002,
+                A5A100000000000000000007,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
@@ -96,6 +113,10 @@
 			name = App;
 			packageProductDependencies = (
 				4D22ABE82AF431CB00220026 /* CapApp-SPM */,
+                A5AD00000000000000000004,
+                A5AD00000000000000000006,
+                A5AD00000000000000000012,
+                A5A100000000000000000004,
 			);
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
@@ -128,6 +149,10 @@
 			mainGroup = 504EC2FB1FED79650016851F;
 			packageReferences = (
 				D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */,
+                A5AD00000000000000000007,
+                A5AD00000000000000000008,
+                A5AD00000000000000000013,
+                A5A100000000000000000005,
 			);
 			productRefGroup = 504EC3051FED79650016851F /* Products */;
 			projectDirPath = "";
@@ -146,6 +171,7 @@
 				504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */,
 				50B271D11FEDC1A000F3C39B /* public in Resources */,
 				504EC30F1FED79650016851F /* Assets.xcassets in Resources */,
+                A5A100000000000000000006,
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
@@ -183,6 +209,8 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
+                A5AD00000000000000000001,
+                A5A100000000000000000001,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -323,7 +351,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 23;
 				ASCENT_FIREBASE_MODE = "auto-sync";
 				DEVELOPMENT_TEAM = 28DX847WFR;
 				INFOPLIST_FILE = App/Info.plist;
@@ -332,12 +360,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.21;
+				MARKETING_VERSION = 0.5.22;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = local.ascent.simulator.t20261024;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_VERSION = 5.0;
+                OTHER_LDFLAGS = ("$(inherited)", "-ObjC");
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -348,7 +377,7 @@
 				CAPACITOR_DEBUG = false;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 18;
+				CURRENT_PROJECT_VERSION = 23;
 				ASCENT_FIREBASE_MODE = "auto-sync";
 				DEVELOPMENT_TEAM = 28DX847WFR;
 				INFOPLIST_FILE = App/Info.plist;
@@ -357,11 +386,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.21;
+				MARKETING_VERSION = 0.5.22;
 				PRODUCT_BUNDLE_IDENTIFIER = local.ascent.simulator.t20261024;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_VERSION = 5.0;
+                OTHER_LDFLAGS = ("$(inherited)", "-ObjC");
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -402,7 +432,17 @@
 			package = D4C12C0A2AAA248700AAC8A2 /* XCLocalSwiftPackageReference "CapApp-SPM" */;
 			productName = "CapApp-SPM";
 		};
+        A5AD00000000000000000004 = {isa = XCSwiftPackageProductDependency; package = A5AD00000000000000000007; productName = UnityMediationSDK; };
+        A5AD00000000000000000006 = {isa = XCSwiftPackageProductDependency; package = A5AD00000000000000000008; productName = UnityAdsAdapter; };
+A5AD00000000000000000012 = {isa = XCSwiftPackageProductDependency; package = A5AD00000000000000000013; productName = GoogleUserMessagingPlatform; };
+A5A100000000000000000004 = {isa = XCSwiftPackageProductDependency; package = A5A100000000000000000005; productName = FirebaseAnalyticsCore; };
 /* End XCSwiftPackageProductDependency section */
+/* Begin XCRemoteSwiftPackageReference section */
+        A5AD00000000000000000007 = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/ironsource-mobile/LevelPlay-Swift-Package"; requirement = {kind = exactVersion; version = 9.5.0; }; };
+        A5AD00000000000000000008 = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/ironsource-mobile/LevelPlay-UnityAds-Adapter-Swift-Package"; requirement = {kind = exactVersion; version = 5.13.0; }; };
+A5AD00000000000000000013 = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git"; requirement = {kind = exactVersion; version = 3.1.0; }; };
+A5A100000000000000000005 = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git"; requirement = {kind = exactVersion; version = 13.1.1; }; };
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 504EC2FC1FED79650016851F /* Project object */;
 }

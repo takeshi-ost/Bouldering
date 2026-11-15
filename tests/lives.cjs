@@ -9,7 +9,7 @@ const elements={};const document={getElementById(id){return elements[id] ||= {
  getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}
 };}};const window={events:{},addEventListener(k,f){this.events[k]=f;},devicePixelRatio:1};function requestAnimationFrame(){};`;
 // Normal-flow fixture: existing player at eligible-ad STAGE 11; stages 1–10 intentionally do not count regular ads.
-const data={'ascent.progress.v1':JSON.stringify({existing:{cleared:10},prototype:{cleared:0}})},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
+const data={'ascent.progress.v1.r1':JSON.stringify({recordVersion:'r1',existing:{cleared:10},prototype:{cleared:0}})},storage={getItem:k=>data[k]??null,setItem:(k,v)=>data[k]=v};
 const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');Object.defineProperty(globalThis,'localStorage',{value:storage,configurable:true});
 try{
 new Function('assert','data','storage',env+source+`

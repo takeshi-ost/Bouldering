@@ -1,0 +1,15 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {servicePermissions:p}=require('../scripts/native-service-gate.cjs');
+const bases={online:true,courses:true,ump:true,analytics:true,advertising:true,personalization:true};
+const ready={reviewedVersion:'approved-v1',acceptedVersion:'approved-v1',bases,advertising:{updated:true,canRequest:true,networkEligible:true}};
+for(const state of [{}, {...ready,acceptedVersion:null}, {...ready,acceptedVersion:'old'}, {...ready,reviewedVersion:''}])assert.ok(Object.values(p(state)).every(v=>v===false));
+assert.deepEqual(p(ready),{online:true,courses:true,ump:true,analytics:true,advertising:true,personalizedAdvertising:false});
+assert.equal(p({...ready,bases:{...bases,analytics:undefined}}).analytics,true);
+assert.equal(p({...ready,analyticsChoice:'denied'}).analytics,true);
+for(const key of ['updated','canRequest','networkEligible'])assert.equal(p({...ready,advertising:{...ready.advertising,[key]:false}}).advertising,false);
+assert.equal(p({...ready,advertising:{...ready.advertising,personalizationChoice:'granted'}}).personalizedAdvertising,true);
+assert.equal(p({...ready,bases:{...bases,personalization:false},advertising:{...ready.advertising,personalizationChoice:'granted'}}).personalizedAdvertising,false);
+assert.equal(p({...ready,bases:{}}).analytics,true);
+assert.equal(p({...ready,bases:{}}).advertising,false);
+console.log('PASS service gate: pre-terms all off; post-terms eligible non-personalized on; unknown bases fail closed; SDK denial and ad selection remains independent');

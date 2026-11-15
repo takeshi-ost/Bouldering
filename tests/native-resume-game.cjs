@@ -14,10 +14,10 @@ const preboot=`(${installNativeResume.toString()})(${createNativeResumeStore.toS
 const wallTime=Date.parse('2026-11-03T12:00:00Z');
 function initial() {
     return new Map([
-        ['ascent.progress.v1',JSON.stringify({existing:{cleared:10},prototype:{cleared:0}})],
+        ['ascent.progress.v1.r1',JSON.stringify({recordVersion:'r1',existing:{cleared:10},prototype:{cleared:0}})],
         [ITEMS_KEY,'20'],[LIVES_KEY,JSON.stringify({count:3,recoveryAt:null,inProgress:false})],
-        ['ascent.records.v1',JSON.stringify({existing:{10:{moves:12,timeMs:1000,version:'v3',scoreSpecVersion:'v3'}},prototype:{}})],
-        ['ascent.map-rewards.v1',JSON.stringify({4:{status:'claimed',adRequired:false,adCompleted:false}})],
+        ['ascent.records.v1.r1',JSON.stringify({existing:{10:{moves:12,timeMs:1000,version:'v3',scoreSpecVersion:'v3'}},prototype:{}})],
+        ['ascent.map-rewards.v1.r1',JSON.stringify({4:{status:'claimed',adRequired:false,adCompleted:false}})],
         ['ascent.pending-scores.v1',JSON.stringify({uid:null,items:[['v3_existing_10',{moves:12,timeMs:1000,version:'v3'}]]})],
         [SYNC_KEY,JSON.stringify({version:1,owner:null,activatedAt:1000,sequence:1,name:'Saved name',profile:null,
             events:[{sequence:1,board:'v4_existing_10',score:{moves:15,timeMs:2000,version:'v4',scoreSpecVersion:'v4'}}]})]
@@ -80,8 +80,8 @@ function normal(b,{spent=3,stage=1,debug=false}={}) {
 }
 const receipt=b=>JSON.parse(b.data.get(RESUME_KEY)||'null');
 const life=b=>JSON.parse(b.data.get(LIVES_KEY));
-const preservedKeys=['ascent.records.v1','ascent.progress.v1','ascent.map-rewards.v1','ascent.daily-records.v1',
-    'ascent.daily-attempts.v1','ascent.daily-play-ad.v1','ascent.ad-plays.v2','ascent.pending-scores.v1',SYNC_KEY];
+const preservedKeys=['ascent.records.v1.r1','ascent.progress.v1.r1','ascent.map-rewards.v1.r1','ascent.daily-records.v1.r1',
+    'ascent.daily-attempts.v1.r1','ascent.daily-play-ad.v1.r1','ascent.ad-plays.v2','ascent.pending-scores.v1',SYNC_KEY];
 const saved=b=>Object.fromEntries(preservedKeys.map(key=>[key,b.data.get(key)]));
 const snapshot=b=>b.run('JSON.stringify({heartItems,lives,lifeAttemptId,moveCount,stamina,state})');
 function oneShotReceiptFailure(b,mode='before') {
@@ -145,13 +145,13 @@ function completeAd(b) {b.advance(10000);b.run('advanceDummyAd(performance.now()
 // Completed success/failure cannot be recredited. Actual record/reward hooks and
 // the native queued clear survive reload unchanged, including historical queues.
 for(const won of [true,false]) {
-    const data=initial();if(won)data.set('ascent.map-rewards.v1','{}');
+    const data=initial();if(won)data.set('ascent.map-rewards.v1.r1','{}');
     const b=boot(data);normal(b,{stage:4});b.advance(1500);b.run(`moveCount=8;finish(${won});`);
     assert.equal(b.run('state'),won?'won':'lost');assert.equal(receipt(b).attempt,null);
     assert.equal(b.run('lives.count'),won?3:2);assert.equal(b.run('heartItems'),17);
     if(won) {
         assert.equal(b.run('stageRecords.existing[4].moves'),8);assert.equal(b.run('mapRewards[4].status'),'pending');
-        assert.equal(JSON.parse(b.data.get(SYNC_KEY)).events.at(-1).board,'v5_existing_4');
+        assert.equal(JSON.parse(b.data.get(SYNC_KEY)).events.at(-1).board,'r1_v5_existing_4');
     }
     const before=saved(b),resumed=boot(b.data,{token:'finished-'+won});
     assert.equal(resumed.run('heartItems'),17);assert.equal(resumed.run('lives.count'),won?3:2);assert.deepEqual(saved(resumed),before);
@@ -212,8 +212,8 @@ for(const complete of [false,true]) {
 // An interrupted Daily pre-start ad has not launched another attempt or paid
 // its debt. After reload it is still required and normal completion starts once.
 {
-    const data=initial();data.set('ascent.daily-attempts.v1',JSON.stringify({'2026-11-03':1}));
-    data.set('ascent.daily-play-ad.v1',JSON.stringify({plays:1,adPaid:false}));
+    const data=initial();data.set('ascent.daily-attempts.v1.r1',JSON.stringify({'2026-11-03':1}));
+    data.set('ascent.daily-play-ad.v1.r1',JSON.stringify({plays:1,adPaid:false}));
     const b=boot(data);b.run('showDailyCalendar();assert(selectDailyDate("2026-11-03"));');
     assert.equal(b.run('state'),'ad');assert.equal(b.run('dailyRun'),null);assert.equal(b.run('dailyAttempts["2026-11-03"]'),1);
     const before=saved(b),resumed=boot(b.data,{token:'daily-prestart-ad'});
@@ -322,11 +322,11 @@ for(const won of [true,false])for(const mode of ['before','after','readback']) {
 // final cleanup fails. Retry must run cleanup only, and long recovery must not
 // refund the finished normal outcome or duplicate its pending reward/queue.
 for(const won of [true,false])for(const mode of ['before','after','readback']) {
-    const data=initial();data.set('ascent.map-rewards.v1','{}');
+    const data=initial();data.set('ascent.map-rewards.v1.r1','{}');
     const b=boot(data);normal(b,{stage:4});b.run('moveCount=8;');oneShotCleanupFailure(b,mode);
     b.run(`finish(${won});`);assert.equal(b.run('ASCENT_NATIVE_RESUME.ready'),false);assert.equal(b.run('state'),won?'won':'lost');
     assert.equal(life(b).inProgress,false);assert.equal(life(b).count,won?3:2);assert.equal(b.data.get(ITEMS_KEY),'17');
-    if(won){assert.equal(b.run('mapRewards[4].status'),'pending');assert.equal(JSON.parse(b.data.get(SYNC_KEY)).events.at(-1).board,'v5_existing_4');}
+    if(won){assert.equal(b.run('mapRewards[4].status'),'pending');assert.equal(JSON.parse(b.data.get(SYNC_KEY)).events.at(-1).board,'r1_v5_existing_4');}
     const before=saved(b),crashed=new Map(b.data);
     b.clearFault();b.run('ASCENT_NATIVE_RESUME.retry();');assert.equal(receipt(b).ended,null);assert.deepEqual(saved(b),before);
     assert.equal(life(b).count,won?3:2);assert.equal(b.data.get(ITEMS_KEY),'17');

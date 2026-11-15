@@ -9,7 +9,7 @@ function runtime(version,build,spec='v1') {
  return JSON.parse(vm.runInContext('JSON.stringify(currentScoreMetadata())',context));
 }
 const oldMeta=runtime('0.3.14','7'),newMeta=runtime('0.4.0','8');
-assert.deepEqual(runtime('0.3.14'),{appVersion:'0.3.14',buildNumber:null,platform:'Web',scoreSpecVersion:'v1'});
+assert.deepEqual(runtime('0.3.14'),{recordVersion:'r1',appVersion:'0.3.14',buildNumber:null,platform:'Web',scoreSpecVersion:'v1'});
 const sourceConfig=fs.readFileSync('js/config.js','utf8'),project=fs.readFileSync('ios/App/App.xcodeproj/project.pbxproj','utf8');
 const actualVersion=sourceConfig.match(/const RELEASE_VERSION = '([^']+)'/)[1];
 const actualSpec=sourceConfig.match(/const COURSE_VERSION = '([^']+)'/)[1];
@@ -18,11 +18,11 @@ assert.equal(JSON.parse(fs.readFileSync('package.json','utf8')).version,actualVe
 assert.equal(JSON.parse(fs.readFileSync('package-lock.json','utf8')).version,actualVersion);
 const nativeBuilds=[...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map(m=>m[1]);assert.equal(nativeBuilds.length,2);assert.equal(nativeBuilds[0],nativeBuilds[1]);assert.match(nativeBuilds[0],/^[0-9]+$/);
 // Source metadata is aligned for the next native build; this does not update the installed app.
-assert.deepEqual([...project.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map(m=>m[1]),[actualVersion,actualVersion]);assert.deepEqual(nativeBuilds,['18','18']);
-assert.deepEqual(runtime(actualVersion,nativeBuilds[0],actualSpec),{appVersion:actualVersion,buildNumber:'18',platform:'iOS',scoreSpecVersion:actualSpec});
+assert.deepEqual([...project.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map(m=>m[1]),[actualVersion,actualVersion]);assert.deepEqual(nativeBuilds,['23','23']);
+assert.deepEqual(runtime(actualVersion,nativeBuilds[0],actualSpec),{recordVersion:'r1',appVersion:actualVersion,buildNumber:'23',platform:'iOS',scoreSpecVersion:actualSpec});
 // Existing native v1 provenance is tested without claiming a v4 native build.
-assert.deepEqual(runtime('0.4.6','14','v1'),{appVersion:'0.4.6',buildNumber:'14',platform:'iOS',scoreSpecVersion:'v1'});
-assert.deepEqual(runtime(actualVersion,undefined,actualSpec),{appVersion:actualVersion,buildNumber:null,platform:'Web',scoreSpecVersion:actualSpec});
+assert.deepEqual(runtime('0.4.6','14','v1'),{recordVersion:'r1',appVersion:'0.4.6',buildNumber:'14',platform:'iOS',scoreSpecVersion:'v1'});
+assert.deepEqual(runtime(actualVersion,undefined,actualSpec),{recordVersion:'r1',appVersion:actualVersion,buildNumber:null,platform:'Web',scoreSpecVersion:actualSpec});
 const dailyContext=vm.createContext({});
 vm.runInContext("const RELEASE_VERSION='0.4.11',COURSE_VERSION='v3',DAILY_COURSE_VERSION='v2';"+script,dailyContext);
 assert.equal(vm.runInContext('currentScoreMetadata().scoreSpecVersion',dailyContext),'v3');
@@ -35,7 +35,7 @@ assert.equal(vm.runInContext('currentDailyScoreMetadata().scoreSpecVersion',noVe
 assert.equal(sourceConfig.match(/const DAILY_COURSE_VERSION = '([^']+)'/)[1],'v4');
 const currentDaily=vm.createContext({});vm.runInContext(sourceConfig.match(/const COURSE_VERSION = '[^']+';/)[0]+sourceConfig.match(/const DAILY_COURSE_VERSION = '[^']+';/)[0]+script,currentDaily);assert.equal(vm.runInContext('currentScoreMetadata().scoreSpecVersion',currentDaily),'v5');assert.equal(vm.runInContext('currentDailyScoreMetadata().scoreSpecVersion',currentDaily),'v4');
 assert.equal(oldMeta.platform,'iOS');assert.equal(newMeta.scoreSpecVersion,oldMeta.scoreSpecVersion);
-assert.deepEqual(scoreMetadata({version:'v1'}),{appVersion:null,buildNumber:null,platform:null,scoreSpecVersion:null});
+assert.deepEqual(scoreMetadata({version:'v1'}),{recordVersion:null,appVersion:null,buildNumber:null,platform:null,scoreSpecVersion:null});
 (async()=>{
  const data=new Map([['ascent.pending-scores.v1','historical-queue-unchanged']]);const sent=[];
  let offline=true;
@@ -47,7 +47,7 @@ assert.deepEqual(scoreMetadata({version:'v1'}),{appVersion:null,buildNumber:null
  const after=make();offline=false;await after.flush();assert.deepEqual(scoreMetadata(sent[0]),oldMeta);assert.notDeepEqual(scoreMetadata(sent[0]),newMeta);
  assert.equal(data.get('ascent.pending-scores.v1'),'historical-queue-unchanged');
  const ledger=JSON.parse(data.get(SYNC_KEY));ledger.events=[{sequence:2,board:'v1_existing_2',score:{moves:14,timeMs:4000}}];ledger.sequence=2;data.set(SYNC_KEY,JSON.stringify(ledger));
- await make().flush();assert.deepEqual(scoreMetadata(sent[1]),scoreMetadata(null),'Pre-metadata queued event remains unknown');
+ await make().flush();assert.equal(sent.length,1,'Pre-generation queued event is retained without sending');assert.equal(JSON.parse(data.get(SYNC_KEY)).events.length,1);
  // Exercise the real Web queue across two independent runtimes/app versions.
  const webData=new Map(),webSent=[];
  function webRuntime(version) {
@@ -63,6 +63,6 @@ assert.deepEqual(scoreMetadata({version:'v1'}),{appVersion:null,buildNumber:null
  const webAfter=webRuntime('0.4.0');
  await vm.runInContext("online.ready=true;online.adapter={saveScore:async(uid,board,score)=>{webSent.push(score);return score;}};flushOnlineScores()",webAfter);
  assert.deepEqual(scoreMetadata(webSent[0]),runtime('0.3.14'));
- assert.equal(JSON.parse(webData.get('ascent.pending-scores.v1')).items.length,0);
- console.log('PASS score provenance: Web unknown build; aligned native source version/build18; historical native0.4.6/build14 v1 provenance; current Web v5 normal / v4 Daily generation with legacy v1 provenance; offline upgrade preserves original metadata; old queues stay unknown; historical queue untouched');
+ assert.equal(JSON.parse(webData.get('ascent.pending-scores.v1.r1')).items.length,0);
+ console.log('PASS score provenance: Web unknown build; aligned native source version/build23; historical native0.4.6/build14 v1 provenance; current Web v5 normal / v4 Daily generation with legacy v1 provenance; offline upgrade preserves original metadata; old queues stay unknown; historical queue untouched');
 })().catch(e=>{console.error(e);process.exitCode=1;});

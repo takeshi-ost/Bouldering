@@ -29,7 +29,7 @@ function completedToStageOne(b){
 }
 (async()=>{
 // Detection must execute before libraries write defaults/UUID during fresh boot.
-assert.equal(files[0],'js/tutorial-state.js');assert(files.indexOf('js/tutorial-state.js')<files.indexOf('js/lives.js'));
+assert.equal(files[0],'js/score-metadata.js');assert.equal(files[1],'js/tutorial-state.js');assert(files.indexOf('js/tutorial-state.js')<files.indexOf('js/lives.js'));
 for(const won of [true,false]){
  const b=boot();assert.equal(b.run('tutorialPending()'),true,'default boot writes must not convert a fresh user to existing');
  assert.equal(b.run('JSON.stringify(TUTORIAL_CONFIG.steps)'), '[]','foundation does not invent instructional content');
@@ -91,10 +91,10 @@ for(const marker of ['malformed','null','{"version":9,"status":"pending"}','{"ve
 for(const action of ['ui.restart.onclick();','returnFromStage();']){
  const b=boot(),before=snapshot(b);titleStart(b);b.run(action);completedToStageOne(b);assert.equal(snapshot(b),before);
 }
-// Existing actual progress and Daily data remain untouched by onboarding checks.
+// Existing legacy progress/Daily remain byte-preserved but are not adopted into the new record generation.
 {
  const data=new Map([['ascent.progress.v1','{"existing":{"cleared":20}}'],['ascent.heart-items.v1','17'],['ascent.daily-records.v1','{"2026-10-30":{"moves":10,"timeMs":1000,"stars":3,"clearedOn":"2026-10-30"}}']]);
- const b=boot(data),before=snapshot(b);assert.equal(b.run('startTutorialRun()'),false);assert.equal(snapshot(b),before);assert.equal(b.run('stageProgress.existing.cleared'),20);assert.equal(b.run('heartItems'),17);
+ const b=boot(data),before=snapshot(b);assert.equal(b.run('startTutorialRun()'),false);assert.equal(snapshot(b),before);assert.equal(b.run('stageProgress.existing.cleared'),0);assert.equal(data.get('ascent.progress.v1'),'{"existing":{"cleared":20}}');assert.equal(b.run('dailyRecords["2026-10-30"]'),undefined);assert.equal(b.run('heartItems'),17);
  const day=b.run('JSON.stringify(CourseProgression.resolveDaily("2026-01-16"))');titleStart(b);assert.equal(b.run('JSON.stringify(CourseProgression.resolveDaily("2026-01-16"))'),day);assert.equal(snapshot(b),before);
 }
 // Unknown storage state fails closed (skip); readable empty storage with denied
