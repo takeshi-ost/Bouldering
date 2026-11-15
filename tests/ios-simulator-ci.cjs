@@ -2,7 +2,7 @@
 const fs=require('node:fs'),assert=require('node:assert/strict'),path=require('node:path');
 const root=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const source=read('.github/workflows/ios-simulator.yml');
-assert.match(source,/branches: \[feature\/formal-integration, feature\/coupled-production-integration\]/);
+assert.match(source,/branches: \[feature\/formal-integration, feature\/coupled-production-integration, release\/record-generation-0522\]/);
 assert(!read('.github/workflows/pages.yml').includes('coupled-production-integration'),'Integration CI must not deploy Pages');
 assert.match(source,/permissions:\s*\n  contents: read/);
 assert.match(source,/if: \$\{\{ github\.event\.repository\.private == false \}\}/);
