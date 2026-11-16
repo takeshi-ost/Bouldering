@@ -9,6 +9,7 @@
     }
     const original=ui.titleScreen.onclick;
     const key='ascent.terms.accepted.v1';
+    const continueKey='ascent.terms.continue-after-reload.v1';
     const flow=createFirstRun({version:config.version,
         read:()=>globalThis.ASCENT_TERMS_NETWORK?.accepted===true?localStorage.getItem(key):null,write:v=>localStorage.setItem(key,v),
         requestPrivacy:()=>{const ads=globalThis.Capacitor?.Plugins?.AscentAds;
@@ -65,7 +66,15 @@
                     const restart=consent===true && globalThis.ASCENT_NATIVE_ACCOUNT_DELETION?.prepareTermsRestart();
                     const native = await globalThis.Capacitor?.Plugins?.AscentAnalytics?.acceptTerms({version:config.version,explicitAcceptance:consent===true});
                     if(native?.accepted!==true)throw Error('terms_required');
-                    if(restart){localStorage.setItem(key,config.version);if(localStorage.getItem(key)!==config.version)throw Error('terms_storage_failed');localStorage.removeItem('ascent.native-deletion.reconsent-reload.v1');globalThis.location.reload();return;}
+                    if(restart){
+                        localStorage.setItem(key,config.version);if(localStorage.getItem(key)!==config.version)throw Error('terms_storage_failed');
+                        // Preserve this title tap, not a standing permission to skip the title.
+                        // Consume once on the next document and re-check native consent there.
+                        const continuation=JSON.stringify({version:config.version,at:Date.now()});
+                        globalThis.sessionStorage.setItem(continueKey,continuation);
+                        if(globalThis.sessionStorage.getItem(continueKey)!==continuation)throw Error('terms_storage_failed');
+                        localStorage.removeItem('ascent.native-deletion.reconsent-reload.v1');globalThis.location.reload();return;
+                    }
                     await globalThis.ASCENT_TERMS_NETWORK.refresh();
                 }
             } catch (_) {
@@ -91,4 +100,18 @@
         if(flow.accepted()){copy.hidden=true;explanation.hidden=true;policyWeb.hidden=true;scroll.hidden=true;accept.textContent=en?'Continue':'進む';await run(false);}
         else present();
     };
+    let continuePending=false;
+    try {
+        const value=JSON.parse(globalThis.sessionStorage?.getItem(continueKey)||'null');
+        continuePending=value?.version===config.version && Number.isFinite(value.at) && Date.now()-value.at>=0 && Date.now()-value.at<60000;
+        globalThis.sessionStorage?.removeItem(continueKey);
+    } catch(_) {continuePending=false; /* Unreadable/unconsumed intent never bypasses the title gate. */ }
+    const continueTitleTap=async()=>{
+        if(!continuePending || !titleReady || state!=='choosing' || showing)return;
+        continuePending=false;
+        try {await globalThis.ASCENT_TERMS_NETWORK.refresh();}catch(_){return;}
+        if(flow.accepted() && !showing && state==='choosing' && typeof tutorialPending==='function' && tutorialPending())await ui.titleScreen.onclick();
+    };
+    globalThis.addEventListener?.('ascent-title-ready',continueTitleTap);
+    void continueTitleTap();
 })();
