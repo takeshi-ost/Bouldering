@@ -40,3 +40,28 @@ function fixture(levels,date,marker){
  assert.equal((await read(newerStore,1)).marker,'newer-bundle');
  console.log('PASS production store: same-bucket 1-100 + 101-150 coexist; concurrent title lookup/update dedup; restart offline persistence; invalid newer witness fallback; newer partial bundle does not suppress remote-only records');
 })().catch(e=>{console.error(e);process.exitCode=1;});
+
+// Exercise the shipped metadata through the actual store, not a lookup mock.
+(async()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const manifest=JSON.parse(fs.readFileSync('course-data/manifest.json','utf8'));
+ const embedded=JSON.parse(fs.readFileSync('js/course-data.js','utf8').match(/const COURSE_BUNDLED_MANIFEST=(.*);/)[1]);
+ assert.deepEqual(embedded,manifest,'Embedded and asset manifests must agree');
+ const portable=require('./coupled-production-harness.cjs')('return coursePreparationPortableSignature();');
+ const store=A.create({bundledManifestData:embedded,bundleManifest:'course-data/manifest.json',baseURL:'https://bundled.test/',remoteManifest:null,digest:async text=>hash(text),
+  disk:{get:async()=>null,put:async()=>{}},fetcher:async url=>{
+   const target=new URL(url);assert.equal(target.origin,'https://bundled.test');
+   const filename=target.pathname.slice('/course-data/'.length);assert(manifest.packs.some(d=>d.file===filename),'Only referenced shipped packs');
+   const text=fs.readFileSync(path.join('course-data',filename),'utf8');return {ok:true,text:async()=>text};
+  }});
+ assert.equal((await store.warmup()).loaded,manifest.packs.length,'Every shipped pack must pass real store manifest validation');
+ let checked=0;
+ for(const d of manifest.packs){
+  const pack=JSON.parse(fs.readFileSync(path.join('course-data',d.file),'utf8'));
+  for(const course of [pack.courses[0],pack.courses.at(-1)]){
+   const restored=await store.lookup(course.request,x=>x,portable);
+   assert(restored?.labSkeletonReport?.diagnosticsOmitted===true,'Shipped boundary course must load without generation fallback');checked++;
+  }
+ }
+ console.log('PASS shipped course store: actual embedded metadata, all '+manifest.packs.length+' pack hashes, '+checked+' boundary lookups with no generation');
+})().catch(e=>{console.error(e);process.exitCode=1;});

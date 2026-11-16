@@ -7,12 +7,15 @@ function acceptableVersion(value){
  if(typeof value!=='string'||!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(value))return false;
  const v=value.split('.').map(Number);return v.every(Number.isSafeInteger)&&(v[0]>0||v[1]>=5);
 }
+function canonicalDate(value){return typeof value==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(value)&&new Date(value).toISOString()===value;}
 function verify(dir,args=[]){
  dir=path.resolve(dir);const manifest=JSON.parse(fs.readFileSync(path.join(dir,'manifest.json')));
+ assert(canonicalDate(manifest.generatedAt),'Manifest timestamp must use canonical UTC milliseconds');
  assert.equal(manifest.schema,1);assert(acceptableVersion(manifest.generationVersion),'Unsupported generation version');assert(Array.isArray(manifest.packs));
  const run=require('../tests/coupled-production-harness.cjs'),runtimeHash=sha(run('return coursePreparationPortableSignature();'));
  const seen=new Set(),packIds=new Set(),rows=[];
  for(const d of manifest.packs){
+  assert(canonicalDate(d.generatedAt),'Pack timestamp must use canonical UTC milliseconds');
   assert(!packIds.has(d.id),'Duplicate pack');packIds.add(d.id);assert(/^(stages|daily)-\d{5}-\d{5}$/.test(d.id));
   assert(/^[\w.-]+\.json$/.test(d.file));assert(Number.isInteger(d.count)&&d.count>0&&d.count<=1000);
   const raw=fs.readFileSync(path.join(dir,d.file));assert.equal(raw.length,d.bytes);assert(raw.length<=32*1024*1024);assert.equal(sha(raw),d.sha256);
