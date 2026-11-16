@@ -44,13 +44,13 @@ const commands={
   'node tests/native-first-run-on.cjs',
   'node tests/native-deletion-consent.cjs',
   'node tests/native-terms-preboot.cjs',
-  'node tests/native-terms-firebase-bundle.cjs',
   'node tests/native-sdk-packaging.cjs','node tests/native-entry-formal.cjs',
   'node tests/native-resume-store.cjs','node tests/native-resume-adapter.cjs','node tests/native-resume-game.cjs',
   'npm run build:ios-assets','node tests/ios-assets.cjs --bundle-only --artifact-only',
   'npm run build:ios-assets',
   `node -e "require('assert/strict').equal(require('./www/native-firebase-mode.json').mode,'auto-sync')"`,
-  'node tests/ios-assets.cjs --bundle-only --artifact-only'
+  'node tests/ios-assets.cjs --bundle-only --artifact-only',
+  'node tests/native-terms-firebase-bundle.cjs'
  ]
 };
 for(const [id,job]of Object.entries(ci.jobs)) {

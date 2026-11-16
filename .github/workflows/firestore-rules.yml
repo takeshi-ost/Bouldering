@@ -141,7 +141,6 @@ jobs:
           node tests/native-first-run-on.cjs
           node tests/native-deletion-consent.cjs
           node tests/native-terms-preboot.cjs
-          node tests/native-terms-firebase-bundle.cjs
       - name: Package native SDK and verify emitted startup with mocks
         run: |
           node tests/native-sdk-packaging.cjs
@@ -162,6 +161,8 @@ jobs:
           npm run build:ios-assets
           node -e "require('assert/strict').equal(require('./www/native-firebase-mode.json').mode,'auto-sync')"
           node tests/ios-assets.cjs --bundle-only --artifact-only
+      - name: Verify emitted online bundle still gates Firebase on terms
+        run: node tests/native-terms-firebase-bundle.cjs
       - name: Record coupled and native verification scope
         if: always()
         env:
