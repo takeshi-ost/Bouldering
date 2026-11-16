@@ -7,10 +7,10 @@
     const bridge=globalThis.webkit?.messageHandlers?.ascentRuntimeSmoke;
     if(!bridge)return;
     const checks=[],captures=[],started=performance.now(),deadline=started+90000;
-    let finished=false,phase='startup',restoreWorkerObservation=()=>{},restoreCourseData=()=>{};
+    let finished=false,phase='startup',restoreWorkerObservation=()=>{},restoreCourseData=()=>{},restoreConsentFixture=()=>{};
     const post=value=>bridge.postMessage(value);
     const finish=(ok,error='')=>{
-        if(finished)return;finished=true;clearTimeout(watchdog);restoreWorkerObservation();restoreCourseData();
+        if(finished)return;finished=true;clearTimeout(watchdog);restoreWorkerObservation();restoreCourseData();restoreConsentFixture();
         post({kind:'result',report:{ok,checks,error,phase,captures,
             automation:'DOM events and programmatic gameplay; not physical touches',
             elapsedMs:Math.round(performance.now()-started)}});
@@ -103,7 +103,17 @@
         ensure(unloaded.length===0,'visible-title-asset-unloaded');
         checks.push('title-ready-visible-assets-offline');await capture('title');
         const originalResources=resources();
+        // Native SDK consent/persistence is outside this offline DOM smoke.
+        const consentFixture=installAscentOfflineConsentFixture(globalThis.Capacitor,globalThis.ASCENT_IOS_BUILD,globalThis.ASCENT_REVIEWED_TERMS?.version);
+        restoreConsentFixture=()=>consentFixture.restore();
         node('titleScreen').click();
+        const consentButton=()=>[...document.querySelectorAll('dialog[open] button')].find(button=>button.textContent===(GAME_TEXT_LANGUAGE==='en'?'Agree and continue':'同意して進む'));
+        await wait(()=>!!consentButton(),'first-run-terms-not-shown');
+        ensure(!consentFixture.accepted&&!isTutorialRun(),'terms-bypassed-before-dom-acceptance');
+        consentButton().click();
+        await wait(()=>consentFixture.accepted&&consentFixture.privacyRequests===1,'first-run-offline-consent-not-completed');
+        ensure(consentFixture.accepts===1,'first-run-consent-not-once');
+        checks.push('first-run-terms-dom-offline-fixture-no-native-consent-or-sdk');
         await wait(()=>isTutorialRun()&&state==='playing','stage0-not-started');
         ensure(level===0,'not-stage0');
         await readyPage('intro-welcome');ensure(!cameraIntro,'camera-intro-not-complete');

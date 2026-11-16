@@ -12,6 +12,6 @@ module.exports={instrument,target};
 if(require.main===module){
  if(process.argv.length!==3||process.argv[2]!=='--apply'||process.env.GITHUB_ACTIONS!=='true'||process.env.RUNNER_OS!=='macOS'||process.env.ASCENT_FIREBASE_MODE!=='offline')throw Error('Only disposable GitHub macOS offline CI may instrument this copy');
  const p=path.join(root,target);
- fs.writeFileSync(p,instrument(fs.readFileSync(p,'utf8'),fs.readFileSync(path.join(root,'tests/ios-runtime-harness.swift'),'utf8'),fs.readFileSync(path.join(root,'tests/ios-runtime-smoke.js'),'utf8')));
+ fs.writeFileSync(p,instrument(fs.readFileSync(p,'utf8'),fs.readFileSync(path.join(root,'tests/ios-runtime-harness.swift'),'utf8'),fs.readFileSync(path.join(root,'tests/ios-runtime-consent-fixture.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'tests/ios-runtime-smoke.js'),'utf8')));
  console.log('Instrumented only disposable CI native copy; production game sources unchanged');
 }

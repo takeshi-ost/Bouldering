@@ -40,7 +40,7 @@ for(const match of source.matchAll(/uses: ([^\s]+)/g))assert.match(match[1],/^ac
 const spm=read('ios/App/CapApp-SPM/Package.swift');
 assert.match(spm,/url: "https:\/\/github\.com\/ionic-team\/capacitor-swift-pm\.git", exact: "8\.5\.3"/);
 const {instrument}=require('../scripts/prepare-ios-runtime-smoke.cjs');
-const native=read('ios/App/App/SceneDelegate.swift'),harness=read('tests/ios-runtime-harness.swift'),script=read('tests/ios-runtime-smoke.js');
+const native=read('ios/App/App/SceneDelegate.swift'),harness=read('tests/ios-runtime-harness.swift'),script=read('tests/ios-runtime-consent-fixture.js')+'\n'+read('tests/ios-runtime-smoke.js');
 assert.match(script,/for\(const language of \['ja','en'\]\)/,'Real WebKit must verify both translations, not just accept either language');
 assert.match(script,/GAME_TEXT_LOCALES\[language\]\[step\.titleKey\]/);
 assert.match(script,/GAME_TEXT_LOCALES\[language\]\[step\.textKey\]/);
@@ -51,6 +51,7 @@ assert.match(script,/tutorial-language-mutated-gameplay/);
 // Keep the real WebKit Worker flow in the instrumented smoke. These static
 // requirements do not substitute for executing it in the disposable simulator.
 for(const marker of [
+    'first-run-terms-dom-offline-fixture-no-native-consent-or-sdk',
     'fourth-confirmed-move-two-help-pages-ja-en-decoded-pause-repeat-guard',
     'bundled-stage1-replay-and-start-without-worker',
     'bundled-stage78-direct-lookup-without-generation',
@@ -98,3 +99,5 @@ require('./ios-resume-lifecycle.cjs');
 
 // Verify the document-start locale bridge without opening a network connection.
 require('./ios-initial-language.cjs');
+
+require('./ios-runtime-consent-fixture.cjs');
