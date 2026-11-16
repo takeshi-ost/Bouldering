@@ -3,8 +3,9 @@ const SHARED_KEY='ascent.account-deletion.v1';
 const LOCAL_KEYS=['ascent.native-sync.after-enable.v1','ascent.native-resume.v1',require('../js/score-metadata.js').recordStorageKey('ascent.native-sync.after-enable.v1')];
 // Native-only lifecycle glue. Server deletion and its durable journal belong to
 // the controller; this layer never creates an identity or retries deletion.
-function createNativeAccountDeletion({controller,storage,game,sync=()=>null,resume=()=>null,consent=null}) {
+function createNativeAccountDeletion({controller,storage,game,sync=()=>null,resume=()=>null,consent=null,reload=null}) {
     let restoring=null,completing=null;
+    const RELOAD_KEY="ascent.native-deletion.completion-reload.v1";
     const RESET_KEY="ascent.native-deletion.terms-reset.v1", RESTART_KEY="ascent.native-deletion.reconsent-reload.v1";
     const failure=()=>Object.assign(Error('native-firebase/persistence-unavailable'),{code:'native-firebase/persistence-unavailable'});
     function persistMarker(uid,phase) {
@@ -43,6 +44,12 @@ function createNativeAccountDeletion({controller,storage,game,sync=()=>null,resu
                 storage.setItem(RESET_KEY,value.uid);if(storage.getItem(RESET_KEY)!==value.uid)throw failure();
                 await consent.refresh();
             }
+            if(reload && storage.getItem(RELOAD_KEY)!==value.uid) {
+                // Persist before navigation: a fresh boot must not reload-loop.
+                // Retain done/terms-reset until explicit terms acceptance.
+                storage.setItem(RELOAD_KEY,value.uid);if(storage.getItem(RELOAD_KEY)!==value.uid)throw failure();
+                reload();return true;
+            }
             game.returnToTitle();return true;
         })().finally(()=>{completing=null;});return completing;
     }
@@ -53,7 +60,7 @@ function createNativeAccountDeletion({controller,storage,game,sync=()=>null,resu
         if(storage.getItem(RESET_KEY)!==value.uid)throw failure();
         storage.setItem(RESTART_KEY,'pending');if(storage.getItem(RESTART_KEY)!=='pending')throw failure();
         clearLocal();controller.resetDeletion();game.clearMarker();
-        storage.removeItem(RESET_KEY);return true;
+        storage.removeItem(RESET_KEY);storage.removeItem(RELOAD_KEY);return true;
     }
     function hasMarker(){return !!(game.marker() || controller.deletionState());}
     async function restore() {

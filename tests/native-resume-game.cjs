@@ -377,3 +377,26 @@ for(const action of ['showLevelMap()','showTitleScreen()','returnFromStage()']) 
     assert.equal(recovered.run('ASCENT_NATIVE_RESUME.ready'),true);assert.equal(recovered.run('state'),'choosing');
 }
 console.log('PASS native resume game: actual native-transformed classic boot with explicit short recipe fixture and coupled finger action, chalk/life long recovery, duplicate/new-attempt and ordinary-crash semantics, retained clear/failure/rewards/queues, normal/life/Daily ads and debt, Daily/tutorial/debug isolation, begin/end/cleanup storage fences and cross-reload recovery, stale/cancelled prepared-lease cleanup without debit, exact retry without replaying outcomes, explicit debug-ending ambiguity, gameplay/timer pause, blocked preboot replay');
+
+// Deletion suspension must keep ordinary navigation/gameplay fenced while its
+// dedicated, acknowledged completion can display the title without a receipt.
+{
+ const b=boot();b.run("showLevelMap();cancelMapReveal();mapTransition=null;");
+ b.run("ASCENT_NATIVE_RESUME.suspend();accountDeletion.marker={uid:'owner',phase:'pending'};globalThis.ASCENT_NATIVE_FIREBASE={permissions:()=>({deletion:false}),deletionState:()=>({uid:'owner',phase:'pending'})};");
+ assert.equal(b.run('showTitleAfterAccountDeletion()'),false);
+ assert.equal(b.run('showCharacterEditor()'),false,'Deletion suspension cannot enter an editor whose Cancel is fenced');
+ b.run('showTitleScreen()');assert.equal(b.run('state'),'map');
+ b.run("globalThis.ASCENT_NATIVE_FIREBASE={permissions:()=>({deletion:false}),deletionState:()=>({uid:'owner',phase:'auth-deleting'})};");
+ assert.equal(b.run('showTitleAfterAccountDeletion()'),false);
+ b.run("globalThis.ASCENT_NATIVE_FIREBASE={permissions:()=>({deletion:false}),deletionState:()=>({uid:'owner',phase:'done'})};");
+ assert.equal(b.run('showTitleAfterAccountDeletion()'),false,'Both durable and UI markers must acknowledge completion');
+ b.run("accountDeletion.marker.phase='done';clearLocalGameData();");
+ b.data.delete(RESUME_KEY);b.operations.length=0;
+ assert.equal(b.run('showTitleAfterAccountDeletion()'),true);
+ assert.equal(b.run('state'),'choosing');assert.equal(b.node('titleScreen').hidden,false);
+ assert.equal(b.run('ASCENT_NATIVE_RESUME.ready'),false,'Never re-enable old identity gameplay');
+ assert.equal(b.data.has(RESUME_KEY),false,'Do not resurrect deleted attempt receipt');
+ assert.equal(b.data.has(ITEMS_KEY),false);assert.equal(b.data.has(LIVES_KEY),false);
+ assert.equal(b.run('showTitleAfterAccountDeletion()'),true,'Completion can be replayed safely');
+ console.log('PASS deletion/title integration: pending and auth-deleting blocked, confirmed done reaches title while resume remains suspended and deleted receipt/resources remain absent');
+}

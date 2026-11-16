@@ -54,6 +54,16 @@ else {recoverLives();saveLives();}`,`if(globalThis.ASCENT_NATIVE_RESUME?.ready!=
     if(name==='input.js') {
         source=replaceOnce(source,"function canScrollStage() { return","function canScrollStage() { if(globalThis.ASCENT_NATIVE_RESUME?.ready===false)return false;return");
         for(const name of ['returnFromStage','showTitleScreen'])source=wrapNativeEnd(source,name);
+        // Deletion deliberately suspends resume. Keep normal navigation fenced,
+        // but allow the acknowledged deletion path to render its final title.
+        source+=`
+function showTitleAfterAccountDeletion() {
+    if(globalThis.ASCENT_NATIVE_FIREBASE?.deletionState()?.phase!=='done' || accountDeletion.marker?.phase!=='done')return false;
+    nativeResume_showTitleScreen();
+    return true;
+}
+`;
+
     }
     if(name==='renderer.js')source=replaceOnce(source,'function draw(now = 0) {',
         'function draw(now = 0) {\n    if(globalThis.ASCENT_NATIVE_RESUME?.ready===false){gameFrame=null;return;}');
@@ -87,6 +97,7 @@ else {recoverLives();saveLives();}`,`if(globalThis.ASCENT_NATIVE_RESUME?.ready!=
     if(name==='level-map.js')source=replaceOnce(source,'        queueOnlineScore(level,courseMode,candidate);',
         '        globalThis.ASCENT_NATIVE_SYNC?.recordClear(level,courseMode,candidate);\n        queueOnlineScore(level,courseMode,candidate);');
     if(name==='appearance.js') {
+        source=replaceOnce(source,'function showCharacterEditor() {',"function showCharacterEditor() {\n    if(globalThis.ASCENT_NATIVE_RESUME?.ready===false)return false;");
         source=replaceOnce(source,'    ui.playerName.blur?.();playerName=name;', '    const nativeNameWasEdited=name!==playerName;\n    ui.playerName.blur?.();playerName=name;');
         source=replaceOnce(source,'    queueOnlineProfileSave();','    if(globalThis.ASCENT_NATIVE_SYNC)globalThis.ASCENT_NATIVE_SYNC.profileEdited(onlineProfile(),nativeNameWasEdited);else queueOnlineProfileSave();');
     }

@@ -49,9 +49,9 @@ const controller=createNativeFirebaseController({mode,config,rankingsEnabled,pol
   return known[0]||null;
  },onReport:publish});
 Object.defineProperty(globalThis,'ASCENT_NATIVE_FIREBASE',{value:controller,writable:false,configurable:false});
-const deletion=createNativeAccountDeletion({controller,storage,sync:()=>sync,resume:()=>globalThis.ASCENT_NATIVE_RESUME,consent:{pause:()=>globalThis.Capacitor.Plugins.AscentAnalytics.beginAccountDeletion(),reset:deletionID=>globalThis.Capacitor.Plugins.AscentAnalytics.completeAccountDeletion({deletionID}),refresh:()=>globalThis.ASCENT_TERMS_NETWORK.refresh()},game:{
+const deletion=createNativeAccountDeletion({controller,storage,reload:()=>globalThis.location.reload(),sync:()=>sync,resume:()=>globalThis.ASCENT_NATIVE_RESUME,consent:{pause:()=>globalThis.Capacitor.Plugins.AscentAnalytics.beginAccountDeletion(),reset:deletionID=>globalThis.Capacitor.Plugins.AscentAnalytics.completeAccountDeletion({deletionID}),refresh:()=>globalThis.ASCENT_TERMS_NETWORK.refresh()},game:{
  clearMarker:()=>{accountDeletion.marker=null;},
- returnToTitle:()=>{deleteUserElement('deleteUserDialog').close?.();showTitleScreen();const note=document.getElementById('nativeDeletionNotice')||document.createElement('p');note.id='nativeDeletionNotice';note.textContent=typeof GAME_TEXT_LANGUAGE!=='undefined'&&GAME_TEXT_LANGUAGE==='en'?'Account deleted. To play again, accept the Terms of Use again.':'アカウントを削除しました。再開には利用規約への再同意が必要です。';ui.titleScreen.appendChild(note);},
+ returnToTitle:()=>{if(!showTitleAfterAccountDeletion())throw Error('native-firebase/deletion-incomplete');deleteUserElement('deleteUserDialog').close?.();const note=document.getElementById('nativeDeletionNotice')||document.createElement('p');note.id='nativeDeletionNotice';note.textContent=typeof GAME_TEXT_LANGUAGE!=='undefined'&&GAME_TEXT_LANGUAGE==='en'?'Account deleted. To play again, accept the Terms of Use again.':'アカウントを削除しました。再開には利用規約への再同意が必要です。';ui.titleScreen.appendChild(note);},
  marker:()=>typeof accountDeletion==='undefined'?null:accountDeletion.marker,
  mark:(uid,phase)=>markAccountDeletion(uid,phase),ready:value=>{online.ready=value;},
  uid:value=>{online.uid=value;},adapter:value=>{online.adapter=value;},
