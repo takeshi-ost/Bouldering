@@ -132,6 +132,16 @@ jobs:
           node tests/native-auto-sync.cjs
           node tests/native-sync-status.cjs
           node tests/build-policy.cjs
+      - name: Verify first-run consent and one-shot tutorial continuation
+        run: |
+          node tests/native-first-run.cjs
+          node tests/native-first-run-ui.cjs
+          node tests/native-first-run-continuation.cjs
+          node tests/native-first-run-no-flash.cjs
+          node tests/native-first-run-on.cjs
+          node tests/native-deletion-consent.cjs
+          node tests/native-terms-preboot.cjs
+          node tests/native-terms-firebase-bundle.cjs
       - name: Package native SDK and verify emitted startup with mocks
         run: |
           node tests/native-sdk-packaging.cjs
