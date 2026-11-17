@@ -362,6 +362,7 @@ class AscentBridgeViewController: CAPBridgeViewController {
         super.capacitorDidLoad()
         bridge?.registerPluginInstance(AscentAdsPlugin())
         bridge?.registerPluginInstance(AscentAnalyticsPlugin())
+        bridge?.registerPluginInstance(AscentHapticsPlugin())
         webView?.isUserInteractionEnabled = false
         webView?.configuration.userContentController.add(ResumeMessageHandler(self), name: "ascentResume")
         installResumeUserScript()

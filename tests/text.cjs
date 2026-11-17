@@ -78,7 +78,7 @@ for(const file of scripts.filter(p=>!['js/text-ja.js','js/text-en.js','js/text-d
  assert(!/[\u3040-\u30ff\u3400-\u9fff]/.test(code),'Unextracted copy: '+file);
 }
 // Check both directions: every reference exists and every definition has a caller.
-const sourceFiles=['index.html','scripts/formal-debug-seed.js',...scripts.filter(file=>!file.startsWith('js/text'))];
+const sourceFiles=['index.html','scripts/formal-debug-seed.js','scripts/native-settings-layout.cjs',...scripts.filter(file=>!file.startsWith('js/text'))];
 const source=sourceFiles.map(read).join('\n');
 const refs=new Set([...source.matchAll(/(?:gameText\(["']|data-i18n(?:-[\w-]+)?=")([^"']+)["']/g)].map(m=>m[1]));
 // Artifact-only controls select among literal localization keys by state.

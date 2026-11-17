@@ -913,6 +913,7 @@ function move(e) {
         // the normal provisional contact sound (including mixed limb pairs).
         if(freshContacts.length && !freshContacts.some(h=>h.type==='hazard'))
             playSound('contact');
+        if(freshContacts.length)globalThis.AscentHaptics?.click('light');
         grips = attached;
     } else
         body = previousBody;
@@ -956,6 +957,7 @@ function moveFingerGesture(e) {
     if((drag.swipeComparison?.multiplier ?? 1)!==1)rankingAssistanceUsed=true;
     const freshContacts = next.stance.filter((h,i) => h && h !== grips[i] && !drag.anchor.includes(i));
     if (freshContacts.length && !freshContacts.some(h => h.type === 'hazard')) playSound('contact');
+    if(freshContacts.length)globalThis.AscentHaptics?.click('light');
     body = next.p; grips = next.stance;
     if(coupled) {
         for(let i=previousTraceLength;i<next.trace.length;i++)collectHearts(next.trace[i-1],next.trace[i]);
@@ -1052,6 +1054,7 @@ function release(cancel = false) {
                 kind:'hazard',text:`-${HAZARD_CONFIG.penalty}`,color:'#9442be'});
         }
         if(!bothHandsOnGoal() && stamina>0)playSound(newHazards.size?'hazard':'move');
+        globalThis.AscentHaptics?.click('strong');
         moveCount++;
 
         committed = { ...body };

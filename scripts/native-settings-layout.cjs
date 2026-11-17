@@ -14,5 +14,6 @@ module.exports=function nativeSettingsLayout(html) {
         return matches[0][0];
     });
     settings=settings.replace(/\s*<\/dialog>$/, '\n            '+paragraphs.join('\n            ')+'\n        </dialog>');
+    settings=settings.replace('<button id="showHelp"', '<label class="settings-row" for="hapticsEnabled"><span data-i18n="settings.haptics"></span><input id="hapticsEnabled" type="checkbox" checked></label>\n            <button id="showHelp"');
     return html.replace(original,()=>settings);
 };

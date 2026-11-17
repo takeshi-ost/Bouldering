@@ -45,6 +45,7 @@ const GAME_TEXT_JA = Object.freeze({
     "settings.appVersion": "アプリバージョン",
     "settings.online": "オンライン",
     "settings.offline": "オフライン",
+    "settings.haptics": "振動",
     "audio.music": "BGM",
     "audio.effects": "効果音",
     "audio.musicVolume": "音楽の音量",

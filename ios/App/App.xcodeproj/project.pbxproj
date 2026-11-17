@@ -23,6 +23,7 @@ A5AD00000000000000000011 = {isa = PBXBuildFile; productRef = A5AD000000000000000
 A5A100000000000000000001 = {isa = PBXBuildFile; fileRef = A5A100000000000000000002; };
 A5A100000000000000000003 = {isa = PBXBuildFile; productRef = A5A100000000000000000004; };
 A5A100000000000000000006 = {isa = PBXBuildFile; fileRef = A5A100000000000000000007; };
+		A5A200000000000000000001 /* AscentHapticsPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A200000000000000000002 /* AscentHapticsPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@ A5A100000000000000000006 = {isa = PBXBuildFile; fileRef = A5A1000000000000000000
 		A5AD00000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AscentAdsPlugin.swift; sourceTree = "<group>"; };
 A5A100000000000000000002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AscentAnalyticsPlugin.swift; sourceTree = "<group>"; };
 A5A100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		A5A200000000000000000002 /* AscentHapticsPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AscentHapticsPlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +83,7 @@ A5A100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.pli
 				9582B6822FE993A50072D4E8 /* SceneDelegate.swift */,
                 A5AD00000000000000000002,
                 A5A100000000000000000002,
+                A5A200000000000000000002 /* AscentHapticsPlugin.swift */,
                 A5A100000000000000000007,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
@@ -211,6 +214,7 @@ A5A100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.pli
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
                 A5AD00000000000000000001,
                 A5A100000000000000000001,
+                A5A200000000000000000001 /* AscentHapticsPlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,7 +355,7 @@ A5A100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.pli
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				ASCENT_FIREBASE_MODE = "auto-sync";
 				DEVELOPMENT_TEAM = 28DX847WFR;
 				INFOPLIST_FILE = App/Info.plist;
@@ -360,7 +364,7 @@ A5A100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.pli
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.25;
+				MARKETING_VERSION = 0.5.26;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = local.ascent.simulator.t20261024;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -377,7 +381,7 @@ A5A100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.pli
 				CAPACITOR_DEBUG = false;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				ASCENT_FIREBASE_MODE = "auto-sync";
 				DEVELOPMENT_TEAM = 28DX847WFR;
 				INFOPLIST_FILE = App/Info.plist;
@@ -386,7 +390,7 @@ A5A100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.pli
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.25;
+				MARKETING_VERSION = 0.5.26;
 				PRODUCT_BUNDLE_IDENTIFIER = local.ascent.simulator.t20261024;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";

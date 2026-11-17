@@ -31,6 +31,10 @@ if (!builtVerification && !artifactOnly) {
 const bundle = path.join(root, 'www');
 const read = name => fs.readFileSync(path.join(bundle, name), 'utf8');
 const html = read('index.html');
+assert.equal(read('js/native-haptics-runtime.js'),fs.readFileSync(path.join(root,'scripts/native-haptics-runtime.js'),'utf8'));
+assert(html.indexOf('js/native-haptics-runtime.js')>html.indexOf('js/rewards.js'));
+assert(html.indexOf('js/native-haptics-runtime.js')<html.indexOf('js/main.js'));
+assert.equal((html.match(/id="hapticsEnabled"/g)||[]).length,1);
 const {createNativeResumeStore}=require('../scripts/native-resume-store.cjs');
 const {installNativeResume}=require('../scripts/native-resume-adapter.cjs');
 assert.equal(read('js/native-resume-preboot.js'),`'use strict';\n(${installNativeResume.toString()})(${createNativeResumeStore.toString()});\n`);

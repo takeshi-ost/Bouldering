@@ -95,9 +95,12 @@ function rewardWheelMarkup() {
 // Count 90-degree travel independently of sector sizes (the sectors are weighted).
 function updateRewardAngle(sequence,angle) {
     const travel=Math.max(0,angle-sequence.angle);
+    const hapticBefore=Math.floor(((sequence.clickTravel||0)+1e-7)/45);
     const before=Math.floor(((sequence.clickTravel||0)+1e-7)/90);
     sequence.clickTravel=(sequence.clickTravel||0)+travel;
     sequence.angle=angle;
+    // Coalesce missed frames instead of replaying stale vibrations.
+    if(Math.floor((sequence.clickTravel+1e-7)/45)>hapticBefore)globalThis.AscentHaptics?.click('light');
     const crossings=Math.floor((sequence.clickTravel+1e-7)/90)-before;
     // Normal frames cross at most one boundary. Spread a delayed frame's clicks
     // slightly and cap catch-up to one turn; hidden time never advances the wheel.
@@ -175,6 +178,7 @@ function advanceRewardSequence(now=performance.now()) {
         if(!sequence.canGrant()) {
             sequence.reward={...option,amount:0};finishRewardSequence();return;
         }
+        globalThis.AscentHaptics?.click('strong');
         sequence.reward=applyRouletteReward(option);
         sequence.onGrant(sequence.reward);
         ui.rewardStop.hidden=true;ui.rewardResult.hidden=false;

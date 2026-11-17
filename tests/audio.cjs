@@ -46,11 +46,12 @@ new Function('assert',`
 const elements={},gameEvents={};const document={getElementById(id){return elements[id] ||= {style:{},classList:{toggle(){}},focus(){},addEventListener(k,fn){gameEvents[k]=fn;},setAttribute(){},showModal(){this.open=true;},close(){this.open=false;},getContext(){return new Proxy({},{get(o,k){return o[k]||function(){};}});},getBoundingClientRect(){return {left:0,top:0,width:400,height:700};}};}};
 const window={addEventListener(){}};function requestAnimationFrame(){}
 `+source+`
+const haptics=[];globalThis.AscentHaptics={click:s=>haptics.push(s)};
 const sounds=[];playSound=name=>{sounds.push(name);};
 reset(1);advanceCameraIntro(0);assert.deepEqual(sounds,['start']);assert(cameraIntro);advanceCameraIntro(2000);assert.equal(sounds.filter(s=>s==='start').length,1);
 sounds.length=0;const beforeMove=route.length;
 for(let i=1;i<route.length;i++){servicePlayStep(i);}
-assert.equal(state,'won');assert.equal(sounds.filter(s=>s==='clear').length,1);assert.equal(sounds.filter(s=>s==='move').length,beforeMove-2);
+assert.equal(haptics.filter(s=>s==='strong').length,beforeMove-1);assert.equal(state,'won');assert.equal(sounds.filter(s=>s==='clear').length,1);assert.equal(sounds.filter(s=>s==='move').length,beforeMove-2);
 finish(true);assert.equal(sounds.filter(s=>s==='clear').length,1);
 reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);const pointFor=p=>({clientX:p.x,clientY:p.y-camera});servicePlayStep(1);const beforeUndo=sounds.filter(s=>s==='move').length;assert(undoMove());assert.equal(sounds.filter(s=>s==='move').length,beforeUndo+1);hearts=[{x:body.x,y:body.y,collected:false}];collectHearts(body,body);collectHearts(body,body);assert.equal(sounds.filter(s=>s==='heart').length,1);
 finish(false);assert.equal(sounds.filter(s=>s==='fail').length,1);
@@ -62,7 +63,7 @@ cancelMapReveal();state='daily';settingsOpen=false;dailyMonth=localToday().slice
 gameEvents.click({target:{closest:()=>({id:'dailyPrev',disabled:false,closest:()=>null})}});assert(changeDailyMonth(-1));assert.deepEqual(sounds,['page']);
 cancelMapReveal();state='map';mapTransition={from:1,to:2,start:null};sounds.length=0;advanceLevelMap(0);assert.deepEqual(sounds,['mapStep']);advanceLevelMap(325);advanceLevelMap(MAP_HOP_DURATION);assert.deepEqual(sounds,['mapStep'],'One movement cue at hop start, no completion page cue');hideStageStart();
 dailyRun=null;reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);down(pointFor(body));grips[0]=null;
-const invalidBefore=JSON.stringify({body:committed,grips:startGrips,moveCount,stamina});sounds.length=0;release();assert.deepEqual(sounds,['move']);assert.equal(JSON.stringify({body,grips,moveCount,stamina}),invalidBefore);
+const invalidBefore=JSON.stringify({body:committed,grips:startGrips,moveCount,stamina});sounds.length=0;haptics.length=0;release();assert.deepEqual(haptics,[]);assert.deepEqual(sounds,['move']);assert.equal(JSON.stringify({body,grips,moveCount,stamina}),invalidBefore);
 
 // Accepted title/Start taps use the dedicated launch cue once, without the generic tap.
 showTitleScreen();titleReady=true;sounds.length=0;ui.titleScreen.onclick();ui.titleScreen.onclick();assert.deepEqual(sounds,['launch']);
@@ -78,7 +79,7 @@ const contactEvent=p=>({clientX:contactOrigin.clientX+p.dx,clientY:contactOrigin
 sounds.length=0;down(contactOrigin);assert.deepEqual(sounds,[]);
 for(const p of route[1].action.points)move(contactEvent(p));assert(sounds.includes('contact'));assert.equal(moveCount,0);
 const lastContactDelta=route[1].action.points.at(-1);
-sounds.length=0;move(contactEvent(lastContactDelta));assert.deepEqual(sounds,[]);
+sounds.length=0;haptics.length=0;move(contactEvent(lastContactDelta));assert.deepEqual(haptics,[]);assert.deepEqual(sounds,[]);
 // Isolate contact transitions at the coupled replay seam, retaining real input,
 // deduplication and audio hooks. Geometry/clear above uses unmodified replay.
 const realCoupledReplay=coupledGestureReplay,contactPose={...body},preview=[...grips],contactAnchor=[...drag.anchor];
@@ -87,15 +88,15 @@ let nextPreview=[...preview],contactTick=0;
 coupledGestureReplay=(...args)=>({...realCoupledReplay(...args),active:true,p:contactPose,stance:nextPreview,anchor:contactAnchor});
 function previewContact(){contactTick++;move(contactEvent({dx:lastContactDelta.dx+contactTick*.01,dy:lastContactDelta.dy}));}
 nextPreview=[...preview];nextPreview[moving[0]]=null;
-previewContact();assert.deepEqual(sounds,[]);
-nextPreview=[...preview];previewContact();assert.deepEqual(sounds,['contact']);
-sounds.length=0;previewContact();assert.deepEqual(sounds,[]);
+previewContact();assert.deepEqual(sounds,[]);assert.deepEqual(haptics,[]);
+nextPreview=[...preview];previewContact();assert.deepEqual(haptics,['light']);assert.deepEqual(sounds,['contact']);
+sounds.length=0;haptics.length=0;previewContact();assert.deepEqual(sounds,[]);assert.deepEqual(haptics,[]);
 nextPreview=[...preview];for(const i of moving)nextPreview[i]={...preview[i],id:999+i};
 previewContact();assert.deepEqual(sounds,['contact'],'Simultaneous contacts share one short cue');
 sounds.length=0;nextPreview=[...preview];for(const i of moving)nextPreview[i]={...preview[i],type:'hazard',id:2000+i};
 previewContact();assert.deepEqual(sounds,[],'Hazard preview must not double normal contact with its release cue');
-sounds.length=0;release(true);assert.deepEqual(sounds,[]);assert.equal(moveCount,0);
-coupledGestureReplay=realCoupledReplay;
+sounds.length=0;haptics.length=0;release(true);assert.deepEqual(haptics,[]);assert.deepEqual(sounds,[]);assert.equal(moveCount,0);
+coupledGestureReplay=realCoupledReplay;delete globalThis.AscentHaptics;
 
 `)(assert);
 console.log('PASS audio: gesture unlock/no autoplay, sound toggle persistence, mute stops voices, unsupported APIs/storage, cooldown, actual start/move/pickup/clear/fail, shared life/confirm/page/invalid cues, rollback and no duplicate click/result cues');
