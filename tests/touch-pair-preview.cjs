@@ -3,6 +3,16 @@ require('./coupled-production-harness.cjs')(`
  const mouse=(name,e)=>(name==='mousedown'?canvas.events:window.events)[name](e);
  const touch=(name,touches,changedTouches=touches)=>canvas.events[name]({touches,changedTouches,preventDefault(){}});
  const gameplay=()=>JSON.stringify({body,grips:ids(grips),stamina,moveCount,hearts,lives,heartItems,undoSnapshot,rankingAssistanceUsed});
+ assert.equal(TouchPairPreview.enabled,false,'Normal-play display defaults off');
+ for(const daily of [false,true]){
+  fixture();setDebugMode(false);dailyRun=daily?{date:'2026-11-18'}:null;
+  const e=eventAtScreen(100,200),before=gameplay();mouse('mousedown',e);
+  assert(drag);assert(!TouchPairPreview.visible);assert.equal(TouchPairPreview.snapshot,null);
+  const arc=ctx.arc;try{ctx.arc=()=>{throw Error('Hidden preview must not draw')};TouchPairPreview.draw();}finally{ctx.arc=arc;}
+  mouse('mousemove',movedEvent(e,{dx:30,dy:-30}));assert(drag.anchor?.length===2,'Two-limb selection remains active');
+  window.events.blur();assert.equal(gameplay(),before);
+ }
+ TouchPairPreview.setEnabled(true);assert(TouchPairPreview.enabled,'Retained display can be re-enabled');
  for(const daily of [false,true])for(const rect of [{left:0,top:0,width:400,height:700},{left:17,top:40,width:320,height:720}]){
   fixture();testRect=rect;setDebugMode(false);SixPairSelection.clear();dailyRun=daily?{date:'2026-11-18'}:null;
   const e=eventAtScreen(100,200),before=gameplay();
@@ -56,5 +66,8 @@ require('./coupled-production-harness.cjs')(`
   mouse('mousedown',e);document.visibilityState='hidden';TouchPairPreview.draw();assert(!TouchPairPreview.visible);document.visibilityState='visible';endPointer(null,true);
   mouse('mousemove',e);assert(!TouchPairPreview.visible,'No hover activation');assert.equal(gameplay(),before);
  }
+ fixture();setDebugMode(false);mouse('mousedown',eventAtScreen(100,200));assert(TouchPairPreview.visible);
+ TouchPairPreview.setEnabled(false);assert(!TouchPairPreview.visible);assert.equal(TouchPairPreview.snapshot,null);
+ endPointer(null,true);
 `);
-console.log('PASS touch pair preview: normal/Daily, pointer-centered exact sectors, 75% inner / transparent outer ring, six hues and upright moving-limb pips, scaled viewport, hold/release/swipe, body Undo, pan, cancel/blur, modal guards, no gameplay cost');
+console.log('PASS touch pair preview: hidden by default, selection preserved, reversible display toggle, normal/Daily, pointer-centered exact sectors, 75% inner / transparent outer ring, six hues and upright moving-limb pips, scaled viewport, hold/release/swipe, body Undo, pan, cancel/blur, modal guards, no gameplay cost');

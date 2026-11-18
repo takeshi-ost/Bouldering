@@ -67,10 +67,11 @@ const TouchPairPreview=(()=>{
     const colors=['#2584e8','#e84646','#f2cf37','#36b86b','#995de0','#ef912f'];
     // Same screen-space order as limbs: left hand, right hand, left foot, right foot.
     const pipOffsets=[[-5,-5],[5,-5],[-5,5],[5,5]];
-    let view=null;
+    // Display-only switch. Selection and the independent debug overlay stay active.
+    let displayEnabled=false,view=null;
     const invalidate=()=>{if(typeof requestStageArtworkRender==='function')requestStageArtworkRender();};
     function hide(){if(view){view=null;invalidate();}}
-    function available(){return state==='playing' && !settingsOpen && !featureHelpOpen && ui.overlay.hidden && !cameraIntro && (typeof document==='undefined' || document.visibilityState!=='hidden');}
+    function available(){return displayEnabled && state==='playing' && !settingsOpen && !featureHelpOpen && ui.overlay.hidden && !cameraIntro && (typeof document==='undefined' || document.visibilityState!=='hidden');}
     function begin(e){
         hide();
         if(!available() || (DEBUG_FEATURES_ALLOWED && debugMode) || (!drag && !bodyTap) || !grips.every(Boolean))return;
@@ -115,5 +116,5 @@ const TouchPairPreview=(()=>{
         ctx.restore();
     }
     if(typeof document!=='undefined')document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='hidden')hide();});
-    return {begin,move,hide,draw,get visible(){return !!view;},get snapshot(){return view;}};
+    return {begin,move,hide,draw,setEnabled(enabled){displayEnabled=enabled===true;if(!displayEnabled)hide();},get enabled(){return displayEnabled;},get visible(){return !!view;},get snapshot(){return view;}};
 })();
