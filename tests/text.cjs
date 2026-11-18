@@ -13,9 +13,9 @@ for(const key of Object.keys(catalog)) {
  assert.deepEqual(placeholders(english[key]),placeholders(catalog[key]),key);
  assert(!/[\u3040-\u30ff\u3400-\u9fff]/.test(english[key]) || key==='ui.languageChoice.option','Untranslated English: '+key);
 }
-// Owner-authored result Tips: exactly seven, in requested order. The former
+// Owner-authored result Tips: exactly ten, in requested order. The former
 // large-hold and sideways entries must no longer enter the random selection.
-const expectedTipKeys=['tips.scroll','tips.undo','tips.reach','tips.goal','tips.heart','tips.cancel','tips.appearance'];
+const expectedTipKeys=['tips.scroll','tips.undo','tips.reach','tips.goal','tips.heart','tips.cancel','tips.appearance','tips.swipeDirection','tips.longSwipe','tips.chalkBags'];
 const expectedTips={ja:[
  '画面端か2本スワイプでスクロール！',
  'ボディをタップで1ムーブ戻せるよ！',
@@ -23,7 +23,10 @@ const expectedTips={ja:[
  'ゴールは両足の支えも忘れずに！',
  'スタミナ+2はボディでタッチ！',
  'ムーブは2本タッチでキャンセルできる！',
- '設定から見た目と名前が変えられるよ！'
+ '設定から見た目と名前が変えられるよ！',
+ "動かす手足はスワイプの最初の向きで決まる。いろいろな方向をためしてみよう",
+ "長くスワイプすると届くホールドがあるかも？",
+ "もう少しでスタミナが切れるときは、チョークバッグをふやして再挑戦！"
 ],en:[
  'Swipe along the screen edge or with two fingers to scroll!',
  'Tap your body to undo one move!',
@@ -31,7 +34,10 @@ const expectedTips={ja:[
  'Keep both feet supported at the goal!',
  'Touch Stamina +2 with your body!',
  'Touch with two fingers to cancel your current move!',
- 'Change your look and name in Settings!'
+ 'Change your look and name in Settings!',
+ "Your initial swipe direction determines which hands and feet move. Try different directions!",
+ "A longer swipe might help you reach a hold!",
+ "About to run out of stamina? Try again with more chalk bags!"
 ]};
 vm.runInContext(read('js/config.js'),context);
 assert.deepEqual(Array.from(vm.runInContext('GAMEPLAY_TIP_KEYS',context)),expectedTipKeys);
@@ -83,7 +89,7 @@ const source=sourceFiles.map(read).join('\n');
 const refs=new Set([...source.matchAll(/(?:gameText\(["']|data-i18n(?:-[\w-]+)?=")([^"']+)["']/g)].map(m=>m[1]));
 // Artifact-only controls select among literal localization keys by state.
 for(const match of source.matchAll(/["'](formal\.[a-zA-Z.]+)["']/g)){assert(Object.hasOwn(catalog,match[1]));refs.add(match[1]);}
-for(const key of ['tips.scroll','tips.undo','tips.reach','tips.goal','tips.heart','tips.cancel','tips.appearance'])refs.add(key);
+for(const key of ['tips.scroll','tips.undo','tips.reach','tips.goal','tips.heart','tips.cancel','tips.appearance','tips.swipeDirection','tips.longSwipe','tips.chalkBags'])refs.add(key);
 for(const match of source.matchAll(/(?:labelKey|titleKey|textKey|altKey):[\s]*['"]([^'"]+)['"]/g)){assert(Object.hasOwn(catalog,match[1]),'Missing definition label '+match[1]);refs.add(match[1]);}
 for(const day of ['sun','mon','tue','wed','thu','fri','sat'])refs.add('date.weekday.'+day);
 for(const key of Object.keys(catalog))assert(refs.has(key),'Unused dictionary entry: '+key);

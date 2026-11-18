@@ -622,7 +622,8 @@ canvas { display:block; width:min(100%,calc(var(--game-height)*4/7)); height:aut
 
 #overlay .result-tip { margin:16px 0 18px; text-align:left; }
 #overlay .result-tip[hidden] { display:none; }
-#overlay .result-tip p { margin:0; color:#395343; font-size:16px; line-height:1.6; overflow-wrap:anywhere; }
+#overlay .result-tip .result-tip-label { display:block; margin:0 0 4px; color:#395343; font-size:12px; font-weight:700; line-height:1.4; }
+#overlay .result-tip p { margin:0; color:#395343; font-size:16px; font-weight:700; line-height:1.6; overflow-wrap:anywhere; }
 
 /* The stage wall moves from its bottom to its top once over five minutes. */
 .title-wallpaper { position:absolute; inset:0 0 auto; height:300%; pointer-events:none;

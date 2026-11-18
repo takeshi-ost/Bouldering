@@ -1,5 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+assert.match(html, /class="result-tip-label"[^>]*>Tips<\/span><p id="resultTipText"/);
 assert(!html.includes('id="resultTag"') && !html.includes('id="resultText"'));
 const source=[...html.matchAll(/<script src="([^"?]+)(?:\?[^"\s]*)?" defer><\/script>/g)].map(m=>fs.readFileSync(path.join(root,m[1]),'utf8')).join('\n');
 const scoreFixture=require('./helpers/score-fixtures.cjs').scoreFixture;
@@ -138,8 +139,9 @@ new Function('assert',env+source+`
 reset(1);debugAttempt=true;
 const originalRandom=Math.random;
 try {
- assert.equal(GAMEPLAY_TIPS.length,7);
- for(const language of ['ja','en'])for(const won of [false,true]) {
+ assert.equal(GAMEPLAY_TIPS.length,10);
+ for(const language of ['ja','en'])for(const daily of [false,true])for(const won of [false,true]) {
+  dailyRun=daily?{...dailyProfile('2026-10-17'),returnCourse:'existing'}:null;
   setGameLanguage(language);
   for(let i=0;i<GAMEPLAY_TIPS.length;i++) {
    Math.random=()=>(i+.5)/GAMEPLAY_TIPS.length;

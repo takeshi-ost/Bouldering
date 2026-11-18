@@ -37,3 +37,16 @@ Not verified: Swift/Xcode compilation, simulator or physical haptic feel.
 No GitHub push, Web deployment, signing change or iPhone update was performed.
 The broader Web suite is not claimed passed. Before installing, run native
 asset packaging checks and Xcode build; verify touch feedback/mute on device.
+
+## Tips integration: 0.5.27 / build 30
+
+The feature/ios-haptics candidate now also includes the three additional
+owner-supplied result Tips, English translations, a 12px Tips heading and
+16px body text, both bold. The shared normal/Daily success/failure modal uses
+all ten Tips. Haptics implementation and native plugin registration are retained.
+The standalone feature/result-tips-20261118 branch remains available.
+
+This is a candidate-branch integration only, not a formal-branch merge or Web
+deployment. iPhone installation and UIKit haptic feel still need the Mac/device.
+The integration's native packaging attempt could not start because this cloud
+checkout lacked esbuild; this is not a successful packaging/build verification.
