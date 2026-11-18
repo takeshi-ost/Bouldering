@@ -61,3 +61,10 @@ Committed-pose and roulette-result confirmations retain the default medium
 impact. Trigger timing, persistence and mute behavior are unchanged.
 This candidate has not been published or installed on a device; physical
 haptic feel requires a later iPhone check.
+
+## Light-click adjustment: 0.5.31 / build 34
+
+After the owner reported no perceptible feedback at 0.25, light provisional
+contact and roulette-step impacts now use intensity 0.5. Default medium
+confirmations, timing, mute and persistence are unchanged. Physical feel
+requires owner verification; the intensity number is not a perceived percentage.
