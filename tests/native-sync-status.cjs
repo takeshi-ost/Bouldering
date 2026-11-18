@@ -37,7 +37,13 @@ assert(nativeDialog.indexOf('id="onlineStatus"')>nativeDialog.indexOf('id="stage
 assert(nativeDialog.endsWith(nodes.join('\n            ')+'\n        </dialog>'));
 for(const node of nodes)assert.equal(nativeDialog.split(node).length,2,'Preserve attributes and exactly one copy of each diagnostic');
 const withoutDiagnostics=text=>nodes.reduce((s,node)=>s.replace(node,''),text).replace(/\s+/g,' ').trim();
-assert.equal(withoutDiagnostics(html),withoutDiagnostics(nativeHTML),'No unrelated markup is moved/changed');
+// The approved vibration row is native-only; retain strict comparison for all
+// other markup rather than allowing arbitrary native settings changes.
+const hapticsRow='<label class="settings-row" for="hapticsEnabled"><span data-i18n="settings.haptics"></span><input id="hapticsEnabled" type="checkbox" checked></label>';
+assert.equal((html.match(/id="hapticsEnabled"/g)||[]).length,0,'Web has no vibration control');
+assert.equal((nativeHTML.match(/id="hapticsEnabled"/g)||[]).length,1,'Native has exactly one vibration control');
+assert.equal(nativeDialog.split(hapticsRow).length,2,'Native vibration row keeps its label and default-on checkbox');
+assert.equal(withoutDiagnostics(html),withoutDiagnostics(nativeHTML.replace(hapticsRow,'')),'Only diagnostics and the approved native vibration row may differ');
 assert.throws(()=>nativeSettingsLayout(html.replace(nodes[0],'')),/Expected one native diagnostic/);
 assert.throws(()=>nativeSettingsLayout(html.replace(nodes[0],nodes[0]+nodes[0])),/Expected one native diagnostic/);
 assert.throws(()=>nativeSettingsLayout(html+webDialog),/Expected one settings dialog/);
