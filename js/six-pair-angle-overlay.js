@@ -60,3 +60,53 @@ const SixPairAngleOverlay=(()=>{
     }
     return {begin,move,end,reset,hide,toggle,draw,get enabled(){return enabled();},get pending(){return enabled()?pending:null;},get visible(){return enabled() && !!view;},get snapshot(){return enabled()?view:null;}};
 })();
+
+// Normal-play pointer preview. Independent from the diagnostic tap-to-toggle map:
+// it never owns a gesture or changes the original down/move/release lifecycle.
+const TouchPairPreview=(()=>{
+    const colors=['#ad3627','#1769b2','#158147','#a52b83','#796000','#6b45c4'];
+    let view=null;
+    const invalidate=()=>{if(typeof requestStageArtworkRender==='function')requestStageArtworkRender();};
+    function hide(){if(view){view=null;invalidate();}}
+    function available(){return state==='playing' && !settingsOpen && !featureHelpOpen && ui.overlay.hidden && !cameraIntro && (typeof document==='undefined' || document.visibilityState!=='hidden');}
+    function begin(e){
+        hide();
+        if(!available() || (DEBUG_FEATURES_ALLOWED && debugMode) || (!drag && !bodyTap) || !grips.every(Boolean))return;
+        const saved={committed,startGrips};
+        try {
+            committed={...body};startGrips=[...grips];
+            const map=SixPairSelection.directionSamples();
+            view={event:{clientX:e.clientX,clientY:e.clientY},sectors:map.sectors,
+                body:{...body},holds,grips:[...grips],gesture:drag||bodyTap};
+        } finally {({committed,startGrips}=saved);}
+        invalidate();
+    }
+    function move(e){
+        if(!view)return;
+        const r=canvas.getBoundingClientRect(),origin=view.event;
+        if(Math.hypot(viewportClientDelta(e.clientX-origin.clientX,r),viewportClientDelta(e.clientY-origin.clientY,r))>=INPUT_CONFIG.dragThreshold)hide();
+    }
+    function draw(){
+        if(!view)return;
+        if(!available() || (DEBUG_FEATURES_ALLOWED && debugMode) || view.gesture!==(drag||bodyTap) ||
+            holds!==view.holds || body.x!==view.body.x || body.y!==view.body.y || !grips.every((h,i)=>h===view.grips[i])){hide();return;}
+        // Reproject the original client point: camera recentering must not move
+        // the circle away from the finger. Canvas bounds clip without shifting it.
+        const p=point(view.event),inner=52,outer=96;
+        ctx.save();ctx.globalAlpha=1;
+        for(const {index,start,width} of view.sectors||[]){
+            const end=start+width,color=colors[index];
+            const fade=ctx.createRadialGradient(p.x,p.y,inner,p.x,p.y,outer);
+            fade.addColorStop(0,color);fade.addColorStop(1,color+'00');
+            ctx.beginPath();ctx.arc(p.x,p.y,outer,start,end);ctx.arc(p.x,p.y,inner,end,start,true);ctx.closePath();
+            ctx.fillStyle=fade;ctx.fill();
+            const middle=start+width/2,radius=inner+12;
+            ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.fillStyle=color;
+            const x=p.x+radius*Math.cos(middle),y=p.y+radius*Math.sin(middle);
+            ctx.strokeText(String(index+1),x,y);ctx.fillText(String(index+1),x,y);
+        }
+        ctx.restore();
+    }
+    if(typeof document!=='undefined')document.addEventListener?.('visibilitychange',()=>{if(document.visibilityState==='hidden')hide();});
+    return {begin,move,hide,draw,get visible(){return !!view;},get snapshot(){return view;}};
+})();

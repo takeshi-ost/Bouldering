@@ -6,6 +6,7 @@ function endPan() { pan = null; }
 function canScrollStage() { return !featureHelpOpen && !settingsOpen && ['playing','won','lost'].includes(state) && ui.overlay.hidden && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT-H > cameraTop(); }
 // Delay a body gesture until it becomes a drag, preserving the visible pose on tap.
 function beginPointer(e) {
+    if(typeof TouchPairPreview!=='undefined')TouchPairPreview.hide();
     if (featureHelpOpen || settingsOpen || !ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
     const p=point(e);
     if(p.x>=0 && p.x<=W && (p.x<INPUT_CONFIG.edgeScrollWidth || p.x>W-INPUT_CONFIG.edgeScrollWidth)) {
@@ -21,8 +22,10 @@ function beginPointer(e) {
         bodyTap={event:{clientX:e.clientX,clientY:e.clientY},start:performance.now()};
     } else if(typeof SixPairAngleOverlay!=='undefined' && SixPairAngleOverlay.enabled && state==='playing')SixPairAngleOverlay.begin(e);
     else down(e);
+    if(typeof TouchPairPreview!=='undefined')TouchPairPreview.begin(e);
 }
 function movePointer(e) {
+    if(typeof TouchPairPreview!=='undefined')TouchPairPreview.move(e);
     if(typeof SixPairAngleOverlay!=='undefined' && SixPairAngleOverlay.pending){
         const origin=SixPairAngleOverlay.move(e);if(!origin)return;down(origin);
     }
@@ -36,6 +39,7 @@ function movePointer(e) {
     move(e);
 }
 function endPointer(e=null,cancel=false) {
+    if(typeof TouchPairPreview!=='undefined')TouchPairPreview.hide();
     if (!cancel && e) movePointer(e);
     if(typeof SixPairAngleOverlay!=='undefined' && SixPairAngleOverlay.pending){SixPairAngleOverlay.end(cancel);return;}
     if(cancel && typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.hide();
@@ -141,6 +145,7 @@ function touchEnd(e, cancel) {
 canvas.addEventListener('touchend', e => touchEnd(e, false));
 canvas.addEventListener('touchcancel', e => touchEnd(e, true));
 function restartInput(n,staminaBonus=0) {
+    if(typeof TouchPairPreview!=='undefined')TouchPairPreview.hide();
     if(typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.reset();
     bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n,staminaBonus);showStageHelp();
 }
@@ -261,6 +266,7 @@ ui.closeLife.onclick=cancelLifePrompt;
 dismissOutside(ui.lifeDialog,cancelLifePrompt,true);
 
 function setDebugMode(enabled) {
+    if(typeof TouchPairPreview!=='undefined')TouchPairPreview.hide();
     if((!enabled || !DEBUG_FEATURES_ALLOWED) && typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.reset();
     if(!DEBUG_FEATURES_ALLOWED) {
         ui.mapDebugMode.checked=false;

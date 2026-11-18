@@ -1156,6 +1156,7 @@ function draw(now = 0) {
     drawAnchorRings(now);
     drawHeartPopups(paintTime);
     if(typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.draw();
+    if(typeof TouchPairPreview!=='undefined')TouchPairPreview.draw();
     ctx.restore();
     if(pan?.edge && pan.scrolling && canScrollStage()) {
         ctx.fillStyle=RENDER_CONFIG.safeAreaColor;
