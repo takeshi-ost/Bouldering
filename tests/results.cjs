@@ -143,15 +143,18 @@ try {
  for(const language of ['ja','en'])for(const daily of [false,true])for(const won of [false,true]) {
   dailyRun=daily?{...dailyProfile('2026-10-17'),returnCourse:'existing'}:null;
   setGameLanguage(language);
-  for(let i=0;i<GAMEPLAY_TIPS.length;i++) {
-   Math.random=()=>(i+.5)/GAMEPLAY_TIPS.length;
+  const keys=gameplayTipKeys(daily?'daily':'normal');
+  assert.equal(keys.length,daily?9:10);
+  assert.equal(keys.includes('tips.chalkBags'),!daily);
+  for(let i=0;i<keys.length;i++) {
+   Math.random=()=>(i+.5)/keys.length;
    finish(won);
    assert.equal(ui.resultTitle.textContent,gameText(won?'result.success':'result.failure'));
    assert(!ui.resultTip.hidden);
-   assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
-   updateUI();assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i]);
+   assert.equal(ui.resultTipText.textContent,gameText(keys[i]));
+   updateUI();assert.equal(ui.resultTipText.textContent,gameText(keys[i]));
    setGameLanguage(language==='ja'?'en':'ja');
-   assert.equal(ui.resultTipText.textContent,GAMEPLAY_TIPS[i],'Language change preserves selected Tip');
+   assert.equal(ui.resultTipText.textContent,gameText(keys[i]),'Language change preserves selected Tip');
    setGameLanguage(language);
   }
  }

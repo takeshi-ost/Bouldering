@@ -1138,7 +1138,9 @@ function finish(won) {
             ? gameText("result.success")
             : gameText("result.failure");
     ui.resultTip.hidden=false;
-    ui.resultTipText.textContent=GAMEPLAY_TIPS[Math.floor(Math.random()*GAMEPLAY_TIPS.length)];
+    const tipKeys=gameplayTipKeys(dailyRun?'daily':'normal');
+    resultTipKey=tipKeys[Math.floor(Math.random()*tipKeys.length)];
+    ui.resultTipText.textContent=gameText(resultTipKey);
 
     hideSettings();
     updateUI();

@@ -111,7 +111,7 @@ const GAME_TEXT_EN = Object.freeze({
     "editor.pose.standing": "Standing naturally",
     "tips.swipeDirection": "Your initial swipe direction determines which hands and feet move. Try different directions!",
     "tips.longSwipe": "A longer swipe might help you reach a hold!",
-    "tips.chalkBags": "About to run out of stamina? Try again with more chalk bags!",
+    "tips.chalkBags": "Not enough stamina for a stage? Try again with more chalk bags!",
     "tips.appearance": "Change your look and name in Settings!",
     "tips.cancel": "Touch with two fingers to cancel your current move!",
     "tips.heart": "Touch Stamina +2 with your body!",

@@ -66,7 +66,7 @@ const GAME_TEXT_JA = Object.freeze({
     "editor.pose.standing": "自然に立つ",
     "tips.swipeDirection": "動かす手足はスワイプの最初の向きで決まる。いろいろな方向をためしてみよう",
     "tips.longSwipe": "長くスワイプすると届くホールドがあるかも？",
-    "tips.chalkBags": "もう少しでスタミナが切れるときは、チョークバッグをふやして再挑戦！",
+    "tips.chalkBags": "スタミナが足りないステージは、チョークバッグをふやして再挑戦！",
     "tips.appearance": "設定から見た目と名前が変えられるよ！",
     "tips.cancel": "ムーブは2本タッチでキャンセルできる！",
     "tips.heart": "スタミナ+2はボディでタッチ！",

@@ -1,5 +1,5 @@
 'use strict';
-globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"4dd619aa4452c2298777fba687e825b85460935424989d45ad9fabc1993846c4","sources":[{"path":"js/text-ja.js","sha256":"4eb4c0dac2c1af4c11c07bcf6d9bf9f7815c371377a5d29d76e01b27bb26d1a4"},{"path":"js/text-en.js","sha256":"bcff9b15714010b21b107d8f69ef4d9285c0ad7f4ed6c96a5ca3eaf193097751"},{"path":"js/text-dev-ja.js","sha256":"09599be7b418b6387d946c65866f70b1004dd7cb395dae9e7373a3e2ca52a05c"},{"path":"js/config.js","sha256":"01891161d73322b86eef02ca8cba9420ce417282cf08f44450d84e5593dae28f"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"2f355fb52497a23ea8ab8cacbf913b82688e70e64a937763e523114ebf0e067f"},{"path":"js/six-pair-selection.js","sha256":"3001c2472ba388076e3465f499bbd6594eb984b74f7488efa86f89a66350da78"},{"path":"js/game.js","sha256":"716b74058f7cfc811577e6696a2858ac5640c44f6646f993c07a5327586e1f97"},{"path":"js/route.js","sha256":"196fc0f599c3ec9c3ef81e850e1169a55657fcd555483d6b0750b7e823526f46"},{"path":"js/course.js","sha256":"2db489d41b918fa4c39534bf6998121ed30a3a392941da439389c7a3db5f99ae"},{"path":"js/hazards.js","sha256":"26ac55233974a498ae6962cb437a6d6fd777248614bb27e7ae65f94120275157"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"3612d7bedf39c9ea9a6cea6c14d5425e314796b36fc65524ebfa9e8edcc367d2"},{"path":"js/course-adoption.js","sha256":"4116239692a490e82a3870ebda26e86c773449449bad260cfed25f9d764ab9bb"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"54df1a6db6f73cea2278984077eca87176accde7a6e87fa8b6c4d3eee3dd4f95"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"c830ae65e1e699c280ccdac7b6bcc85ab3f1da3b9adc69e48148359fe6f88aee"}]});
+globalThis.ASCENT_COURSE_BUILD=Object.freeze({"protocol":1,"id":"0bb984a73735a3873849eab0ec61781d7bcffb2dedda997f2dd3ccca3849438d","sources":[{"path":"js/text-ja.js","sha256":"f838a1c936b87e43b387fc7ea388eecfc920d7f74a7f450f0e19a08c5c768c2f"},{"path":"js/text-en.js","sha256":"65c502d0cad949d46522a822f0f680f3b10de5bec77b9f4b27d2a8ad9b2f5feb"},{"path":"js/text-dev-ja.js","sha256":"09599be7b418b6387d946c65866f70b1004dd7cb395dae9e7373a3e2ca52a05c"},{"path":"js/config.js","sha256":"b3b80538584798fb47e0ecdf0c117cf2ac9790b22d46423b28e308d16606713f"},{"path":"js/course-progression-config.js","sha256":"3438658870e1c410eb9f6e9448a4f4099641c0d48c3afb53eed764033c8368b8"},{"path":"js/course-distribution-config.js","sha256":"a7e767c2872aec25f7794be70226b762f93b3f312649b4c6184f8adc5f4265ca"},{"path":"js/course-distribution.js","sha256":"b8ee0f3a1f110848c4708daece6173ab0f397d95181681c9be87c91bd5b7882e"},{"path":"js/course-progression.js","sha256":"03d7bbaa775d381b7cb51481d568b0b69ffb1710a99cac5b40df0afbc66bde90"},{"path":"js/difficulty-config.js","sha256":"7f4b057f83197243144648db00926568a2efa987d73d6716535c2d795f40c43c"},{"path":"js/utils.js","sha256":"d73670fd1f8dede824efe908fe20807c8c4547ade0d37497463bbdeb3e2010ed"},{"path":"js/difficulty.js","sha256":"c750680f755fcee9a9f539dd64a268e13acf95e21dcdf0f378df574b55db2378"},{"path":"js/stage.js","sha256":"1c768a6ef803bae57144f7f8954171ec54e15eb86178fa367cf5dcfdecf7c06b"},{"path":"js/finger-aim.js","sha256":"50d41c61ca1fa42bb0e40961bf99fdd066a1bbe8d2809a2a4e11306419c88606"},{"path":"js/finger-route.js","sha256":"2f355fb52497a23ea8ab8cacbf913b82688e70e64a937763e523114ebf0e067f"},{"path":"js/six-pair-selection.js","sha256":"3001c2472ba388076e3465f499bbd6594eb984b74f7488efa86f89a66350da78"},{"path":"js/game.js","sha256":"5e8f66eefd19e51a4b52171a43f019cd5c498591749a449ca775d83d5ef221de"},{"path":"js/route.js","sha256":"196fc0f599c3ec9c3ef81e850e1169a55657fcd555483d6b0750b7e823526f46"},{"path":"js/course.js","sha256":"2db489d41b918fa4c39534bf6998121ed30a3a392941da439389c7a3db5f99ae"},{"path":"js/hazards.js","sha256":"26ac55233974a498ae6962cb437a6d6fd777248614bb27e7ae65f94120275157"},{"path":"js/course-stamina-settings.js","sha256":"e5a64ef8dafb6b06277a50b25ddcba153158fcbcede0e52d6f32fc8c8c057b47"},{"path":"js/course-generator-core.js","sha256":"3612d7bedf39c9ea9a6cea6c14d5425e314796b36fc65524ebfa9e8edcc367d2"},{"path":"js/course-adoption.js","sha256":"4116239692a490e82a3870ebda26e86c773449449bad260cfed25f9d764ab9bb"},{"path":"js/tutorial-course.js","sha256":"c846a93a64e8371c2b8df2f59777f300768d6a2c1ed5a5df6150dd4628a4e2de"},{"path":"js/course-preparation.js","sha256":"54df1a6db6f73cea2278984077eca87176accde7a6e87fa8b6c4d3eee3dd4f95"},{"path":"js/text.js","sha256":"c7df5d2ebf704285535e0499a629283f60c57e96a8b7783357893b64235d4a96"},{"path":"scripts/course-worker-entry.js","sha256":"c960ffcd5d9405c15008c0ac27344f7cd85404bd21b94a915037a1ddfebbd288"},{"path":"scripts/build-course-worker.cjs","sha256":"c830ae65e1e699c280ccdac7b6bcc85ab3f1da3b9adc69e48148359fe6f88aee"}]});
 globalThis.ASCENT_COURSE_WORKER=true;
 let debugAttempt=false;
 function isTutorialRun(){return tutorialRun!==null;}
@@ -73,7 +73,7 @@ const GAME_TEXT_JA = Object.freeze({
     "editor.pose.standing": "自然に立つ",
     "tips.swipeDirection": "動かす手足はスワイプの最初の向きで決まる。いろいろな方向をためしてみよう",
     "tips.longSwipe": "長くスワイプすると届くホールドがあるかも？",
-    "tips.chalkBags": "もう少しでスタミナが切れるときは、チョークバッグをふやして再挑戦！",
+    "tips.chalkBags": "スタミナが足りないステージは、チョークバッグをふやして再挑戦！",
     "tips.appearance": "設定から見た目と名前が変えられるよ！",
     "tips.cancel": "ムーブは2本タッチでキャンセルできる！",
     "tips.heart": "スタミナ+2はボディでタッチ！",
@@ -413,7 +413,7 @@ const GAME_TEXT_EN = Object.freeze({
     "editor.pose.standing": "Standing naturally",
     "tips.swipeDirection": "Your initial swipe direction determines which hands and feet move. Try different directions!",
     "tips.longSwipe": "A longer swipe might help you reach a hold!",
-    "tips.chalkBags": "About to run out of stamina? Try again with more chalk bags!",
+    "tips.chalkBags": "Not enough stamina for a stage? Try again with more chalk bags!",
     "tips.appearance": "Change your look and name in Settings!",
     "tips.cancel": "Touch with two fingers to cancel your current move!",
     "tips.heart": "Touch Stamina +2 with your body!",
@@ -718,15 +718,24 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.27';
+const RELEASE_VERSION = '0.5.28';
 // Restore normal-stage rankings after production Rules gained v5 support.
 const COURSE_RANKINGS_ENABLED = true;
-const GAMEPLAY_TIP_KEYS = [
-    'tips.scroll', 'tips.undo', 'tips.reach',
-    'tips.goal', 'tips.heart', 'tips.cancel', 'tips.appearance',
-    'tips.swipeDirection', 'tips.longSwipe', 'tips.chalkBags'
-];
+// scope: both, normal, or daily. Daily-only copy can be added without UI changes.
+const GAMEPLAY_TIP_DEFINITIONS = Object.freeze([
+    {key:'tips.scroll',scope:'both'}, {key:'tips.undo',scope:'both'},
+    {key:'tips.reach',scope:'both'}, {key:'tips.goal',scope:'both'},
+    {key:'tips.heart',scope:'both'}, {key:'tips.cancel',scope:'both'},
+    {key:'tips.appearance',scope:'both'}, {key:'tips.swipeDirection',scope:'both'},
+    {key:'tips.longSwipe',scope:'both'}, {key:'tips.chalkBags',scope:'normal'}
+].map(Object.freeze));
+const GAMEPLAY_TIP_KEYS = GAMEPLAY_TIP_DEFINITIONS.map(tip=>tip.key);
 const GAMEPLAY_TIPS = GAMEPLAY_TIP_KEYS.map(key=>gameText(key));
+let resultTipKey=null;
+function gameplayTipKeys(mode,definitions=GAMEPLAY_TIP_DEFINITIONS) {
+    if(!['normal','daily'].includes(mode))throw new Error('Invalid Tip mode');
+    return definitions.filter(tip=>tip.scope==='both' || tip.scope===mode).map(tip=>tip.key);
+}
 // Bump whenever generation/gameplay changes make stage scores incomparable.
 const COURSE_VERSION = 'v5';
 // Six-pair controls and arc-progress generation: retain older records as history.
@@ -3288,7 +3297,9 @@ function finish(won) {
             ? gameText("result.success")
             : gameText("result.failure");
     ui.resultTip.hidden=false;
-    ui.resultTipText.textContent=GAMEPLAY_TIPS[Math.floor(Math.random()*GAMEPLAY_TIPS.length)];
+    const tipKeys=gameplayTipKeys(dailyRun?'daily':'normal');
+    resultTipKey=tipKeys[Math.floor(Math.random()*tipKeys.length)];
+    ui.resultTipText.textContent=gameText(resultTipKey);
 
     hideSettings();
     updateUI();

@@ -26,7 +26,7 @@ const expectedTips={ja:[
  '設定から見た目と名前が変えられるよ！',
  "動かす手足はスワイプの最初の向きで決まる。いろいろな方向をためしてみよう",
  "長くスワイプすると届くホールドがあるかも？",
- "もう少しでスタミナが切れるときは、チョークバッグをふやして再挑戦！"
+ "スタミナが足りないステージは、チョークバッグをふやして再挑戦！"
 ],en:[
  'Swipe along the screen edge or with two fingers to scroll!',
  'Tap your body to undo one move!',
@@ -37,7 +37,7 @@ const expectedTips={ja:[
  'Change your look and name in Settings!',
  "Your initial swipe direction determines which hands and feet move. Try different directions!",
  "A longer swipe might help you reach a hold!",
- "About to run out of stamina? Try again with more chalk bags!"
+ "Not enough stamina for a stage? Try again with more chalk bags!"
 ]};
 vm.runInContext(read('js/config.js'),context);
 assert.deepEqual(Array.from(vm.runInContext('GAMEPLAY_TIP_KEYS',context)),expectedTipKeys);

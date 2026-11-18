@@ -4,15 +4,24 @@ function heartItemIconMarkup() {
     return `<img class="heart-item-icon" src="${HEART_ITEM_IMAGE_SRC}" width="52" height="48" alt="" aria-hidden="true" draggable="false">`;
 }
 const COURSE_HEART_IMAGE_SRC = 'assets/course-heart-2.svg';
-const RELEASE_VERSION = '0.5.27';
+const RELEASE_VERSION = '0.5.28';
 // Restore normal-stage rankings after production Rules gained v5 support.
 const COURSE_RANKINGS_ENABLED = true;
-const GAMEPLAY_TIP_KEYS = [
-    'tips.scroll', 'tips.undo', 'tips.reach',
-    'tips.goal', 'tips.heart', 'tips.cancel', 'tips.appearance',
-    'tips.swipeDirection', 'tips.longSwipe', 'tips.chalkBags'
-];
+// scope: both, normal, or daily. Daily-only copy can be added without UI changes.
+const GAMEPLAY_TIP_DEFINITIONS = Object.freeze([
+    {key:'tips.scroll',scope:'both'}, {key:'tips.undo',scope:'both'},
+    {key:'tips.reach',scope:'both'}, {key:'tips.goal',scope:'both'},
+    {key:'tips.heart',scope:'both'}, {key:'tips.cancel',scope:'both'},
+    {key:'tips.appearance',scope:'both'}, {key:'tips.swipeDirection',scope:'both'},
+    {key:'tips.longSwipe',scope:'both'}, {key:'tips.chalkBags',scope:'normal'}
+].map(Object.freeze));
+const GAMEPLAY_TIP_KEYS = GAMEPLAY_TIP_DEFINITIONS.map(tip=>tip.key);
 const GAMEPLAY_TIPS = GAMEPLAY_TIP_KEYS.map(key=>gameText(key));
+let resultTipKey=null;
+function gameplayTipKeys(mode,definitions=GAMEPLAY_TIP_DEFINITIONS) {
+    if(!['normal','daily'].includes(mode))throw new Error('Invalid Tip mode');
+    return definitions.filter(tip=>tip.scope==='both' || tip.scope===mode).map(tip=>tip.key);
+}
 // Bump whenever generation/gameplay changes make stage scores incomparable.
 const COURSE_VERSION = 'v5';
 // Six-pair controls and arc-progress generation: retain older records as history.

@@ -1,0 +1,13 @@
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const context=vm.createContext({gameText:key=>key});
+vm.runInContext(fs.readFileSync('js/config.js','utf8'),context);
+const run=code=>JSON.parse(JSON.stringify(vm.runInContext(code,context)));
+assert.deepEqual(run("gameplayTipKeys('normal')"),run('GAMEPLAY_TIP_KEYS'));
+assert.deepEqual(run("gameplayTipKeys('daily')"),run("GAMEPLAY_TIP_KEYS.filter(key=>key!=='tips.chalkBags')"));
+const fixture="[{key:'common',scope:'both'},{key:'stage',scope:'normal'},{key:'challenge',scope:'daily'}]";
+assert.deepEqual(run("gameplayTipKeys('normal',"+fixture+")"),['common','stage']);
+assert.deepEqual(run("gameplayTipKeys('daily',"+fixture+")"),['common','challenge']);
+assert.throws(()=>run("gameplayTipKeys('invalid')"),/Invalid Tip mode/);
+assert.equal(run("Object.isFrozen(GAMEPLAY_TIP_DEFINITIONS) && GAMEPLAY_TIP_DEFINITIONS.every(Object.isFrozen)"),true);
+console.log('PASS Tip scopes: both / normal-only / Daily-only; chalk excluded only from Daily; immutable definitions');

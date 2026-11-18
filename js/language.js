@@ -1,9 +1,8 @@
 "use strict";
 // Refresh presentation only: never reset a course, replay a result, or write scores.
 function refreshGameLanguage(previous) {
-    const tipIndex=GAMEPLAY_TIPS.indexOf(ui.resultTipText.textContent);
     GAMEPLAY_TIPS.splice(0,GAMEPLAY_TIPS.length,...GAMEPLAY_TIP_KEYS.map(key=>gameText(key)));
-    if(tipIndex>=0)ui.resultTipText.textContent=GAMEPLAY_TIPS[tipIndex];
+    if(resultTipKey)ui.resultTipText.textContent=gameText(resultTipKey);
     if(typeof refreshTutorialExplanationLanguage==='function')refreshTutorialExplanationLanguage();
     if(typeof refreshStageHelpLanguage==='function')refreshStageHelpLanguage();
     ui.languageChoice.value=GAME_TEXT_LANGUAGE;
