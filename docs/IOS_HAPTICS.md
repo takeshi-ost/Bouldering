@@ -50,3 +50,14 @@ This is a candidate-branch integration only, not a formal-branch merge or Web
 deployment. iPhone installation and UIKit haptic feel still need the Mac/device.
 The integration's native packaging attempt could not start because this cloud
 checkout lacked esbuild; this is not a successful packaging/build verification.
+
+## Preview and light-click refinement: 0.5.30 / build 33
+
+Normal-play touch preview uses six hues and an inner opacity of 75%, fading
+outward to transparent. Four upright pips represent left/right hands above
+left/right feet. Bright pips show the moving limbs, not the fixed anchors.
+Only light provisional-contact/roulette-step impacts use intensity 0.25.
+Committed-pose and roulette-result confirmations retain the default medium
+impact. Trigger timing, persistence and mute behavior are unchanged.
+This candidate has not been published or installed on a device; physical
+haptic feel requires a later iPhone check.

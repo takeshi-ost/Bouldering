@@ -64,7 +64,9 @@ const SixPairAngleOverlay=(()=>{
 // Normal-play pointer preview. Independent from the diagnostic tap-to-toggle map:
 // it never owns a gesture or changes the original down/move/release lifecycle.
 const TouchPairPreview=(()=>{
-    const colors=['#ad3627','#1769b2','#158147','#a52b83','#796000','#6b45c4'];
+    const colors=['#2584e8','#e84646','#f2cf37','#36b86b','#995de0','#ef912f'];
+    // Same screen-space order as limbs: left hand, right hand, left foot, right foot.
+    const pipOffsets=[[-5,-5],[5,-5],[-5,5],[5,5]];
     let view=null;
     const invalidate=()=>{if(typeof requestStageArtworkRender==='function')requestStageArtworkRender();};
     function hide(){if(view){view=null;invalidate();}}
@@ -94,16 +96,21 @@ const TouchPairPreview=(()=>{
         // the circle away from the finger. Canvas bounds clip without shifting it.
         const p=point(view.event),inner=52,outer=96;
         ctx.save();ctx.globalAlpha=1;
-        for(const {index,start,width} of view.sectors||[]){
+        for(const {index,start,width,pair} of view.sectors||[]){
             const end=start+width,color=colors[index];
             const fade=ctx.createRadialGradient(p.x,p.y,inner,p.x,p.y,outer);
             fade.addColorStop(0,color);fade.addColorStop(1,color+'00');
             ctx.beginPath();ctx.arc(p.x,p.y,outer,start,end);ctx.arc(p.x,p.y,inner,end,start,true);ctx.closePath();
-            ctx.fillStyle=fade;ctx.fill();
+            ctx.globalAlpha=.75;ctx.fillStyle=fade;ctx.fill();ctx.globalAlpha=1;
             const middle=start+width/2,radius=inner+12;
-            ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=3;ctx.strokeStyle='#fff';ctx.fillStyle=color;
             const x=p.x+radius*Math.cos(middle),y=p.y+radius*Math.sin(middle);
-            ctx.strokeText(String(index+1),x,y);ctx.fillText(String(index+1),x,y);
+            // sector.pair contains FIXED anchors; illuminate the two limbs that move.
+            // Keep the four-dot glyph upright, regardless of the sector direction.
+            pipOffsets.forEach(([dx,dy],limb)=>{
+                ctx.beginPath();ctx.arc(x+dx,y+dy,3.5,0,Math.PI*2);
+                ctx.fillStyle=pair.includes(limb)?'#26313d':'#fff';ctx.fill();
+                ctx.lineWidth=1;ctx.strokeStyle='#26313d';ctx.stroke();
+            });
         }
         ctx.restore();
     }

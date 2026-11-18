@@ -29,7 +29,11 @@ public final class AscentHapticsPlugin: CAPPlugin, CAPBridgedPlugin {
                 return
             }
             let generator = strength == "light" ? self.lightImpact : self.strongImpact
-            generator.impactOccurred()
+            if strength == "light" {
+                generator.impactOccurred(intensity: 0.25)
+            } else {
+                generator.impactOccurred()
+            }
             // Prepare the reused generator for the next interactive click.
             generator.prepare()
             call.resolve(["played": true])

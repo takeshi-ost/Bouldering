@@ -8,21 +8,31 @@ require('./coupled-production-harness.cjs')(`
   const e=eventAtScreen(100,200),before=gameplay();
   mouse('mousedown',e);assert(drag,'Original normal down lifecycle is preserved');
   assert(TouchPairPreview.visible);assert.equal(SixPairAngleOverlay.pending,null);
-  const shown=TouchPairPreview.snapshot,center=point(e),arcs=[],gradients=[],texts=[];
-  const saved={arc:ctx.arc,createRadialGradient:ctx.createRadialGradient,fillText:ctx.fillText};
+  const shown=TouchPairPreview.snapshot,center=point(e),arcs=[],gradients=[],texts=[],fills=[],alphas=[];
+  const saved={arc:ctx.arc,createRadialGradient:ctx.createRadialGradient,fillText:ctx.fillText,fill:ctx.fill};
   try {
    ctx.arc=(...args)=>arcs.push(args);
    ctx.createRadialGradient=(...args)=>{const item={args,stops:[]};gradients.push(item);return {addColorStop:(...stop)=>item.stops.push(stop)}};
-   ctx.fillText=(...args)=>texts.push(args);TouchPairPreview.draw();
+   ctx.fillText=(...args)=>texts.push(args);ctx.fill=()=>{fills.push(ctx.fillStyle);alphas.push(ctx.globalAlpha)};TouchPairPreview.draw();
   }finally{Object.assign(ctx,saved);}
-  assert.equal(arcs.length,12);assert.equal(gradients.length,6);assert.equal(texts.length,6,'No diagnostic legend in normal play');
+  assert.equal(arcs.length,36);assert.equal(gradients.length,6);assert.equal(texts.length,0,'Pips replace all numbers, with no diagnostic legend');
   shown.sectors.forEach((sector,i)=>{
-   assert.deepEqual(arcs[i*2].slice(0,2),[center.x,center.y]);
-   assert.equal(arcs[i*2][3],sector.start);assert.equal(arcs[i*2][4],sector.start+sector.width);
+   assert.deepEqual(arcs[i*6].slice(0,2),[center.x,center.y]);
+   assert.equal(arcs[i*6][3],sector.start);assert.equal(arcs[i*6][4],sector.start+sector.width);
    assert.deepEqual(gradients[i].args,[center.x,center.y,52,center.x,center.y,96]);
-   assert.equal(gradients[i].stops[0][0],0);assert.equal(gradients[i].stops[0][1].length,7);
+   assert.equal(gradients[i].stops[0][0],0);assert.equal(gradients[i].stops[0][1],['#2584e8','#e84646','#f2cf37','#36b86b','#995de0','#ef912f'][sector.index]);
+   assert.equal(alphas[i*5],.75,'Exactly 75% inner opacity');
+   assert(alphas.slice(i*5+1,i*5+5).every(alpha=>alpha===1),'Pips remain legible');
    assert.equal(gradients[i].stops[1][0],1);assert(gradients[i].stops[1][1].endsWith('00'));
    assert.deepEqual(selectAnchor(Math.cos(sector.start+sector.width/2),Math.sin(sector.start+sector.width/2)),sector.pair);
+   const angle=sector.start+sector.width/2,gx=center.x+64*Math.cos(angle),gy=center.y+64*Math.sin(angle);
+   const anchors=selectAnchor(Math.cos(angle),Math.sin(angle));
+   [[-5,-5],[5,-5],[-5,5],[5,5]].forEach(([dx,dy],limb)=>{
+    assert.deepEqual(arcs[i*6+2+limb],[gx+dx,gy+dy,3.5,0,Math.PI*2],'Upright four-dot limb layout');
+    assert.equal(fills[i*5+1+limb],anchors.includes(limb)?'#26313d':'#fff','Only actual moving limbs are bright');
+   });
+   assert.equal(fills.slice(i*5+1,i*5+5).filter(c=>c==='#fff').length,2);
+
   });
   mouse('mousemove',movedEvent(e,{dx:INPUT_CONFIG.dragThreshold-1,dy:0}));assert(TouchPairPreview.visible);
   clock+=INPUT_CONFIG.tapMaxDuration+100;assert(TouchPairPreview.visible,'Long hold remains visible until swipe/release');
@@ -47,4 +57,4 @@ require('./coupled-production-harness.cjs')(`
   mouse('mousemove',e);assert(!TouchPairPreview.visible,'No hover activation');assert.equal(gameplay(),before);
  }
 `);
-console.log('PASS touch pair preview: normal/Daily, pointer-centered exact sectors, opaque inner / transparent outer ring, scaled viewport, hold/release/swipe, body Undo, pan, cancel/blur, modal guards, no gameplay cost');
+console.log('PASS touch pair preview: normal/Daily, pointer-centered exact sectors, 75% inner / transparent outer ring, six hues and upright moving-limb pips, scaled viewport, hold/release/swipe, body Undo, pan, cancel/blur, modal guards, no gameplay cost');
