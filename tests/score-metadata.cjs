@@ -19,7 +19,7 @@ assert.equal(JSON.parse(fs.readFileSync('package-lock.json','utf8')).version,act
 const nativeBuilds=[...project.matchAll(/CURRENT_PROJECT_VERSION = ([^;]+);/g)].map(m=>m[1]);assert.equal(nativeBuilds.length,2);assert.equal(nativeBuilds[0],nativeBuilds[1]);assert.match(nativeBuilds[0],/^[0-9]+$/);
 // Source metadata is aligned for the next native build; this does not update the installed app.
 assert.deepEqual([...project.matchAll(/MARKETING_VERSION = ([^;]+);/g)].map(m=>m[1]),[actualVersion,actualVersion]);assert.deepEqual(nativeBuilds,['33','33']);
-assert.deepEqual(runtime(actualVersion,nativeBuilds[0],actualSpec),{recordVersion:'r1',appVersion:actualVersion,buildNumber:'32',platform:'iOS',scoreSpecVersion:actualSpec});
+assert.deepEqual(runtime(actualVersion,nativeBuilds[0],actualSpec),{recordVersion:'r1',appVersion:actualVersion,buildNumber:'33',platform:'iOS',scoreSpecVersion:actualSpec});
 // Existing native v1 provenance is tested without claiming a v4 native build.
 assert.deepEqual(runtime('0.4.6','14','v1'),{recordVersion:'r1',appVersion:'0.4.6',buildNumber:'14',platform:'iOS',scoreSpecVersion:'v1'});
 assert.deepEqual(runtime(actualVersion,undefined,actualSpec),{recordVersion:'r1',appVersion:actualVersion,buildNumber:null,platform:'Web',scoreSpecVersion:actualSpec});
