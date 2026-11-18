@@ -30,7 +30,7 @@ public final class AscentHapticsPlugin: CAPPlugin, CAPBridgedPlugin {
             }
             let generator = strength == "light" ? self.lightImpact : self.strongImpact
             if strength == "light" {
-                generator.impactOccurred(intensity: 0.5)
+                generator.impactOccurred(intensity: 0.8)
             } else {
                 generator.impactOccurred()
             }

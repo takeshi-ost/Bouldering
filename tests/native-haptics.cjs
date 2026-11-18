@@ -18,6 +18,6 @@ const locked=vm.createContext({document:{hidden:false,getElementById:()=>null},g
 const layout=require('../scripts/native-settings-layout.cjs');const html=fs.readFileSync('index.html','utf8');assert(!html.includes('hapticsEnabled'));const native=layout(html);assert.equal((native.match(/id="hapticsEnabled"/g)||[]).length,1);
 for(const [file,label] of [['ja','振動'],['en','Vibration']])assert(fs.readFileSync('js/text-'+file+'.js','utf8').includes('"settings.haptics": "'+label+'"'));
 const swift=fs.readFileSync('ios/App/App/AscentHapticsPlugin.swift','utf8');for(const token of ['.light','.medium','DispatchQueue.main.async','applicationState == .active','impactOccurred()'])assert(swift.includes(token));
-assert(/if strength == "light" \{\s*generator\.impactOccurred\(intensity: 0\.5\)\s*\} else \{\s*generator\.impactOccurred\(\)\s*\}/.test(swift),'Light impacts use 0.5 intensity; confirmation retains the default medium impact');
+assert(/if strength == "light" \{\s*generator\.impactOccurred\(intensity: 0\.8\)\s*\} else \{\s*generator\.impactOccurred\(\)\s*\}/.test(swift),'Light impacts use 0.8 intensity; confirmation retains the default medium impact');
 assert(fs.readFileSync('ios/App/App/SceneDelegate.swift','utf8').includes('registerPluginInstance(AscentHapticsPlugin())'));
 console.log('PASS native haptics: defaults, persistence, mute, visibility, failed bridge/storage, JA/EN native-only checkbox and native wiring');

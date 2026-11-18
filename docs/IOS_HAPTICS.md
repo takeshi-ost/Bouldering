@@ -68,3 +68,10 @@ After the owner reported no perceptible feedback at 0.25, light provisional
 contact and roulette-step impacts now use intensity 0.5. Default medium
 confirmations, timing, mute and persistence are unchanged. Physical feel
 requires owner verification; the intensity number is not a perceived percentage.
+
+## Light-click adjustment: 0.5.32 / build 35
+
+The owner found 0.5 too weak and requested 0.8 for light provisional-contact
+and roulette-step impacts. Default medium confirmations and all trigger,
+mute, preference and save behavior remain unchanged. Physical feel remains
+subject to owner verification.
