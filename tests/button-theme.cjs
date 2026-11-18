@@ -117,3 +117,7 @@ console.log(`PASS static button author cascade: ${controls.length} actual/synthe
 
 for(const id of ['stageStartButton','dailyStartButton']){const s=style(byId(id));assert.equal(s['font-size'],'24px');assert.equal(s['font-weight'],'900');assert.equal(s['-webkit-text-stroke'],'2px #fff');assert.equal(s['paint-order'],'stroke fill');assert.equal(s.border,'0','White outline belongs to glyphs, not button border');}
 const tip=style(node('p',{},node('aside',{class:'result-tip'},byId('overlay'))));assert.equal(tip['font-size'],'16px');assert.equal(tip['overflow-wrap'],'anywhere');
+
+assert.equal(tip['font-weight'],'700');
+const tipLabel=style(node('span',{class:'result-tip-label'},node('aside',{class:'result-tip'},byId('overlay'))));
+assert.equal(tipLabel['font-size'],'12px');assert.equal(tipLabel['font-weight'],'700');assert.equal(tipLabel.display,'block');
