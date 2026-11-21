@@ -18,19 +18,25 @@ function readMapRewards() {
     } catch(_) { /* Keep milestone rewards usable without storage. */ }
     return records;
 }
-let mapRewards=readMapRewards();
+let mapRewards=readMapRewards(),currentMapRewardStage=null;
+// An interrupted clear no longer offers a roulette in this document. Treat
+// only existing pending receipts as claimed in memory; opening another tab
+// must not overwrite the receipt of a roulette still running in its first tab.
+for(const record of Object.values(mapRewards))if(record.status==='pending')record.status='claimed';
 function saveMapRewards() {
     try {globalThis.localStorage?.setItem(MAP_REWARDS_KEY,JSON.stringify(mapRewards));}catch(_) {}
 }
-function hasMapReward(n) {
-    return Number.isSafeInteger(n) && n>=1 && !(typeof isTutorialRun==='function' && isTutorialRun()) && courseMode==='existing' && n%MAP_REWARD_INTERVAL===0 && mapRewards[n]?.status!=='claimed' && !previouslyClaimedReward('ascent.map-rewards.v1',n);
+function hasMapReward(n,cleared=stageProgress.existing.cleared) {
+    return Number.isSafeInteger(n) && n>=1 && n>cleared && !(typeof isTutorialRun==='function' && isTutorialRun()) && courseMode==='existing' && n%MAP_REWARD_INTERVAL===0 && mapRewards[n]?.status!=='claimed' && !previouslyClaimedReward('ascent.map-rewards.v1',n);
 }
-function recordMapRewardClear() {
-    if(dailyRun || debugAttempt || !hasMapReward(level) || mapRewards[level])return;
+function recordMapRewardClear(clearedBefore) {
+    currentMapRewardStage=null;
+    if(dailyRun || debugAttempt || !hasMapReward(level,clearedBefore) || mapRewards[level])return;
+    currentMapRewardStage=level;
     mapRewards[level]={status:'pending',adRequired:level>=NORMAL_AD_FIRST_STAGE && playsSinceAd>=NORMAL_AD_PLAY_INTERVAL,adCompleted:false};
     saveMapRewards();
 }
-function startMapClearReward(n,onReturn=()=>showLevelMap({target:n+1})) {
+function startMapClearReward(n,onReturn) {
     const record=mapRewards[n];
     if(previouslyClaimedReward('ascent.map-rewards.v1',n) || courseMode!=='existing' || record?.status!=='pending' || rewardSequence || state==='ad')return false;
     const launch=()=>startRewardSequence({
@@ -42,14 +48,12 @@ function startMapClearReward(n,onReturn=()=>showLevelMap({target:n+1})) {
         resetAdPlayCount();record.adCompleted=true;saveMapRewards();
     },onReturn:launch});
 }
-function resumePendingMapReward() {
-    if(courseMode!=='existing' || mapTransition || stageStartContext)return false;
-    const pending=Object.keys(mapRewards).map(Number).sort((a,b)=>a-b).find(n=>mapRewards[n].status==='pending' && !previouslyClaimedReward('ascent.map-rewards.v1',n));
-    return pending===undefined?false:startMapClearReward(pending);
-}
 function continueNormalClear({advance=true}={}) {
     const n=level,resume=()=>showLevelMap(advance?{advanceFrom:n}:{target:n});
-    if(!debugAttempt && startMapClearReward(n,resume))return;
+    if(!debugAttempt && currentMapRewardStage===n && startMapClearReward(n,resume)) {
+        currentMapRewardStage=null;
+        return;
+    }
     if(courseMode==='existing' && !dailyRun && !debugAttempt && level>=NORMAL_AD_FIRST_STAGE && playsSinceAd>=NORMAL_AD_PLAY_INTERVAL)
         startDummyAd({onComplete:resetAdPlayCount,onReturn:resume});
     else resume();

@@ -96,7 +96,7 @@ function prepareMapReveal(onReady=null) {
         ui.levelMap.removeAttribute?.('aria-hidden');
         finishDummyAdCover();finishRewardCover();
         requestGameRender();
-        if(!mapTransition){if(onReady)onReady();else resumePendingMapReward();}
+        if(!mapTransition && onReady)onReady();
     };
     const images=Array.from(ui.mapNodes.querySelectorAll?.('img')||[]);
     if(!images.length){reveal();return;}

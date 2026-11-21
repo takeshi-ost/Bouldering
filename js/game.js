@@ -1107,7 +1107,10 @@ function finish(won) {
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
     state = won ? 'won' : 'lost';
     recordAdPlay();
-    if(won) { recordStageClear(); recordMapRewardClear(); startGoalHang(); }
+    if(won) {
+        const clearedBefore=stageProgress.existing.cleared;
+        recordStageClear();recordMapRewardClear(clearedBefore);startGoalHang();
+    }
     else startFall();
     const showRanking=COURSE_RANKINGS_ENABLED && won && !dailyRun && !activeDebugCourse();
     ui.resultRanking.hidden=!showRanking;

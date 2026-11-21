@@ -5,19 +5,19 @@ const {boot}=require('./tutorial-modals.cjs');
 // equivalence is covered separately by six-pair-baseline-live.cjs.
 function play(b,index,cancel=false){b.run(`SixPairSelection.withBaseline(()=>{const target=route[${index}];assert(validFingerAction(target.action));assert.equal(target.action.bodyMotion,COUPLED_BODY_MODEL);down({clientX:200,clientY:500});for(const p of target.action.points)move({clientX:200+p.dx,clientY:500+p.dy});release(${cancel});});`);}
 const existing=()=>new Map([['ascent.progress.v1.r1',JSON.stringify({recordVersion:'r1',existing:{cleared:10},prototype:{cleared:0}})]]);
-function context(){
- const b=boot(existing());
+function context(data=existing()){
+ const b=boot(data);
  // Flow-only fixtures retain real generation and input, but pin short/single
  // walls. Score 1 alone still samples middle paired Stage 11 courses,
  // repeating expensive generation in fresh VM contexts.
- b.run('CourseProgressionConfig.stageSegments=[{fromStage:1,toStage:100,fromScore:1,toScore:1}];CourseProgressionConfig.daily.minScore=CourseProgressionConfig.daily.maxScore=1;');
+ b.run('CourseProgressionConfig.stageSegments=[{fromStage:1,toStage:150,fromScore:1,toScore:1}];CourseProgressionConfig.daily.minScore=CourseProgressionConfig.daily.maxScore=1;');
  b.run('CourseDistributionConfig.tables.length.rows=[{score:0,weights:[1,0,0]}];CourseDistributionConfig.tables.composition.rows=[{score:0,weights:[1,0]}];');
  b.run('for(const resolved of [CourseProgression.resolveStage(1),CourseProgression.resolveStage(11),CourseProgression.resolveDaily("2026-01-01")]){const recipe=CourseProgression.recipe(resolved);assert.equal(recipe.length,"short");assert.equal(recipe.composition??"single","single");}');
  return b;
 }
 const records=b=>b.run('JSON.stringify({stageProgress,stageRecords,dailyRecords,mapRewards,heartItems,pending:[...onlineScores.pending]})');
 function normal(b,{stage=1,lives=3,plays=0}={}){
- b.run(`showLevelMap();cancelMapReveal();mapPreparing=false;mapTransition=null;heartItems=10;lives.count=${lives};lives.recoveryAt=Date.now();playsSinceAd=${plays};assert(selectStage(${stage},false,2));cameraIntro=null;hideStageHelp();`);
+ b.run(`showLevelMap({target:${stage}});cancelMapReveal();mapPreparing=false;mapTransition=null;heartItems=10;lives.count=${lives};lives.recoveryAt=Date.now();playsSinceAd=${plays};assert(selectStage(${stage},false,2));cameraIntro=null;hideStageHelp();`);
  assert.equal(b.run('heartItems'),8);assert.equal(b.run('lives.inProgress'),true);
  assert.equal(b.node('next').hidden,true,'New play clears stale return-button visibility');
 }
@@ -47,6 +47,20 @@ for(const action of ['next','closeResult','escape','backdrop']){
  b.node('next').onclick();b.node('retry').onclick();b.node('closeResult').onclick();
  assert.equal(b.run('state'),'map');assert.equal(b.run('playsSinceAd'),3);assert.equal(b.run('dummyAd'),null);
  assert.equal(records(b),before);assert.equal(b.run('lives.count'),1);
+}
+// A retired earlier stage does not resume an unrelated persisted milestone.
+{
+ const data=existing();
+ data.set('ascent.progress.v1.r1',JSON.stringify({recordVersion:'r1',existing:{cleared:129},prototype:{cleared:0}}));
+ data.set('ascent.map-rewards.v1.r1',JSON.stringify({124:{status:'pending',adRequired:true,adCompleted:false}}));
+ const b=context(data);assert.equal(b.run('mapRewards[124].status'),'claimed');
+ normal(b,{stage:17,lives:3,plays:2});
+ b.node('restart').onclick();assert.equal(b.run('state'),'lost');assert.equal(b.run('lives.count'),2);
+ b.node('next').onclick();
+ assert.equal(b.run('state'),'map');assert.equal(b.run('mapSelected'),17);assert.equal(b.run('mapPage'),0);
+ assert.equal(b.run('ui.mapScroll.scrollTop'),b.run('Math.max(0,(ui.mapScroll.clientHeight||H)*.2+mapPoint(17).y-(ui.mapScroll.clientHeight||H)/2)'));
+ assert.equal(b.run('heartItems'),8);assert.equal(b.run('lives.count'),2);assert.equal(b.run('playsSinceAd'),3);
+ assert.equal(b.run('rewardSequence'),null);assert.equal(b.run('dummyAd'),null);
 }
 // Retry still displays the due regular ad, then opens its existing start confirmation.
 {

@@ -145,7 +145,7 @@ function completeAd(b) {b.advance(10000);b.run('advanceDummyAd(performance.now()
 // Completed success/failure cannot be recredited. Actual record/reward hooks and
 // the native queued clear survive reload unchanged, including historical queues.
 for(const won of [true,false]) {
-    const data=initial();if(won)data.set('ascent.map-rewards.v1.r1','{}');
+    const data=initial();if(won){data.set('ascent.map-rewards.v1.r1','{}');data.set('ascent.progress.v1.r1',JSON.stringify({recordVersion:'r1',existing:{cleared:3},prototype:{cleared:0}}));}
     const b=boot(data);normal(b,{stage:4});b.advance(1500);b.run(`moveCount=8;finish(${won});`);
     assert.equal(b.run('state'),won?'won':'lost');assert.equal(receipt(b).attempt,null);
     assert.equal(b.run('lives.count'),won?3:2);assert.equal(b.run('heartItems'),17);
@@ -155,6 +155,7 @@ for(const won of [true,false]) {
     }
     const before=saved(b),resumed=boot(b.data,{token:'finished-'+won});
     assert.equal(resumed.run('heartItems'),17);assert.equal(resumed.run('lives.count'),won?3:2);assert.deepEqual(saved(resumed),before);
+    if(won)assert.equal(resumed.run('mapRewards[4].status'),'claimed');
 }
 // Saved roulette inventory and life rewards are retained after the attempt ends.
 {
@@ -323,6 +324,7 @@ for(const won of [true,false])for(const mode of ['before','after','readback']) {
 // refund the finished normal outcome or duplicate its pending reward/queue.
 for(const won of [true,false])for(const mode of ['before','after','readback']) {
     const data=initial();data.set('ascent.map-rewards.v1.r1','{}');
+    data.set('ascent.progress.v1.r1',JSON.stringify({recordVersion:'r1',existing:{cleared:3},prototype:{cleared:0}}));
     const b=boot(data);normal(b,{stage:4});b.run('moveCount=8;');oneShotCleanupFailure(b,mode);
     b.run(`finish(${won});`);assert.equal(b.run('ASCENT_NATIVE_RESUME.ready'),false);assert.equal(b.run('state'),won?'won':'lost');
     assert.equal(life(b).inProgress,false);assert.equal(life(b).count,won?3:2);assert.equal(b.data.get(ITEMS_KEY),'17');
@@ -332,6 +334,7 @@ for(const won of [true,false])for(const mode of ['before','after','readback']) {
     assert.equal(life(b).count,won?3:2);assert.equal(b.data.get(ITEMS_KEY),'17');
     const resumed=boot(crashed,{token:'completed-end-'+won+'-'+mode});
     assert.equal(resumed.run('heartItems'),17);assert.equal(resumed.run('lives.count'),won?3:2);assert.deepEqual(saved(resumed),before);
+    if(won)assert.equal(resumed.run('mapRewards[4].status'),'claimed');
     assert.equal(receipt(resumed).ended,null);
 }
 

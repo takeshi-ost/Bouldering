@@ -3,8 +3,6 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const metadata=fs.readFileSync('js/score-metadata.js','utf8'),rewards=fs.readFileSync('js/rewards.js','utf8');
 function fixture(version='r1',data=new Map(),shared={inventoryWrites:0}) {
- const key='ascent.map-rewards.v1.'+version;
- if(!data.has(key))data.set(key,JSON.stringify({4:{status:'pending',adRequired:false,adCompleted:false}}));
  if(!data.has('ascent.heart-items.v1'))data.set('ascent.heart-items.v1','5');
  const storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>{if(k==='ascent.heart-items.v1')shared.inventoryWrites++;data.set(k,String(v));},key:i=>[...data.keys()][i],get length(){return data.size;}};
  const node=()=>({style:{},classList:{toggle(){}},addEventListener(){},showModal(){},close(){}});
@@ -17,7 +15,7 @@ function fixture(version='r1',data=new Map(),shared={inventoryWrites:0}) {
  const date='2026-11-15';
  if(!data.has('ascent.daily-records.v1.'+version))data.set('ascent.daily-records.v1.'+version,JSON.stringify({[date]:{recordVersion:version,scoreSpecVersion:'v4',moves:1,timeMs:1,stars:1,rewardStatus:'pending'}}));
  const daily=fs.readFileSync('js/daily.js','utf8');vm.runInContext('function showDailyCalendar(){finished++;}'+daily.slice(0,daily.indexOf('let dailyMonth=')),c);
- return {data,shared,run:s=>vm.runInContext(s,c),start:()=>vm.runInContext('startMapClearReward(4,()=>{finished++;})',c),startDaily:()=>vm.runInContext(`startDailyClearReward('${date}')`,c),grant:(index=0)=>vm.runInContext(`rewardSequence.phase='braking';rewardSequence.brakeElapsed=ROULETTE_BRAKE_MS;rewardSequence.lastTime=1000;rewardSequence.from=-ROULETTE_SEGMENTS[${index}].center-ROULETTE_SPEED*ROULETTE_BRAKE_MS/3;advanceRewardSequence(1000);`,c)};
+ return {data,shared,run:s=>vm.runInContext(s,c),start:()=>vm.runInContext("mapRewards[4]={status:'pending',adRequired:false,adCompleted:false};startMapClearReward(4,()=>{finished++;})",c),startDaily:()=>vm.runInContext(`startDailyClearReward('${date}')`,c),grant:(index=0)=>vm.runInContext(`rewardSequence.phase='braking';rewardSequence.brakeElapsed=ROULETTE_BRAKE_MS;rewardSequence.lastTime=1000;rewardSequence.from=-ROULETTE_SEGMENTS[${index}].center-ROULETTE_SPEED*ROULETTE_BRAKE_MS/3;advanceRewardSequence(1000);`,c)};
 
 }
 // Replacement device has only imported receipts, no old map or Daily records.
@@ -45,6 +43,12 @@ assert.equal(destination.get('ascent.map-rewards.v1'),foreignRaw);assert.equal(d
 // A copied old receipt and later-version receipt both remain entitlement evidence.
 imported.set('ascent.reward-claims.v1.r3',JSON.stringify({map:['8'],daily:[]}));
 assert(next.run("previouslyClaimedReward('ascent.map-rewards.v1',8)"));
+// Reading a saved pending receipt in a newly opened document treats it as
+// received locally without writing over an older tab's active roulette.
+const oldPending=new Map([['ascent.map-rewards.v1.r1',JSON.stringify({4:{status:'pending',adRequired:true,adCompleted:false}})]]);
+const cold=fixture('r1',oldPending);assert.equal(cold.run('mapRewards[4].status'),'claimed');
+assert.equal(JSON.parse(oldPending.get('ascent.map-rewards.v1.r1'))[4].status,'pending');
+assert.equal(cold.shared.inventoryWrites,0);
 // Both dialogs were already open. Same-season and cross-season contexts recheck
 // persisted evidence immediately before mutation, without a fake global wallet.
 for(const versions of [['r1','r1'],['r1','r2'],['r2','r1']])for(const index of [0,3])for(const daily of [false,true]) {

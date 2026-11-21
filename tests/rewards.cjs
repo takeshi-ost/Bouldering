@@ -100,19 +100,26 @@ assert.equal((ui.mapNodes.innerHTML.match(/map-reward-effects/g)||[]).length,4);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();
 assert(selectStage(4));moveCount=1;finish(true);playsSinceAd=0;ui.overlay.events.click({target:ui.overlay});assert.equal(state,'map');assert(!rewardSequence);
 advanceLevelMap(clock);advanceLevelMap(clock+MAP_HOP_DURATION);closeStageStart();
-// The map-return action also delivers rewards; an interrupted ad/roulette resumes on map entry.
+// A fresh milestone with a regular ad due must still chain ad → one roulette.
+stageProgress.existing.cleared=11;showLevelMap({target:12});assert(selectStage(12));
+playsSinceAd=NORMAL_AD_PLAY_INTERVAL-1;moveCount=1;finish(true);
+assert(mapRewards[12].adRequired);returnFromStage();assert.equal(state,'ad');assert(!rewardSequence);
+ad();assert.equal(state,'reward');assert(mapRewards[12].adCompleted);assert.equal(playsSinceAd,0);
+const beforeAdGatedReward=heartItems;land(0);resultReturn();
+assert.equal(heartItems,beforeAdGatedReward+1);assert.equal(mapRewards[12].status,'claimed');assert.equal(mapSelected,12);
+// A fresh winning run still delivers its reward when returning to the map.
 stageProgress.existing.cleared=19;showLevelMap({target:20});assert(selectStage(20));
 playsSinceAd=0;moveCount=1;finish(true);returnFromStage();assert.equal(state,'reward');land(3);resultReturn();assert.equal(state,'map');assert.equal(mapSelected,20);assert(!mapTransition);
-mapRewards[12]={status:'pending',adRequired:true,adCompleted:false};saveMapRewards();mapRewards=readMapRewards();
-showLevelMap();assert.equal(state,'ad');ad();assert.equal(state,'reward');
-// Simulate reloading before an unclaimed roulette (completed ad must not repeat).
-rewardSequence=null;ui.rewardDialog.close();ui.rewardDialog.hidden=true;mapRewards=readMapRewards();showLevelMap();assert.equal(state,'reward');assert(!dummyAd);
-land(0);resultReturn();assert.equal(mapRewards[12].status,'claimed');
-// An old early milestone may still say adRequired; honor its reward without
-// displaying a periodic ad or wiping later-stage cadence.
-playsSinceAd=3;mapRewards[8]={status:'pending',adRequired:true,adCompleted:false};saveMapRewards();
-showLevelMap();assert.equal(state,'reward');assert(!dummyAd);assert.equal(playsSinceAd,3);
-land(0);resultReturn();assert.equal(mapRewards[8].status,'claimed');assert.equal(playsSinceAd,3);
+// No ordinary map reveal may pick up an unrelated pending entry.
+stageProgress.existing.cleared=129;
+mapRewards[124]={status:'pending',adRequired:true,adCompleted:false};saveMapRewards();
+const oldItems=heartItems,oldLives=lives.count,oldAdCount=playsSinceAd;
+showLevelMap({target:17});assert.equal(state,'map');assert.equal(mapSelected,17);assert.equal(mapPage,0);
+assert(!rewardSequence && !dummyAd);assert.equal(heartItems,oldItems);assert.equal(lives.count,oldLives);assert.equal(playsSinceAd,oldAdCount);
+assert(!hasMapReward(124));assert(!hasMapReward(16));assert(hasMapReward(132));
+// Replaying a cleared milestone without a saved receipt cannot mint one.
+assert(selectStage(16));moveCount=1;finish(true);playsSinceAd=0;
+assert(!mapRewards[16]);returnFromStage();assert.equal(state,'map');assert.equal(mapSelected,16);assert(!rewardSequence);
 // Debug and daily wins never earn map milestones.
 showLevelMap();debugAttempt=true;level=40;recordMapRewardClear();assert(!mapRewards[40]);debugAttempt=false;
 const savedMap=data[MAP_REWARDS_KEY];data[MAP_REWARDS_KEY]=JSON.stringify({'0':{status:'pending'},'11':{status:'pending'},'10':{status:'bad'},'20':{status:'claimed'}});
