@@ -16,6 +16,7 @@ CourseProgressionConfig.stageSegments=[{fromStage:1,toStage:100,fromScore:1,toSc
 function clearStage(){reset(11);assert.equal(bgmTrack,'stage');assert.equal(bgmFadeSeconds,5);cameraIntro=null;for(let i=1;i<route.length;i++) {servicePlayStep(i);}assert.equal(state,'won');}
 for(let i=1;i<=9;i++) {
  clearStage();assert.equal(playsSinceAd,(i-1)%3+1);finish(true);assert.equal(playsSinceAd,(i-1)%3+1,'Count each run only once');
+ presentGoalResult(pendingGoalResult);
  const record=JSON.stringify(stageRecords);ui.overlay.events.click({target:ui.overlay});
  if(i%3){assert.equal(state,'map');continue;}
  assert.equal(state,'ad');assert(bgmAdBlocked);assert.equal(bgmPlayback,null);assert(ui.dummyAd.open && !ui.dummyAd.hidden && !ui.overlay.open);assert.equal(ui.adCounter.textContent,'10');assert(ui.adComplete.hidden);
@@ -35,13 +36,13 @@ startCourse('prototype');assert.equal(courseMode,'existing');assert.equal(playsS
 for(let i=1;i<=3;i++){reset(i%2+11);finish(false);finish(false);assert.equal(playsSinceAd,i);if(i<3)returnFromStage();}
 ui.retry.onclick();assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(state,'playing');assert.equal(playsSinceAd,0);
 for(let i=1;i<=3;i++){reset(11);ui.restart.onclick();assert.equal(state,'lost');returnFromStage();assert.equal(state,'map');assert.equal(dummyAd,null);assert.equal(playsSinceAd,i);}
-assert.equal(readAdPlayCount(),3);clearStage();assert.equal(playsSinceAd,4);returnFromStage();
+assert.equal(readAdPlayCount(),3);clearStage();assert.equal(playsSinceAd,4);presentGoalResult(pendingGoalResult);returnFromStage();
 assert.equal(state,'ad');clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert.equal(state,'map');assert.equal(playsSinceAd,0);
 // Shared completion hook runs once before the continuation, and pauses an active timer.
 reset(11);cameraIntro=null;runStartedAt=clock-1234;const order=[];
 assert(startDummyAd({onComplete(){order.push('reward');},onReturn(){order.push('resume');assert.equal(state,'playing');}}));
 clock+=10000;advanceDummyAd(clock);assert(completeDummyAd());assert.deepEqual(order,['reward','resume']);assert.equal(runTimeMs(),1234);assert(!completeDummyAd());
-finish(true);const count=playsSinceAd;assert(startDummyAd());clock+=10000;advanceDummyAd(clock);completeDummyAd();assert.equal(state,'won');assert(ui.overlay.open);assert.equal(playsSinceAd,count);
+finish(true);presentGoalResult(pendingGoalResult);const count=playsSinceAd;assert(startDummyAd());clock+=10000;advanceDummyAd(clock);completeDummyAd();assert.equal(state,'won');assert(ui.overlay.open);assert.equal(playsSinceAd,count);
 for(const bad of ['null','-1','1.2','"5"','{}','{bad']){data[AD_PLAYS_KEY]=bad;assert.equal(readAdPlayCount(),0);}saveAdPlayCount();assert.equal(readAdPlayCount(),1);
 const set=storage.setItem;storage.setItem=()=>{throw Error('blocked');};assert.doesNotThrow(resetAdPlayCount);assert.equal(playsSinceAd,0);storage.setItem=set;
 `)(assert,data,storage);

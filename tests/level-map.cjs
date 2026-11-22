@@ -83,7 +83,7 @@ function complete() {
   servicePlayStep(i);
   assert.equal(moveCount,i);
  }
- assert.equal(state,'won');
+ assert.equal(state,'won');presentGoalResult(pendingGoalResult);
 }
 complete();assert.equal(unlockedLevel(),2);
 assert.equal(JSON.parse(data[PROGRESS_KEY]).existing.cleared,1);
