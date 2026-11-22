@@ -197,6 +197,7 @@ function formatClearTime(ms) {
 }
 function formatStageRecord(record) { return gameText("game.formatStageRecord", {value0: record.moves, value1: formatClearTime(record.timeMs)}); }
 function hideResultModal() {
+    if(typeof stopGoalCelebration==='function')stopGoalCelebration();
     if(ui.overlay.open)ui.overlay.close?.();
     ui.overlay.hidden=true;
 }
@@ -1102,7 +1103,8 @@ function undoMove() {
 
 function finish(won) {
     if(typeof isTutorialRun==='function' && isTutorialRun())return finishTutorialRun(won);
-    if(state==='playing')playSound(won?'clear':'fail');
+    const wasPlaying=state==='playing';
+    if(wasPlaying)playSound(won?'clear':'fail');
     settleLifeAttempt(won);
     runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
     state = won ? 'won' : 'lost';
@@ -1148,6 +1150,8 @@ function finish(won) {
     hideSettings();
     updateUI();
     showResultModal();
+    if(won && wasPlaying && typeof startGoalCelebration==='function')startGoalCelebration(ui.overlay);
+    else if(!won && typeof stopGoalCelebration==='function')stopGoalCelebration();
 }
 
 // RAF time is injected so tests can advance the opening without real waits.

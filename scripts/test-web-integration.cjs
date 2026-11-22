@@ -11,7 +11,7 @@ suites.push('hazard-modal-rendering','render-scheduling','debug-score-trial','co
 suites.push('touch-pair-preview');
 suites.push('six-pair-selection','six-pair-continuous','six-pair-cache','six-pair-angle-input','six-pair-generation-scope','six-pair-course-gate');
 suites.push('course-data-store','course-data-integration','course-data-production-store','course-data-daily-resource','pages-test-course-data');
-suites.push('record-generation','record-reward-compat');
+suites.push('record-generation','record-reward-compat','goal-celebration');
 Object.freeze(suites);
 function parseArguments(args) {
  const options={list:false,shard:null};
