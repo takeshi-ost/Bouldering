@@ -13,13 +13,13 @@ function stopGoalCelebration() {
     cancelAnimationFrame(burst.frame);
     burst.canvas.hidden=true;
 }
-function startGoalCelebration(overlay) {
+function startGoalCelebration(wall) {
     stopGoalCelebration();
-    if(!overlay.open || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
-    const canvas=overlay.querySelector('#goalCelebration');
+    if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+    const canvas=document.getElementById('goalCelebration');
     const ctx=canvas?.getContext?.('2d');
     if(!ctx)return;
-    const width=overlay.clientWidth, height=overlay.clientHeight;
+    const width=wall.clientWidth, height=wall.clientHeight;
     if(!width || !height)return;
     const dpr=Math.min(2, Math.max(1,window.devicePixelRatio||1));
     canvas.width=Math.round(width*dpr);
@@ -35,15 +35,17 @@ function startGoalCelebration(overlay) {
     for(const side of [-1,1]){
         for(let i=0;i<38;i++){
             const star=i<10;
+            const edge=i===0 || i===3 || i===10 || i===18 || i===27 || i===34;
             particles.push({
-                side, star,
+                side, star, edge,
                 x:side===1?between(.012,.035):between(.965,.988),
                 y:between(.86,.91),
-                spread:between(.028,i%4===0?.36:.2),
+                spread:between(.035,i%4===0?.68:.40),
+                edgeX:side===1?between(.967,.995):between(.005,.033),
                 rise:star?between(.13,.7):between(.19,.68),
                 delay:between(0,star?.045:.11),
                 ascent:star?between(.34,.54):between(.46,.72),
-                life:star?between(.48,.75):between(1.58,2.38),
+                life:star?between(.54,.8):between(1.55,2.04),
                 size:star?between(4,10):between(3,6.5),
                 angle:between(0,Math.PI*2),
                 spin:between(-5,5),
@@ -57,7 +59,6 @@ function startGoalCelebration(overlay) {
     canvas.hidden=false;
     function animate(now) {
         if(goalCelebration!==burst)return;
-        if(overlay.hidden || !overlay.open){ stopGoalCelebration(); return; }
         const elapsed=(now-burst.start)/1000;
         ctx.clearRect(0,0,width,height);
         let active=false;
@@ -69,7 +70,8 @@ function startGoalCelebration(overlay) {
             const up=Math.min(t/p.ascent,1), down=Math.max(0,(t-p.ascent)/(p.life-p.ascent));
             const flight=1-(1-up)**2;
             const flutter=Math.cos(p.angle+t*p.frequency);
-            const x=width*(p.x+p.side*p.spread*(1-Math.exp(-5*t)))+
+            const spread=p.edge?(p.edgeX-p.x)*flight:p.side*p.spread*(1-Math.exp(-5*t));
+            const x=width*(p.x+spread)+
                 (p.star?0:Math.sin(p.angle+t*5)*p.sway*Math.min(1,t));
             const y=height*(p.y-p.rise*flight+(p.rise+.07)*down**1.4*(p.star?.08:1));
             ctx.save();

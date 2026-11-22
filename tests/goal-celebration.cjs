@@ -5,11 +5,11 @@ const {boot}=require('./tutorial-modals.cjs');
 
 function setup(reduced=false){
     const b=boot(new Map([['ascent.progress.v1.r1','{"recordVersion":"r1","existing":{"cleared":4}}']]));
-    const overlay=b.node('overlay'),canvas=b.node('overlay#goalCelebration');
+    const overlay=b.node('overlay'),canvas=b.node('goalCelebration'),wall=b.node('wall');
     const frames=new Map();
     let count=0, current, particle=null;
     const trace={paper:[],stars:[],setup:[]};
-    overlay.clientWidth=400;overlay.clientHeight=840;
+    wall.clientWidth=400;wall.clientHeight=840;
     canvas.hidden=true;
     canvas.getContext=type=>{
         assert.equal(type,'2d');
@@ -69,7 +69,16 @@ function setup(reduced=false){
     assert(!f.active());assert(f.canvas.hidden);
     f.clear();
     assert(f.active());assert(!f.canvas.hidden);
+    assert(f.overlay.hidden && !f.overlay.open,'Burst launches before the result is visible');
     assert.equal(f.b.node('resultTap').hidden,false);
+    const timer=f.b.run('pendingGoalResult.timer');
+    const record=f.b.run('JSON.stringify(stageRecords)');
+    f.b.run('beginPointer({clientX:200,clientY:420});beginPointer({clientX:4,clientY:420});assert(!bodyTap && !drag && !pan);assert(!canUndoMove());assert(!canScrollStage());ui.next.onclick();returnFromStage();showResultModal();finish(true);');
+    f.overlay.events.click({target:f.b.node('resultTap')});
+    f.overlay.events.cancel({preventDefault(){}});
+    assert.equal(f.b.run('state'),'won');assert.equal(f.b.run('pendingGoalResult.timer'),timer);
+    assert.equal(f.b.run('JSON.stringify(stageRecords)'),record,'Early input and re-entry do not mutate the saved clear');
+    assert(f.overlay.hidden && !f.overlay.open);
     assert.deepEqual([f.canvas.width,f.canvas.height],[800,1680]);
     assert.deepEqual(f.trace.setup,[[2,0,0,2,0,0]]);
     const launch=f.shot(140), peak=f.shot(480), drift=f.shot(620);
@@ -78,38 +87,47 @@ function setup(reduced=false){
     assert(launch.paper.some(p=>p.x<60 && p.y>630),'Launch from lower left');
     assert(launch.paper.some(p=>p.x>340 && p.y>630),'Launch from lower right');
     assert(peak.paper.some((p,i)=>p.y<launch.paper[i].y-50),'Paper rises after launch');
+    assert(peak.paper.some((p,i)=>p.x<20 && launch.paper[i].x>200),'Right-side spray reaches the left edge');
+    assert(peak.paper.some((p,i)=>p.x>380 && launch.paper[i].x<200),'Left-side spray reaches the right edge');
     assert(drift.paper.some((p,i)=>p.y>peak.paper[i].y && Math.abs(p.flip-peak.paper[i].flip)>.2),'Paper falls and changes apparent width');
     assert.equal(drift.stars.length,0);assert.equal(drift.paper.length,56);
-    f.shot(1400);assert(!f.active());assert(f.canvas.hidden);
+    f.b.advance(759);assert(f.overlay.hidden && !f.overlay.open,'Still hidden at 1999ms');
+    f.b.fireTimer(timer);assert.equal(f.b.run('performance.now()'),3000,'Opens at 2000ms after clear');
+    assert(f.overlay.open && !f.overlay.hidden);
+    assert(!f.active());assert(f.canvas.hidden);
     f.b.run('showResultModal()');assert(!f.active(),'Reopening a result does not replay the burst');
     f.b.node('overlay').events.click({target:f.b.node('resultTap')});
     assert.equal(f.b.run('state'),'map');
     f.normal();f.clear();
     assert(f.active(),'A new clear can fire a new burst');
     const id=f.b.run('goalCelebration.frame'),stale=f.frames.get(id);
-    f.b.node('overlay').events.click({target:f.b.node('resultTap')});
-    assert(!f.frames.has(id),'Leaving result cancels its pending frame');
+    const nextTimer=f.b.run('pendingGoalResult.timer'),queued=f.b.timerCallback(nextTimer);
+    f.b.run('showTitleScreen()');
+    assert(!f.frames.has(id),'Leaving stage cancels the pending frame');
+    assert.equal(f.b.timerCallback(nextTimer),undefined,'Leaving stage cancels the modal timer');
     assert(!f.active());assert(f.canvas.hidden);
-    stale(f.b.run('performance.now()'));assert(f.canvas.hidden);
+    stale(f.b.run('performance.now()'));queued();assert(f.canvas.hidden);assert(f.overlay.hidden && !f.overlay.open);
 }
 {
     const f=setup();f.daily();f.clear();
     assert(f.active(),'Daily clear shares the celebration');
     assert.equal(f.b.node('resultTap').hidden,false);
-    f.overlay.close();f.shot(16);
-    assert(!f.active(),'Native dialog closure stops the burst');assert(f.canvas.hidden);
+    assert(f.overlay.hidden && !f.overlay.open);
+    f.b.fireTimer(f.b.run('pendingGoalResult.timer'));
+    assert(f.overlay.open && !f.overlay.hidden);
+    assert(!f.active(),'Showing the Daily result ends the burst');assert(f.canvas.hidden);
 }
 {
     const f=setup();f.normal();
     f.b.run('stamina=1;');f.play();
-    assert.equal(f.b.run('state'),'lost');assert(!f.active());assert(f.canvas.hidden);
+    assert.equal(f.b.run('state'),'lost');assert(!f.active());assert(f.canvas.hidden);assert(f.overlay.open && !f.overlay.hidden);
 }
 {
     const f=setup(true);f.normal();f.clear();
-    assert(f.overlay.open);assert(!f.active(),'Respects reduced motion without changing the result');assert(f.canvas.hidden);
+    assert(f.overlay.hidden && !f.overlay.open);assert(!f.active(),'Respects reduced motion');assert(f.canvas.hidden);
+    f.b.fireTimer(f.b.run('pendingGoalResult.timer'));assert(f.overlay.open && !f.overlay.hidden);
 }
 const html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('styles.css','utf8');
-assert.match(html,/<dialog[^>]+id="overlay"[^>]*>\s*<canvas id="goalCelebration" aria-hidden="true" hidden><\/canvas>\s*<div class="card">/);
-assert.match(css,/#overlay #goalCelebration\s*{[^}]*pointer-events:none;\s*z-index:0;/);
-assert.match(css,/#overlay \.card\s*{[^}]*z-index:1;/);
-console.log('PASS goal celebration: normal/Daily clear, lower emitters, early stars, flutter/fall, end/cancel, no loss/reopen burst, reduced motion and noninteractive card layering');
+assert.match(html,/<section[^>]+id="wall"[^>]*>\s*<canvas id="game"[^>]*><\/canvas>\s*<canvas id="goalCelebration" aria-hidden="true" hidden><\/canvas>/);
+assert.match(css,/#wall > #goalCelebration\s*{[^}]*pointer-events:none;\s*z-index:2;/);
+console.log('PASS goal celebration: normal/Daily clear, lower emitters and opposite-side reach, flutter/fall, 1999/2000ms dialog boundary, early input shielding, stale callback cancellation, immediate failure and reduced motion');

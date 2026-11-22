@@ -104,7 +104,7 @@ for(const action of ['next','closeResult','escape','backdrop']){
  const b=context();normal(b);failByMove(b);b.run('setGameLanguage("en")');assert.equal(b.node('next').textContent,'Back to Map');b.run('setGameLanguage("ja")');assert.equal(b.node('next').textContent,'マップにもどる');
  b.node('next').onclick();b.run('cancelMapReveal();mapPreparing=false;assert(selectStage(1));cameraIntro=null;hideStageHelp();');
  for(let i=1,n=b.run('route.length');i<n;i++)play(b,i);
- assert.equal(b.run('state'),'won');assert.equal(b.node('next').hidden,true);assert.equal(b.node('retry').hidden,true);assert.equal(b.node('resultTap').hidden,false);
+ assert.equal(b.run('state'),'won');b.fireTimer(b.run('pendingGoalResult.timer'));assert.equal(b.node('next').hidden,true);assert.equal(b.node('retry').hidden,true);assert.equal(b.node('resultTap').hidden,false);
  b.node('overlay').events.click({target:b.node('resultTap')});assert.equal(b.run('state'),'map');
 }
 // Fresh STAGE0 still bypasses the normal failure result altogether.

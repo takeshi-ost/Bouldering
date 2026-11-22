@@ -89,7 +89,7 @@ for(const [rating,key] of dates){
  while(featureHelpOpen)dismissStageHelp();advanceCameraIntro(clock);clock+=10000;advanceCameraIntro(clock);assert(!cameraIntro);
  assert.equal(activeCourseGeneration.recipe.spikePercent,CourseProgression.recipe(CourseProgression.resolveDaily(key)).spikePercent);
  for(let i=1;i<route.length;i++){clock+=100;play(i);}
- assert.equal(state,'won');assert.equal(dailyRecords[key].stars,3);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
+ assert.equal(state,'won');presentGoalResult(pendingGoalResult);assert.equal(dailyRecords[key].stars,3);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
  assert.equal(JSON.stringify({stageProgress,stageRecords}),normalBefore,'Daily clear polluted normal progress');
  assert.deepEqual(scoreMetadata(dailyRecords[key]),currentDailyScoreMetadata());assert.equal(dailyRecords[key].scoreSpecVersion,'v4','Arc and six-pair adoption uses new Daily generation without rewriting old dates');assert.equal(dailyRecords[key].moves,moveCount);assert(ui.overlay.open);
  ui.overlay.events.click({target:ui.resultStats});finishAds();assert.equal(state,'daily');assert(!dailyRun && ui.overlay.hidden && !ui.dailyCalendar.hidden);assert(!ui.dailyGrid.innerHTML.includes('daily-stars'));

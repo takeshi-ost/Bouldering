@@ -49,7 +49,7 @@ down({clientX:body.x,clientY:body.y-camera});clock+=1000;release(true);
 assert.equal(moveCount,0);assert.equal(runTimeMs(),6000,'Canceled drag must not erase time');
 clock=8100;play(1);const usedTime=runTimeMs();assert(undoMove());assert.equal(runTimeMs(),usedTime,'Undo must not erase time');
 for(let i=1;i<route.length;i++){clock+=1234;play(i);}
-assert.equal(state,'won');assert(ui.overlay.open && !ui.overlay.hidden);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
+assert.equal(state,'won');presentGoalResult(pendingGoalResult);assert(ui.overlay.open && !ui.overlay.hidden);assert(ui.next.hidden && ui.retry.hidden && ui.closeResult.hidden);assert(!ui.resultTap.hidden);
 assert(ui.resultStats.hidden && !ui.resultStars.hidden && ui.resultDifficulty.hidden);assert(!ui.resultRanking.hidden);assert.equal(ui.resultStars.textContent,'⭐️⭐️⭐️');
 const result=expectedScore({recordVersion:RECORD_VERSION,moves:moveCount,timeMs:Math.floor(clock-1100),stars:3,version:COURSE_VERSION},{appVersion:RELEASE_VERSION,platform:'Web',scoreSpecVersion:COURSE_VERSION});
 assert.deepEqual(stageRecords.existing[1],result);
@@ -72,7 +72,7 @@ clock+=5000;assert.equal(runTimeMs(),500);assert.equal(JSON.stringify(stageRecor
 ui.retry.onclick();assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert(!ui.overlay.open && ui.overlay.hidden);assert.equal(runStartedAt,null);assert.equal(runTimeMs(),0);
 hideStageHelp();advanceCameraIntro(clock);clock+=1000;advanceCameraIntro(clock);
 for(let i=1;i<route.length;i++){clock+=100;play(i);}
-assert.equal(state,'won');assert.equal(stageRecords.existing[1].timeMs,100*moveCount,'Replay must replace with the latest record');
+assert.equal(state,'won');presentGoalResult(pendingGoalResult);assert.equal(stageRecords.existing[1].timeMs,100*moveCount,'Replay must replace with the latest record');
 assert.notEqual(JSON.stringify(stageRecords.existing[1]),firstRecord);
 const latest=JSON.stringify(stageRecords.existing);
 // Separate course records, debug isolation, and unavailable storage.
@@ -86,7 +86,7 @@ data[RECORDS_KEY]=JSON.stringify({existing:{'1':{recordVersion:RECORD_VERSION,mo
 assert.deepEqual(readStageRecords(),{existing:{'1':expectedScore({recordVersion:RECORD_VERSION,moves:2,timeMs:1234})},prototype:{}});data[RECORDS_KEY]=saved;
 const get=storage.getItem;storage.getItem=()=>{throw Error('blocked');};assert.deepEqual(readStageRecords(),{existing:{},prototype:{}});storage.getItem=get;
 const set=storage.setItem;storage.setItem=()=>{throw Error('full');};
-begin();for(let i=1;i<route.length;i++){clock+=10;play(i);}assert.equal(state,'won');assert(stageRecords.prototype[1]);storage.setItem=set;
+begin();for(let i=1;i<route.length;i++){clock+=10;play(i);}assert.equal(state,'won');presentGoalResult(pendingGoalResult);assert(stageRecords.prototype[1]);storage.setItem=set;
 assert.deepEqual(readStageRecords(),JSON.parse(saved),'Previously saved records must survive blocked writes');
 `)(assert,data,storage);
 new Function('assert',env+source+`
@@ -97,25 +97,25 @@ assert(html.includes('<dialog class="overlay" id="overlay"'));
 new Function('assert','data',env+source+`
 for(const moves of [0,1,5,9,10,20,30,40,100])assert.equal(stageStamina(moves),moves+3);
 for(const [difference,stars] of [[-1,3],[0,3],[1,2],[2,2],[3,1],[8,1]]) {
- reset(1);cameraIntro=null;debugAttempt=true;moveCount=route.length-1+difference;finish(true);
+ reset(1);cameraIntro=null;debugAttempt=true;moveCount=route.length-1+difference;finish(true);presentGoalResult(pendingGoalResult);
  assert.equal(ui.resultStars.textContent,'⭐️'.repeat(stars));assert(!ui.resultStars.hidden && !ui.resultRanking.hidden);
 }
 // Display labels use the selected rule profile, including daily runs.
 for(const [value,label] of [[0,'EASY'],[1,'EASY'],[2,'NORMAL'],[3,'HARD']]) {
- difficulty=value;courseTypeId=[0,1,2,6][value];finish(true);
+ difficulty=value;courseTypeId=[0,1,2,6][value];finish(true);presentGoalResult(pendingGoalResult);
  assert.equal(courseTypeLabel(courseTypeId),label);
  assert.equal(ui.resultDifficulty.textContent,label);assert(ui.resultDifficulty.hidden && !ui.resultRanking.hidden);
  debugMode=true;updateUI();assert(ui.progress.textContent.endsWith('/ '+label));
  dailyRun={...dailyProfile('2026-10-17'),difficulty:value,returnCourse:'existing'};
- finish(true);assert.equal(ui.resultDifficulty.textContent,'10月17日（土）');assert(!ui.resultDifficulty.hidden && ui.resultRanking.hidden);
+ finish(true);presentGoalResult(pendingGoalResult);assert.equal(ui.resultDifficulty.textContent,'10月17日（土）');assert(!ui.resultDifficulty.hidden && ui.resultRanking.hidden);
  dailyRun=null;
 }
 finish(false);assert(ui.resultStars.hidden && ui.resultStars.textContent==='');
 assert(ui.resultDifficulty.hidden);assert.equal(ui.resultDifficulty.textContent,'');
 debugMode=false;
 // Map stars retain the highest rating and slower clears cannot replace a best.
-debugAttempt=false;reset(1);moveCount=route.length-2;finish(true);assert.equal(stageRecords.existing[1].stars,3);
-const bestBefore=stageRecords.existing[1].moves;moveCount=route.length+2;finish(true);assert.equal(stageRecords.existing[1].stars,3);assert.equal(stageRecords.existing[1].moves,bestBefore);
+debugAttempt=false;reset(1);moveCount=route.length-2;finish(true);presentGoalResult(pendingGoalResult);assert.equal(stageRecords.existing[1].stars,3);
+const bestBefore=stageRecords.existing[1].moves;moveCount=route.length+2;finish(true);presentGoalResult(pendingGoalResult);assert.equal(stageRecords.existing[1].stars,3);assert.equal(stageRecords.existing[1].moves,bestBefore);
 assert.equal(readStageRecords().existing[1].stars,3);
 showLevelMap();assert(ui.mapNodes.innerHTML.includes('⭐️⭐️⭐️'));assert(ui.mapNodes.innerHTML.includes('3スター'));
 const savedRecords=data[RECORDS_KEY];
@@ -164,7 +164,7 @@ try {
  assert(!ui.retry.hidden && !ui.closeResult.hidden);
  ui.closeResult.onclick();assert.equal(state,'daily');assert(ui.overlay.hidden);
  for(const daily of [null,{...dailyProfile('2026-10-17'),returnCourse:'existing'}]) {
-  dailyRun=daily;finish(true);assert(!ui.resultTip.hidden);assert(GAMEPLAY_TIPS.includes(ui.resultTipText.textContent));
+  dailyRun=daily;finish(true);presentGoalResult(pendingGoalResult);assert(!ui.resultTip.hidden);assert(GAMEPLAY_TIPS.includes(ui.resultTipText.textContent));
   const tip=ui.resultTipText.textContent;updateUI();assert.equal(ui.resultTipText.textContent,tip);
  }
  dailyRun=null;

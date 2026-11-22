@@ -196,17 +196,36 @@ function formatClearTime(ms) {
         .map(n=>String(n).padStart(2,'0')).join(':');
 }
 function formatStageRecord(record) { return gameText("game.formatStageRecord", {value0: record.moves, value1: formatClearTime(record.timeMs)}); }
+const GOAL_RESULT_DELAY_MS=2000;
+let pendingGoalResult=null;
 function hideResultModal() {
+    if(pendingGoalResult){clearTimeout(pendingGoalResult.timer);pendingGoalResult=null;}
     if(typeof stopGoalCelebration==='function')stopGoalCelebration();
     if(ui.overlay.open)ui.overlay.close?.();
     ui.overlay.hidden=true;
 }
 function showResultModal() {
+    if(pendingGoalResult)return;
     requestGameRender();
     ui.overlay.hidden=false;
     if(!ui.overlay.open)ui.overlay.showModal?.();
 }
 
+// Commit the clear immediately; delay only presenting its result.
+function scheduleGoalResult() {
+    hideResultModal();
+    const pending=pendingGoalResult={timer:null};
+    pending.timer=setTimeout(()=>presentGoalResult(pending),GOAL_RESULT_DELAY_MS);
+    if(typeof startGoalCelebration==='function')startGoalCelebration(ui.wall);
+    requestGameRender();
+}
+function presentGoalResult(pending) {
+    if(!pending || pendingGoalResult!==pending)return;
+    clearTimeout(pending.timer);
+    pendingGoalResult=null;
+    if(typeof stopGoalCelebration==='function')stopGoalCelebration();
+    if(state==='won')showResultModal();
+}
 
 function generate(n) {
     ({ holds, route, HEIGHT, initialGrips, densityStats } = stageGenerator.generate(n,false,courseSeed(n),dailyRun?.baseSeed??courseSeed(n),dailyRun?dailyDistribution():stageDistribution(n)));
@@ -1075,7 +1094,7 @@ function release(cancel = false) {
 }
 
 function canUndoMove() {
-    return !!undoSnapshot && !featureHelpOpen && !settingsOpen && !drag && !cameraIntro && ['playing','won','lost'].includes(state);
+    return !!undoSnapshot && !pendingGoalResult && !featureHelpOpen && !settingsOpen && !drag && !cameraIntro && ['playing','won','lost'].includes(state);
 }
 function undoMove() {
     if (!canUndoMove()) return false;
@@ -1103,6 +1122,7 @@ function undoMove() {
 
 function finish(won) {
     if(typeof isTutorialRun==='function' && isTutorialRun())return finishTutorialRun(won);
+    if(pendingGoalResult)return;
     const wasPlaying=state==='playing';
     if(wasPlaying)playSound(won?'clear':'fail');
     settleLifeAttempt(won);
@@ -1149,9 +1169,8 @@ function finish(won) {
 
     hideSettings();
     updateUI();
-    showResultModal();
-    if(won && wasPlaying && typeof startGoalCelebration==='function')startGoalCelebration(ui.overlay);
-    else if(!won && typeof stopGoalCelebration==='function')stopGoalCelebration();
+    if(won && wasPlaying && !activeDebugScoreTrial())scheduleGoalResult();
+    else showResultModal();
 }
 
 // RAF time is injected so tests can advance the opening without real waits.

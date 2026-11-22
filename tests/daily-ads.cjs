@@ -27,7 +27,7 @@ SixPairSelection.withBaseline(()=>{for(let i=1;i<route.length;i++){
  assert(validFingerAction(route[i].action));down(e({dx:0,dy:0}));
  for(const point of route[i].action.points)move(e(point));release();
 }});
-assert.equal(state,'won');ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd,'No post-clear daily ad');
+assert.equal(state,'won');presentGoalResult(pendingGoalResult);ui.next.onclick();assert.equal(state,'daily');assert(!dummyAd,'No post-clear daily ad');
 const before=JSON.stringify(dailyPlayAdState);assert(!selectDailyDate(key));assert.equal(JSON.stringify(dailyPlayAdState),before);
 // Play 2 is the first attempt on another date, so cadence cannot be date-local.
 assert(selectDailyDate(repeat));assert.equal(state,'ad');assert(!dailyAttempts[repeat]);assert(!selectDailyDate(other));done();assert.equal(dailyAttempts[repeat],1);

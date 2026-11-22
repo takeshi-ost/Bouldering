@@ -3,11 +3,11 @@ let touchId = null;
 let pan = null;
 let ignoreTouches = false;
 function endPan() { pan = null; }
-function canScrollStage() { return !featureHelpOpen && !settingsOpen && ['playing','won','lost'].includes(state) && ui.overlay.hidden && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT-H > cameraTop(); }
+function canScrollStage() { return !pendingGoalResult && !featureHelpOpen && !settingsOpen && ['playing','won','lost'].includes(state) && ui.overlay.hidden && characterAnimation?.kind!=='fall' && !cameraIntro && HEIGHT-H > cameraTop(); }
 // Delay a body gesture until it becomes a drag, preserving the visible pose on tap.
 function beginPointer(e) {
     if(typeof TouchPairPreview!=='undefined')TouchPairPreview.hide();
-    if (featureHelpOpen || settingsOpen || !ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
+    if (pendingGoalResult || featureHelpOpen || settingsOpen || !ui.overlay.hidden || bodyTap || drag || cameraIntro || !['playing','won','lost'].includes(state)) return;
     const p=point(e);
     if(p.x>=0 && p.x<=W && (p.x<INPUT_CONFIG.edgeScrollWidth || p.x>W-INPUT_CONFIG.edgeScrollWidth)) {
         if(typeof SixPairAngleOverlay!=='undefined')SixPairAngleOverlay.reset();
@@ -150,6 +150,7 @@ function restartInput(n,staminaBonus=0) {
     bodyTap=null;endPan(); touchId = null; ignoreTouches = false; reset(n,staminaBonus);showStageHelp();
 }
 ui.next.onclick = () => {
+    if(pendingGoalResult)return;
     if(activeDebugScoreTrial() && state==='won'){
         if(ui.overlay.hidden)return;
         if(debugCourseTrial.score<100)startDebugScoreTrial(debugCourseTrial.score+1);else showLevelMap();
@@ -174,6 +175,7 @@ ui.restart.onclick=()=>{
     finish(false);
 };
 function returnFromStage() {
+    if(pendingGoalResult)return;
     if(typeof isTutorialRun==='function' && isTutorialRun()) {finishTutorialRun(false);return;}
     if(!['playing','won','lost'].includes(state))return;
     if(dailyRun) {

@@ -27,7 +27,7 @@ ui.closeResult.onclick();assert.equal(state,'map');assert(!dummyAd);assert.equal
 assert(!selectStage(11));assert.equal(state,'life-prompt');assert(ui.lifeDialog.open);assert(!dummyAd);
 ui.lifeWatchAd.onclick();assert.equal(state,'ad');assert.equal(lives.count,0);assert.equal(playsSinceAd,3);
 completeAd();assert.equal(lives.count,1);assert(ui.stageStartDialog.open);assert.equal(playsSinceAd,3,'Recovery ad must not reset the regular-ad counter');
-ui.stageStartButton.onclick();assert.equal(state,'playing');finish(true);assert.equal(playsSinceAd,4);ui.closeResult.onclick();assert.equal(state,'ad','Regular ad remains due on a later eligible result');
+ui.stageStartButton.onclick();assert.equal(state,'playing');finish(true);presentGoalResult(pendingGoalResult);assert.equal(playsSinceAd,4);ui.closeResult.onclick();assert.equal(state,'ad','Regular ad remains due on a later eligible result');
 assert.equal(playsSinceAd,4);completeAd();assert.equal(state,'map');assert.equal(playsSinceAd,0);
 // Retry also bypasses the regular ad but still offers the recovery ad.
 prepare(1);finish(false);finish(false);assert.equal(lives.count,0);assert.equal(playsSinceAd,3);ui.retry.onclick();assert.equal(state,'life-prompt');assert(!dummyAd);
@@ -45,7 +45,7 @@ prepare(1,3,10);finish(false);finish(false);assert.equal(lives.count,0);assert.e
 ui.retry.onclick();assert.equal(state,'life-prompt');assert(!dummyAd);
 ui.lifeWatchAd.onclick();assert.equal(state,'ad');completeAd();assert.equal(lives.count,1);assert.equal(playsSinceAd,3);
 assert(ui.stageStartDialog.open);ui.stageStartButton.onclick();assert.equal(level,10);assert.equal(state,'playing');
-finish(true);ui.closeResult.onclick();assert.equal(state,'map');assert(!dummyAd);assert.equal(playsSinceAd,3);
+finish(true);presentGoalResult(pendingGoalResult);ui.closeResult.onclick();assert.equal(state,'map');assert(!dummyAd);assert.equal(playsSinceAd,3);
 `)(assert,data,storage);
 console.log('PASS normal ads/lives: last-life failure, map/retry recovery, remaining-life cadence, completion-only counter reset, retained skipped counter, independent recovery ad, direct retirement settlement');
 }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}
