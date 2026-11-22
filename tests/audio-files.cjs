@@ -1,4 +1,4 @@
-const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),{createHash}=require('node:crypto');
 const source=fs.readFileSync('js/audio.js','utf8');
 const nativeStatusZero=process.argv.includes('--native-status-zero');
 const events={},sources=[],requests=[],decoded=[];let release;
@@ -12,9 +12,19 @@ class Audio {
  createGain(){return {gain:{value:0,setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},disconnect(){}};}
  async decodeAudioData(bytes){
   const b=Buffer.from(bytes);assert.equal(b.toString('ascii',0,4),'RIFF');assert.equal(b.toString('ascii',8,12),'WAVE');
-  assert.equal(b.readUInt16LE(20),1);assert.equal(b.readUInt16LE(22),1);assert.equal(b.readUInt32LE(24),44100);assert.equal(b.readUInt16LE(34),16);
-  let peak=0;for(let i=44;i<b.length;i+=2)peak=Math.max(peak,Math.abs(b.readInt16LE(i)));assert(peak>1000 && peak<32767,'Audible, unclipped dummy');
-  decoded.push(bytes);return {duration:(b.length-44)/88200,decoded:true};
+  let fmt, samples;
+  for(let pos=12;pos+8<=b.length;){
+   const size=b.readUInt32LE(pos+4),tag=b.toString('ascii',pos,pos+4);
+   assert(pos+8+size<=b.length);
+   if(tag==='fmt ')fmt=b.subarray(pos+8,pos+8+size);
+   if(tag==='data')samples=b.subarray(pos+8,pos+8+size);
+   pos+=8+size+(size%2);
+  }
+  assert(fmt && samples);const channels=fmt.readUInt16LE(2);
+  assert.equal(fmt.readUInt16LE(0),1);assert([1,2].includes(channels));assert.equal(fmt.readUInt32LE(4),44100);assert.equal(fmt.readUInt16LE(14),16);
+  let peak=0;for(let i=0;i<samples.length;i+=2)peak=Math.max(peak,Math.abs(samples.readInt16LE(i)));assert(peak>1000 && peak<32767,'Audible, unclipped PCM');
+  const hash=createHash('sha256').update(b).digest('hex');
+  decoded.push(bytes);return {duration:samples.length/(88200*channels),channels,hash,decoded:true};
  }
 }
 const env={assert,AudioContext:Audio,document:{getElementById:()=>({}),addEventListener:(type,fn)=>events[type]=fn},window:{addEventListener:(type,fn)=>events[type]=fn},
@@ -32,8 +42,14 @@ const fileCount=vm.runInContext('Object.keys(SOUND_FILES).length',context);
  await vm.runInContext("Promise.all(Object.keys(SOUND_FILES).map(name=>prepareSoundFile(name)))",context);
  assert.equal(decoded.length,fileCount);assert.equal(sources.length,count,'A completed download must not replay a stale event');
  vm.runInContext("setSoundEnabled(true);soundContext.currentTime=1;assert(playSound('start'));soundContext.currentTime=2;assert(playSound('clear'));soundContext.currentTime=3;assert(playSound('fail'));soundContext.currentTime=4;assert(playSound('move'));soundContext.currentTime=5;assert(playSound('launch'));",context);
- vm.runInContext("for(const name of ['heart','hazard','mapStep']){soundContext.currentTime+=1;assert(playSound(name));}",context);
+ vm.runInContext("for(const name of ['heart','hazard','mapStep','goalClear']){soundContext.currentTime+=1;assert(playSound(name));}",context);
  const files=sources.filter(s=>s.buffer?.decoded);assert.equal(files.length,fileCount);assert(files.every(s=>s.kind==='buffer' && s.buffer.duration>0));assert.equal(files[4].output.gain.value,1,'Launch reference volume is unchanged');assert(files[3].output.gain.value>files[4].output.gain.value,'Move receives its own gain boost before the user volume bus');
+ const goal=files.at(-1);assert.equal(goal.buffer.duration,2);assert.equal(goal.buffer.channels,2);
+ assert.equal(goal.buffer.hash,'34b3601993757b920059bbbe2bae636a71390016766361073db22501d953e299','Exact approved cracker + cheer asset');
+ assert.equal(goal.started,9);assert.equal(goal.output.gain.value,1);
+ vm.runInContext('setSoundVolume(.35);',context);assert.equal(vm.runInContext('soundEffectsGain.gain.value',context),.35);
+ vm.runInContext("soundContext.state='suspended';assert(!playSound('goalClear'));assert.equal(pendingSound,null);soundContext.state='running';flushPendingSound();",context);
+ assert.equal(sources.filter(s=>s.buffer?.decoded).length,fileCount,'Goal sound never queues a late replay');
  await vm.runInContext("Promise.all(Object.keys(SOUND_FILES).map(name=>prepareSoundFile(name)))",context);
  assert.equal(requests.length,fileCount);assert.equal(decoded.length,fileCount,'One decode per file/context');
  events.blur();assert(files.every(s=>s.stopped));

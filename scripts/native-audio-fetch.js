@@ -11,7 +11,7 @@
         '/assets/audio/heart-recovery.wav', '/assets/audio/hazard-fix.wav',
         '/assets/audio/map-steps.wav',
         '/assets/audio/stage-start.wav', '/assets/audio/stage-clear.wav',
-        '/assets/audio/stage-fail.wav'
+        '/assets/audio/stage-fail.wav', '/assets/audio/goal-clear.wav'
     ]);
     const diagnostics = globalThis.ASCENT_NATIVE_AUDIO = {normalized: []};
     globalThis.fetch = async (input, init) => {

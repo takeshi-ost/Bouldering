@@ -6,6 +6,9 @@ const {boot}=require('./tutorial-modals.cjs');
 function setup(reduced=false){
     const b=boot(new Map([['ascent.progress.v1.r1','{"recordVersion":"r1","existing":{"cleared":4}}']]));
     const overlay=b.node('overlay'),canvas=b.node('goalCelebration'),wall=b.node('wall');
+    const sounds=[];
+    b.node('test-internals').noteSound=(name,time,burstStart)=>sounds.push({name,time,burstStart});
+    b.run("const originalPlaySound=playSound;playSound=(name,...args)=>{document.getElementById('test-internals').noteSound(name,performance.now(),goalCelebration?.start);return originalPlaySound(name,...args);};");
     const frames=new Map();
     let count=0, current, particle=null;
     const trace={paper:[],stars:[],setup:[]};
@@ -57,11 +60,14 @@ function setup(reduced=false){
         b.run(`SixPairSelection.withBaseline(()=>{const target=route[${index}];assert(validFingerAction(target.action));down({clientX:200,clientY:500});for(const p of target.action.points)move({clientX:200+p.dx,clientY:500+p.dy});release();});`);
     };
     const clear=()=>{
-        for(let i=1,n=b.run('route.length');i<n;i++)play(i);
+        for(let i=1,n=b.run('route.length');i<n;i++){
+            if(i===n-1)b.run('runStartedAt=performance.now()-3456.75;');
+            play(i);
+        }
         assert.equal(b.run('state'),'won');
     };
     const active=()=>Boolean(b.run('goalCelebration'));
-    return {b,canvas,overlay,frames,trace,shot,normal,daily,play,clear,active};
+    return {b,canvas,overlay,frames,trace,shot,normal,daily,play,clear,active,sounds};
 }
 
 {
@@ -70,9 +76,13 @@ function setup(reduced=false){
     f.clear();
     assert(f.active());assert(!f.canvas.hidden);
     assert(f.overlay.hidden && !f.overlay.open,'Burst launches before the result is visible');
+    const clearSounds=()=>f.sounds.filter(s=>s.name==='goalClear' || s.name==='clear');
+    assert.deepEqual(clearSounds(),[{name:'goalClear',time:1000,burstStart:1000}]);
     assert.equal(f.b.node('resultTap').hidden,false);
     const timer=f.b.run('pendingGoalResult.timer');
     const record=f.b.run('JSON.stringify(stageRecords)');
+    const normalTime=()=>f.b.run('[runElapsedMs,runTimeMs(),stageRecords.existing[1].timeMs].join(",")');
+    assert.equal(normalTime(),'3456,3456,3456','Goal commit freezes and saves elapsed time before celebration');
     f.b.run('beginPointer({clientX:200,clientY:420});beginPointer({clientX:4,clientY:420});assert(!bodyTap && !drag && !pan);assert(!canUndoMove());assert(!canScrollStage());ui.next.onclick();returnFromStage();showResultModal();finish(true);');
     f.overlay.events.click({target:f.b.node('resultTap')});
     f.overlay.events.cancel({preventDefault(){}});
@@ -94,6 +104,9 @@ function setup(reduced=false){
     f.b.advance(759);assert(f.overlay.hidden && !f.overlay.open,'Still hidden at 1999ms');
     f.b.fireTimer(timer);assert.equal(f.b.run('performance.now()'),3000,'Opens at 2000ms after clear');
     assert(f.overlay.open && !f.overlay.hidden);
+    assert.equal(clearSounds().length,1,'No old or repeated cue as result opens');
+    assert.equal(normalTime(),'3456,3456,3456','Normal result delay is not part of the clear time');
+    assert.equal(f.b.run('ui.resultStats.textContent'),f.b.run('formatStageRecord({moves:moveCount,timeMs:3456})'));
     assert(!f.active());assert(f.canvas.hidden);
     f.b.run('showResultModal()');assert(!f.active(),'Reopening a result does not replay the burst');
     f.b.node('overlay').events.click({target:f.b.node('resultTap')});
@@ -111,9 +124,14 @@ function setup(reduced=false){
 {
     const f=setup();f.daily();f.clear();
     assert(f.active(),'Daily clear shares the celebration');
+    assert.deepEqual(f.sounds.filter(s=>s.name==='goalClear'||s.name==='clear'),[{name:'goalClear',time:1000,burstStart:1000}]);
     assert.equal(f.b.node('resultTap').hidden,false);
     assert(f.overlay.hidden && !f.overlay.open);
+    const dailyTime=()=>f.b.run('[runElapsedMs,runTimeMs(),dailyRecords["2026-01-01"].timeMs].join(",")');
+    assert.equal(dailyTime(),'3456,3456,3456','Daily goal records elapsed time immediately');
     f.b.fireTimer(f.b.run('pendingGoalResult.timer'));
+    assert.equal(dailyTime(),'3456,3456,3456','Daily result delay is not part of the clear time');
+    assert.equal(f.b.run('ui.resultStats.textContent'),f.b.run('formatStageRecord({moves:moveCount,timeMs:3456})'));
     assert(f.overlay.open && !f.overlay.hidden);
     assert(!f.active(),'Showing the Daily result ends the burst');assert(f.canvas.hidden);
 }
@@ -121,6 +139,7 @@ function setup(reduced=false){
     const f=setup();f.normal();
     f.b.run('stamina=1;');f.play();
     assert.equal(f.b.run('state'),'lost');assert(!f.active());assert(f.canvas.hidden);assert(f.overlay.open && !f.overlay.hidden);
+    assert.deepEqual(f.sounds.filter(s=>['goalClear','clear','fail'].includes(s.name)).map(s=>s.name),['fail']);
 }
 {
     const f=setup(true);f.normal();f.clear();

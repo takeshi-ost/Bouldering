@@ -7,7 +7,6 @@ const read=file=>fs.readFileSync(file,'utf8');
 const protectedFiles={
  'js/appearance.js':'97d112b38c0ee3a1bc78abb78a932aadd2f6141b8b07ba719fbbc35b29cbdbb8',
  'js/lives.js':'43566a05fc33a0ba6d071180f8ad86a775219064b30df1746847e85d69fdbd3b',
- 'js/audio.js':'993cf413c7fade055cf6668a2ca4ec59dcbfc2885bb0b4d421de2c31ab99bc48',
  'js/bgm.js':'f62ff99b237fa0765a81faa40c00cd0d1f04a00986aa000a7cae22bd63366449',
  'scripts/pages-storage.js':'6e3f3bf0f9abbfce8a080e1c0ffc2abfc9d9bae3ca759483da631840bdf02dae',
  'scripts/native-resume-adapter.cjs':'f527882bc56d5cae3549d0b897fd9c8b9bc0a4b069eb54170772947e51db629b',
@@ -15,6 +14,11 @@ const protectedFiles={
  'capacitor.config.json':'241eed1591ea9bbdd698d973ec9fe74802e186512f0c4f10b3de9377fb548863'
 };
 for(const [file,hash]of Object.entries(protectedFiles))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),hash,'Unrelated boundary changed: '+file);
+// Protect the existing audio paths while allowing only the new goal cue.
+const originalAudio=read('js/audio.js')
+ .replace(/^    goalClear:[^\n]+\n/gm,'')
+ .replace("        if(SOUND_FILES[name]?.queueWhenSuspended!==false && (SOUND_NOTES[name] || SOUND_FILES[name]))\n            pendingSound={name,at:Date.now()};","        if(SOUND_NOTES[name] || SOUND_FILES[name])pendingSound={name,at:Date.now()};");
+assert.equal(crypto.createHash('sha256').update(originalAudio).digest('hex'),'993cf413c7fade055cf6668a2ca4ec59dcbfc2885bb0b4d421de2c31ab99bc48','Unrelated audio boundary changed');
 // Preserve the reviewed failure-return ad policy and cadence exactly.
 const originalAds=read('js/ads.js')
  .replace('// Result dismissal and retry share settlement; callers can suppress the ad\n// without resetting the accumulated play count.','// Result dismissal and retry share the same end-of-play ad gate.')

@@ -364,7 +364,7 @@ A5A100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.pli
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.36;
+				MARKETING_VERSION = 0.5.37;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
 				PRODUCT_BUNDLE_IDENTIFIER = local.ascent.simulator.t20261024;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -390,7 +390,7 @@ A5A100000000000000000007 = {isa = PBXFileReference; lastKnownFileType = text.pli
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.36;
+				MARKETING_VERSION = 0.5.37;
 				PRODUCT_BUNDLE_IDENTIFIER = local.ascent.simulator.t20261024;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";

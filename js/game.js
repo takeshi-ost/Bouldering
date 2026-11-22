@@ -217,6 +217,7 @@ function scheduleGoalResult() {
     const pending=pendingGoalResult={timer:null};
     pending.timer=setTimeout(()=>presentGoalResult(pending),GOAL_RESULT_DELAY_MS);
     if(typeof startGoalCelebration==='function')startGoalCelebration(ui.wall);
+    playSound('goalClear');
     requestGameRender();
 }
 function presentGoalResult(pending) {
@@ -1123,10 +1124,12 @@ function undoMove() {
 function finish(won) {
     if(typeof isTutorialRun==='function' && isTutorialRun())return finishTutorialRun(won);
     if(pendingGoalResult)return;
+    const finishTime=performance.now();
     const wasPlaying=state==='playing';
-    if(wasPlaying)playSound(won?'clear':'fail');
+    const celebrate=won && wasPlaying && !activeDebugScoreTrial();
+    if(wasPlaying && !celebrate)playSound(won?'clear':'fail');
     settleLifeAttempt(won);
-    runElapsedMs=Math.floor(runTimeMs());runStartedAt=null;
+    runElapsedMs=Math.floor(runTimeMs(finishTime));runStartedAt=null;
     state = won ? 'won' : 'lost';
     recordAdPlay();
     if(won) {
@@ -1169,7 +1172,7 @@ function finish(won) {
 
     hideSettings();
     updateUI();
-    if(won && wasPlaying && !activeDebugScoreTrial())scheduleGoalResult();
+    if(celebrate)scheduleGoalResult();
     else showResultModal();
 }
 

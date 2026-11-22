@@ -43,6 +43,7 @@ const SOUND_FILES=Object.freeze({
     launch:{src:'assets/audio/launch.wav?v=b249caf6daf6',volume:1},
     start:{src:'assets/audio/stage-start.wav?v=a118bc59616d',volume:1},
     clear:{src:'assets/audio/stage-clear.wav?v=1ff713c6772b',volume:1},
+    goalClear:{src:'assets/audio/goal-clear.wav?v=34b360199375',volume:1,queueWhenSuspended:false},
     fail:{src:'assets/audio/stage-fail.wav?v=ebca63cdb2cb',volume:1}
 });
 // Missing, undecodable, or not-yet-ready files use a short cue immediately, never a late replay.
@@ -52,6 +53,7 @@ const SOUND_FILE_FALLBACKS={
     launch:[[523,523,0,.15,'triangle',.35],[659,659,.06,.18,'sine',.3],[784,784,.12,.3,'sine',.3]],
     start:[[392,392,0,.09,'triangle',.35],[523,523,.09,.16,'sine',.5]],
     clear:[[523,523,0,.14,'triangle',.4],[659,659,.11,.14,'triangle',.4],[784,784,.22,.15,'triangle',.4],[1047,1047,.34,.3,'sine',.5]],
+    goalClear:[[0,0,0,.09,'noise',.7]],
     fail:[[330,220,0,.2,'triangle',.35],[220,110,.17,.32,'sine',.5]],
 };
 const soundFileCache=new Map();
@@ -147,7 +149,8 @@ function setSoundEnabled(enabled) {
 function playSound(name,delaySeconds=0) {
     if(!soundEnabled || !soundContext || document.hidden)return false;
     if(soundContext.state!=='running') {
-        if(SOUND_NOTES[name] || SOUND_FILES[name])pendingSound={name,at:Date.now()};
+        if(SOUND_FILES[name]?.queueWhenSuspended!==false && (SOUND_NOTES[name] || SOUND_FILES[name]))
+            pendingSound={name,at:Date.now()};
         return false;
     }
     const notes=SOUND_NOTES[name] || SOUND_FILE_FALLBACKS[name],now=soundContext.currentTime+Math.max(0,Number.isFinite(delaySeconds)?delaySeconds:0);

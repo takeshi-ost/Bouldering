@@ -21,7 +21,8 @@ function setup(protocol = 'capacitor:', response = raw()) {
     // silently fall back only on WKURLSchemeHandler's status-0 responses.
     const audioSource=fs.readFileSync('js/audio.js','utf8');
     const files=[...audioSource.matchAll(/src:'assets\/audio\/([^'?]+)(?:\?[^']*)?'/g)].map(m=>m[1]);
-    assert.equal(files.length,8);
+    assert.equal(files.length,9);
+    assert(files.includes('goal-clear.wav'));
     for (const name of ['bgm-stage-loop.mp3', ...files]) {
         assert((await env.fetch(`assets/audio/${name}`)).ok);
     }

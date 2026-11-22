@@ -51,8 +51,8 @@ const sounds=[];playSound=name=>{sounds.push(name);};
 reset(1);advanceCameraIntro(0);assert.deepEqual(sounds,['start']);assert(cameraIntro);advanceCameraIntro(2000);assert.equal(sounds.filter(s=>s==='start').length,1);
 sounds.length=0;const beforeMove=route.length;
 for(let i=1;i<route.length;i++){servicePlayStep(i);}
-assert.equal(haptics.filter(s=>s==='strong').length,beforeMove-1);assert.equal(state,'won');assert.equal(sounds.filter(s=>s==='clear').length,1);assert.equal(sounds.filter(s=>s==='move').length,beforeMove-2);
-finish(true);assert.equal(sounds.filter(s=>s==='clear').length,1);
+assert.equal(haptics.filter(s=>s==='strong').length,beforeMove-1);assert.equal(state,'won');assert.equal(sounds.filter(s=>s==='goalClear').length,1);assert(!sounds.includes('clear'));assert.equal(sounds.filter(s=>s==='move').length,beforeMove-2);
+finish(true);assert.equal(sounds.filter(s=>s==='goalClear').length,1);assert(!sounds.includes('clear'));
 reset(1);cameraIntro=null;camera=clamp(body.y-H*.6,0,HEIGHT-H);const pointFor=p=>({clientX:p.x,clientY:p.y-camera});servicePlayStep(1);const beforeUndo=sounds.filter(s=>s==='move').length;assert(undoMove());assert.equal(sounds.filter(s=>s==='move').length,beforeUndo+1);hearts=[{x:body.x,y:body.y,collected:false}];collectHearts(body,body);collectHearts(body,body);assert.equal(sounds.filter(s=>s==='heart').length,1);
 finish(false);assert.equal(sounds.filter(s=>s==='fail').length,1);
 // Shared cues must be emitted once by the actual UI/event hooks.
