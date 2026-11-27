@@ -33,6 +33,10 @@ const privacySource=path.resolve(__dirname,'../privacy/index.html');
 const privacyOutput=path.join(out,'privacy');
 fs.mkdirSync(privacyOutput,{recursive:true});
 fs.copyFileSync(privacySource,path.join(privacyOutput,'index.html'));
+// Standalone support shares the public policy's origin and has no game scripts.
+const supportOutput=path.join(out,'support');
+fs.mkdirSync(supportOutput,{recursive:true});
+fs.copyFileSync(path.resolve(__dirname,'../support/index.html'),path.join(supportOutput,'index.html'));
 
 fs.writeFileSync(path.join(out,'.nojekyll'),'');
 fs.writeFileSync(path.join(out,'index.html'),`<!doctype html>
